@@ -2,7 +2,7 @@
 
 import { HomeIcon, MoonIcon, MoreVerticalIcon, SunIcon } from 'lucide-react';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,12 +33,11 @@ export function NavUser() {
   const { isMobile } = useSidebar();
   const t = useTranslations();
   const { setTheme, resolvedTheme } = useTheme();
-  const initials = user.name
+  const initials = user.firstName
     ?.split(' ')
     .slice(0, 1)
     .map((name) => name[0])
     .join('. ');
-  const name = user.name?.split(' ').slice(1).join(' ').trim();
 
   return (
     <SidebarMenu>
@@ -50,15 +49,11 @@ export function NavUser() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                {user.image ? (
-                  <AvatarImage src={user.image} alt={user.name ?? ''} />
-                ) : (
-                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
-                )}
+                <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
-                  {name} {initials}
+                  {user.firstName} {user.lastName}
                 </span>
                 <span className="truncate text-xs opacity-90">{user.email}</span>
               </div>
@@ -74,15 +69,11 @@ export function NavUser() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  {user.image ? (
-                    <AvatarImage src={user.image} alt={user.name ?? ''} />
-                  ) : (
-                    <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
-                  )}
+                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">
-                    {name} {initials}
+                    {user.firstName} {user.lastName}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
                     {user.email}

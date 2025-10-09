@@ -1,7 +1,12 @@
-import { defineTable } from 'convex/server'
-import { v } from 'convex/values'
-import { addressValidator } from '../lib/validators'
-import { AppointmentStatus, AppointmentType, ParticipantRole, ParticipantStatus } from '../lib/constants'
+import { defineTable } from 'convex/server';
+import { v } from 'convex/values';
+import {
+  addressValidator,
+  appointmentStatusValidator,
+  appointmentTypeValidator,
+  participantRoleValidator,
+  participantStatusValidator,
+} from '../lib/validators';
 
 export const appointments = defineTable({
   // Planification
@@ -9,24 +14,8 @@ export const appointments = defineTable({
   endAt: v.number(),
   timezone: v.string(),
 
-  type: v.union(
-    v.literal(AppointmentType.DocumentSubmission),
-    v.literal(AppointmentType.DocumentCollection),
-    v.literal(AppointmentType.Interview),
-    v.literal(AppointmentType.MarriageCeremony),
-    v.literal(AppointmentType.Emergency),
-    v.literal(AppointmentType.Other),
-    v.literal(AppointmentType.Consultation),
-  ),
-  status: v.union(
-    v.literal(AppointmentStatus.Pending),
-    v.literal(AppointmentStatus.Scheduled),
-    v.literal(AppointmentStatus.Confirmed),
-    v.literal(AppointmentStatus.Completed),
-    v.literal(AppointmentStatus.Cancelled),
-    v.literal(AppointmentStatus.Missed),
-    v.literal(AppointmentStatus.Rescheduled),
-  ),
+  type: appointmentTypeValidator,
+  status: appointmentStatusValidator,
 
   // Organisation
   organizationId: v.id('organizations'),
@@ -36,18 +25,10 @@ export const appointments = defineTable({
   // Participants
   participants: v.array(
     v.object({
-      userId: v.id("users"),
-      role: v.union(
-        v.literal(ParticipantRole.Attendee),
-        v.literal(ParticipantRole.Agent),
-        v.literal(ParticipantRole.Organizer),
-      ),
-      status: v.union(
-        v.literal(ParticipantStatus.Confirmed),
-        v.literal(ParticipantStatus.Tentative),
-        v.literal(ParticipantStatus.Declined),
-      ),
-    })
+      userId: v.id('users'),
+      role: participantRoleValidator,
+      status: participantStatusValidator,
+    }),
   ),
 
   // Lieu
@@ -59,4 +40,4 @@ export const appointments = defineTable({
 })
   .index('by_time', ['startAt'])
   .index('by_organization', ['organizationId'])
-  .index('by_status', ['status'])
+  .index('by_status', ['status']);

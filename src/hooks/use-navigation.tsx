@@ -29,7 +29,8 @@ import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { CountBadge } from '@/components/layouts/count-badge';
 import { useCurrentUser } from './use-current-user';
-import { api } from '@/trpc/react';
+import { useQuery } from 'convex/react';
+import { api } from 'convex/_generated/api';
 
 export type NavMainItem = {
   title: string;
@@ -50,8 +51,12 @@ export type UserNavigationItem = {
 export function useNavigation() {
   const t = useTranslations('navigation.menu');
   const { user } = useCurrentUser();
-  const { data: unreadNotifications } = api.notifications.getUnreadCount.useQuery();
-  if (!user) return { menu: [], mobileMenu: [] };
+  const unreadNotifications = useQuery(
+    api.functions.notification.getUnreadNotifications,
+    user ? { userId: user._id } : 'skip',
+  );
+
+  console.log({ unreadNotifications, user });
 
   const AdminNavigation: Array<NavMainItem & { roles: UserRole[] }> = [
     {
@@ -187,7 +192,9 @@ export function useNavigation() {
       title: t('notifications'),
       url: ROUTES.dashboard.notifications,
       icon: Bell,
-      badge: <CountBadge count={unreadNotifications ?? 0} variant="destructive" />,
+      badge: (
+        <CountBadge count={unreadNotifications?.length ?? 0} variant="destructive" />
+      ),
       roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER, UserRole.INTEL_AGENT],
     },
     {
@@ -241,7 +248,10 @@ export function useNavigation() {
 export function useUserNavigation() {
   const { user } = useCurrentUser();
   const t = useTranslations('navigation.menu');
-  const { data: unreadNotifications } = api.notifications.getUnreadCount.useQuery();
+  const unreadNotifications = useQuery(
+    api.functions.notification.getUnreadNotifications,
+    user ? { userId: user._id } : 'skip',
+  );
   if (!user) return { menu: [], mobileMenu: [] };
 
   const userNavigationItems: UserNavigationItem[] = [
@@ -293,7 +303,7 @@ export function useUserNavigation() {
       url: ROUTES.user.notifications,
       icon: Bell,
       badge: unreadNotifications ? (
-        <CountBadge count={unreadNotifications} variant="destructive" />
+        <CountBadge count={unreadNotifications?.length ?? 0} variant="destructive" />
       ) : undefined,
     },
     {

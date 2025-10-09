@@ -1,23 +1,13 @@
-import { defineTable } from 'convex/server'
-import { v } from 'convex/values'
-import { FeedbackCategory, FeedbackStatus } from '../lib/constants'
+import { defineTable } from 'convex/server';
+import { v } from 'convex/values';
+import { feedbackCategoryValidator, feedbackStatusValidator } from '../lib/validators';
 
 export const tickets = defineTable({
   subject: v.string(),
   message: v.string(),
-  category: v.union(
-    v.literal(FeedbackCategory.Bug),
-    v.literal(FeedbackCategory.Feature),
-    v.literal(FeedbackCategory.Improvement),
-    v.literal(FeedbackCategory.Other),
-  ),
+  category: feedbackCategoryValidator,
   rating: v.optional(v.number()), // 1-5
-  status: v.union(
-    v.literal(FeedbackStatus.Pending),
-    v.literal(FeedbackStatus.InReview),
-    v.literal(FeedbackStatus.Resolved),
-    v.literal(FeedbackStatus.Closed),
-  ),
+  status: feedbackStatusValidator,
 
   // Relations
   userId: v.optional(v.id('users')),
@@ -46,4 +36,4 @@ export const tickets = defineTable({
   .index('by_created_at', ['createdAt'])
   .index('by_service', ['serviceId'])
   .index('by_request', ['requestId'])
-  .index('by_organization', ['organizationId'])
+  .index('by_organization', ['organizationId']);

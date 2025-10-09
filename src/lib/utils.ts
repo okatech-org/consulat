@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { UserRole, type Profile } from '@prisma/client';
+import { type Profile } from '@prisma/client';
 import type { CountryIndicator } from '@/lib/autocomplete-datas';
 import { phoneCountries } from '@/lib/autocomplete-datas';
 import type { FullProfile, SessionUser } from '@/types';
@@ -15,8 +15,9 @@ import messages from '@/i18n/messages/fr/messages';
 
 import type { Primitive } from 'type-fest';
 import type { OrganizationListingItem } from '@/types/organization';
-import user from '@/i18n/messages/fr/user';
 import { ROUTES } from '@/schemas/routes';
+import type { Doc } from 'convex/_generated/dataModel';
+import { UserRole } from 'convex/lib/constants';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -1138,15 +1139,15 @@ export const getOrganizationFromId = (
   return organisations.find((o) => o.id === organizationId);
 };
 
-export function getDashboardUrl(user: SessionUser | null) {
+export function getDashboardUrl(user: Doc<'users'> | null) {
   const dashboardUrl: Record<UserRole, string> = {
-    [UserRole.ADMIN]: ROUTES.dashboard.base,
-    [UserRole.AGENT]: ROUTES.dashboard.base,
-    [UserRole.MANAGER]: ROUTES.dashboard.base,
-    [UserRole.SUPER_ADMIN]: ROUTES.dashboard.base,
-    [UserRole.INTEL_AGENT]: ROUTES.intel.base,
-    [UserRole.USER]: ROUTES.user.base,
-    [UserRole.EDUCATION_AGENT]: ROUTES.dashboard.base,
+    [UserRole.Admin]: ROUTES.dashboard.base,
+    [UserRole.Agent]: ROUTES.dashboard.base,
+    [UserRole.Manager]: ROUTES.dashboard.base,
+    [UserRole.SuperAdmin]: ROUTES.dashboard.base,
+    [UserRole.IntelAgent]: ROUTES.intel.base,
+    [UserRole.User]: ROUTES.user.base,
+    [UserRole.EducationAgent]: ROUTES.dashboard.base,
   };
   if (!user) {
     return ROUTES.user.base;

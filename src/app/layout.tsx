@@ -7,7 +7,7 @@ import { TRPCReactProvider } from '@/trpc/react';
 import { env } from '@/env';
 import { getLocale, getMessages } from 'next-intl/server';
 import ErrorBoundary from '@/components/error-boundary';
-import { ClerkProvider, useAuth } from '@clerk/nextjs';
+import { ClerkProvider } from '@clerk/nextjs';
 import { frFR, enUS } from '@clerk/localizations';
 import { NextIntlClientProvider, type AbstractIntlMessages } from 'next-intl';
 
@@ -25,6 +25,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import { ConvexProvider } from './convex-provider';
+import { auth } from '@clerk/nextjs/server';
 
 const localizations = {
   fr: frFR,
@@ -145,10 +146,10 @@ const geist = Geist({
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [messages, locale, user, serverTheme, cookieStore] = await Promise.all([
+  const [messages, locale, authData, serverTheme, cookieStore] = await Promise.all([
     getMessages(),
     getLocale(),
-    getCurrentUser(),
+    auth(),
     getServerTheme(),
     cookies(),
   ]);
@@ -161,7 +162,7 @@ export default async function RootLayout({
             <body suppressHydrationWarning>
               <ErrorBoundary>
                 <TRPCReactProvider>
-                  <AuthProvider user={user}>
+                  <AuthProvider userId={authData.userId}>
                     <SidebarProvider
                       defaultOpen={
                         cookieStore?.get('sidebar_state')?.value

@@ -1,24 +1,20 @@
-import { v } from "convex/values";
-import * as constants from "./constants";
+import { v } from 'convex/values';
+import * as constants from './constants';
 
 // Helper pour convertir les enums en validateurs
-export function enumToValidator<T extends Record<string, string | number>>(
-  enumObject: T
-) {
+export function enumToValidator(enumObject: Record<string, string>) {
   const values = Object.values(enumObject);
   return v.union(...values.map((value) => v.literal(value)));
 }
 
 // Validateurs pour les services
-export const serviceCategoryValidator = enumToValidator(
-  constants.ServiceCategory
-);
+export const serviceCategoryValidator = enumToValidator(constants.ServiceCategory);
 export const serviceStatusValidator = enumToValidator(constants.ServiceStatus);
 export const requestStatusValidator = enumToValidator(constants.RequestStatus);
 export const requestPriorityValidator = v.union(
   v.literal(constants.RequestPriority.Normal),
   v.literal(constants.RequestPriority.Urgent),
-  v.literal(constants.RequestPriority.Critical)
+  v.literal(constants.RequestPriority.Critical),
 );
 
 // Validateurs pour les utilisateurs
@@ -26,27 +22,18 @@ export const userStatusValidator = enumToValidator(constants.UserStatus);
 export const userRoleValidator = enumToValidator(constants.UserRole);
 
 // Validateurs pour les organisations
-export const organizationTypeValidator = enumToValidator(
-  constants.OrganizationType
-);
+export const organizationTypeValidator = enumToValidator(constants.OrganizationType);
 
 // Validateurs pour les documents
-export const documentStatusValidator = enumToValidator(
-  constants.DocumentStatus
-);
+export const documentStatusValidator = enumToValidator(constants.DocumentStatus);
 
 // Validateurs pour les rendez-vous
-export const appointmentStatusValidator = enumToValidator(
-  constants.AppointmentStatus
-);
+export const appointmentStatusValidator = enumToValidator(constants.AppointmentStatus);
 
 // Validateurs pour les notifications
-export const notificationStatusValidator = enumToValidator(
-  constants.NotificationStatus
-);
-export const notificationTypeValidator = enumToValidator(
-  constants.NotificationType
-);
+export const notificationStatusValidator = enumToValidator(constants.NotificationStatus);
+
+export const notificationTypeValidator = enumToValidator(constants.NotificationType);
 
 // Validateurs composites
 
@@ -85,99 +72,72 @@ export const organizationSettingsValidator = v.object({
 });
 
 // Nouveaux validateurs pour les enums
-export const profileCategoryValidator = enumToValidator(
-  constants.ProfileCategory
-);
+export const profileCategoryValidator = enumToValidator(constants.ProfileCategory);
 export const profileStatusValidator = enumToValidator(constants.ProfileStatus);
 export const ownerTypeValidator = enumToValidator(constants.OwnerType);
 export const documentTypeValidator = enumToValidator(constants.DocumentType);
-export const appointmentTypeValidator = enumToValidator(
-  constants.AppointmentType
-);
-export const participantRoleValidator = enumToValidator(
-  constants.ParticipantRole
-);
-export const participantStatusValidator = enumToValidator(
-  constants.ParticipantStatus
-);
+export const appointmentTypeValidator = enumToValidator(constants.AppointmentType);
+export const participantRoleValidator = enumToValidator(constants.ParticipantRole);
+export const participantStatusValidator = enumToValidator(constants.ParticipantStatus);
 export const notificationChannelValidator = enumToValidator(
-  constants.NotificationChannel
+  constants.NotificationChannel,
 );
-export const organizationStatusValidator = enumToValidator(
-  constants.OrganizationStatus
-);
+export const organizationStatusValidator = enumToValidator(constants.OrganizationStatus);
 export const activityTypeValidator = enumToValidator(constants.ActivityType);
-export const validationStatusValidator = enumToValidator(
-  constants.ValidationStatus
-);
+export const validationStatusValidator = enumToValidator(constants.ValidationStatus);
 
 // Nouveaux validateurs pour les enums manquants
 export const requestTypeValidator = enumToValidator(constants.RequestType);
-export const processingModeValidator = enumToValidator(
-  constants.ProcessingMode
-);
+export const processingModeValidator = enumToValidator(constants.ProcessingMode);
 export const deliveryModeValidator = enumToValidator(constants.DeliveryMode);
 export const genderValidator = enumToValidator(constants.Gender);
 export const maritalStatusValidator = enumToValidator(constants.MaritalStatus);
 export const familyLinkValidator = enumToValidator(constants.FamilyLink);
 export const workStatusValidator = enumToValidator(constants.WorkStatus);
 export const nationalityAcquisitionValidator = enumToValidator(
-  constants.NationalityAcquisition
+  constants.NationalityAcquisition,
 );
 export const noteTypeValidator = enumToValidator(constants.NoteType);
 export const parentalRoleValidator = enumToValidator(constants.ParentalRole);
 export const intelligenceNoteTypeValidator = enumToValidator(
-  constants.IntelligenceNoteType
+  constants.IntelligenceNoteType,
 );
 export const intelligenceNotePriorityValidator = enumToValidator(
-  constants.IntelligenceNotePriority
+  constants.IntelligenceNotePriority,
 );
 export const consularServiceTypeValidator = enumToValidator(
-  constants.ConsularServiceType
+  constants.ConsularServiceType,
 );
-export const servicePriorityValidator = enumToValidator(
-  constants.ServicePriority
-);
-export const serviceStepTypeValidator = enumToValidator(
-  constants.ServiceStepType
-);
-export const requestActionTypeValidator = enumToValidator(
-  constants.RequestActionType
-);
-export const feedbackCategoryValidator = enumToValidator(
-  constants.FeedbackCategory
-);
-export const feedbackStatusValidator = enumToValidator(
-  constants.FeedbackStatus
-);
+export const servicePriorityValidator = enumToValidator(constants.ServicePriority);
+export const serviceStepTypeValidator = enumToValidator(constants.ServiceStepType);
+export const requestActionTypeValidator = enumToValidator(constants.RequestActionType);
+export const feedbackCategoryValidator = enumToValidator(constants.FeedbackCategory);
+export const feedbackStatusValidator = enumToValidator(constants.FeedbackStatus);
 export const countryStatusValidator = enumToValidator(constants.CountryStatus);
 export const emailStatusValidator = enumToValidator(constants.EmailStatus);
-export const userPermissionValidator = enumToValidator(
-  constants.UserPermission
-);
+export const userPermissionValidator = enumToValidator(constants.UserPermission);
+export const membershipStatusValidator = enumToValidator(constants.MembershipStatus);
 
 // Validateurs pour les migrations
-export const migrationStatusValidator = enumToValidator(
-  constants.MigrationStatus
-);
+export const migrationStatusValidator = enumToValidator(constants.MigrationStatus);
 export const migrationTypeValidator = enumToValidator(constants.MigrationType);
 
 // Validateurs composites mis à jour
 export const participantValidator = v.object({
-  userId: v.id("users"),
+  userId: v.id('users'),
   role: participantRoleValidator, // Type-safe avec enum
   status: participantStatusValidator, // Type-safe avec enum
 });
 
 export const activityValidator = v.object({
   type: activityTypeValidator, // Type-safe avec enum
-  actorId: v.optional(v.id("users")),
+  actorId: v.optional(v.id('users')),
   data: v.optional(v.any()),
   timestamp: v.number(),
 });
 
 export const validationValidator = v.object({
-  validatorId: v.id("users"),
+  validatorId: v.id('users'),
   status: validationStatusValidator, // Type-safe avec enum
   comments: v.optional(v.string()),
   timestamp: v.number(),
@@ -195,7 +155,7 @@ export const addressValidator = v.object({
     v.object({
       latitude: v.number(),
       longitude: v.number(),
-    })
+    }),
   ),
 });
 
@@ -205,12 +165,12 @@ export const emergencyContactValidator = v.object({
   lastName: v.string(),
   email: v.optional(v.string()),
   relationship: v.union(
-    v.literal("father"),
-    v.literal("mother"),
-    v.literal("spouse"),
-    v.literal("legal_guardian"),
-    v.literal("child"),
-    v.literal("other")
+    v.literal('father'),
+    v.literal('mother'),
+    v.literal('spouse'),
+    v.literal('legal_guardian'),
+    v.literal('child'),
+    v.literal('other'),
   ),
   phoneNumber: v.optional(v.string()),
   address: v.optional(addressValidator),

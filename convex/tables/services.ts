@@ -1,33 +1,19 @@
-import { defineTable } from 'convex/server'
-import { v } from 'convex/values'
+import { defineTable } from 'convex/server';
+import { v } from 'convex/values';
 import {
-  ServiceCategory,
-  ServiceStatus,
-  ProcessingMode,
-  DeliveryMode,
-  ServiceStepType,
-} from '../lib/constants'
+  deliveryModeValidator,
+  processingModeValidator,
+  serviceCategoryValidator,
+  serviceStatusValidator,
+  serviceStepTypeValidator,
+} from '../lib/validators';
 
 export const services = defineTable({
   code: v.string(),
   name: v.string(),
   description: v.optional(v.string()),
-  category: v.union(
-    v.literal(ServiceCategory.Identity),
-    v.literal(ServiceCategory.CivilStatus),
-    v.literal(ServiceCategory.Visa),
-    v.literal(ServiceCategory.Certification),
-    v.literal(ServiceCategory.Transcript),
-    v.literal(ServiceCategory.Registration),
-    v.literal(ServiceCategory.Assistance),
-    v.literal(ServiceCategory.TravelDocument),
-    v.literal(ServiceCategory.Other),
-  ),
-  status: v.union(
-    v.literal(ServiceStatus.Active),
-    v.literal(ServiceStatus.Inactive),
-    v.literal(ServiceStatus.Suspended),
-  ),
+  category: serviceCategoryValidator,
+  status: serviceStatusValidator,
 
   organizationId: v.id('organizations'),
 
@@ -42,13 +28,13 @@ export const services = defineTable({
         type: v.string(),
         required: v.boolean(),
         fields: v.optional(v.any()),
-      })
+      }),
     ),
     pricing: v.optional(
       v.object({
         amount: v.number(),
         currency: v.string(),
-      })
+      }),
     ),
   }),
 
@@ -59,34 +45,15 @@ export const services = defineTable({
       title: v.string(),
       description: v.optional(v.string()),
       isRequired: v.boolean(),
-      type: v.union(
-        v.literal(ServiceStepType.Form),
-        v.literal(ServiceStepType.Documents),
-        v.literal(ServiceStepType.Appointment),
-        v.literal(ServiceStepType.Payment),
-        v.literal(ServiceStepType.Review),
-        v.literal(ServiceStepType.Delivery),
-      ),
+      type: serviceStepTypeValidator,
       fields: v.optional(v.any()),
       validations: v.optional(v.any()),
     }),
   ),
 
   // Modes de traitement et livraison
-  processingMode: v.union(
-    v.literal(ProcessingMode.OnlineOnly),
-    v.literal(ProcessingMode.PresenceRequired),
-    v.literal(ProcessingMode.Hybrid),
-    v.literal(ProcessingMode.ByProxy),
-  ),
-  deliveryModes: v.array(
-    v.union(
-      v.literal(DeliveryMode.InPerson),
-      v.literal(DeliveryMode.Postal),
-      v.literal(DeliveryMode.Electronic),
-      v.literal(DeliveryMode.ByProxy),
-    )
-  ),
+  processingMode: processingModeValidator,
+  deliveryModes: v.array(deliveryModeValidator),
 
   // Configuration des rendez-vous
   requiresAppointment: v.boolean(),
@@ -112,4 +79,4 @@ export const services = defineTable({
   .index('by_code', ['code'])
   .index('by_organization', ['organizationId'])
   .index('by_category', ['category'])
-  .index('by_status', ['status'])
+  .index('by_status', ['status']);

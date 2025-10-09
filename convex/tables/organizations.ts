@@ -1,23 +1,16 @@
-import { defineTable } from 'convex/server'
-import { v } from 'convex/values'
-import { OrganizationType, OrganizationStatus } from '../lib/constants'
+import { defineTable } from 'convex/server';
+import { v } from 'convex/values';
+import {
+  organizationStatusValidator,
+  organizationTypeValidator,
+} from '../lib/validators';
 
 export const organizations = defineTable({
   code: v.string(), // Code unique
   name: v.string(),
   logo: v.optional(v.string()), // URL du logo
-  type: v.union(
-    v.literal(OrganizationType.Embassy),
-    v.literal(OrganizationType.Consulate),
-    v.literal(OrganizationType.GeneralConsulate),
-    v.literal(OrganizationType.HonoraryConsulate),
-    v.literal(OrganizationType.ThirdParty),
-  ),
-  status: v.union(
-    v.literal(OrganizationStatus.Active),
-    v.literal(OrganizationStatus.Inactive),
-    v.literal(OrganizationStatus.Suspended),
-  ),
+  type: organizationTypeValidator,
+  status: organizationStatusValidator,
 
   // Hiérarchie
   parentId: v.optional(v.id('organizations')),
@@ -42,4 +35,4 @@ export const organizations = defineTable({
   .index('by_code', ['code'])
   .index('by_status', ['status'])
   .index('by_parent', ['parentId'])
-  .index('by_country', ['countryIds'])
+  .index('by_country', ['countryIds']);
