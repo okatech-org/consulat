@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import path from 'path';
 
 const EXPORT_DIR = './data/exports';
+const TRACKING_FILE = path.join(EXPORT_DIR, 'migrated-ids.json');
 const convex = new ConvexHttpClient('https://dapper-guineapig-547.convex.cloud');
 
 interface ImportStats {
@@ -14,7 +15,27 @@ interface ImportStats {
   skipped: number;
 }
 
+interface MigrationTracking {
+  lastUpdate: string | null;
+  version: string;
+  entities: {
+    countries: string[];
+    organizations: string[];
+    services: string[];
+    'non-users-accounts': string[];
+    'users-data': string[];
+  };
+  stats: {
+    countries: number;
+    organizations: number;
+    services: number;
+    'non-users-accounts': number;
+    'users-data': number;
+  };
+}
+
 const stats: Record<string, ImportStats> = {};
+let migrationTracking: MigrationTracking;
 
 function initStat(entity: string, total: number) {
   stats[entity] = {
@@ -32,14 +53,80 @@ async function loadJsonFile(filename: string) {
   return JSON.parse(content);
 }
 
+async function loadMigrationTracking() {
+  try {
+    const content = await fs.readFile(TRACKING_FILE, 'utf-8');
+    migrationTracking = JSON.parse(content);
+    console.log('📝 Fichier de tracking chargé');
+    console.log(
+      `   Déjà migrés : ${Object.values(migrationTracking.stats).reduce((a, b) => a + b, 0)} entrées`,
+    );
+  } catch (error) {
+    console.log('📝 Création du fichier de tracking...');
+    migrationTracking = {
+      lastUpdate: null,
+      version: '1.0.0',
+      entities: {
+        countries: [],
+        organizations: [],
+        services: [],
+        'non-users-accounts': [],
+        'users-data': [],
+      },
+      stats: {
+        countries: 0,
+        organizations: 0,
+        services: 0,
+        'non-users-accounts': 0,
+        'users-data': 0,
+      },
+    };
+  }
+}
+
+async function saveMigrationTracking() {
+  migrationTracking.lastUpdate = new Date().toISOString();
+  await fs.writeFile(TRACKING_FILE, JSON.stringify(migrationTracking, null, 2));
+}
+
+function isAlreadyMigrated(
+  entity: keyof MigrationTracking['entities'],
+  id: string,
+): boolean {
+  return migrationTracking.entities[entity].includes(id);
+}
+
+function addMigratedId(entity: keyof MigrationTracking['entities'], id: string) {
+  if (!migrationTracking.entities[entity].includes(id)) {
+    migrationTracking.entities[entity].push(id);
+    migrationTracking.stats[entity]++;
+  }
+}
+
 async function importCountries() {
   console.log('\n🌍 Import des pays...');
   const countries = await loadJsonFile('countries.json');
   initStat('countries', countries.length);
 
+  const countriesToImport = countries.filter((country: any) => {
+    if (isAlreadyMigrated('countries', country.id)) {
+      stats.countries!.skipped++;
+      return false;
+    }
+    return true;
+  });
+
+  console.log(`   Déjà migrés : ${stats.countries!.skipped}`);
+  console.log(`   À importer : ${countriesToImport.length}`);
+
+  if (countriesToImport.length === 0) {
+    console.log('⏭️  Tous les pays sont déjà migrés');
+    return;
+  }
+
   try {
     const result = await convex.mutation(api.functions.migration.importCountries, {
-      countries: countries.map((country: any) => ({
+      countries: countriesToImport.map((country: any) => ({
         id: country.id,
         name: country.name,
         code: country.code,
@@ -50,11 +137,14 @@ async function importCountries() {
       })),
     });
 
-    stats.countries.success = result.importedCount;
+    countriesToImport.forEach((country: any) => addMigratedId('countries', country.id));
+    await saveMigrationTracking();
+
+    stats.countries!.success = result.importedCount;
     console.log(`✅ ${result.importedCount} pays importés`);
   } catch (error) {
     console.error('❌ Erreur import pays:', error);
-    stats.countries.failed = countries.length;
+    stats.countries!.failed = countriesToImport.length;
   }
 }
 
@@ -63,9 +153,25 @@ async function importOrganizations() {
   const organizations = await loadJsonFile('organizations.json');
   initStat('organizations', organizations.length);
 
+  const organizationsToImport = organizations.filter((org: any) => {
+    if (isAlreadyMigrated('organizations', org.id)) {
+      stats.organizations!.skipped++;
+      return false;
+    }
+    return true;
+  });
+
+  console.log(`   Déjà migrés : ${stats.organizations!.skipped}`);
+  console.log(`   À importer : ${organizationsToImport.length}`);
+
+  if (organizationsToImport.length === 0) {
+    console.log('⏭️  Toutes les organisations sont déjà migrées');
+    return;
+  }
+
   try {
     const result = await convex.mutation(api.functions.migration.importOrganizations, {
-      organizations: organizations.map((org: any) => ({
+      organizations: organizationsToImport.map((org: any) => ({
         id: org.id,
         name: org.name,
         code: org.id.substring(0, 8).toUpperCase(),
@@ -80,11 +186,14 @@ async function importOrganizations() {
       })),
     });
 
-    stats.organizations.success = result.importedCount;
+    organizationsToImport.forEach((org: any) => addMigratedId('organizations', org.id));
+    await saveMigrationTracking();
+
+    stats.organizations!.success = result.importedCount;
     console.log(`✅ ${result.importedCount} organisations importées`);
   } catch (error) {
     console.error('❌ Erreur import organisations:', error);
-    stats.organizations.failed = organizations.length;
+    stats.organizations!.failed = organizationsToImport.length;
   }
 }
 
@@ -93,9 +202,25 @@ async function importServices() {
   const services = await loadJsonFile('services.json');
   initStat('services', services.length);
 
+  const servicesToImport = services.filter((service: any) => {
+    if (isAlreadyMigrated('services', service.id)) {
+      stats.services!.skipped++;
+      return false;
+    }
+    return true;
+  });
+
+  console.log(`   Déjà migrés : ${stats.services!.skipped}`);
+  console.log(`   À importer : ${servicesToImport.length}`);
+
+  if (servicesToImport.length === 0) {
+    console.log('⏭️  Tous les services sont déjà migrés');
+    return;
+  }
+
   try {
     const result = await convex.mutation(api.functions.migration.importServices, {
-      services: services.map((service: any) => ({
+      services: servicesToImport.map((service: any) => ({
         id: service.id,
         name: service.name,
         description: service.description,
@@ -117,11 +242,14 @@ async function importServices() {
       })),
     });
 
-    stats.services.success = result.importedCount;
+    servicesToImport.forEach((service: any) => addMigratedId('services', service.id));
+    await saveMigrationTracking();
+
+    stats.services!.success = result.importedCount;
     console.log(`✅ ${result.importedCount} services importés`);
   } catch (error) {
     console.error('❌ Erreur import services:', error);
-    stats.services.failed = services.length;
+    stats.services!.failed = servicesToImport.length;
   }
 }
 
@@ -130,10 +258,26 @@ async function importUserCentricData() {
   const usersData = await loadJsonFile('users-data.json');
   initStat('users-data', usersData.length);
 
+  const usersToImport = usersData.filter((userData: any) => {
+    if (isAlreadyMigrated('users-data', userData.id)) {
+      stats['users-data']!.skipped++;
+      return false;
+    }
+    return true;
+  });
+
+  console.log(`   Déjà migrés : ${stats['users-data']!.skipped}`);
+  console.log(`   À importer : ${usersToImport.length}`);
+
+  if (usersToImport.length === 0) {
+    console.log('⏭️  Tous les utilisateurs sont déjà migrés');
+    return;
+  }
+
   let totalImported = 0;
   let totalFailed = 0;
 
-  for (const userData of usersData) {
+  for (const userData of usersToImport) {
     try {
       console.log(
         `\n   📍 Import utilisateur : ${userData.email || userData.name || userData.id}`,
@@ -191,6 +335,9 @@ async function importUserCentricData() {
         childAuthorities: userData.childAuthorities || [],
       });
 
+      addMigratedId('users-data', userData.id);
+      await saveMigrationTracking();
+
       console.log(
         `   ✅ Utilisateur importé avec ${result.recordsImported} enregistrements liés`,
       );
@@ -201,11 +348,11 @@ async function importUserCentricData() {
     }
   }
 
-  stats['users-data'].success = totalImported;
-  stats['users-data'].failed = totalFailed;
+  stats['users-data']!.success = totalImported;
+  stats['users-data']!.failed = totalFailed;
 
   console.log(
-    `\n✅ ${totalImported}/${usersData.length} utilisateurs importés avec leurs données`,
+    `\n✅ ${totalImported}/${usersToImport.length} utilisateurs importés avec leurs données`,
   );
 }
 
@@ -239,6 +386,8 @@ async function main() {
     console.log(`   Version : ${manifest.version}`);
     console.log(`   Étapes : ${manifest.importOrder.length}`);
 
+    await loadMigrationTracking();
+
     await importCountries();
     await importOrganizations();
     await importServices();
@@ -247,6 +396,7 @@ async function main() {
     await printStats();
 
     console.log('\n✅ Import terminé !');
+    console.log(`📝 Tracking sauvegardé dans ${TRACKING_FILE}`);
   } catch (error) {
     console.error("\n❌ Erreur lors de l'import :", error);
     process.exit(1);

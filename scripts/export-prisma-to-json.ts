@@ -395,7 +395,46 @@ async function generateImportManifest() {
   console.log(`✅ Manifeste d'import généré → ${filePath}`);
 }
 
-async function printSummary(stats: ExportStats[], metadata: any) {
+async function generateMigrationTracking() {
+  console.log('\n📝 Génération du fichier de tracking des IDs migrés...');
+
+  const tracking = {
+    lastUpdate: null,
+    version: '1.0.0',
+    entities: {
+      countries: [],
+      organizations: [],
+      services: [],
+      'non-users-accounts': [],
+      'users-data': [],
+    },
+    stats: {
+      countries: 0,
+      organizations: 0,
+      services: 0,
+      'non-users-accounts': 0,
+      'users-data': 0,
+    },
+  };
+
+  const filePath = path.join(EXPORT_DIR, 'migrated-ids.json');
+  await fs.writeFile(filePath, JSON.stringify(tracking, null, 2));
+
+  console.log(`✅ Fichier de tracking généré → ${filePath}`);
+}
+
+async function printSummary(
+  stats: ExportStats[],
+  metadata: {
+    exportDate: string;
+    totalFiles: number;
+    totalRecords: number;
+    files: Array<{ entity: string; count: number; file: string }>;
+    version: string;
+    source: string;
+    target: string;
+  },
+) {
   console.log('\n' + '='.repeat(80));
   console.log("📊 RÉSUMÉ DE L'EXPORT");
   console.log('='.repeat(80));
@@ -429,7 +468,8 @@ async function printSummary(stats: ExportStats[], metadata: any) {
   console.log('\n🎯 Prochaines étapes :');
   console.log('   1. Vérifier les fichiers JSON dans ./data/exports/');
   console.log("   2. Consulter import-manifest.json pour l'ordre d'import");
-  console.log("   3. Lancer l'import vers Convex :");
+  console.log('   3. Le fichier migrated-ids.json track les IDs migrés');
+  console.log("   4. Lancer l'import vers Convex :");
   console.log('      bun run migrate:import-to-convex');
 
   console.log('\n' + '='.repeat(80));
@@ -452,6 +492,7 @@ async function main() {
 
     const metadata = await generateMetadata(stats);
     await generateImportManifest();
+    await generateMigrationTracking();
 
     await printSummary(stats, metadata);
 
