@@ -863,6 +863,20 @@ export const importNonUsersAccounts = mutation({
         roles: v.array(v.string()),
         organizationId: v.optional(v.union(v.string(), v.null())),
         assignedOrganizationId: v.optional(v.union(v.string(), v.null())),
+        assignedCountries: v.optional(v.array(v.string())),
+        notifications: v.optional(
+          v.array(
+            v.object({
+              id: v.optional(v.string()),
+              type: v.string(),
+              title: v.string(),
+              message: v.string(),
+              status: v.string(),
+              read: v.optional(v.boolean()),
+              createdAt: v.any(),
+            }),
+          ),
+        ),
       }),
     ),
   },
@@ -870,10 +884,12 @@ export const importNonUsersAccounts = mutation({
     importedCount: v.number(),
     userIds: v.array(v.id('users')),
     membershipsCreated: v.number(),
+    notificationsCreated: v.number(),
   }),
   handler: async (ctx: MutationCtx, args) => {
     const importedUserIds: Array<Id<'users'>> = [];
     let membershipsCreated = 0;
+    let notificationsCreated = 0;
 
     for (const account of args.accounts) {
       try {
@@ -900,6 +916,31 @@ export const importNonUsersAccounts = mutation({
 
         importedUserIds.push(userId);
 
+        // Notifications
+        if (account.notifications && account.notifications.length > 0) {
+          for (const notif of account.notifications) {
+            try {
+              await ctx.db.insert('notifications', {
+                userId,
+                type: notificationTypeMapping[notif.type] || NotificationType.Updated,
+                title: notif.title,
+                content: notif.message,
+                status:
+                  notificationStatusMapping[notif.status] || NotificationStatus.Pending,
+                channels: ['app'],
+                deliveryStatus: { app: notif.read || false },
+                readAt: notif.read
+                  ? new Date(notif.createdAt).getTime() + 1000
+                  : undefined,
+                createdAt: new Date(notif.createdAt).getTime(),
+              });
+              notificationsCreated++;
+            } catch (error) {
+              console.error(`Erreur import notification ${notif.id || ''}:`, error);
+            }
+          }
+        }
+
         const legacyOrgId =
           account.organizationId || account.assignedOrganizationId || null;
         if (legacyOrgId) {
@@ -908,9 +949,16 @@ export const importNonUsersAccounts = mutation({
             await ctx.db.insert('memberships', {
               userId,
               organizationId: orgId,
-              role: (mappedRoles[0] as UserRole) || UserRole.Admin,
-              permissions: [],
+              role: (mappedRoles[0] as UserRole) || UserRole.Agent,
+              permissions: [] as string[],
               status: MembershipStatus.Active,
+              assignedCountries: (account.assignedCountries &&
+              account.assignedCountries.length > 0
+                ? account.assignedCountries
+                : []) as string[],
+              managerIds: [] as Id<'users'>[],
+              agentIds: [] as Id<'users'>[],
+              assignedServices: [] as Id<'services'>[],
               joinedAt: Date.now(),
               leftAt: undefined,
               lastActiveAt: undefined,
@@ -942,6 +990,7 @@ export const importNonUsersAccounts = mutation({
       importedCount: importedUserIds.length,
       userIds: importedUserIds,
       membershipsCreated,
+      notificationsCreated,
     };
   },
 });

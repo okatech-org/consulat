@@ -17,6 +17,12 @@ export const memberships = defineTable({
 
   // Statut de l'adhésion
   status: membershipStatusValidator,
+  assignedCountries: v.array(v.string()),
+
+  managerIds: v.array(v.id('users')),
+  agentIds: v.array(v.id('users')),
+
+  assignedServices: v.array(v.id('services')),
 
   // Dates importantes
   joinedAt: v.number(),

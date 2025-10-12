@@ -283,6 +283,35 @@ async function importNonUsersAccounts() {
     console.log('⏭️  Tous les comptes non utilisateurs sont déjà migrés');
     return;
   }
+
+  try {
+    const result = await convex.mutation(api.functions.migration.importNonUsersAccounts, {
+      accounts: nonUsersAccountsToImport.map((acc) => ({
+        id: acc.id,
+        clerkId: acc.clerkId ?? null,
+        name: acc.name ?? null,
+        email: acc.email ?? null,
+        phoneNumber: acc.phoneNumber ?? null,
+        roles: acc.roles || [],
+        organizationId: acc.organizationId ?? null,
+        assignedOrganizationId: acc.assignedOrganizationId ?? null,
+        assignedCountries: (acc.linkedCountries || []).map((c) => c.code),
+      })),
+    });
+
+    nonUsersAccountsToImport.forEach((acc) =>
+      addMigratedId('non-users-accounts', acc.id),
+    );
+    await saveMigrationTracking();
+
+    stats['non-users-accounts']!.success = result.importedCount;
+    console.log(
+      `✅ ${result.importedCount} comptes non utilisateurs importés (avec memberships)`,
+    );
+  } catch (error) {
+    console.error('❌ Erreur import comptes non utilisateurs:', error);
+    stats['non-users-accounts']!.failed = nonUsersAccountsToImport.length;
+  }
 }
 
 async function importUserCentricData() {
@@ -292,6 +321,13 @@ async function importUserCentricData() {
 
   const usersToImport = usersData.filter((userData) => {
     if (isAlreadyMigrated('users-data', userData.id)) {
+      stats['users-data']!.skipped++;
+      return false;
+    }
+    const roles = userData.roles && userData.roles.length > 0 ? userData.roles : ['USER'];
+    const isStaff = roles.some((r) => r !== 'USER');
+    if (isStaff) {
+      // Exclus: comptes staff gérés par importNonUsersAccounts
       stats['users-data']!.skipped++;
       return false;
     }
@@ -344,7 +380,6 @@ async function importUserCentricData() {
               maritalStatus: userData.profile.maritalStatus,
               workStatus: userData.profile.workStatus,
               acquisitionMode: userData.profile.acquisitionMode,
-              address: userData.profile.address,
               phoneNumber: userData.profile.phoneNumber,
               email: userData.profile.email,
               profession: userData.profile.profession,
@@ -353,8 +388,6 @@ async function importUserCentricData() {
               fatherFullName: userData.profile.fatherFullName,
               motherFullName: userData.profile.motherFullName,
               spouseFullName: userData.profile.spouseFullName,
-              residentContact: userData.profile.residentContact,
-              homeLandContact: userData.profile.homeLandContact,
               createdAt: userData.profile.createdAt,
               updatedAt: userData.profile.updatedAt,
             }
