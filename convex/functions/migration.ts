@@ -212,75 +212,6 @@ const serviceStatusMapping: { [key: string]: ServiceStatus } = {
   SUSPENDED: ServiceStatus.Suspended,
 };
 
-export const importUsers = mutation({
-  args: {
-    users: v.array(v.any()),
-    batchSize: v.optional(v.number()),
-  },
-  returns: v.object({
-    importedCount: v.number(),
-    userIds: v.array(v.id('users')),
-    message: v.string(),
-  }),
-  handler: async (ctx, args) => {
-    const batchSize = args.batchSize || 50;
-    console.log(
-      `🚀 Import de ${args.users.length} utilisateurs par lots de ${batchSize}...`,
-    );
-
-    const importedUsers: Array<Id<'users'>> = [];
-
-    // Traiter par lots
-    for (let i = 0; i < args.users.length; i += batchSize) {
-      const batch = args.users.slice(i, i + batchSize);
-      console.log(
-        `📦 Traitement du lot ${Math.floor(i / batchSize) + 1}/${Math.ceil(args.users.length / batchSize)} (${batch.length} utilisateurs)`,
-      );
-
-      for (const postgresUser of batch) {
-        try {
-          // Créer l'utilisateur avec les données de base
-          const userId = await ctx.db.insert('users', {
-            // ID temporaire (sera remplacé par l'ID Clerk plus tard)
-            userId: `temp_${postgresUser.id}`,
-            // ID legacy pour référence
-            legacyId: postgresUser.id,
-            // Données de base
-            firstName: postgresUser.name?.split(' ')[0] || undefined,
-            lastName: postgresUser.name?.split(' ').slice(1).join(' ') || undefined,
-            email: postgresUser.email || undefined,
-            phoneNumber: postgresUser.phoneNumber || undefined,
-            // Rôles et statut
-            roles: postgresUser.roles?.map((role: string) => roleMapping[role]) || [
-              UserRole.User,
-            ],
-            status: UserStatus.Active,
-            // Autres champs
-            countryCode: postgresUser.countryCode || undefined,
-            createdAt: new Date(postgresUser.createdAt).getTime(),
-            updatedAt: new Date(postgresUser.updatedAt).getTime(),
-          });
-
-          importedUsers.push(userId);
-          console.log(
-            `✅ Utilisateur importé: ${postgresUser.name} (legacy: ${postgresUser.id})`,
-          );
-        } catch (error) {
-          console.error(`❌ Erreur import utilisateur ${postgresUser.id}:`, error);
-        }
-      }
-    }
-
-    console.log(`✅ ${importedUsers.length} utilisateurs importés`);
-    return {
-      importedCount: importedUsers.length,
-      userIds: importedUsers,
-      message:
-        'Utilisateurs importés avec IDs temporaires. Synchronisation Clerk requise.',
-    };
-  },
-});
-
 export const importOrganizations = mutation({
   args: {
     organizations: v.array(v.any()),
@@ -451,112 +382,19 @@ export const importOrganizations = mutation({
   },
 });
 
-export const getUsersToSync = mutation({
-  args: {},
-  returns: v.object({
-    users: v.array(
-      v.object({
-        _id: v.id('users'),
-        userId: v.string(),
-        legacyId: v.optional(v.string()),
-        firstName: v.optional(v.string()),
-        lastName: v.optional(v.string()),
-        email: v.optional(v.string()),
-        phoneNumber: v.optional(v.string()),
-      }),
-    ),
-  }),
-  handler: async (ctx) => {
-    // Récupérer tous les utilisateurs et filtrer ceux avec des IDs temporaires
-    const allUsers = await ctx.db.query('users').collect();
-
-    // Filtrer les utilisateurs avec des IDs temporaires
-    const usersToSync = allUsers.filter(
-      (user) => user.userId && user.userId.startsWith('temp_'),
-    );
-
-    return {
-      users: usersToSync.map((user) => ({
-        _id: user._id,
-        userId: user.userId,
-        legacyId: user.legacyId,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-      })),
-    };
-  },
-});
-
-export const updateUserClerkId = mutation({
-  args: {
-    convexUserId: v.id('users'),
-    clerkUserId: v.string(),
-  },
-  returns: v.object({
-    success: v.boolean(),
-  }),
-  handler: async (ctx, args) => {
-    // Mettre à jour l'utilisateur avec le vrai ID Clerk
-    await ctx.db.patch(args.convexUserId, {
-      userId: args.clerkUserId,
-    });
-
-    console.log(`✅ ID Clerk mis à jour: ${args.clerkUserId}`);
-    return { success: true };
-  },
-});
-
-export const syncUsersWithClerk = mutation({
-  args: {
-    userIds: v.array(v.id('users')),
-  },
-  returns: v.object({
-    syncedCount: v.number(),
-    message: v.string(),
-  }),
-  handler: async (ctx, args) => {
-    console.log(
-      `🔄 Synchronisation de ${args.userIds.length} utilisateurs avec Clerk...`,
-    );
-
-    // Cette fonction est maintenant utilisée par le script externe
-    // qui gère la synchronisation avec l'API Clerk
-    console.log('⚠️ Utilisez le script sync-with-clerk.js pour la synchronisation');
-    return {
-      syncedCount: 0,
-      message: 'Utilisez le script sync-with-clerk.js pour la synchronisation',
-    };
-  },
-});
-
-export const getExistingOrganizations = mutation({
-  args: {},
-  returns: v.object({
-    organizations: v.array(
-      v.object({
-        id: v.id('organizations'),
-        name: v.string(),
-        code: v.string(),
-      }),
-    ),
-  }),
-  handler: async (ctx) => {
-    const orgs = await ctx.db.query('organizations').collect();
-    return {
-      organizations: orgs.map((org) => ({
-        id: org._id,
-        name: org.name,
-        code: org.code,
-      })),
-    };
-  },
-});
-
 export const importCountries = mutation({
   args: {
-    countries: v.array(v.any()),
+    countries: v.array(
+      v.object({
+        id: v.string(),
+        name: v.string(),
+        code: v.string(),
+        status: v.string(),
+        flag: v.union(v.null(), v.string()),
+        createdAt: v.any(),
+        updatedAt: v.any(),
+      }),
+    ),
   },
   returns: v.object({
     importedCount: v.number(),

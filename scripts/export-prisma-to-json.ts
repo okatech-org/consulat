@@ -251,7 +251,15 @@ const exportUserCentricDataInclude: Prisma.UserSelect = {
       birthCertificate: true,
       residencePermit: true,
       addressProof: true,
-      address: true,
+      address: {
+        select: {
+          id: true,
+          firstLine: true,
+          city: true,
+          zipCode: true,
+          country: true,
+        },
+      },
       phoneNumber: true,
       email: true,
       residentContact: true,

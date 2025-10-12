@@ -2,6 +2,13 @@ import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../convex/_generated/api';
 import fs from 'fs/promises';
 import path from 'path';
+import type {
+  CountryExport,
+  NonUsersAccountsExport,
+  OrganizationExport,
+  ServiceExport,
+  UserCentricDataExport,
+} from './export-prisma-to-json';
 
 const EXPORT_DIR = './data/exports';
 const TRACKING_FILE = path.join(EXPORT_DIR, 'migrated-ids.json');
@@ -63,6 +70,7 @@ async function loadMigrationTracking() {
     );
   } catch (error) {
     console.log('📝 Création du fichier de tracking...');
+    console.error('❌ Erreur chargement tracking:', error);
     migrationTracking = {
       lastUpdate: null,
       version: '1.0.0',
@@ -105,10 +113,10 @@ function addMigratedId(entity: keyof MigrationTracking['entities'], id: string) 
 
 async function importCountries() {
   console.log('\n🌍 Import des pays...');
-  const countries = await loadJsonFile('countries.json');
+  const countries: CountryExport[] = await loadJsonFile('countries.json');
   initStat('countries', countries.length);
 
-  const countriesToImport = countries.filter((country: any) => {
+  const countriesToImport = countries.filter((country) => {
     if (isAlreadyMigrated('countries', country.id)) {
       stats.countries!.skipped++;
       return false;
@@ -126,7 +134,7 @@ async function importCountries() {
 
   try {
     const result = await convex.mutation(api.functions.migration.importCountries, {
-      countries: countriesToImport.map((country: any) => ({
+      countries: countriesToImport.map((country) => ({
         id: country.id,
         name: country.name,
         code: country.code,
@@ -137,7 +145,7 @@ async function importCountries() {
       })),
     });
 
-    countriesToImport.forEach((country: any) => addMigratedId('countries', country.id));
+    countriesToImport.forEach((country) => addMigratedId('countries', country.id));
     await saveMigrationTracking();
 
     stats.countries!.success = result.importedCount;
@@ -150,10 +158,10 @@ async function importCountries() {
 
 async function importOrganizations() {
   console.log('\n🏢 Import des organisations...');
-  const organizations = await loadJsonFile('organizations.json');
+  const organizations: OrganizationExport[] = await loadJsonFile('organizations.json');
   initStat('organizations', organizations.length);
 
-  const organizationsToImport = organizations.filter((org: any) => {
+  const organizationsToImport = organizations.filter((org) => {
     if (isAlreadyMigrated('organizations', org.id)) {
       stats.organizations!.skipped++;
       return false;
@@ -171,7 +179,7 @@ async function importOrganizations() {
 
   try {
     const result = await convex.mutation(api.functions.migration.importOrganizations, {
-      organizations: organizationsToImport.map((org: any) => ({
+      organizations: organizationsToImport.map((org) => ({
         id: org.id,
         name: org.name,
         code: org.id.substring(0, 8).toUpperCase(),
@@ -180,13 +188,13 @@ async function importOrganizations() {
         status: org.status,
         metadata: org.metadata || {},
         appointmentSettings: org.appointmentSettings || {},
-        countries: org.countries?.map((c: any) => c.code) || [],
+        countries: org.countries?.map((c) => c.code) || [],
         createdAt: org.createdAt,
         updatedAt: org.updatedAt,
       })),
     });
 
-    organizationsToImport.forEach((org: any) => addMigratedId('organizations', org.id));
+    organizationsToImport.forEach((org) => addMigratedId('organizations', org.id));
     await saveMigrationTracking();
 
     stats.organizations!.success = result.importedCount;
@@ -199,10 +207,10 @@ async function importOrganizations() {
 
 async function importServices() {
   console.log('\n🛎️ Import des services...');
-  const services = await loadJsonFile('services.json');
+  const services: ServiceExport[] = await loadJsonFile('services.json');
   initStat('services', services.length);
 
-  const servicesToImport = services.filter((service: any) => {
+  const servicesToImport = services.filter((service) => {
     if (isAlreadyMigrated('services', service.id)) {
       stats.services!.skipped++;
       return false;
@@ -220,7 +228,7 @@ async function importServices() {
 
   try {
     const result = await convex.mutation(api.functions.migration.importServices, {
-      services: servicesToImport.map((service: any) => ({
+      services: servicesToImport.map((service) => ({
         id: service.id,
         name: service.name,
         description: service.description,
@@ -242,7 +250,7 @@ async function importServices() {
       })),
     });
 
-    servicesToImport.forEach((service: any) => addMigratedId('services', service.id));
+    servicesToImport.forEach((service) => addMigratedId('services', service.id));
     await saveMigrationTracking();
 
     stats.services!.success = result.importedCount;
@@ -253,12 +261,36 @@ async function importServices() {
   }
 }
 
+async function importNonUsersAccounts() {
+  console.log('\n👤 Import des comptes non utilisateurs...');
+  const nonUsersAccounts: NonUsersAccountsExport[] = await loadJsonFile(
+    'non-users-accounts.json',
+  );
+  initStat('non-users-accounts', nonUsersAccounts.length);
+
+  const nonUsersAccountsToImport = nonUsersAccounts.filter((nonUserAccount) => {
+    if (isAlreadyMigrated('non-users-accounts', nonUserAccount.id)) {
+      stats['non-users-accounts']!.skipped++;
+      return false;
+    }
+    return true;
+  });
+
+  console.log(`   Déjà migrés : ${stats['non-users-accounts']!.skipped}`);
+  console.log(`   À importer : ${nonUsersAccountsToImport.length}`);
+
+  if (nonUsersAccountsToImport.length === 0) {
+    console.log('⏭️  Tous les comptes non utilisateurs sont déjà migrés');
+    return;
+  }
+}
+
 async function importUserCentricData() {
   console.log('\n👤 Import des données centrées utilisateur...');
-  const usersData = await loadJsonFile('users-data.json');
+  const usersData: UserCentricDataExport[] = await loadJsonFile('users-data.json');
   initStat('users-data', usersData.length);
 
-  const usersToImport = usersData.filter((userData: any) => {
+  const usersToImport = usersData.filter((userData) => {
     if (isAlreadyMigrated('users-data', userData.id)) {
       stats['users-data']!.skipped++;
       return false;
@@ -391,6 +423,7 @@ async function main() {
     await importCountries();
     await importOrganizations();
     await importServices();
+    await importNonUsersAccounts();
     await importUserCentricData();
 
     await printStats();
