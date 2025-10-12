@@ -20,9 +20,46 @@ import {
   ServiceStatus,
   UserRole,
   UserStatus,
+  MembershipStatus,
   WorkStatus,
 } from '../lib/constants';
 import type { Id } from '../_generated/dataModel';
+import type { MutationCtx } from '../_generated/server';
+
+// Types pour les anciennes métadonnées d'organisation (par pays)
+type DaySlot = { start?: string; end?: string };
+type DaySchedule = { isOpen?: boolean; slots?: DaySlot[] };
+type ScheduleConfig = {
+  monday?: DaySchedule;
+  tuesday?: DaySchedule;
+  wednesday?: DaySchedule;
+  thursday?: DaySchedule;
+  friday?: DaySchedule;
+  saturday?: DaySchedule;
+  sunday?: DaySchedule;
+};
+type ContactAddress = {
+  firstLine?: string;
+  city?: string;
+  zipCode?: string;
+  country?: string;
+};
+type ContactConfig = {
+  address?: ContactAddress;
+  phone?: string;
+  email?: string;
+  website?: string;
+};
+type CountrySettings = {
+  contact?: ContactConfig;
+  schedule?: ScheduleConfig;
+  holidays?: string[];
+  closures?: string[];
+  consularCard?: {
+    rectoModelUrl?: string;
+    versoModelUrl?: string;
+  };
+};
 
 // Mappings pour les enums
 const roleMapping: { [key: string]: UserRole } = {
@@ -221,29 +258,35 @@ export const importOrganizations = mutation({
     orgIds: v.array(v.id('organizations')),
     configsImported: v.number(),
   }),
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     console.log(`🚀 Import de ${args.organizations.length} organisations...`);
 
     const importedOrgs: Array<Id<'organizations'>> = [];
     const orgCountryConfigs: Array<{
       orgId: Id<'organizations'>;
       countryCode: string;
-      config: any;
+      config: CountrySettings;
     }> = [];
 
     for (const postgresOrg of args.organizations) {
       try {
         // Extraire les codes pays du metadata si disponible
         let countryIds: Array<string> = [];
-        let parsedMetadata: any = null;
+        let parsedMetadata: Record<string, { settings?: CountrySettings }> | null = null;
 
         if (postgresOrg.metadata) {
           try {
             // Parser le metadata s'il est une chaîne JSON
             parsedMetadata =
               typeof postgresOrg.metadata === 'string'
-                ? JSON.parse(postgresOrg.metadata)
-                : postgresOrg.metadata;
+                ? (JSON.parse(postgresOrg.metadata) as Record<
+                    string,
+                    { settings?: CountrySettings }
+                  >)
+                : (postgresOrg.metadata as Record<
+                    string,
+                    { settings?: CountrySettings }
+                  >);
 
             if (parsedMetadata && typeof parsedMetadata === 'object') {
               // Si metadata contient des clés de codes pays (FR, PM, WF, etc.)
@@ -290,7 +333,7 @@ export const importOrganizations = mutation({
               orgCountryConfigs.push({
                 orgId,
                 countryCode,
-                config: countryConfig.settings,
+                config: countryConfig.settings as CountrySettings,
               });
             }
           }
@@ -329,36 +372,57 @@ export const importOrganizations = mutation({
           },
           schedule: {
             monday: {
-              isOpen: config.schedule?.monday?.isOpen || false,
-              slots: config.schedule?.monday?.slots || [],
+              isOpen: Boolean(config.schedule?.monday?.isOpen),
+              slots: (config.schedule?.monday?.slots || []).map((s) => ({
+                start: s.start ?? '',
+                end: s.end ?? '',
+              })),
             },
             tuesday: {
-              isOpen: config.schedule?.tuesday?.isOpen || false,
-              slots: config.schedule?.tuesday?.slots || [],
+              isOpen: Boolean(config.schedule?.tuesday?.isOpen),
+              slots: (config.schedule?.tuesday?.slots || []).map((s) => ({
+                start: s.start ?? '',
+                end: s.end ?? '',
+              })),
             },
             wednesday: {
-              isOpen: config.schedule?.wednesday?.isOpen || false,
-              slots: config.schedule?.wednesday?.slots || [],
+              isOpen: Boolean(config.schedule?.wednesday?.isOpen),
+              slots: (config.schedule?.wednesday?.slots || []).map((s) => ({
+                start: s.start ?? '',
+                end: s.end ?? '',
+              })),
             },
             thursday: {
-              isOpen: config.schedule?.thursday?.isOpen || false,
-              slots: config.schedule?.thursday?.slots || [],
+              isOpen: Boolean(config.schedule?.thursday?.isOpen),
+              slots: (config.schedule?.thursday?.slots || []).map((s) => ({
+                start: s.start ?? '',
+                end: s.end ?? '',
+              })),
             },
             friday: {
-              isOpen: config.schedule?.friday?.isOpen || false,
-              slots: config.schedule?.friday?.slots || [],
+              isOpen: Boolean(config.schedule?.friday?.isOpen),
+              slots: (config.schedule?.friday?.slots || []).map((s) => ({
+                start: s.start ?? '',
+                end: s.end ?? '',
+              })),
             },
             saturday: {
-              isOpen: config.schedule?.saturday?.isOpen || false,
-              slots: config.schedule?.saturday?.slots || [],
+              isOpen: Boolean(config.schedule?.saturday?.isOpen),
+              slots: (config.schedule?.saturday?.slots || []).map((s) => ({
+                start: s.start ?? '',
+                end: s.end ?? '',
+              })),
             },
             sunday: {
-              isOpen: config.schedule?.sunday?.isOpen || false,
-              slots: config.schedule?.sunday?.slots || [],
+              isOpen: Boolean(config.schedule?.sunday?.isOpen),
+              slots: (config.schedule?.sunday?.slots || []).map((s) => ({
+                start: s.start ?? '',
+                end: s.end ?? '',
+              })),
             },
           },
-          holidays: config.holidays || [],
-          closures: config.closures || [],
+          holidays: (config.holidays || []) as string[],
+          closures: (config.closures || []) as string[],
           consularCard: {
             rectoModelUrl: config.consularCard?.rectoModelUrl || undefined,
             versoModelUrl: config.consularCard?.versoModelUrl || undefined,
@@ -400,7 +464,7 @@ export const importCountries = mutation({
     importedCount: v.number(),
     countryIds: v.array(v.id('countries')),
   }),
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     console.log(`🚀 Import de ${args.countries.length} pays...`);
 
     const importedCountries: Array<Id<'countries'>> = [];
@@ -442,7 +506,7 @@ export const importServices = mutation({
     importedCount: v.number(),
     serviceIds: v.array(v.id('services')),
   }),
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     console.log(`🚀 Import de ${args.services.length} services...`);
 
     const importedServices: Array<Id<'services'>> = [];
@@ -532,7 +596,7 @@ export const importUserWithData = mutation({
     userId: v.id('users'),
     recordsImported: v.number(),
   }),
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     let recordCount = 0;
 
     // 1. Créer l'utilisateur
@@ -787,47 +851,162 @@ export const importUserWithData = mutation({
   },
 });
 
+export const importNonUsersAccounts = mutation({
+  args: {
+    accounts: v.array(
+      v.object({
+        id: v.string(),
+        clerkId: v.optional(v.union(v.string(), v.null())),
+        name: v.optional(v.union(v.string(), v.null())),
+        email: v.optional(v.union(v.string(), v.null())),
+        phoneNumber: v.optional(v.union(v.string(), v.null())),
+        roles: v.array(v.string()),
+        organizationId: v.optional(v.union(v.string(), v.null())),
+        assignedOrganizationId: v.optional(v.union(v.string(), v.null())),
+      }),
+    ),
+  },
+  returns: v.object({
+    importedCount: v.number(),
+    userIds: v.array(v.id('users')),
+    membershipsCreated: v.number(),
+  }),
+  handler: async (ctx: MutationCtx, args) => {
+    const importedUserIds: Array<Id<'users'>> = [];
+    let membershipsCreated = 0;
+
+    for (const account of args.accounts) {
+      try {
+        const prismaRoles: Array<string> = account.roles || [];
+        const mappedRoles: Array<UserRole> = prismaRoles
+          .map((r) => roleMapping[r])
+          .filter((r): r is UserRole => Boolean(r) && r !== UserRole.User);
+
+        const userId = await ctx.db.insert('users', {
+          userId: account.clerkId || `temp_${account.id}`,
+          legacyId: account.id,
+          firstName: account.name ? account.name.split(' ')[0] : undefined,
+          lastName: account.name
+            ? account.name.split(' ').slice(1).join(' ') || undefined
+            : undefined,
+          email: account.email || undefined,
+          phoneNumber: account.phoneNumber || undefined,
+          roles: mappedRoles.length > 0 ? mappedRoles : [UserRole.Admin],
+          status: 'active',
+          countryCode: undefined,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+
+        importedUserIds.push(userId);
+
+        const legacyOrgId =
+          account.organizationId || account.assignedOrganizationId || null;
+        if (legacyOrgId) {
+          const orgId = await findConvexOrganizationByLegacyOrCode(ctx, legacyOrgId);
+          if (orgId) {
+            await ctx.db.insert('memberships', {
+              userId,
+              organizationId: orgId,
+              role: (mappedRoles[0] as UserRole) || UserRole.Admin,
+              permissions: [],
+              status: MembershipStatus.Active,
+              joinedAt: Date.now(),
+              leftAt: undefined,
+              lastActiveAt: undefined,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            });
+            membershipsCreated++;
+
+            // Mettre à jour l'organisation (memberIds)
+            const org = await ctx.db.get(orgId);
+            if (org) {
+              const memberIds = Array.isArray(org.memberIds) ? org.memberIds : [];
+              if (!memberIds.find((m) => m === userId)) {
+                await ctx.db.patch(orgId, { memberIds: [...memberIds, userId] });
+              }
+            }
+          } else {
+            console.warn(
+              `⚠️ Organisation ${legacyOrgId} introuvable pour le compte ${account.id}`,
+            );
+          }
+        }
+      } catch (error) {
+        console.error(`❌ Erreur import compte non utilisateur ${account.id}:`, error);
+      }
+    }
+
+    return {
+      importedCount: importedUserIds.length,
+      userIds: importedUserIds,
+      membershipsCreated,
+    };
+  },
+});
+
 // Fonctions helper pour trouver les IDs Convex
 async function findConvexServiceByLegacyId(
-  ctx: any,
+  ctx: MutationCtx,
   legacyId: string,
 ): Promise<Id<'services'> | undefined> {
   const service = await ctx.db
     .query('services')
-    .filter((q: any) => q.eq(q.field('legacyId'), legacyId))
+    .filter((q) => q.eq(q.field('legacyId'), legacyId))
     .first();
   return service?._id;
 }
 
 async function findConvexOrganizationByLegacyId(
-  ctx: any,
+  ctx: MutationCtx,
   legacyId: string,
 ): Promise<Id<'organizations'> | undefined> {
   const org = await ctx.db
     .query('organizations')
-    .filter((q: any) => q.eq(q.field('legacyId'), legacyId))
+    .filter((q) => q.eq(q.field('legacyId'), legacyId))
     .first();
   return org?._id;
 }
 
+async function findConvexOrganizationByLegacyOrCode(
+  ctx: MutationCtx,
+  legacyId: string,
+): Promise<Id<'organizations'> | undefined> {
+  const byLegacy = await ctx.db
+    .query('organizations')
+    .filter((q) => q.eq(q.field('legacyId'), legacyId))
+    .first();
+  if (byLegacy) return byLegacy._id as Id<'organizations'>;
+
+  const code = legacyId.substring(0, 8).toUpperCase();
+  const byCode = await ctx.db
+    .query('organizations')
+    .filter((q) => q.eq(q.field('code'), code))
+    .first();
+  return byCode?._id as Id<'organizations'> | undefined;
+}
+
 async function findConvexUserByLegacyId(
-  ctx: any,
+  ctx: MutationCtx,
   legacyId: string,
 ): Promise<Id<'users'> | undefined> {
   const user = await ctx.db
     .query('users')
-    .filter((q: any) => q.eq(q.field('legacyId'), legacyId))
+    .filter((q) => q.eq(q.field('legacyId'), legacyId))
     .first();
   return user?._id;
 }
 
 async function findConvexRequestByLegacyId(
-  ctx: any,
+  ctx: MutationCtx,
   legacyId: string,
 ): Promise<Id<'requests'> | undefined> {
+  // La table `requests` n'a pas de champ `legacyId`; on mappe via `number`
+  const number = legacyId.substring(0, 12).toUpperCase();
   const request = await ctx.db
     .query('requests')
-    .filter((q: any) => q.eq(q.field('legacyId'), legacyId))
+    .filter((q) => q.eq(q.field('number'), number))
     .first();
   return request?._id;
 }
