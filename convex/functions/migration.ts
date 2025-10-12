@@ -249,6 +249,16 @@ const serviceStatusMapping: { [key: string]: ServiceStatus } = {
   SUSPENDED: ServiceStatus.Suspended,
 };
 
+// Mapping des modes de livraison (Prisma enums -> Convex strings)
+const deliveryModeMapping: {
+  [key: string]: 'in_person' | 'postal' | 'electronic' | 'by_proxy';
+} = {
+  IN_PERSON: 'in_person',
+  POSTAL: 'postal',
+  ELECTRONIC: 'electronic',
+  BY_PROXY: 'by_proxy',
+};
+
 export const importOrganizations = mutation({
   args: {
     organizations: v.array(v.any()),
@@ -318,6 +328,7 @@ export const importOrganizations = mutation({
             workflowSettings: {},
             notificationSettings: {},
           },
+          legacyId: postgresOrg.id,
           metadata: postgresOrg.metadata || {},
           createdAt: new Date(postgresOrg.createdAt).getTime(),
           updatedAt: new Date(postgresOrg.updatedAt).getTime(),
@@ -455,8 +466,9 @@ export const importCountries = mutation({
         code: v.string(),
         status: v.string(),
         flag: v.union(v.null(), v.string()),
-        createdAt: v.any(),
-        updatedAt: v.any(),
+        createdAt: v.optional(v.any()),
+        updatedAt: v.optional(v.any()),
+        metadata: v.optional(v.any()),
       }),
     ),
   },
@@ -476,8 +488,9 @@ export const importCountries = mutation({
           code: postgresCountry.code,
           status: countryStatusMapping[postgresCountry.status],
           flag: postgresCountry.flag || undefined,
-          createdAt: new Date(postgresCountry.createdAt).getTime(),
-          updatedAt: new Date(postgresCountry.updatedAt).getTime(),
+          createdAt: new Date(postgresCountry.createdAt || Date.now()).getTime(),
+          updatedAt: new Date(postgresCountry.updatedAt || Date.now()).getTime(),
+          metadata: postgresCountry.metadata || undefined,
         });
 
         importedCountries.push(countryId);
@@ -505,11 +518,13 @@ export const importServices = mutation({
   returns: v.object({
     importedCount: v.number(),
     serviceIds: v.array(v.id('services')),
+    importedLegacyIds: v.array(v.string()),
   }),
   handler: async (ctx: MutationCtx, args) => {
     console.log(`🚀 Import de ${args.services.length} services...`);
 
     const importedServices: Array<Id<'services'>> = [];
+    const importedLegacyIds: Array<string> = [];
 
     for (const service of args.services) {
       try {
@@ -547,7 +562,9 @@ export const importServices = mutation({
           },
           steps: [],
           processingMode: 'online_only',
-          deliveryModes: service.deliveryMode || ['in_person'],
+          deliveryModes: (service.deliveryMode || []).map(
+            (m: string) => deliveryModeMapping[m] || 'in_person',
+          ) || ['in_person'],
           requiresAppointment: service.requiresAppointment || false,
           appointmentDuration: service.appointmentDuration || undefined,
           appointmentInstructions: service.appointmentInstructions || undefined,
@@ -564,6 +581,7 @@ export const importServices = mutation({
         });
 
         importedServices.push(serviceId);
+        importedLegacyIds.push(service.id as string);
       } catch (error) {
         console.error(`❌ Erreur import service ${service.id}:`, error);
         console.error(
@@ -577,6 +595,7 @@ export const importServices = mutation({
     return {
       importedCount: importedServices.length,
       serviceIds: importedServices,
+      importedLegacyIds,
     };
   },
 });
@@ -590,7 +609,19 @@ export const importUserWithData = mutation({
     appointments: v.optional(v.array(v.any())),
     notifications: v.optional(v.array(v.any())),
     feedbacks: v.optional(v.array(v.any())),
-    childAuthorities: v.optional(v.array(v.any())),
+    childAuthorities: v.optional(
+      v.array(
+        v.object({
+          id: v.string(),
+          profileId: v.string(),
+          parentUserId: v.string(),
+          role: v.string(),
+          isActive: v.optional(v.boolean()),
+          createdAt: v.optional(v.any()),
+          updatedAt: v.optional(v.any()),
+        }),
+      ),
+    ),
   },
   returns: v.object({
     userId: v.id('users'),
@@ -844,6 +875,34 @@ export const importUserWithData = mutation({
       }
     }
 
+    // 7. Importer les autorités parentales (parentalAuthorities)
+    if (args.childAuthorities && args.childAuthorities.length > 0) {
+      for (const pa of args.childAuthorities) {
+        try {
+          // Trouver le user parent Convex par legacyId
+          const parentConvexUserId = await findConvexUserByLegacyId(ctx, pa.parentUserId);
+          if (!parentConvexUserId || !profileId) continue;
+
+          await ctx.db.insert('parentalAuthorities', {
+            profileId: profileId,
+            parentUserId: parentConvexUserId,
+            role:
+              pa.role === 'FATHER'
+                ? 'father'
+                : pa.role === 'MOTHER'
+                  ? 'mother'
+                  : 'legal_guardian',
+            isActive: pa.isActive ?? true,
+            createdAt: pa.createdAt ? new Date(pa.createdAt).getTime() : Date.now(),
+            updatedAt: pa.updatedAt ? new Date(pa.updatedAt).getTime() : Date.now(),
+          });
+          recordCount++;
+        } catch (error) {
+          console.error(`Erreur import parentalAuthority ${pa.id}:`, error);
+        }
+      }
+    }
+
     return {
       userId,
       recordsImported: recordCount,
@@ -877,6 +936,8 @@ export const importNonUsersAccounts = mutation({
             }),
           ),
         ),
+        managedByUserId: v.optional(v.union(v.string(), v.null())),
+        managedAgentIds: v.optional(v.array(v.string())),
       }),
     ),
   },
@@ -946,6 +1007,19 @@ export const importNonUsersAccounts = mutation({
         if (legacyOrgId) {
           const orgId = await findConvexOrganizationByLegacyOrCode(ctx, legacyOrgId);
           if (orgId) {
+            const managerIds = account.managedByUserId
+              ? [
+                  (await findConvexUserByLegacyId(
+                    ctx,
+                    account.managedByUserId,
+                  )) as Id<'users'>,
+                ]
+              : [];
+            const agentIds = account.managedAgentIds
+              ? ((await Promise.all(
+                  account.managedAgentIds.map((id) => findConvexUserByLegacyId(ctx, id)),
+                )) as Id<'users'>[])
+              : [];
             await ctx.db.insert('memberships', {
               userId,
               organizationId: orgId,
@@ -956,8 +1030,8 @@ export const importNonUsersAccounts = mutation({
               account.assignedCountries.length > 0
                 ? account.assignedCountries
                 : []) as string[],
-              managerIds: [] as Id<'users'>[],
-              agentIds: [] as Id<'users'>[],
+              managerIds: managerIds,
+              agentIds: agentIds,
               assignedServices: [] as Id<'services'>[],
               joinedAt: Date.now(),
               leftAt: undefined,

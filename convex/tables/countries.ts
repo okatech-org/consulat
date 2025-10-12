@@ -7,6 +7,7 @@ export const countries = defineTable({
   code: v.string(),
   status: countryStatusValidator,
   flag: v.optional(v.string()),
+  metadata: v.optional(v.any()),
 
   createdAt: v.number(),
   updatedAt: v.number(),

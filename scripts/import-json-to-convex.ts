@@ -142,6 +142,7 @@ async function importCountries() {
         flag: country.flag,
         createdAt: country.createdAt,
         updatedAt: country.updatedAt,
+        metadata: country.metadata,
       })),
     });
 
@@ -296,6 +297,16 @@ async function importNonUsersAccounts() {
         organizationId: acc.organizationId ?? null,
         assignedOrganizationId: acc.assignedOrganizationId ?? null,
         assignedCountries: (acc.linkedCountries || []).map((c) => c.code),
+        notifications: (acc.notifications || []).map((n) => ({
+          id: n.id,
+          type: n.type,
+          title: n.title,
+          message: n.message,
+          status: n.status,
+          read: n.read,
+          createdAt: n.createdAt,
+        })),
+        managedByUserId: acc.managedByUserId ?? null,
       })),
     });
 
@@ -314,6 +325,7 @@ async function importNonUsersAccounts() {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function importUserCentricData() {
   console.log('\n👤 Import des données centrées utilisateur...');
   const usersData: UserCentricDataExport[] = await loadJsonFile('users-data.json');
@@ -457,7 +469,7 @@ async function main() {
     await importOrganizations();
     await importServices();
     await importNonUsersAccounts();
-    await importUserCentricData();
+    //await importUserCentricData();
 
     await printStats();
 

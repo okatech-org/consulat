@@ -1,17 +1,59 @@
 {
-  "lastUpdate": null,
+  "lastUpdate": "2025-10-12T23:33:16.684Z",
   "version": "1.0.0",
   "entities": {
-    "countries": [],
-    "organizations": [],
-    "services": [],
+    "countries": [
+      "cm8hwjynq0005kz03si4nve7v",
+      "cmeubhsm90000l7045paibzzl",
+      "country-france",
+      "cmdkb9da7000087xdtes0arzt",
+      "cmdgdvsp50000ju04adfoq78g",
+      "cmdgdv64a0000lb04urj2iax5",
+      "cm8hwki6b0001ju03wgg5dpqc",
+      "cmdgdw4fk0000l804cnz8ep5a",
+      "cmdgdxysz0001l8045paykthv",
+      "cmdgdy8g00002l804yj1apbm2",
+      "cmdgdxe5j0001ju04zldl7smn",
+      "cm8hwkb0y0000ju03dd287tc5",
+      "cmddm7yy80000ju0409hkx7cq",
+      "cmdgdxo0c0002ju04a4ptdiv3",
+      "cmdgdwnyq0000l504b4hjv7k3"
+    ],
+    "organizations": [
+      "cm8hw04070000l403rdas9v2j",
+      "cmdkb85yk000087r7pdoxk3aj",
+      "cmdkb9dpu000687xd5bp16s6p",
+      "cmdkb9dx8000b87xdn1a93epl",
+      "cmeuftw7j00054mkjbwn1nncf"
+    ],
+    "services": [
+      "cm8hw0w090003l403cub0urr6",
+      "cm8pbujkk0009sfva6vxfockp",
+      "cm8qnivpf0004l403ijphi4jz",
+      "cmbpg20ll0001l504mxdmbqf8",
+      "cmbpg20ll0003l504civil0002",
+      "cmbpg20ll0003l504civil0003",
+      "cmbpg20ll0003l504civil0004",
+      "cmbpg20ll0003l504cert0001",
+      "cmbpg20ll0003l504cert0002",
+      "cmbpg20ll0003l504cert0003",
+      "cmbpg20ll0003l504cert0004",
+      "cmbpg20ll0003l504cert0005",
+      "cmbpm2ved0000sf1yph79m0ny",
+      "cmbpm2vjz0002sf1yoc8v171z",
+      "cmbpm2vnw0005sf1y8lob1ub7",
+      "cmbpm2vrf0007sf1ynmcbv3dt",
+      "cmbpm2vuy000asf1yl4a0s6lv",
+      "cmbpmdm1n0000sfa0ss39x6b9",
+      "cmeug8sb700084mkjqmbo170l"
+    ],
     "non-users-accounts": [],
     "users-data": []
   },
   "stats": {
-    "countries": 0,
-    "organizations": 0,
-    "services": 0,
+    "countries": 15,
+    "organizations": 5,
+    "services": 19,
     "non-users-accounts": 0,
     "users-data": 0
   }

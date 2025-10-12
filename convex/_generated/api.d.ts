@@ -44,6 +44,7 @@ import type * as tables_memberships from "../tables/memberships.js";
 import type * as tables_notifications from "../tables/notifications.js";
 import type * as tables_organizationCountryConfigs from "../tables/organizationCountryConfigs.js";
 import type * as tables_organizations from "../tables/organizations.js";
+import type * as tables_parentalAuthorities from "../tables/parentalAuthorities.js";
 import type * as tables_profiles from "../tables/profiles.js";
 import type * as tables_requests from "../tables/requests.js";
 import type * as tables_services from "../tables/services.js";
@@ -101,6 +102,7 @@ declare const fullApi: ApiFromModules<{
   "tables/notifications": typeof tables_notifications;
   "tables/organizationCountryConfigs": typeof tables_organizationCountryConfigs;
   "tables/organizations": typeof tables_organizations;
+  "tables/parentalAuthorities": typeof tables_parentalAuthorities;
   "tables/profiles": typeof tables_profiles;
   "tables/requests": typeof tables_requests;
   "tables/services": typeof tables_services;
