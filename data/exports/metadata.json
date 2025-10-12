@@ -1,7 +1,7 @@
 {
-  "exportDate": "2025-10-12T23:30:26.509Z",
+  "exportDate": "2025-10-12T23:44:31.070Z",
   "totalFiles": 5,
-  "totalRecords": 2077,
+  "totalRecords": 2078,
   "files": [
     {
       "entity": "countries",
@@ -25,7 +25,7 @@
     },
     {
       "entity": "users-data",
-      "count": 2018,
+      "count": 2019,
       "file": "data/exports/users-data.json"
     }
   ],

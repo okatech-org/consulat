@@ -465,11 +465,11 @@ async function main() {
 
     await loadMigrationTracking();
 
-    await importCountries();
-    await importOrganizations();
-    await importServices();
-    await importNonUsersAccounts();
-    //await importUserCentricData();
+    //await importCountries();
+    //await importOrganizations();
+    //await importServices();
+    // await importNonUsersAccounts();
+    await importUserCentricData();
 
     await printStats();
 
