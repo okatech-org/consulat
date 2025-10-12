@@ -31,6 +31,7 @@ export const organizations = defineTable({
   metadata: v.optional(v.any()),
   createdAt: v.number(),
   updatedAt: v.number(),
+  legacyId: v.optional(v.string()),
 })
   .index('by_code', ['code'])
   .index('by_status', ['status'])

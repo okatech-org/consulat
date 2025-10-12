@@ -75,6 +75,7 @@ export const services = defineTable({
 
   createdAt: v.number(),
   updatedAt: v.number(),
+  legacyId: v.optional(v.string()),
 })
   .index('by_code', ['code'])
   .index('by_organization', ['organizationId'])
