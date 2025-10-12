@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -20,9 +20,22 @@ async function ensureExportDir() {
   console.log(`📁 Dossier d'export créé : ${EXPORT_DIR}`);
 }
 
+const exportCountryInclude: Prisma.CountrySelect = {
+  id: true,
+  name: true,
+  code: true,
+  status: true,
+  flag: true,
+};
+
+export type CountryExport = Prisma.CountryGetPayload<{
+  select: typeof exportCountryInclude;
+}>;
+
 async function exportCountries() {
   console.log('\n🌍 Export des pays...');
   const countries = await prisma.country.findMany({
+    select: exportCountryInclude,
     orderBy: { code: 'asc' },
   });
 
@@ -33,12 +46,41 @@ async function exportCountries() {
   return { entity: 'countries', count: countries.length, file: filePath };
 }
 
+const exportOrganizationInclude: Prisma.OrganizationSelect = {
+  id: true,
+  name: true,
+  logo: true,
+  type: true,
+  status: true,
+  countries: true,
+  services: true,
+  adminUser: true,
+  createdAt: true,
+  updatedAt: true,
+  metadata: true,
+  appointmentSettings: true,
+  agents: {
+    select: {
+      id: true,
+      clerkId: true,
+      name: true,
+      email: true,
+      phoneNumber: true,
+      roles: true,
+    },
+  },
+  serviceRequests: true,
+  documentTemplates: true,
+};
+
+export type OrganizationExport = Prisma.OrganizationGetPayload<{
+  select: typeof exportOrganizationInclude;
+}>;
+
 async function exportOrganizations() {
   console.log('\n🏢 Export des organisations...');
   const organizations = await prisma.organization.findMany({
-    include: {
-      countries: true,
-    },
+    select: exportOrganizationInclude,
     orderBy: { createdAt: 'asc' },
   });
 
@@ -49,13 +91,67 @@ async function exportOrganizations() {
   return { entity: 'organizations', count: organizations.length, file: filePath };
 }
 
+const exportServiceInclude: Prisma.ConsularServiceSelect = {
+  id: true,
+  name: true,
+  description: true,
+  category: true,
+  isActive: true,
+  profileDocuments: true,
+  requiredDocuments: true,
+  optionalDocuments: true,
+  toGenerateDocuments: true,
+  requiresAppointment: true,
+  appointmentDuration: true,
+  appointmentInstructions: true,
+  deliveryAppointment: true,
+  deliveryAppointmentDuration: true,
+  deliveryAppointmentDesc: true,
+  generateDocumentSettings: true,
+  steps: true,
+  isFree: true,
+  price: true,
+  currency: true,
+  organizationId: true,
+  requests: {
+    select: {
+      id: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      serviceId: true,
+      submittedById: true,
+      requestedForId: true,
+      organizationId: true,
+      countryCode: true,
+    },
+  },
+  processingMode: true,
+  deliveryMode: true,
+  proxyRequirements: true,
+  postalRequirements: true,
+  metadata: true,
+  assignedTo: {
+    select: {
+      id: true,
+      clerkId: true,
+      name: true,
+      phoneNumber: true,
+      roles: true,
+      email: true,
+    },
+  },
+  feedbacks: true,
+};
+
+export type ServiceExport = Prisma.ConsularServiceGetPayload<{
+  select: typeof exportServiceInclude;
+}>;
+
 async function exportServices() {
   console.log('\n🛎️ Export des services...');
   const services = await prisma.consularService.findMany({
-    include: {
-      organization: true,
-      steps: true,
-    },
+    select: exportServiceInclude,
     orderBy: { createdAt: 'asc' },
   });
 
@@ -66,90 +162,142 @@ async function exportServices() {
   return { entity: 'services', count: services.length, file: filePath };
 }
 
+const exportNonUsersAccountsInclude: Prisma.UserSelect = {
+  id: true,
+  clerkId: true,
+  name: true,
+  roles: true,
+  email: true,
+  phoneNumber: true,
+  linkedCountries: true,
+  organizationId: true,
+  notifications: true,
+  assignedOrganizationId: true,
+  managedByUserId: true,
+  maxActiveRequests: true,
+  availability: true,
+  completedRequests: true,
+  averageProcessingTime: true,
+  managedAgents: {
+    select: {
+      id: true,
+      clerkId: true,
+      name: true,
+      email: true,
+      phoneNumber: true,
+    },
+  },
+};
+
+export type NonUsersAccountsExport = Prisma.UserGetPayload<{
+  select: typeof exportNonUsersAccountsInclude;
+}>;
+
+async function exportNonUsersAccounts() {
+  console.log('\n👤 Export des comptes non utilisateurs...');
+  const nonUsers = await prisma.user.findMany({
+    select: exportNonUsersAccountsInclude,
+    where: {
+      roles: {
+        hasSome: [
+          'ADMIN',
+          'SUPER_ADMIN',
+          'MANAGER',
+          'AGENT',
+          'INTEL_AGENT',
+          'EDUCATION_AGENT',
+        ],
+      },
+    },
+  });
+
+  const filePath = path.join(EXPORT_DIR, 'non-users-accounts.json');
+  await fs.writeFile(filePath, JSON.stringify(nonUsers, null, 2));
+
+  console.log(`✅ ${nonUsers.length} comptes non utilisateurs exportés → ${filePath}`);
+  return { entity: 'non-users-accounts', count: nonUsers.length, file: filePath };
+}
+
+const exportUserCentricDataInclude: Prisma.UserSelect = {
+  id: true,
+  clerkId: true,
+  name: true,
+  roles: true,
+  email: true,
+  phoneNumber: true,
+  profile: {
+    select: {
+      id: true,
+      userId: true,
+      category: true,
+      parentAuthorities: true,
+      validationRequestId: true,
+      firstName: true,
+      lastName: true,
+      gender: true,
+      birthDate: true,
+      birthPlace: true,
+      birthCountry: true,
+      nationality: true,
+      maritalStatus: true,
+      workStatus: true,
+      acquisitionMode: true,
+      passportNumber: true,
+      passportIssueDate: true,
+      passportExpiryDate: true,
+      passportIssueAuthority: true,
+      identityPicture: true,
+      passport: true,
+      birthCertificate: true,
+      residencePermit: true,
+      addressProof: true,
+      address: true,
+      phoneNumber: true,
+      email: true,
+      residentContact: true,
+      homeLandContact: true,
+      activityInGabon: true,
+      fatherFullName: true,
+      motherFullName: true,
+      spouseFullName: true,
+      profession: true,
+      employer: true,
+      employerAddress: true,
+      cardNumber: true,
+      cardIssuedAt: true,
+      cardExpiresAt: true,
+      cardPin: true,
+      status: true,
+      validationNotes: true,
+      validatedAt: true,
+      validatedBy: true,
+      submittedAt: true,
+      assignedOrganizationId: true,
+      residenceCountyCode: true,
+    },
+  },
+  countryCode: true,
+  notifications: true,
+  submittedRequests: true,
+  documents: true,
+  appointmentsToAttend: {
+    include: {
+      service: true,
+      attendee: true,
+      location: true,
+    },
+  },
+};
+
+export type UserCentricDataExport = Prisma.UserGetPayload<{
+  select: typeof exportUserCentricDataInclude;
+}>;
+
 async function exportUserCentricData() {
   console.log('\n👤 Export des données centrées utilisateur...');
 
   const users = await prisma.user.findMany({
-    include: {
-      profile: {
-        include: {
-          address: true,
-          residentContact: {
-            include: {
-              address: true,
-            },
-          },
-          homeLandContact: {
-            include: {
-              address: true,
-            },
-          },
-          parentAuthorities: true,
-          intelligenceNotes: {
-            include: {
-              author: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                },
-              },
-              history: true,
-            },
-          },
-        },
-      },
-      documents: {
-        include: {
-          serviceRequest: true,
-        },
-      },
-      submittedRequests: {
-        include: {
-          service: true,
-          requestedFor: true,
-          appointments: true,
-          requiredDocuments: true,
-          notes: true,
-          messages: true,
-          actions: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                },
-              },
-            },
-          },
-          feedbacks: true,
-        },
-      },
-      appointmentsToAttend: {
-        include: {
-          location: true,
-          service: true,
-        },
-      },
-      notifications: {
-        orderBy: { createdAt: 'desc' },
-      },
-      feedbacks: {
-        include: {
-          service: true,
-        },
-      },
-      childAuthorities: {
-        include: {
-          profile: {
-            include: {
-              address: true,
-            },
-          },
-        },
-      },
-    },
+    select: exportUserCentricDataInclude,
     orderBy: { createdAt: 'asc' },
   });
 
@@ -158,54 +306,7 @@ async function exportUserCentricData() {
 
   console.log(`✅ ${users.length} utilisateurs avec données exportés → ${filePath}`);
 
-  let totalRecords = users.length;
-  users.forEach((user) => {
-    totalRecords += user.documents?.length || 0;
-    totalRecords += user.submittedRequests?.length || 0;
-    totalRecords += user.appointmentsToAttend?.length || 0;
-    totalRecords += user.notifications?.length || 0;
-    totalRecords += user.feedbacks?.length || 0;
-    totalRecords += user.childAuthorities?.length || 0;
-    if (user.profile) totalRecords++;
-  });
-
-  console.log(`   📊 Total enregistrements inclus : ${totalRecords}`);
-
-  return { entity: 'users-data', count: totalRecords, file: filePath };
-}
-
-async function exportOrphanedData() {
-  console.log('\n🔍 Export des données orphelines...');
-
-  // Seuls les profils peuvent être orphelins (userId nullable)
-  const orphanedProfiles = await prisma.profile.findMany({
-    where: { userId: null },
-    include: {
-      address: true,
-      residentContact: true,
-      homeLandContact: true,
-    },
-  });
-
-  // Note : submittedById et attendeeId sont non-nullable dans le schéma
-  // donc pas de demandes ou rendez-vous orphelins possibles
-  const orphanedData = {
-    profiles: orphanedProfiles,
-    requests: [], // Non applicable - submittedById est obligatoire
-    appointments: [], // Non applicable - attendeeId est obligatoire
-    note: 'Seuls les profils peuvent être orphelins dans ce schéma. Les demandes et rendez-vous ont des relations obligatoires.',
-  };
-
-  const filePath = path.join(EXPORT_DIR, 'orphaned-data.json');
-  await fs.writeFile(filePath, JSON.stringify(orphanedData, null, 2));
-
-  console.log(`✅ ${orphanedProfiles.length} profils orphelins exportés → ${filePath}`);
-  console.log(`   📋 Profils sans utilisateur : ${orphanedProfiles.length}`);
-  if (orphanedProfiles.length === 0) {
-    console.log('   ✨ Aucune donnée orpheline trouvée - Base de données propre !');
-  }
-
-  return { entity: 'orphaned-data', count: orphanedProfiles.length, file: filePath };
+  return { entity: 'users-data', count: users.length, file: filePath };
 }
 
 async function generateMetadata(stats: ExportStats[]) {
@@ -346,8 +447,8 @@ async function main() {
     stats.push(await exportCountries());
     stats.push(await exportOrganizations());
     stats.push(await exportServices());
+    stats.push(await exportNonUsersAccounts());
     stats.push(await exportUserCentricData());
-    stats.push(await exportOrphanedData());
 
     const metadata = await generateMetadata(stats);
     await generateImportManifest();
