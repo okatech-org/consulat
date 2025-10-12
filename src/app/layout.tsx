@@ -13,7 +13,6 @@ import { NextIntlClientProvider, type AbstractIntlMessages } from 'next-intl';
 
 import { cookies } from 'next/headers';
 import { getServerTheme } from '@/lib/theme-server';
-import { getCurrentUser } from '@/lib/auth/utils';
 import { ThemeSync } from '@/components/layouts/theme-sync';
 import { ThemeWrapper } from '@/components/layouts/theme-wrapper';
 import { ViewportDetector } from '@/components/layouts/viewport-detector';

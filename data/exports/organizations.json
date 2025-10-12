@@ -1,0 +1,192 @@
+[
+  {
+    "id": "cm8hw04070000l403rdas9v2j",
+    "name": "Consulat Général du Gabon en France",
+    "logo": "https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOitwVuzIHJjy3RAmPYVcqxrL51WnUCpXvKktF2",
+    "type": "GENERAL_CONSULATE",
+    "status": "ACTIVE",
+    "metadata": "{\"FR\":{\"settings\":{\"contact\":{\"address\":{\"firstLine\":\"26 Bis Avenue Raphael\",\"city\":\"Paris\",\"zipCode\":\"75016\",\"country\":\"france\"},\"phone\":\"+33189719298\",\"email\":\"contact@consulatdugabon.fr\",\"website\":\"https://consulatdugabon.fr/\"},\"schedule\":{\"monday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"tuesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"wednesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"thursday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"friday\":{\"isOpen\":false,\"slots\":[]},\"saturday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]},\"sunday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]}},\"holidays\":[],\"closures\":[],\"consularCard\":{\"rectoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiuy2z9LTIiYQ3XdTnha157EFpWxU60uNz4MCo\",\"versoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiKDypM6ecjiNXyp9U1Ba5LohEFZJVP7gRCuGM\"}}},\"PM\":{\"settings\":{\"contact\":{\"address\":{\"firstLine\":\"26 Bis Avenue Raphael\",\"city\":\"Paris\",\"zipCode\":\"75016\",\"country\":\"france\"},\"phone\":\"+33189719298\",\"email\":\"contact@consulatdugabon.fr\",\"website\":\"https://consulatdugabon.fr/\"},\"schedule\":{\"monday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"tuesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"wednesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"thursday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"friday\":{\"isOpen\":false,\"slots\":[]},\"saturday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]},\"sunday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]}},\"holidays\":[],\"closures\":[],\"consularCard\":{\"rectoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiuy2z9LTIiYQ3XdTnha157EFpWxU60uNz4MCo\",\"versoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiKDypM6ecjiNXyp9U1Ba5LohEFZJVP7gRCuGM\"}}},\"WF\":{\"settings\":{\"contact\":{\"address\":{\"firstLine\":\"26 Bis Avenue Raphael\",\"city\":\"Paris\",\"zipCode\":\"75016\",\"country\":\"france\"},\"phone\":\"+33189719298\",\"email\":\"contact@consulatdugabon.fr\",\"website\":\"https://consulatdugabon.fr/\"},\"schedule\":{\"monday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"tuesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"wednesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"thursday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"friday\":{\"isOpen\":false,\"slots\":[]},\"saturday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]},\"sunday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]}},\"holidays\":[],\"closures\":[],\"consularCard\":{\"rectoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiuy2z9LTIiYQ3XdTnha157EFpWxU60uNz4MCo\",\"versoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiKDypM6ecjiNXyp9U1Ba5LohEFZJVP7gRCuGM\"}}},\"GP\":{\"settings\":{\"contact\":{\"address\":{\"firstLine\":\"26 Bis Avenue Raphael\",\"city\":\"Paris\",\"zipCode\":\"75016\",\"country\":\"france\"},\"phone\":\"+33189719298\",\"email\":\"contact@consulatdugabon.fr\",\"website\":\"https://consulatdugabon.fr/\"},\"schedule\":{\"monday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"tuesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"wednesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"thursday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"friday\":{\"isOpen\":false,\"slots\":[]},\"saturday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]},\"sunday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]}},\"holidays\":[],\"closures\":[],\"consularCard\":{\"rectoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiuy2z9LTIiYQ3XdTnha157EFpWxU60uNz4MCo\",\"versoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiKDypM6ecjiNXyp9U1Ba5LohEFZJVP7gRCuGM\"}}},\"GF\":{\"settings\":{\"contact\":{\"address\":{\"firstLine\":\"26 Bis Avenue Raphael\",\"city\":\"Paris\",\"zipCode\":\"75016\",\"country\":\"france\"},\"phone\":\"+33189719298\",\"email\":\"contact@consulatdugabon.fr\",\"website\":\"https://consulatdugabon.fr/\"},\"schedule\":{\"monday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"tuesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"wednesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"thursday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"friday\":{\"isOpen\":false,\"slots\":[]},\"saturday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]},\"sunday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]}},\"holidays\":[],\"closures\":[],\"consularCard\":{\"rectoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiuy2z9LTIiYQ3XdTnha157EFpWxU60uNz4MCo\",\"versoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiKDypM6ecjiNXyp9U1Ba5LohEFZJVP7gRCuGM\"}}},\"MQ\":{\"settings\":{\"contact\":{\"address\":{\"firstLine\":\"26 Bis Avenue Raphael\",\"city\":\"Paris\",\"zipCode\":\"75016\",\"country\":\"france\"},\"phone\":\"+33189719298\",\"email\":\"contact@consulatdugabon.fr\",\"website\":\"https://consulatdugabon.fr/\"},\"schedule\":{\"monday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"tuesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"wednesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"thursday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"friday\":{\"isOpen\":false,\"slots\":[]},\"saturday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]},\"sunday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]}},\"holidays\":[],\"closures\":[],\"consularCard\":{\"rectoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiuy2z9LTIiYQ3XdTnha157EFpWxU60uNz4MCo\",\"versoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiKDypM6ecjiNXyp9U1Ba5LohEFZJVP7gRCuGM\"}}},\"YT\":{\"settings\":{\"contact\":{\"address\":{\"firstLine\":\"26 Bis Avenue Raphael\",\"city\":\"Paris\",\"zipCode\":\"75016\",\"country\":\"france\"},\"phone\":\"+33189719298\",\"email\":\"contact@consulatdugabon.fr\",\"website\":\"https://consulatdugabon.fr/\"},\"schedule\":{\"monday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"tuesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"wednesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"thursday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"friday\":{\"isOpen\":false,\"slots\":[]},\"saturday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]},\"sunday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]}},\"holidays\":[],\"closures\":[],\"consularCard\":{\"rectoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiuy2z9LTIiYQ3XdTnha157EFpWxU60uNz4MCo\",\"versoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiKDypM6ecjiNXyp9U1Ba5LohEFZJVP7gRCuGM\"}}},\"MC\":{\"settings\":{\"contact\":{\"address\":{\"firstLine\":\"26 Bis Avenue Raphael\",\"city\":\"Paris\",\"zipCode\":\"75016\",\"country\":\"france\"},\"phone\":\"+33189719298\",\"email\":\"contact@consulatdugabon.fr\",\"website\":\"https://consulatdugabon.fr/\"},\"schedule\":{\"monday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"tuesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"wednesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"thursday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"friday\":{\"isOpen\":false,\"slots\":[]},\"saturday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]},\"sunday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]}},\"holidays\":[],\"closures\":[],\"consularCard\":{\"rectoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiuy2z9LTIiYQ3XdTnha157EFpWxU60uNz4MCo\",\"versoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiKDypM6ecjiNXyp9U1Ba5LohEFZJVP7gRCuGM\"}}},\"NC\":{\"settings\":{\"contact\":{\"address\":{\"firstLine\":\"26 Bis Avenue Raphael\",\"city\":\"Paris\",\"zipCode\":\"75016\",\"country\":\"france\"},\"phone\":\"+33189719298\",\"email\":\"contact@consulatdugabon.fr\",\"website\":\"https://consulatdugabon.fr/\"},\"schedule\":{\"monday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"tuesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"wednesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"thursday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"friday\":{\"isOpen\":false,\"slots\":[]},\"saturday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]},\"sunday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]}},\"holidays\":[],\"closures\":[],\"consularCard\":{\"rectoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiuy2z9LTIiYQ3XdTnha157EFpWxU60uNz4MCo\",\"versoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiKDypM6ecjiNXyp9U1Ba5LohEFZJVP7gRCuGM\"}}},\"PF\":{\"settings\":{\"contact\":{\"address\":{\"firstLine\":\"26 Bis Avenue Raphael\",\"city\":\"Paris\",\"zipCode\":\"75016\",\"country\":\"france\"},\"phone\":\"+33189719298\",\"email\":\"contact@consulatdugabon.fr\",\"website\":\"https://consulatdugabon.fr/\"},\"schedule\":{\"monday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"tuesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"wednesday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"thursday\":{\"isOpen\":true,\"slots\":[{\"start\":\"09:45\",\"end\":\"14:00\"}]},\"friday\":{\"isOpen\":false,\"slots\":[]},\"saturday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]},\"sunday\":{\"isOpen\":false,\"slots\":[{\"start\":\"09:00\",\"end\":\"17:00\"}]}},\"holidays\":[],\"closures\":[],\"consularCard\":{\"rectoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiuy2z9LTIiYQ3XdTnha157EFpWxU60uNz4MCo\",\"versoModelUrl\":\"https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiKDypM6ecjiNXyp9U1Ba5LohEFZJVP7gRCuGM\"}}}}",
+    "createdAt": "2025-03-20T21:52:26.670Z",
+    "updatedAt": "2025-07-27T16:18:51.808Z",
+    "appointmentSettings": null,
+    "countries": [
+      {
+        "id": "country-france",
+        "name": "France",
+        "code": "FR",
+        "status": "ACTIVE",
+        "flag": "https://flagcdn.com/fr.svg",
+        "createdAt": "2025-03-20T21:49:49.674Z",
+        "updatedAt": "2025-03-20T21:49:49.674Z",
+        "metadata": "{\"currency\":{\"code\":\"EUR\",\"symbol\":\"€\",\"format\":\"#,##0.00\",\"symbolPosition\":\"after\"},\"language\":{\"defaultLocale\":\"fr\",\"locales\":[\"fr\",\"en\",\"es\"]},\"dateFormat\":\"DD/MM/YYYY\",\"timeFormat\":\"24h\",\"timeZone\":\"Europe/Paris\"}"
+      },
+      {
+        "id": "cmdgdxe5j0001ju04zldl7smn",
+        "name": "Saint-Pierre-et-Miquelon",
+        "code": "PM",
+        "status": "ACTIVE",
+        "flag": null,
+        "createdAt": "2025-07-23T19:57:12.295Z",
+        "updatedAt": "2025-07-27T15:47:12.204Z",
+        "metadata": null
+      },
+      {
+        "id": "cmdgdxo0c0002ju04a4ptdiv3",
+        "name": "Wallis-et-Futuna",
+        "code": "WF",
+        "status": "ACTIVE",
+        "flag": null,
+        "createdAt": "2025-07-23T19:57:25.068Z",
+        "updatedAt": "2025-07-27T15:47:12.805Z",
+        "metadata": null
+      },
+      {
+        "id": "cmdgdv64a0000lb04urj2iax5",
+        "name": "Guadeloupe",
+        "code": "GP",
+        "status": "ACTIVE",
+        "flag": null,
+        "createdAt": "2025-07-23T19:55:28.571Z",
+        "updatedAt": "2025-07-27T15:47:34.202Z",
+        "metadata": "{}"
+      },
+      {
+        "id": "cmdgdvsp50000ju04adfoq78g",
+        "name": "Guyane française",
+        "code": "GF",
+        "status": "ACTIVE",
+        "flag": null,
+        "createdAt": "2025-07-23T19:55:57.834Z",
+        "updatedAt": "2025-07-27T15:47:34.766Z",
+        "metadata": "{}"
+      },
+      {
+        "id": "cmdgdw4fk0000l804cnz8ep5a",
+        "name": "Martinique",
+        "code": "MQ",
+        "status": "ACTIVE",
+        "flag": null,
+        "createdAt": "2025-07-23T19:56:13.040Z",
+        "updatedAt": "2025-07-27T15:47:35.114Z",
+        "metadata": "{}"
+      },
+      {
+        "id": "cmdgdwnyq0000l504b4hjv7k3",
+        "name": "Mayotte",
+        "code": "YT",
+        "status": "ACTIVE",
+        "flag": null,
+        "createdAt": "2025-07-23T19:56:38.355Z",
+        "updatedAt": "2025-07-27T15:47:35.455Z",
+        "metadata": "{}"
+      },
+      {
+        "id": "cm8hwki6b0001ju03wgg5dpqc",
+        "name": "Monaco",
+        "code": "MC",
+        "status": "ACTIVE",
+        "flag": null,
+        "createdAt": "2025-03-20T22:08:18.179Z",
+        "updatedAt": "2025-07-27T15:47:35.911Z",
+        "metadata": "{}"
+      },
+      {
+        "id": "cmdgdxysz0001l8045paykthv",
+        "name": "Nouvelle-Calédonie",
+        "code": "NC",
+        "status": "ACTIVE",
+        "flag": null,
+        "createdAt": "2025-07-23T19:57:39.059Z",
+        "updatedAt": "2025-07-27T15:47:36.255Z",
+        "metadata": "{}"
+      },
+      {
+        "id": "cmdgdy8g00002l804yj1apbm2",
+        "name": "Polynésie française",
+        "code": "PF",
+        "status": "ACTIVE",
+        "flag": null,
+        "createdAt": "2025-07-23T19:57:51.553Z",
+        "updatedAt": "2025-07-27T15:47:36.598Z",
+        "metadata": "{}"
+      }
+    ]
+  },
+  {
+    "id": "cmdkb85yk000087r7pdoxk3aj",
+    "name": "Administration Centrale Consulat.ga",
+    "logo": null,
+    "type": "CONSULATE",
+    "status": "ACTIVE",
+    "metadata": {
+      "level": "SUPER_ADMIN",
+      "description": "Organisation administrateur système",
+      "permissions": [
+        "ALL"
+      ]
+    },
+    "createdAt": "2025-07-26T13:52:40.748Z",
+    "updatedAt": "2025-07-26T13:52:40.748Z",
+    "appointmentSettings": null,
+    "countries": []
+  },
+  {
+    "id": "cmdkb9dpu000687xd5bp16s6p",
+    "name": "Support Technique Consulat.ga",
+    "logo": null,
+    "type": "CONSULATE",
+    "status": "ACTIVE",
+    "metadata": {
+      "level": "SUPER_ADMIN",
+      "description": "Organisation administrateur système",
+      "permissions": [
+        "ALL"
+      ]
+    },
+    "createdAt": "2025-07-26T13:53:37.459Z",
+    "updatedAt": "2025-07-26T13:53:37.459Z",
+    "appointmentSettings": null,
+    "countries": []
+  },
+  {
+    "id": "cmdkb9dx8000b87xdn1a93epl",
+    "name": "Direction Générale Consulat.ga",
+    "logo": null,
+    "type": "CONSULATE",
+    "status": "ACTIVE",
+    "metadata": {
+      "level": "SUPER_ADMIN",
+      "description": "Organisation administrateur système",
+      "permissions": [
+        "ALL"
+      ]
+    },
+    "createdAt": "2025-07-26T13:53:37.724Z",
+    "updatedAt": "2025-07-26T13:53:37.724Z",
+    "appointmentSettings": null,
+    "countries": []
+  },
+  {
+    "id": "cmeuftw7j00054mkjbwn1nncf",
+    "name": "Ambassade du Gabon en Côte d'ivoire",
+    "logo": null,
+    "type": "CONSULATE",
+    "status": "ACTIVE",
+    "metadata": null,
+    "createdAt": "2025-08-27T20:38:57.103Z",
+    "updatedAt": "2025-08-27T20:38:57.103Z",
+    "appointmentSettings": null,
+    "countries": [
+      {
+        "id": "cmeubhsm90000l7045paibzzl",
+        "name": "Côte d'Ivoire",
+        "code": "CI",
+        "status": "ACTIVE",
+        "flag": null,
+        "createdAt": "2025-08-27T18:37:34.114Z",
+        "updatedAt": "2025-08-27T18:37:34.114Z",
+        "metadata": null
+      }
+    ]
+  }
+]

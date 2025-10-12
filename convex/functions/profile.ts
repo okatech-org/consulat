@@ -1,8 +1,8 @@
-import { v } from "convex/values";
-import { mutation, query } from "../_generated/server";
-import { ProfileStatus } from "../lib/constants";
-import type { ProfileCategory, ProfileStatus as ProfileStatusType } from "../lib/constants";
-import type { Doc } from "../_generated/dataModel";
+import { v } from 'convex/values';
+import { mutation, query } from '../_generated/server';
+import { ProfileStatus } from '../lib/constants';
+import type { ProfileStatus as ProfileStatusType } from '../lib/constants';
+import type { Doc } from '../_generated/dataModel';
 import {
   addressValidator,
   emergencyContactValidator,
@@ -10,90 +10,46 @@ import {
   maritalStatusValidator,
   workStatusValidator,
   nationalityAcquisitionValidator,
-} from "../lib/validators";
+  profileCategoryValidator,
+} from '../lib/validators';
 
 // Mutations
 export const createProfile = mutation({
   args: {
-    userId: v.id("users"),
-    category: v.string(),
-    status: v.optional(v.string()),
-    personal: v.optional(
-      v.object({
-        firstName: v.optional(v.string()),
-        lastName: v.optional(v.string()),
-        birthDate: v.optional(v.number()),
-        birthPlace: v.optional(v.string()),
-        birthCountry: v.optional(v.string()),
-        gender: v.optional(genderValidator),
-        nationality: v.optional(v.string()),
-        maritalStatus: v.optional(maritalStatusValidator),
-        workStatus: v.optional(workStatusValidator),
-        acquisitionMode: v.optional(nationalityAcquisitionValidator),
-        address: v.optional(addressValidator),
-      }),
-    ),
-    family: v.optional(
-      v.object({
-        father: v.optional(
-          v.object({
-            firstName: v.optional(v.string()),
-            lastName: v.optional(v.string()),
-          }),
-        ),
-        mother: v.optional(
-          v.object({
-            firstName: v.optional(v.string()),
-            lastName: v.optional(v.string()),
-          }),
-        ),
-        spouse: v.optional(
-          v.object({
-            firstName: v.optional(v.string()),
-            lastName: v.optional(v.string()),
-          }),
-        ),
-      }),
-    ),
-    emergencyContacts: v.optional(v.array(emergencyContactValidator)),
-    professionSituation: v.optional(
-      v.object({
-        profession: v.optional(v.string()),
-        employer: v.optional(v.string()),
-        employerAddress: v.optional(v.string()),
-      }),
-    ),
-    residenceCountry: v.optional(v.string()),
-    consularCard: v.optional(
-      v.object({
-        cardPin: v.optional(v.string()),
-        cardNumber: v.optional(v.string()),
-        cardIssuedAt: v.optional(v.number()),
-        cardExpiresAt: v.optional(v.number()),
-      }),
-    ),
+    userId: v.id('users'),
+    category: profileCategoryValidator,
+    firstName: v.string(),
+    lastName: v.string(),
   },
   handler: async (ctx, args) => {
     const existingProfile = await ctx.db
-      .query("profiles")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .query('profiles')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
       .first();
 
     if (existingProfile) {
-      throw new Error("User already has a profile");
+      throw new Error('User already has a profile');
     }
 
-    const profileId = await ctx.db.insert("profiles", {
+    const profileId = await ctx.db.insert('profiles', {
       userId: args.userId,
-      consularCard: args.consularCard || {
+      documentIds: [],
+      category: args.category,
+      status: ProfileStatus.Draft,
+      residenceCountry: undefined,
+      consularCard: {
         cardPin: undefined,
         cardNumber: undefined,
         cardIssuedAt: undefined,
         cardExpiresAt: undefined,
       },
-      personal: args.personal || {
-        firstName: undefined,
-        lastName: undefined,
+      contacts: {
+        email: undefined,
+        phone: undefined,
+      },
+      personal: {
+        firstName: args.firstName,
+        lastName: args.lastName,
         birthDate: undefined,
         birthPlace: undefined,
         birthCountry: undefined,
@@ -104,21 +60,17 @@ export const createProfile = mutation({
         acquisitionMode: undefined,
         address: undefined,
       },
-      family: args.family || {
+      family: {
         father: undefined,
         mother: undefined,
         spouse: undefined,
       },
-      emergencyContacts: args.emergencyContacts || [],
-      professionSituation: args.professionSituation || {
+      emergencyContacts: [],
+      professionSituation: {
         profession: undefined,
         employer: undefined,
         employerAddress: undefined,
       },
-      documentIds: [],
-      category: args.category as ProfileCategory,
-      status: args.status ?? ProfileStatus.Pending,
-      residenceCountry: args.residenceCountry,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -134,7 +86,7 @@ export const createProfile = mutation({
 
 export const updateProfile = mutation({
   args: {
-    profileId: v.id("profiles"),
+    profileId: v.id('profiles'),
     personal: v.optional(
       v.object({
         firstName: v.optional(v.string()),
@@ -194,7 +146,7 @@ export const updateProfile = mutation({
   handler: async (ctx, args) => {
     const existingProfile = await ctx.db.get(args.profileId);
     if (!existingProfile) {
-      throw new Error("Profile not found");
+      throw new Error('Profile not found');
     }
 
     const updateData = {
@@ -230,7 +182,7 @@ export const updateProfile = mutation({
 
 export const updatePersonalInfo = mutation({
   args: {
-    profileId: v.id("profiles"),
+    profileId: v.id('profiles'),
     personal: v.object({
       firstName: v.optional(v.string()),
       lastName: v.optional(v.string()),
@@ -248,7 +200,7 @@ export const updatePersonalInfo = mutation({
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.profileId);
     if (!profile) {
-      throw new Error("Profile not found");
+      throw new Error('Profile not found');
     }
 
     await ctx.db.patch(args.profileId, {
@@ -262,7 +214,7 @@ export const updatePersonalInfo = mutation({
 
 export const updateFamilyInfo = mutation({
   args: {
-    profileId: v.id("profiles"),
+    profileId: v.id('profiles'),
     family: v.object({
       father: v.optional(
         v.object({
@@ -287,7 +239,7 @@ export const updateFamilyInfo = mutation({
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.profileId);
     if (!profile) {
-      throw new Error("Profile not found");
+      throw new Error('Profile not found');
     }
 
     await ctx.db.patch(args.profileId, {
@@ -301,13 +253,13 @@ export const updateFamilyInfo = mutation({
 
 export const addEmergencyContact = mutation({
   args: {
-    profileId: v.id("profiles"),
+    profileId: v.id('profiles'),
     emergencyContact: emergencyContactValidator,
   },
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.profileId);
     if (!profile) {
-      throw new Error("Profile not found");
+      throw new Error('Profile not found');
     }
 
     await ctx.db.patch(args.profileId, {
@@ -321,21 +273,18 @@ export const addEmergencyContact = mutation({
 
 export const updateEmergencyContact = mutation({
   args: {
-    profileId: v.id("profiles"),
+    profileId: v.id('profiles'),
     contactIndex: v.number(),
     emergencyContact: emergencyContactValidator,
   },
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.profileId);
     if (!profile) {
-      throw new Error("Profile not found");
+      throw new Error('Profile not found');
     }
 
-    if (
-      args.contactIndex < 0 ||
-      args.contactIndex >= profile.emergencyContacts.length
-    ) {
-      throw new Error("Invalid contact index");
+    if (args.contactIndex < 0 || args.contactIndex >= profile.emergencyContacts.length) {
+      throw new Error('Invalid contact index');
     }
 
     const updatedContacts = [...profile.emergencyContacts];
@@ -352,20 +301,17 @@ export const updateEmergencyContact = mutation({
 
 export const removeEmergencyContact = mutation({
   args: {
-    profileId: v.id("profiles"),
+    profileId: v.id('profiles'),
     contactIndex: v.number(),
   },
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.profileId);
     if (!profile) {
-      throw new Error("Profile not found");
+      throw new Error('Profile not found');
     }
 
-    if (
-      args.contactIndex < 0 ||
-      args.contactIndex >= profile.emergencyContacts.length
-    ) {
-      throw new Error("Invalid contact index");
+    if (args.contactIndex < 0 || args.contactIndex >= profile.emergencyContacts.length) {
+      throw new Error('Invalid contact index');
     }
 
     const updatedContacts = profile.emergencyContacts.filter(
@@ -383,7 +329,7 @@ export const removeEmergencyContact = mutation({
 
 export const updateConsularCard = mutation({
   args: {
-    profileId: v.id("profiles"),
+    profileId: v.id('profiles'),
     consularCard: v.object({
       cardPin: v.optional(v.string()),
       cardNumber: v.optional(v.string()),
@@ -394,7 +340,7 @@ export const updateConsularCard = mutation({
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.profileId);
     if (!profile) {
-      throw new Error("Profile not found");
+      throw new Error('Profile not found');
     }
 
     await ctx.db.patch(args.profileId, {
@@ -408,17 +354,17 @@ export const updateConsularCard = mutation({
 
 export const addDocumentToProfile = mutation({
   args: {
-    profileId: v.id("profiles"),
-    documentId: v.id("documents"),
+    profileId: v.id('profiles'),
+    documentId: v.id('documents'),
   },
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.profileId);
     if (!profile) {
-      throw new Error("Profile not found");
+      throw new Error('Profile not found');
     }
 
     if (profile.documentIds.includes(args.documentId)) {
-      throw new Error("Document already exists in profile");
+      throw new Error('Document already exists in profile');
     }
 
     await ctx.db.patch(args.profileId, {
@@ -432,13 +378,13 @@ export const addDocumentToProfile = mutation({
 
 export const removeDocumentFromProfile = mutation({
   args: {
-    profileId: v.id("profiles"),
-    documentId: v.id("documents"),
+    profileId: v.id('profiles'),
+    documentId: v.id('documents'),
   },
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.profileId);
     if (!profile) {
-      throw new Error("Profile not found");
+      throw new Error('Profile not found');
     }
 
     await ctx.db.patch(args.profileId, {
@@ -452,7 +398,7 @@ export const removeDocumentFromProfile = mutation({
 
 export const updateProfileStatus = mutation({
   args: {
-    profileId: v.id("profiles"),
+    profileId: v.id('profiles'),
     status: v.string(),
   },
   handler: async (ctx, args) => {
@@ -467,18 +413,18 @@ export const updateProfileStatus = mutation({
 
 // Queries
 export const getProfile = query({
-  args: { profileId: v.id("profiles") },
+  args: { profileId: v.id('profiles') },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.profileId);
   },
 });
 
 export const getProfileByUser = query({
-  args: { userId: v.id("users") },
+  args: { userId: v.id('users') },
   handler: async (ctx, args) => {
     return await ctx.db
-      .query("profiles")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .query('profiles')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
       .first();
   },
 });
@@ -491,22 +437,20 @@ export const getAllProfiles = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    let profiles: Array<Doc<"profiles">> = [];
+    let profiles: Array<Doc<'profiles'>> = [];
 
     if (args.status) {
       profiles = await ctx.db
-        .query("profiles")
-        .withIndex("by_status", (q) => q.eq("status", args.status!))
-        .order("desc")
+        .query('profiles')
+        .withIndex('by_status', (q) => q.eq('status', args.status!))
+        .order('desc')
         .collect();
     } else {
-      profiles = await ctx.db.query("profiles").order("desc").collect();
+      profiles = await ctx.db.query('profiles').order('desc').collect();
     }
 
     if (args.category) {
-      profiles = profiles.filter(
-        (profile) => profile.category === args.category,
-      );
+      profiles = profiles.filter((profile) => profile.category === args.category);
     }
 
     if (args.residenceCountry) {
@@ -527,9 +471,9 @@ export const getProfilesByStatus = query({
   args: { status: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
-      .query("profiles")
-      .withIndex("by_status", (q) => q.eq("status", args.status))
-      .order("desc")
+      .query('profiles')
+      .withIndex('by_status', (q) => q.eq('status', args.status))
+      .order('desc')
       .collect();
   },
 });
@@ -538,9 +482,9 @@ export const getProfilesByCategory = query({
   args: { category: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
-      .query("profiles")
-      .filter((q) => q.eq(q.field("category"), args.category))
-      .order("desc")
+      .query('profiles')
+      .filter((q) => q.eq(q.field('category'), args.category))
+      .order('desc')
       .collect();
   },
 });
@@ -549,22 +493,20 @@ export const getProfilesByResidenceCountry = query({
   args: { residenceCountry: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
-      .query("profiles")
-      .filter((q) => q.eq(q.field("residenceCountry"), args.residenceCountry))
-      .order("desc")
+      .query('profiles')
+      .filter((q) => q.eq(q.field('residenceCountry'), args.residenceCountry))
+      .order('desc')
       .collect();
   },
 });
 
 export const getProfileWithDocuments = query({
-  args: { profileId: v.id("profiles") },
+  args: { profileId: v.id('profiles') },
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.profileId);
     if (!profile) return null;
 
-    const documents = await Promise.all(
-      profile.documentIds.map((id) => ctx.db.get(id)),
-    );
+    const documents = await Promise.all(profile.documentIds.map((id) => ctx.db.get(id)));
 
     return {
       ...profile,
@@ -580,21 +522,19 @@ export const searchProfiles = query({
     category: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    let profiles: Array<Doc<"profiles">> = [];
+    let profiles: Array<Doc<'profiles'>> = [];
 
     if (args.status) {
       profiles = await ctx.db
-        .query("profiles")
-        .withIndex("by_status", (q) => q.eq("status", args.status!))
+        .query('profiles')
+        .withIndex('by_status', (q) => q.eq('status', args.status!))
         .collect();
     } else {
-      profiles = await ctx.db.query("profiles").collect();
+      profiles = await ctx.db.query('profiles').collect();
     }
 
     if (args.category) {
-      profiles = profiles.filter(
-        (profile) => profile.category === args.category,
-      );
+      profiles = profiles.filter((profile) => profile.category === args.category);
     }
 
     return profiles.filter((profile) => {

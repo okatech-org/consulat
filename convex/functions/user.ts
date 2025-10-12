@@ -3,7 +3,7 @@ import { mutation, query, action } from '../_generated/server';
 import { api } from '../_generated/api';
 import type { Doc, Id } from '../_generated/dataModel';
 import { validateUser } from '../helpers/validation';
-import { UserRole, UserStatus, ProfileCategory, ProfileStatus } from '../lib/constants';
+import { UserRole, UserStatus, ProfileCategory } from '../lib/constants';
 import { countryCodeFromPhoneNumber } from '../lib/utils';
 import { getUserProfileHelper } from '../helpers/relationships';
 import { createClerkClient } from '@clerk/backend';
@@ -255,32 +255,8 @@ export const handleNewUser = action({
         {
           userId: userId,
           category: ProfileCategory.Adult,
-          status: ProfileStatus.Active,
-          residenceCountry: country.code,
-          personal: {
-            firstName: clerkUser.firstName || '',
-            lastName: clerkUser.lastName || '',
-            birthDate: undefined,
-            birthPlace: undefined,
-            birthCountry: undefined,
-            gender: undefined,
-            nationality: undefined,
-            maritalStatus: undefined,
-            workStatus: undefined,
-            acquisitionMode: undefined,
-            address: undefined,
-          },
-          family: {
-            father: undefined,
-            mother: undefined,
-            spouse: undefined,
-          },
-          emergencyContacts: [],
-          professionSituation: {
-            profession: undefined,
-            employer: undefined,
-            employerAddress: undefined,
-          },
+          firstName: clerkUser.firstName || '',
+          lastName: clerkUser.lastName || '',
         },
       );
 
@@ -458,5 +434,250 @@ export const deleteUserInternal = internalMutation({
     }
 
     return false;
+  },
+});
+
+// Queries spécifiques pour les vues utilisateur
+export const getUserDashboardData = query({
+  args: { userId: v.id('users') },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) throw new Error('User not found');
+
+    // Récupérer le profil de l'utilisateur
+    const profile = await ctx.db
+      .query('profiles')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .first();
+
+    // Récupérer les demandes récentes
+    const requests = await ctx.db
+      .query('requests')
+      .withIndex('by_requester', (q) => q.eq('requesterId', args.userId))
+      .order('desc')
+      .take(5);
+
+    // Récupérer les demandes en cours
+    const currentRequest = await ctx.db
+      .query('requests')
+      .withIndex('by_requester', (q) => q.eq('requesterId', args.userId))
+      .filter((q) =>
+        q.or(
+          q.eq(q.field('status'), 'pending'),
+          q.eq(q.field('status'), 'submitted'),
+          q.eq(q.field('status'), 'under_review'),
+          q.eq(q.field('status'), 'in_production'),
+          q.eq(q.field('status'), 'ready_for_pickup'),
+        ),
+      )
+      .order('desc')
+      .first();
+
+    // Récupérer les notifications non lues
+    const unreadNotifications = await ctx.db
+      .query('notifications')
+      .withIndex('by_user_unread', (q) =>
+        q.eq('userId', args.userId).eq('readAt', undefined),
+      )
+      .take(5);
+
+    // Récupérer les rendez-vous à venir
+    const upcomingAppointments = await ctx.db
+      .query('appointments')
+      .filter((q) => q.gt(q.field('startAt'), Date.now()))
+      .filter((q) => q.eq(q.field('status'), 'confirmed'))
+      .order('asc')
+      .take(3);
+
+    // Enrichir les rendez-vous avec les détails des participants
+    const enrichedAppointments = await Promise.all(
+      upcomingAppointments.map(async (apt) => {
+        const service = apt.serviceId ? await ctx.db.get(apt.serviceId) : null;
+        const organization = await ctx.db.get(apt.organizationId);
+
+        return {
+          ...apt,
+          service,
+          organization,
+        };
+      }),
+    );
+
+    // Récupérer les statistiques des demandes
+    const allUserRequests = await ctx.db
+      .query('requests')
+      .withIndex('by_requester', (q) => q.eq('requesterId', args.userId))
+      .collect();
+
+    const requestStats = {
+      total: allUserRequests.length,
+      pending: allUserRequests.filter((r) =>
+        ['pending', 'submitted', 'under_review'].includes(r.status),
+      ).length,
+      completed: allUserRequests.filter((r) => r.status === 'completed').length,
+      rejected: allUserRequests.filter((r) => r.status === 'rejected').length,
+    };
+
+    return {
+      user,
+      profile,
+      currentRequest,
+      recentRequests: requests,
+      unreadNotifications,
+      upcomingAppointments: enrichedAppointments,
+      requestStats,
+      documentsCount: profile?.documentIds?.length || 0,
+    };
+  },
+});
+
+export const getUserAppointments = query({
+  args: {
+    userId: v.id('users'),
+    status: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Récupérer tous les rendez-vous où l'utilisateur est participant
+    const allAppointments = await ctx.db.query('appointments').order('desc').collect();
+
+    let userAppointments = allAppointments.filter((appointment) =>
+      appointment.participants.some((participant) => participant.userId === args.userId),
+    );
+
+    if (args.status) {
+      userAppointments = userAppointments.filter((apt) => apt.status === args.status);
+    }
+
+    if (args.limit) {
+      userAppointments = userAppointments.slice(0, args.limit);
+    }
+
+    // Enrichir avec les détails du service et de l'organisation
+    const enrichedAppointments = await Promise.all(
+      userAppointments.map(async (apt) => {
+        const service = apt.serviceId ? await ctx.db.get(apt.serviceId) : null;
+        const organization = await ctx.db.get(apt.organizationId);
+
+        return {
+          ...apt,
+          service,
+          organization,
+        };
+      }),
+    );
+
+    return enrichedAppointments;
+  },
+});
+
+export const getUserDocuments = query({
+  args: {
+    userId: v.id('users'),
+    type: v.optional(v.string()),
+    status: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Récupérer le profil de l'utilisateur
+    const profile = await ctx.db
+      .query('profiles')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .first();
+
+    if (!profile) return [];
+
+    // Récupérer les documents du profil
+    const documents = await ctx.db
+      .query('documents')
+      .withIndex('by_owner', (q) =>
+        q.eq('ownerId', profile._id).eq('ownerType', 'profile'),
+      )
+      .collect();
+
+    let filteredDocuments = documents;
+
+    if (args.type) {
+      filteredDocuments = filteredDocuments.filter((doc) => doc.type === args.type);
+    }
+
+    if (args.status) {
+      filteredDocuments = filteredDocuments.filter((doc) => doc.status === args.status);
+    }
+
+    // Enrichir avec les URLs des fichiers
+    const documentsWithUrls = await Promise.all(
+      filteredDocuments.map(async (doc) => ({
+        ...doc,
+        fileUrl: doc.storageId ? await ctx.storage.getUrl(doc.storageId as any) : null,
+      })),
+    );
+
+    return documentsWithUrls;
+  },
+});
+
+export const getUserNotifications = query({
+  args: {
+    userId: v.id('users'),
+    status: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    let notifications;
+
+    if (args.status) {
+      notifications = await ctx.db
+        .query('notifications')
+        .withIndex('by_user_status', (q) =>
+          q.eq('userId', args.userId).eq('status', args.status!),
+        )
+        .order('desc')
+        .collect();
+    } else {
+      notifications = await ctx.db
+        .query('notifications')
+        .withIndex('by_user_status', (q) =>
+          q.eq('userId', args.userId).eq('status', 'sent'),
+        )
+        .order('desc')
+        .collect();
+    }
+
+    return args.limit ? notifications.slice(0, args.limit) : notifications;
+  },
+});
+
+export const getUserOrganizationContact = query({
+  args: { userId: v.id('users') },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user?.countryCode) return null;
+
+    // Récupérer les organisations du pays de l'utilisateur
+    const organizations = await ctx.db.query('organizations').collect();
+    const userOrganizations = organizations.filter((org) =>
+      org.countryIds.includes(user.countryCode!),
+    );
+
+    if (userOrganizations.length === 0) return null;
+
+    // Prendre la première organisation active
+    const primaryOrg =
+      userOrganizations.find((org) => org.status === 'active') || userOrganizations[0];
+
+    // Récupérer la configuration du pays
+    const countryConfig = await ctx.db
+      .query('organizationCountryConfigs')
+      .withIndex('by_organization_country', (q) =>
+        q.eq('organizationId', primaryOrg._id).eq('countryCode', user.countryCode!),
+      )
+      .first();
+
+    return {
+      organization: primaryOrg,
+      contact: countryConfig?.contact,
+      schedule: countryConfig?.schedule,
+      website: countryConfig?.contact?.website,
+    };
   },
 });

@@ -105,6 +105,7 @@ export enum ProfileCategory {
 }
 
 export enum ProfileStatus {
+  Draft = 'draft',
   Active = 'active',
   Inactive = 'inactive',
   Pending = 'pending',

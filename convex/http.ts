@@ -50,13 +50,13 @@ const handleClerkWebhook = httpAction(async (ctx, request) => {
     switch (eventType) {
       case 'user.created':
       case 'user.updated':
-        await ctx.runMutation(internal.user.updateOrCreateUserInternal, {
+        await ctx.runMutation(internal.functions.user.updateOrCreateUserInternal, {
           clerkUser: evt.data,
         });
         break;
       case 'user.deleted':
         if (evt.data.id) {
-          await ctx.runMutation(internal.user.deleteUserInternal, {
+          await ctx.runMutation(internal.functions.user.deleteUserInternal, {
             clerkUserId: evt.data.id,
           });
         }
