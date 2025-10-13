@@ -10,13 +10,20 @@ import { SubmitProfileButton } from './_utils/components/submit-profile-button';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
-import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export default function ProfilePage() {
-  const { data: profile, isPending } = api.profile.getCurrent.useQuery();
+  const { user } = useCurrentUser();
+  const profile = useQuery(
+    api.functions.profile.getCurrentProfile,
+    user ? { userId: user._id } : 'skip',
+  );
 
-  if (isPending) {
+  // Gérer le chargement
+  if (profile === undefined) {
     return (
       <PageContainer>
         <LoadingSkeleton variant="form" className="!w-full" />
@@ -43,7 +50,7 @@ export default function ProfilePage() {
   }
 
   const canSubmit = () => {
-    if (profile.status !== 'DRAFT') {
+    if (profile.status !== 'draft') {
       return false;
     }
 
@@ -72,7 +79,9 @@ export default function ProfilePage() {
         <div className={'col-span-full flex flex-col gap-4 lg:col-span-3'}>
           {registrationRequest && registrationRequest.notes?.length > 0 && (
             <NotesList
-              notes={registrationRequest.notes.filter((note) => note.type === 'FEEDBACK')}
+              notes={registrationRequest.notes.filter(
+                (note: any) => note.type === 'FEEDBACK',
+              )}
             />
           )}
           <ProfileProgressBar profile={profile} />

@@ -13,8 +13,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-import { useSubmitProfile } from '@/hooks/use-profile';
 import { useRouter } from 'next/navigation';
+import { useMutation } from 'convex/react';
+import { toast } from '@/hooks/use-toast';
+import { api } from '@/convex/_generated/api';
 
 // Définir les items de la checklist de manière statique
 const CHECKLIST_ITEMS = [
@@ -38,20 +40,31 @@ export function SubmitProfileButton({
   const t = useTranslations('profile.submission');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const router = useRouter();
-  const submitProfile = useSubmitProfile();
+
+  const submitProfileMutation = useMutation(api.profile.submitProfileForValidation);
 
   const handleSubmit = async () => {
     try {
-      await submitProfile.mutateAsync({
-        profileId,
+      await submitProfileMutation({
+        profileId: profileId as any,
         isChild,
+      });
+
+      toast({
+        title: 'Profil soumis',
+        description: 'Votre profil a été soumis pour validation avec succès',
+        variant: 'default',
       });
 
       setIsDialogOpen(false);
       router.refresh();
     } catch (error) {
-      // L'erreur est déjà gérée par le hook useSubmitProfile
       console.error('Error submitting profile:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la soumission du profil',
+        variant: 'destructive',
+      });
       setIsDialogOpen(false);
     }
   };
@@ -94,12 +107,12 @@ export function SubmitProfileButton({
             <Button
               variant="outline"
               onClick={() => setIsDialogOpen(false)}
-              disabled={submitProfile.isPending}
+              disabled={submitProfileMutation.isPending}
             >
               {t('dialog.cancel')}
             </Button>
-            <Button onClick={handleSubmit} loading={submitProfile.isPending}>
-              {t('dialog.confirm')}
+            <Button onClick={handleSubmit} disabled={submitProfileMutation.isPending}>
+              {submitProfileMutation.isPending ? 'Soumission...' : t('dialog.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

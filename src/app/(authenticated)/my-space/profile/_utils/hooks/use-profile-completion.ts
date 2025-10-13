@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { DocumentStatus, UserDocument } from '@prisma/client';
-import type { FullProfile } from '@/types';
+import type { ConvexFullProfile } from '@/types/convex-profile';
 
 interface SectionCompletion {
   name: string;
@@ -18,7 +17,9 @@ interface ProfileCompletion {
   canSubmit: boolean;
 }
 
-export function useProfileCompletion(profile: FullProfile | null): ProfileCompletion {
+export function useProfileCompletion(
+  profile: ConvexFullProfile | null,
+): ProfileCompletion {
   return useMemo(() => {
     if (!profile) {
       return {
@@ -42,10 +43,6 @@ export function useProfileCompletion(profile: FullProfile | null): ProfileComple
       'birthCountry',
       'nationality',
       'acquisitionMode',
-      'passportNumber',
-      'passportIssueDate',
-      'passportExpiryDate',
-      'passportIssueAuthority',
       'identityPicture',
     ];
 
@@ -53,14 +50,44 @@ export function useProfileCompletion(profile: FullProfile | null): ProfileComple
       if (field === 'identityPicture') {
         return profile.identityPicture;
       }
-      return profile[field as keyof FullProfile];
+      if (field === 'firstName' || field === 'lastName') {
+        return profile.personal?.[field];
+      }
+      if (
+        [
+          'gender',
+          'birthDate',
+          'birthPlace',
+          'birthCountry',
+          'nationality',
+          'acquisitionMode',
+        ].includes(field)
+      ) {
+        return profile.personal?.[field as keyof typeof profile.personal];
+      }
+      return false;
     });
 
     const basicInfoMissing = basicInfoFields.filter((field) => {
       if (field === 'identityPicture') {
         return !profile.identityPicture;
       }
-      return !profile[field as keyof FullProfile];
+      if (field === 'firstName' || field === 'lastName') {
+        return !profile.personal?.[field];
+      }
+      if (
+        [
+          'gender',
+          'birthDate',
+          'birthPlace',
+          'birthCountry',
+          'nationality',
+          'acquisitionMode',
+        ].includes(field)
+      ) {
+        return !profile.personal?.[field as keyof typeof profile.personal];
+      }
+      return true;
     });
 
     sections.push({
@@ -72,46 +99,42 @@ export function useProfileCompletion(profile: FullProfile | null): ProfileComple
     });
 
     // Contact Info Section
-    const contactInfoFields = ['email', 'phoneNumber', 'address', 'residentContact'];
+    const contactInfoFields = ['email', 'phoneNumber', 'address'];
 
     const contactInfoCompleted = contactInfoFields.filter((field) => {
       if (field === 'address') {
         return (
-          profile.address &&
-          profile.address.firstLine &&
-          profile.address.city &&
-          profile.address.country
+          profile.personal?.address &&
+          profile.personal.address.street &&
+          profile.personal.address.city &&
+          profile.personal.address.country
         );
       }
-      if (field === 'residentContact') {
-        return (
-          profile.residentContact &&
-          profile.residentContact.firstName &&
-          profile.residentContact.lastName &&
-          profile.residentContact.phoneNumber
-        );
+      if (field === 'email') {
+        return profile.contacts?.email || profile.email;
       }
-      return profile[field as keyof FullProfile];
+      if (field === 'phoneNumber') {
+        return profile.contacts?.phone || profile.phoneNumber;
+      }
+      return false;
     });
 
     const contactInfoMissing = contactInfoFields.filter((field) => {
       if (field === 'address') {
         return !(
-          profile.address &&
-          profile.address.firstLine &&
-          profile.address.city &&
-          profile.address.country
+          profile.personal?.address &&
+          profile.personal.address.street &&
+          profile.personal.address.city &&
+          profile.personal.address.country
         );
       }
-      if (field === 'residentContact') {
-        return !(
-          profile.residentContact &&
-          profile.residentContact.firstName &&
-          profile.residentContact.lastName &&
-          profile.residentContact.phoneNumber
-        );
+      if (field === 'email') {
+        return !(profile.contacts?.email || profile.email);
       }
-      return !profile[field as keyof FullProfile];
+      if (field === 'phoneNumber') {
+        return !(profile.contacts?.phone || profile.phoneNumber);
+      }
+      return true;
     });
 
     sections.push({
@@ -128,17 +151,41 @@ export function useProfileCompletion(profile: FullProfile | null): ProfileComple
     const familyInfoFields = ['maritalStatus', 'fatherFullName', 'motherFullName'];
 
     // Add spouse if married
-    if (profile.maritalStatus === 'MARRIED') {
+    if (profile.personal?.maritalStatus === 'married') {
       familyInfoFields.push('spouseFullName');
     }
 
-    const familyInfoCompleted = familyInfoFields.filter(
-      (field) => profile[field as keyof Profile],
-    );
+    const familyInfoCompleted = familyInfoFields.filter((field) => {
+      if (field === 'maritalStatus') {
+        return profile.personal?.maritalStatus;
+      }
+      if (field === 'fatherFullName') {
+        return profile.family?.father?.firstName && profile.family?.father?.lastName;
+      }
+      if (field === 'motherFullName') {
+        return profile.family?.mother?.firstName && profile.family?.mother?.lastName;
+      }
+      if (field === 'spouseFullName') {
+        return profile.family?.spouse?.firstName && profile.family?.spouse?.lastName;
+      }
+      return false;
+    });
 
-    const familyInfoMissing = familyInfoFields.filter(
-      (field) => !profile[field as keyof Profile],
-    );
+    const familyInfoMissing = familyInfoFields.filter((field) => {
+      if (field === 'maritalStatus') {
+        return !profile.personal?.maritalStatus;
+      }
+      if (field === 'fatherFullName') {
+        return !(profile.family?.father?.firstName && profile.family?.father?.lastName);
+      }
+      if (field === 'motherFullName') {
+        return !(profile.family?.mother?.firstName && profile.family?.mother?.lastName);
+      }
+      if (field === 'spouseFullName') {
+        return !(profile.family?.spouse?.firstName && profile.family?.spouse?.lastName);
+      }
+      return true;
+    });
 
     sections.push({
       name: 'family-info',
@@ -153,23 +200,46 @@ export function useProfileCompletion(profile: FullProfile | null): ProfileComple
     // Professional Info Section
     const professionalInfoFields = ['workStatus'];
 
-    if (profile.workStatus === 'EMPLOYEE') {
+    if (profile.personal?.workStatus === 'employee') {
       professionalInfoFields.push('profession', 'employer', 'employerAddress');
-    } else if (profile.workStatus && profile.workStatus !== 'UNEMPLOYED') {
+    } else if (
+      profile.personal?.workStatus &&
+      profile.personal?.workStatus !== 'unemployed'
+    ) {
       professionalInfoFields.push('profession');
     }
 
-    const professionalInfoCompleted = professionalInfoFields.filter(
-      (field) =>
-        profile[field as keyof Profile] !== null &&
-        profile[field as keyof Profile] !== undefined,
-    );
+    const professionalInfoCompleted = professionalInfoFields.filter((field) => {
+      if (field === 'workStatus') {
+        return profile.personal?.workStatus;
+      }
+      if (field === 'profession') {
+        return profile.professionSituation?.profession;
+      }
+      if (field === 'employer') {
+        return profile.professionSituation?.employer;
+      }
+      if (field === 'employerAddress') {
+        return profile.professionSituation?.employerAddress;
+      }
+      return false;
+    });
 
-    const professionalInfoMissing = professionalInfoFields.filter(
-      (field) =>
-        profile[field as keyof Profile] === null ||
-        profile[field as keyof Profile] === undefined,
-    );
+    const professionalInfoMissing = professionalInfoFields.filter((field) => {
+      if (field === 'workStatus') {
+        return !profile.personal?.workStatus;
+      }
+      if (field === 'profession') {
+        return !profile.professionSituation?.profession;
+      }
+      if (field === 'employer') {
+        return !profile.professionSituation?.employer;
+      }
+      if (field === 'employerAddress') {
+        return !profile.professionSituation?.employerAddress;
+      }
+      return true;
+    });
 
     sections.push({
       name: 'professional-info',
@@ -192,20 +262,12 @@ export function useProfileCompletion(profile: FullProfile | null): ProfileComple
     ];
 
     const documentsCompleted = requiredDocuments.filter((doc) => {
-      const document = profile[doc.type as keyof FullProfile] as
-        | UserDocument
-        | null
-        | undefined;
-      return document;
+      return profile[doc.type as keyof ConvexFullProfile];
     });
 
     const documentsMissing = requiredDocuments
       .filter((doc) => {
-        const document = profile[doc.type as keyof FullProfile] as
-          | UserDocument
-          | null
-          | undefined;
-        return !document;
+        return !profile[doc.type as keyof ConvexFullProfile];
       })
       .map((doc) => doc.field);
 

@@ -4,15 +4,16 @@ import { useTranslations } from 'next-intl';
 import { Share2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import type { FullProfile } from '@/types';
 import { ProfileStatusBadge } from './profile-status-badge';
 import { ConsularCardPreview } from '@/app/(authenticated)/my-space/profile/_utils/components/consular-card-preview';
 import CardContainer from '@/components/layouts/card-container';
 import { generateVCardString } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
+import type { ConvexFullProfile } from '@/types/convex-profile';
+import type { RequestStatus } from '@/convex/lib/constants';
 
 interface ProfileHeaderProps {
-  profile: FullProfile;
+  profile: ConvexFullProfile;
   inMySpace?: boolean;
 }
 
@@ -23,9 +24,9 @@ export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps
     if (!profile) return;
 
     const vCardData = {
-      firstName: profile.firstName || '',
-      lastName: profile.lastName || '',
-      emails: profile.email ? [{ value: profile.email }] : [],
+      firstName: profile.personal?.firstName || '',
+      lastName: profile.personal?.lastName || '',
+      emails: profile.contacts?.email ? [{ value: profile.contacts.email }] : [],
       phones: profile.user?.phoneNumber ? [profile.user.phoneNumber] : [],
       photoUrl: profile.identityPicture?.fileUrl || undefined,
     };
@@ -37,9 +38,9 @@ export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps
     if (navigator.share) {
       try {
         await navigator.share({
-          title: profile?.firstName?.trim() || 'Contact',
+          title: profile?.personal?.firstName?.trim() || 'Contact',
           text: 'Carte de contact consulaire',
-          url: `${ROUTES.listing.profile(profile.id)}`,
+          url: `${ROUTES.listing.profile(profile._id)}`,
         });
       } catch (err) {
         console.error('Error sharing:', err);
@@ -47,7 +48,7 @@ export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps
     } else {
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${profile?.firstName?.trim() || 'contact'}.vcf`;
+      a.download = `${profile?.personal?.firstName?.trim() || 'contact'}.vcf`;
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -57,10 +58,10 @@ export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps
     if (!profile) return;
 
     const vCardData = {
-      firstName: profile.firstName || '',
-      lastName: profile.lastName || '',
-      emails: profile.email ? [{ value: profile.email }] : [],
-      phones: [profile.user?.phoneNumber || ''],
+      firstName: profile.personal?.firstName || '',
+      lastName: profile.personal?.lastName || '',
+      emails: profile.contacts?.email ? [{ value: profile.contacts.email }] : [],
+      phones: [profile.contacts?.phone || ''],
       photoUrl: profile.identityPicture?.fileUrl || undefined,
     };
 
@@ -70,7 +71,7 @@ export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${profile.firstName?.trim() + ' ' + profile.lastName?.trim() || 'contact'}.vcf`;
+    a.download = `${profile.personal?.firstName?.trim() + ' ' + profile.personal?.lastName?.trim() || 'contact'}.vcf`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -81,19 +82,19 @@ export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps
         {profile?.identityPicture ? (
           <AvatarImage
             src={profile?.identityPicture.fileUrl}
-            alt={profile?.firstName || ''}
+            alt={profile?.personal?.firstName || ''}
           />
         ) : (
-          <AvatarFallback>{profile?.lastName?.charAt(0) || '?'}</AvatarFallback>
+          <AvatarFallback>{profile?.personal?.lastName?.charAt(0) || '?'}</AvatarFallback>
         )}
       </Avatar>
 
       <div className="flex-1 w-full md:text-left">
         <div className="flex flex-col gap-y-1 gap-x-2 md:flex-row md:gap-x-4 md:gap-y-0">
           <h1 className="text-lg font-bold md:text-3xl">
-            {`${profile?.firstName} ${profile?.lastName}`}
+            {`${profile?.personal?.firstName} ${profile?.personal?.lastName}`}
           </h1>
-          {inMySpace && <ProfileStatusBadge status={profile?.status || 'DRAFT'} />}
+          {inMySpace && <ProfileStatusBadge status={profile?.status as RequestStatus} />}
         </div>
 
         <div className="mt-2 flex w-full flex-row flex-wrap items-center gap-1 md:mt-4 md:gap-2">

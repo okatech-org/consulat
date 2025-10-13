@@ -371,27 +371,20 @@ export const extractNumber = (
   };
 };
 
-export function calculateProfileCompletion(profile: FullProfile | null): number {
+export function calculateProfileCompletion(profile: any | null): number {
   if (!profile) return 0;
 
-  const requiredFields = [...profileFields];
+  // Pour la compatibilité avec Convex, nous utilisons une approche simplifiée
+  // La logique complète est dans useProfileCompletion
+  const basicFields = ['firstName', 'lastName', 'gender', 'birthDate', 'nationality'];
+  const completedFields = basicFields.filter((field) => {
+    if (field === 'firstName' || field === 'lastName') {
+      return profile.personal?.[field] || profile[field];
+    }
+    return profile.personal?.[field] || profile[field];
+  });
 
-  if (profile.workStatus === 'EMPLOYEE') {
-    requiredFields.push('employer');
-    requiredFields.push('profession');
-    requiredFields.push('employerAddress');
-  }
-
-  if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
-    requiredFields.push('spouseFullName');
-  }
-
-  const completedRequired = requiredFields.filter(
-    (field) => profile[field] !== null && profile[field] !== '',
-  ).length;
-
-  const totalWeight = requiredFields.length;
-  return Math.round((completedRequired / totalWeight) * 100);
+  return Math.round((completedFields.length / basicFields.length) * 100);
 }
 
 // Version optimisée pour le dashboard avec moins de données

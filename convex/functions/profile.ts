@@ -20,6 +20,9 @@ export const createProfile = mutation({
     category: profileCategoryValidator,
     firstName: v.string(),
     lastName: v.string(),
+    email: v.string(),
+    phoneNumber: v.string(),
+    residenceCountry: v.string(),
   },
   handler: async (ctx, args) => {
     const existingProfile = await ctx.db
@@ -36,7 +39,7 @@ export const createProfile = mutation({
       documentIds: [],
       category: args.category,
       status: ProfileStatus.Draft,
-      residenceCountry: undefined,
+      residenceCountry: args.residenceCountry,
       consularCard: {
         cardPin: undefined,
         cardNumber: undefined,
@@ -44,8 +47,8 @@ export const createProfile = mutation({
         cardExpiresAt: undefined,
       },
       contacts: {
-        email: undefined,
-        phone: undefined,
+        email: args.email,
+        phone: args.phoneNumber,
       },
       personal: {
         firstName: args.firstName,
@@ -548,5 +551,103 @@ export const searchProfiles = query({
           profile.consularCard.cardNumber.toLowerCase().includes(searchLower))
       );
     });
+  },
+});
+
+// Nouvelle fonction pour obtenir le profil courant avec toutes les données nécessaires
+export const getCurrentProfile = query({
+  args: { userId: v.id('users') },
+  handler: async (ctx, args) => {
+    // Obtenir le profil par userId
+    const profile = await ctx.db
+      .query('profiles')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .first();
+
+    if (!profile) {
+      return null;
+    }
+
+    // Obtenir l'utilisateur associé
+    const user = await ctx.db.get(args.userId);
+
+    // Obtenir les documents associés au profil
+    const documents = await Promise.all(profile.documentIds.map((id) => ctx.db.get(id)));
+
+    // Obtenir les demandes de validation (registration requests) si elles existent
+    // Pour l'instant, nous simulons cette structure car elle n'existe pas encore dans Convex
+    const registrationRequest = null; // À implémenter plus tard si nécessaire
+
+    // Construire l'objet profil complet compatible avec l'interface existante
+    return {
+      ...profile,
+      id: profile._id,
+      firstName: profile.personal.firstName,
+      lastName: profile.personal.lastName,
+      email: profile.contacts.email || user?.email,
+      phoneNumber: profile.contacts.phone || user?.phoneNumber,
+      user: user
+        ? {
+            id: user._id,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+          }
+        : null,
+      documents: documents.filter(Boolean),
+      registrationRequest,
+      // Mapper les documents spécifiques pour la compatibilité
+      identityPicture: documents.find((d) => d?.type === 'identity_photo')
+        ? {
+            fileUrl: documents.find((d) => d?.type === 'identity_photo')?.fileUrl,
+          }
+        : null,
+      passport: documents.find((d) => d?.type === 'passport')
+        ? {
+            fileUrl: documents.find((d) => d?.type === 'passport')?.fileUrl,
+          }
+        : null,
+      birthCertificate: documents.find((d) => d?.type === 'birth_certificate')
+        ? {
+            fileUrl: documents.find((d) => d?.type === 'birth_certificate')?.fileUrl,
+          }
+        : null,
+      residencePermit: documents.find((d) => d?.type === 'residence_permit')
+        ? {
+            fileUrl: documents.find((d) => d?.type === 'residence_permit')?.fileUrl,
+          }
+        : null,
+      addressProof: documents.find((d) => d?.type === 'proof_of_address')
+        ? {
+            fileUrl: documents.find((d) => d?.type === 'proof_of_address')?.fileUrl,
+          }
+        : null,
+      validationRequestId: null, // À implémenter plus tard
+    };
+  },
+});
+
+// Nouvelle fonction pour soumettre un profil pour validation
+export const submitProfileForValidation = mutation({
+  args: {
+    profileId: v.id('profiles'),
+    isChild: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    if (profile.status !== ProfileStatus.Draft) {
+      throw new Error('Only draft profiles can be submitted');
+    }
+
+    // Mettre à jour le statut du profil
+    await ctx.db.patch(args.profileId, {
+      status: ProfileStatus.Pending,
+      updatedAt: Date.now(),
+    });
+
+    return args.profileId;
   },
 });

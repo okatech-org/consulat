@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn, useDateLocale } from '@/lib/utils';
-import { FullProfile } from '@/types';
+import type { ConvexFullProfile } from '@/types/convex-profile';
 import { QRCode } from '@/components/ui/qr-code';
 
 const keaniaOne = Keania_One({
@@ -19,7 +19,7 @@ const keaniaOne = Keania_One({
 });
 
 interface ConsularCardPreviewProps {
-  profile: FullProfile;
+  profile: ConvexFullProfile;
   modelVersoUrl?: string;
   modelRectoUrl?: string;
 }
@@ -101,44 +101,52 @@ export function ConsularCardPreview({
                               keaniaOne.className
                             }
                           >
-                            {profile.cardNumber || '-'}
+                            {profile.consularCard?.cardNumber || '-'}
                           </p>
                           <p
                             className={`text-[0.7em] sm:text-[0.8em] font-medium text-[#E94F69]`}
                           >
-                            NIP: {profile.cardPin || '-'}
+                            NIP: {profile.consularCard?.cardPin || '-'}
                           </p>
                         </div>
                       </div>
 
                       <div className="details absolute right-0 top-0 px-1 h-full w-[56.5%]  flex flex-col justify-center items-start">
                         <p className="text-[0.8em]/4 sm:text-[1em]/5 text-[#383838] font-extrabold -translate-y-[70%]">
-                          <span className="uppercase">{profile.lastName}</span>
+                          <span className="uppercase">{profile.personal?.lastName}</span>
                           <br />
-                          <span className="text-[0.9em]">{profile.firstName}</span>
+                          <span className="text-[0.9em]">
+                            {profile.personal?.firstName}
+                          </span>
                         </p>
                       </div>
 
                       <div className="details absolute right-0 top-0 px-1 h-full w-[37%] pt-[3%] flex flex-col justify-center items-start">
                         <p className="text-[0.5em]/3 sm:text-[0.8em]/4 text-[#383838] font-bold -translate-x-[10%]">
-                          {profile.cardIssuedAt
-                            ? formatDate(profile.cardIssuedAt, 'dd/MM/yyyy')
+                          {profile.consularCard?.cardIssuedAt
+                            ? formatDate(
+                                new Date(profile.consularCard.cardIssuedAt),
+                                'dd/MM/yyyy',
+                              )
                             : '-'}
                         </p>
                         <p className="text-[0.5em]/3 sm:text-[0.8em]/4 text-[#383838] font-bold">
-                          {profile.cardExpiresAt
-                            ? formatDate(profile.cardExpiresAt, 'dd/MM/yyyy')
+                          {profile.consularCard?.cardExpiresAt
+                            ? formatDate(
+                                new Date(profile.consularCard.cardExpiresAt),
+                                'dd/MM/yyyy',
+                              )
                             : '-'}
                         </p>
                       </div>
 
                       <div className="absolute right-0 bottom-0 w-[21%] aspect-square h-auto -translate-x-[20%] -translate-y-[10%]">
-                        <QRCode value={`${APP_URL}/view/profile/${profile.id}`} />
+                        <QRCode value={`${APP_URL}/view/profile/${profile._id}`} />
                       </div>
 
                       <div className="absolute right-[4%] w-max translate-x-[50%] text-center top-1/2 rotate-[270deg]">
                         <p className="text-[7px] sm:text-[0.5em] min-w-max text-[#383838]">
-                          {profile.cardNumber || '-'}
+                          {profile.consularCard?.cardNumber || '-'}
                         </p>
                       </div>
                     </div>
