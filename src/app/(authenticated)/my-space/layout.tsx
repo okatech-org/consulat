@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { UserRole } from '@/convex/lib/constants';
+import { PageContainer } from '@/components/layouts/page-container';
 
 /**export const metadata = {
   title: 'Mon Espace Consulaire',
@@ -41,7 +42,11 @@ function Guard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useCurrentUser();
 
   if (loading) {
-    return <Spinner />;
+    return (
+      <PageContainer className="h-full w-full flex flex-col gap-2 items-center justify-center">
+        <Spinner />
+      </PageContainer>
+    );
   }
 
   if (!user || !user.roles.includes(UserRole.User)) {

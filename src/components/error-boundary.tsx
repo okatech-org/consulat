@@ -126,7 +126,7 @@ function DefaultErrorFallback({
     error?.message?.includes('ChunkLoadError');
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="h-full flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">

@@ -143,10 +143,17 @@ export function RecentHistory() {
                   <div>
                     <h4 className="font-medium text-sm">{request.service?.name}</h4>
                     <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(request.createdAt), {
-                        addSuffix: true,
-                        locale: fr,
-                      })}
+                      {formatDistanceToNow(
+                        new Date(
+                          request.submittedAt ??
+                            request.assignedAt ??
+                            request._creationTime,
+                        ),
+                        {
+                          addSuffix: true,
+                          locale: fr,
+                        },
+                      )}
                     </p>
                   </div>
                 </div>

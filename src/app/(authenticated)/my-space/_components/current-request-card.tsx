@@ -30,7 +30,7 @@ export function CurrentRequestCard() {
         }
       : 'skip',
   );
-  console.log('currentRequest', currentRequest);
+
   const isLoading = currentRequest === undefined;
   const t = useTranslations('dashboard.unified.current_request');
 
@@ -92,7 +92,7 @@ export function CurrentRequestCard() {
             <h2 className="text-xl font-bold mb-2">{currentRequest.service?.name}</h2>
             <p className="text-primary-foreground/80 text-sm">
               {t('submitted_ago')}{' '}
-              {formatDistanceToNow(new Date(currentRequest.createdAt), {
+              {formatDistanceToNow(new Date(currentRequest?._creationTime ?? ''), {
                 addSuffix: true,
                 locale: fr,
               })}
@@ -146,10 +146,17 @@ export function CurrentRequestCard() {
           <h2 className="text-lg font-bold mb-1">{currentRequest.service?.name}</h2>
           <p className="text-blue-100 text-xs mb-2">
             {t('submitted_ago')}{' '}
-            {formatDistanceToNow(new Date(currentRequest.createdAt), {
-              addSuffix: true,
-              locale: fr,
-            })}
+            {formatDistanceToNow(
+              new Date(
+                currentRequest?.submittedAt ??
+                  currentRequest.assignedAt ??
+                  currentRequest._creationTime,
+              ),
+              {
+                addSuffix: true,
+                locale: fr,
+              },
+            )}
           </p>
           <Badge variant="outlineReverse">
             {currentRequest.status === 'PENDING'

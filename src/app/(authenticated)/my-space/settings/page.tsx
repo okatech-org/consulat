@@ -7,18 +7,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { PageContainer } from '@/components/layouts/page-container';
-import { UserSettingsForm } from './_utils/user-settings-form';
-import type { SessionUser } from '@/types/user';
 import { useTranslations } from 'next-intl';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { UserProfile } from '@clerk/nextjs';
 
 export default function SettingsPage() {
-  const { user } = useCurrentUser();
   const t = useTranslations('account');
 
   return (
@@ -27,21 +23,10 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="profile">{t('profile')}</TabsTrigger>
           <TabsTrigger value="notifications">{t('notifications')}</TabsTrigger>
-          <TabsTrigger value="security">{t('security')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('profile_information')}</CardTitle>
-              <CardDescription>{t('profile_description')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {user && (
-                <UserSettingsForm user={user as SessionUser} availableCountries={[]} />
-              )}
-            </CardContent>
-          </Card>
+          <UserProfile />
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-4">
@@ -68,26 +53,6 @@ export default function SettingsPage() {
                   </p>
                 </div>
                 <Switch />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="security" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('security_settings')}</CardTitle>
-              <CardDescription>{t('security_description')}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label>{t('two_factor_auth')}</label>
-                <p className="text-sm text-muted-foreground">
-                  {t('two_factor_description')}
-                </p>
-                <Button variant="outline" size="mobile">
-                  {t('enable_2fa')}
-                </Button>
               </div>
             </CardContent>
           </Card>
