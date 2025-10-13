@@ -41,14 +41,12 @@ export const requests = defineTable({
       type: requestActionTypeValidator,
       data: v.optional(v.any()),
       userId: v.id('users'),
-      createdAt: v.number(),
     }),
   ),
 
   // Timestamps
   submittedAt: v.optional(v.number()),
   completedAt: v.optional(v.number()),
-  createdAt: v.number(),
   updatedAt: v.number(),
 })
   .index('by_number', ['number'])
@@ -59,5 +57,4 @@ export const requests = defineTable({
   .index('by_assigned', ['assignedToId'])
   .index('by_requester_status', ['requesterId', 'status'])
   .index('by_service_status', ['serviceId', 'status'])
-  .index('by_assigned_status', ['assignedToId', 'status'])
-  .index('by_created_status', ['createdAt', 'status']);
+  .index('by_assigned_status', ['assignedToId', 'status']);

@@ -75,6 +75,8 @@ export const profiles = defineTable({
     employerAddress: v.optional(v.string()),
   }),
 
+  registrationRequest: v.optional(v.id('requests')),
+
   createdAt: v.number(),
   updatedAt: v.number(),
 })

@@ -569,60 +569,35 @@ export const getCurrentProfile = query({
       return null;
     }
 
-    // Obtenir l'utilisateur associé
-    const user = await ctx.db.get(args.userId);
-
     // Obtenir les documents associés au profil
-    const documents = await Promise.all(profile.documentIds.map((id) => ctx.db.get(id)));
+    const documents = await ctx.db
+      .query('documents')
+      .withIndex('by_owner', (q) =>
+        q.eq('ownerId', profile._id).eq('ownerType', 'profile'),
+      )
+      .collect();
 
-    // Obtenir les demandes de validation (registration requests) si elles existent
-    // Pour l'instant, nous simulons cette structure car elle n'existe pas encore dans Convex
-    const registrationRequest = null; // À implémenter plus tard si nécessaire
+    const identityPicture = documents.find((d) => d?.type === 'identity_photo');
+    const passport = documents.find((d) => d?.type === 'passport');
+    const birthCertificate = documents.find((d) => d?.type === 'birth_certificate');
+    const residencePermit = documents.find((d) => d?.type === 'residence_permit');
+    const addressProof = documents.find((d) => d?.type === 'proof_of_address');
 
-    // Construire l'objet profil complet compatible avec l'interface existante
+    const registrationRequest = profile.registrationRequest!
+      ? await ctx.db
+          .query('requests')
+          .withIndex('by_id', (q) => q.eq('_id', profile.registrationRequest!))
+          .first()
+      : null;
+
     return {
       ...profile,
-      id: profile._id,
-      firstName: profile.personal.firstName,
-      lastName: profile.personal.lastName,
-      email: profile.contacts.email || user?.email,
-      phoneNumber: profile.contacts.phone || user?.phoneNumber,
-      user: user
-        ? {
-            id: user._id,
-            email: user.email,
-            phoneNumber: user.phoneNumber,
-          }
-        : null,
-      documents: documents.filter(Boolean),
       registrationRequest,
-      // Mapper les documents spécifiques pour la compatibilité
-      identityPicture: documents.find((d) => d?.type === 'identity_photo')
-        ? {
-            fileUrl: documents.find((d) => d?.type === 'identity_photo')?.fileUrl,
-          }
-        : null,
-      passport: documents.find((d) => d?.type === 'passport')
-        ? {
-            fileUrl: documents.find((d) => d?.type === 'passport')?.fileUrl,
-          }
-        : null,
-      birthCertificate: documents.find((d) => d?.type === 'birth_certificate')
-        ? {
-            fileUrl: documents.find((d) => d?.type === 'birth_certificate')?.fileUrl,
-          }
-        : null,
-      residencePermit: documents.find((d) => d?.type === 'residence_permit')
-        ? {
-            fileUrl: documents.find((d) => d?.type === 'residence_permit')?.fileUrl,
-          }
-        : null,
-      addressProof: documents.find((d) => d?.type === 'proof_of_address')
-        ? {
-            fileUrl: documents.find((d) => d?.type === 'proof_of_address')?.fileUrl,
-          }
-        : null,
-      validationRequestId: null, // À implémenter plus tard
+      identityPicture,
+      passport,
+      birthCertificate,
+      residencePermit,
+      addressProof,
     };
   },
 });
@@ -654,17 +629,17 @@ export const submitProfileForValidation = mutation({
 });
 
 export const getOverviewProfile = query({
-  args: { userId: v.id('users') },
+  args: { userId: v.id('users'), profileId: v.id('profiles') },
   handler: async (ctx, args) => {
     const profileRequest = ctx.db
       .query('profiles')
-      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .withIndex('by_id', (q) => q.eq('_id', args.profileId))
       .first();
 
     const documentsRequest = ctx.db
       .query('documents')
       .withIndex('by_owner', (q) =>
-        q.eq('ownerId', args.userId).eq('ownerType', 'profile'),
+        q.eq('ownerId', args.profileId).eq('ownerType', 'profile'),
       )
       .collect();
 

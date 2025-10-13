@@ -9,11 +9,11 @@ import { ConsularCardPreview } from '@/app/(authenticated)/my-space/profile/_uti
 import CardContainer from '@/components/layouts/card-container';
 import { generateVCardString } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
-import type { ConvexFullProfile } from '@/types/convex-profile';
+import type { FullProfile } from '@/types/convex-profile';
 import type { RequestStatus } from '@/convex/lib/constants';
 
 interface ProfileHeaderProps {
-  profile: ConvexFullProfile;
+  profile: FullProfile;
   inMySpace?: boolean;
 }
 
@@ -76,6 +76,13 @@ export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps
     URL.revokeObjectURL(url);
   };
 
+  // Générer les initiales à partir du profil
+  const getInitials = (firstName?: string | null, lastName?: string | null) => {
+    if (!firstName && !lastName) return 'U';
+    const first = firstName?.charAt(0)?.toUpperCase() || '';
+    const last = lastName?.charAt(0)?.toUpperCase() || '';
+    return first + last || 'U';
+  };
   return (
     <CardContainer contentClass="flex items-center gap-2 px-2 py-3 flex-row md:gap-6 md:px-6 md:py-6">
       <Avatar className="size-16 bg-muted md:size-32">
@@ -85,7 +92,10 @@ export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps
             alt={profile?.personal?.firstName || ''}
           />
         ) : (
-          <AvatarFallback>{profile?.personal?.lastName?.charAt(0) || '?'}</AvatarFallback>
+          <AvatarFallback>
+            {getInitials(profile?.personal?.firstName, profile?.personal?.lastName) ||
+              '?'}
+          </AvatarFallback>
         )}
       </Avatar>
 

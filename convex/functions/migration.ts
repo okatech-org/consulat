@@ -794,7 +794,6 @@ export const importUserWithData = mutation({
               completedAt: req.completedAt
                 ? new Date(req.completedAt).getTime()
                 : undefined,
-              createdAt: new Date(req.createdAt).getTime(),
               updatedAt: new Date(req.updatedAt).getTime(),
             });
             recordCount++;

@@ -1,7 +1,7 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { FullProfile } from '@/types';
+import type { FullProfile } from '@/types/convex-profile';
 import { BasicInfoSection } from './sections/basic-info-section';
 import { ContactInfoSection } from './sections/contact-info-section';
 import { DocumentsSection } from './sections/documents-section';
@@ -12,11 +12,11 @@ import CardContainer from '@/components/layouts/card-container';
 import { useTabs } from '@/hooks/use-tabs';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
-import type { ServiceRequest } from '@prisma/client';
 import { RequestsSection } from './sections/requests-section';
 import { MobileProfileNavigation } from './mobile-profile-navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useState } from 'react';
+import type { Doc } from '@/convex/_generated/dataModel';
 
 type AdditionalTab = {
   id: string;
@@ -27,7 +27,7 @@ type AdditionalTab = {
 type ProfileTabsProps = {
   profile: FullProfile;
   requestId?: string;
-  requests?: ServiceRequest[];
+  requests?: Doc<'requests'>[];
   noTabs?: boolean;
   additionalTabs?: AdditionalTab[];
 };

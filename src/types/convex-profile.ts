@@ -1,4 +1,6 @@
+import type { FunctionReturnType } from 'convex/server';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
+import type { api } from '@/convex/_generated/api';
 
 // Type de base pour un profil Convex
 export type ConvexProfile = Doc<'profiles'>;
@@ -14,35 +16,9 @@ export type ConvexProfileWithUser = ConvexProfile & {
 };
 
 // Type complet pour un profil avec toutes les relations
-export type ConvexFullProfile = ConvexProfile & {
-  user?: Doc<'users'>;
-  documents?: Doc<'documents'>[];
-  registrationRequest?: {
-    id: string;
-    status: string;
-    notes?: Array<{
-      type: string;
-      content: string;
-      createdAt: number;
-    }>;
-  };
-  identityPicture?: {
-    fileUrl: string;
-  };
-  passport?: {
-    fileUrl: string;
-  };
-  birthCertificate?: {
-    fileUrl: string;
-  };
-  residencePermit?: {
-    fileUrl: string;
-  };
-  addressProof?: {
-    fileUrl: string;
-  };
-  validationRequestId?: string;
-};
+export type FullProfile = FunctionReturnType<
+  typeof api.functions.profile.getCurrentProfile
+>;
 
 // Types pour les mutations
 export type CreateConvexProfileInput = {

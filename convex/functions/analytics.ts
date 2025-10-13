@@ -26,7 +26,7 @@ export const getDashboardStats = query({
     }
 
     const requestsInPeriod = requests.filter(
-      (request) => request.createdAt >= startDate && request.createdAt <= endDate,
+      (request) => request._creationTime >= startDate && request._creationTime <= endDate,
     );
 
     let appointments = await ctx.db.query('appointments').collect();
@@ -118,7 +118,7 @@ export const getRequestAnalytics = query({
     }
 
     const requestsInPeriod = requests.filter(
-      (request) => request.createdAt >= startDate && request.createdAt <= endDate,
+      (request) => request._creationTime >= startDate && request._creationTime <= endDate,
     );
 
     const services = await ctx.db.query('services').collect();
@@ -151,7 +151,7 @@ export const getRequestAnalytics = query({
       const dayKey = new Date(dayStart).toISOString().split('T')[0];
 
       dailyStats[dayKey] = requestsInPeriod.filter(
-        (request) => request.createdAt >= dayStart && request.createdAt < dayEnd,
+        (request) => request._creationTime >= dayStart && request._creationTime < dayEnd,
       ).length;
     }
 
@@ -222,7 +222,11 @@ export const getUserAnalytics = query({
 });
 
 function calculateAverageProcessingTime(
-  requests: Array<{ status: string | number; completedAt?: number; createdAt: number }>,
+  requests: Array<{
+    status: string | number;
+    completedAt?: number;
+    _creationTime: number;
+  }>,
 ): number {
   const completedRequests = requests.filter(
     (r) => r.status === 'completed' && r.completedAt,
@@ -231,7 +235,7 @@ function calculateAverageProcessingTime(
   if (completedRequests.length === 0) return 0;
 
   const totalTime = completedRequests.reduce((sum, request) => {
-    return sum + (request.completedAt! - request.createdAt);
+    return sum + (request.completedAt! - request._creationTime);
   }, 0);
 
   return totalTime / completedRequests.length;

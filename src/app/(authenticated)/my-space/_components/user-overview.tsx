@@ -14,10 +14,10 @@ export function UserOverview() {
 
   const overviewDatas = useQuery(
     api.functions.profile.getOverviewProfile,
-    user?._id ? { userId: user._id } : 'skip',
+    user?._id && user.profileId
+      ? { userId: user._id, profileId: user.profileId }
+      : 'skip',
   );
-
-  console.log('overviewDatas', overviewDatas);
 
   const { formatDate } = useDateLocale();
   const t = useTranslations('dashboard.unified.user_overview');
