@@ -42,8 +42,6 @@ export const documents = defineTable({
   ),
 
   metadata: v.optional(v.any()),
-  createdAt: v.number(),
-  updatedAt: v.number(),
 })
   .index('by_owner', ['ownerId', 'ownerType'])
   .index('by_type', ['type'])

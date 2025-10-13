@@ -76,9 +76,6 @@ export const profiles = defineTable({
   }),
 
   registrationRequest: v.optional(v.id('requests')),
-
-  createdAt: v.number(),
-  updatedAt: v.number(),
 })
   .index('by_user', ['userId'])
   .index('by_status', ['status'])

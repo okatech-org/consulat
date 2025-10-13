@@ -175,3 +175,39 @@ export const emergencyContactValidator = v.object({
   phoneNumber: v.optional(v.string()),
   address: v.optional(addressValidator),
 });
+
+// Validateur pour les horaires d'un jour
+export const dayScheduleValidator = v.object({
+  isOpen: v.boolean(),
+  slots: v.array(
+    v.object({
+      start: v.string(), // Format "HH:MM"
+      end: v.string(), // Format "HH:MM"
+    }),
+  ),
+});
+
+// Validateur pour les horaires de la semaine
+export const weeklyScheduleValidator = v.object({
+  monday: dayScheduleValidator,
+  tuesday: dayScheduleValidator,
+  wednesday: dayScheduleValidator,
+  thursday: dayScheduleValidator,
+  friday: dayScheduleValidator,
+  saturday: dayScheduleValidator,
+  sunday: dayScheduleValidator,
+});
+
+// Validateur pour les informations de contact
+export const contactValidator = v.object({
+  address: v.optional(addressValidator),
+  phone: v.optional(v.string()),
+  email: v.optional(v.string()),
+  website: v.optional(v.string()),
+});
+
+// Validateur pour les cartes consulaires
+export const consularCardValidator = v.object({
+  rectoModelUrl: v.optional(v.string()),
+  versoModelUrl: v.optional(v.string()),
+});

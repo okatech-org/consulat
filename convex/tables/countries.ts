@@ -8,9 +8,6 @@ export const countries = defineTable({
   status: countryStatusValidator,
   flag: v.optional(v.string()),
   metadata: v.optional(v.any()),
-
-  createdAt: v.number(),
-  updatedAt: v.number(),
 })
   .index('by_code', ['code'])
   .index('by_status', ['status']);

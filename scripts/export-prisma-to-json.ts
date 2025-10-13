@@ -358,6 +358,7 @@ const exportUserCentricDataInclude: Prisma.UserSelect = {
       location: true,
     },
   },
+  feedbacks: true,
 };
 
 export type UserCentricDataExport = Prisma.UserGetPayload<{

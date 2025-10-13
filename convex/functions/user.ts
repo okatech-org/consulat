@@ -47,8 +47,6 @@ export const createUser = mutation({
       roles: args.roles || [UserRole.User],
       status: UserStatus.Active,
       countryCode: args.countryCode,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
     });
 
     return userId;
@@ -108,7 +106,6 @@ export const updateUserLastActive = mutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.userId, {
       lastActiveAt: Date.now(),
-      updatedAt: Date.now(),
     });
     return args.userId;
   },
@@ -120,7 +117,6 @@ export const softDeleteUser = mutation({
     await ctx.db.patch(args.userId, {
       status: 'inactive',
       deletedAt: Date.now(),
-      updatedAt: Date.now(),
     });
     return args.userId;
   },
@@ -142,7 +138,6 @@ export const deleteUser = mutation({
       await ctx.db.patch(user._id, {
         status: 'deleted',
         deletedAt: Date.now(),
-        updatedAt: Date.now(),
       });
       return true;
     }
@@ -170,7 +165,6 @@ export const updateOrCreateUser = mutation({
         email: clerkUser.email_addresses?.[0]?.email_address || existingUser.email,
         phoneNumber:
           clerkUser.phone_numbers?.[0]?.phone_number || existingUser.phoneNumber,
-        updatedAt: Date.now(),
         lastActiveAt: Date.now(),
       });
       return existingUser._id;
@@ -186,8 +180,6 @@ export const updateOrCreateUser = mutation({
         status: 'active',
         profileId: undefined,
         countryCode: undefined,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
         lastActiveAt: Date.now(),
       });
       return newUserId;
@@ -387,7 +379,6 @@ export const updateOrCreateUserInternal = internalMutation({
         lastName: clerkUser.last_name || existingUser.lastName,
         email: email || existingUser.email,
         phoneNumber: phoneNumber || existingUser.phoneNumber,
-        updatedAt: Date.now(),
         lastActiveAt: Date.now(),
       });
       return existingUser._id;
@@ -404,8 +395,6 @@ export const updateOrCreateUserInternal = internalMutation({
         status: 'active',
         profileId: undefined,
         countryCode: countryCodeData?.code,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
         lastActiveAt: Date.now(),
       });
       return newUserId;
@@ -431,7 +420,6 @@ export const deleteUserInternal = internalMutation({
       await ctx.db.patch(user._id, {
         status: 'deleted',
         deletedAt: Date.now(),
-        updatedAt: Date.now(),
       });
       return true;
     }
@@ -668,19 +656,16 @@ export const getUserOrganizationContact = query({
     const primaryOrg =
       userOrganizations.find((org) => org.status === 'active') || userOrganizations[0];
 
-    // Récupérer la configuration du pays
-    const countryConfig = await ctx.db
-      .query('organizationCountryConfigs')
-      .withIndex('by_organization_country', (q) =>
-        q.eq('organizationId', primaryOrg._id).eq('countryCode', user.countryCode!),
-      )
-      .first();
+    // Récupérer la configuration du pays depuis les settings de l'organisation
+    const orgSettings = primaryOrg.settings?.find(
+      (s) => s.countryCode === user.countryCode,
+    );
 
     return {
       organization: primaryOrg,
-      contact: countryConfig?.contact,
-      schedule: countryConfig?.schedule,
-      website: countryConfig?.contact?.website,
+      contact: orgSettings?.contact,
+      schedule: orgSettings?.schedule,
+      website: orgSettings?.contact?.website,
     };
   },
 });

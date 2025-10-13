@@ -3,7 +3,6 @@ import { defineSchema } from 'convex/server';
 import { users } from './tables/users';
 import { profiles } from './tables/profiles';
 import { organizations } from './tables/organizations';
-import { organizationCountryConfigs } from './tables/organizationCountryConfigs';
 import { memberships } from './tables/memberships';
 import { services } from './tables/services';
 import { requests } from './tables/requests';
@@ -18,7 +17,6 @@ export default defineSchema({
   users,
   profiles,
   organizations,
-  organizationCountryConfigs,
   memberships,
   services,
   requests,

@@ -42,7 +42,8 @@ export const getDashboardStats = query({
 
     const allDocuments = await ctx.db.query('documents').collect();
     const documentsInPeriod = allDocuments.filter(
-      (document) => document.createdAt >= startDate && document.createdAt <= endDate,
+      (document) =>
+        document._creationTime >= startDate && document._creationTime <= endDate,
     );
 
     const allNotifications = await ctx.db.query('notifications').collect();
@@ -188,7 +189,7 @@ export const getUserAnalytics = query({
     }
 
     const usersInPeriod = users.filter(
-      (user) => user.createdAt >= startDate && user.createdAt <= endDate,
+      (user) => user._creationTime >= startDate && user._creationTime <= endDate,
     );
 
     const roleAnalytics: Record<string, number> = {};
@@ -216,7 +217,11 @@ export const getUserAnalytics = query({
       },
       byRole: roleAnalytics,
       byCountry: countryAnalytics,
-      newUsersTrend: calculateNewUsersTrend(usersInPeriod, startDate, endDate),
+      newUsersTrend: calculateNewUsersTrend(
+        usersInPeriod.map((u) => ({ createdAt: u._creationTime })),
+        startDate,
+        endDate,
+      ),
     };
   },
 });

@@ -75,13 +75,10 @@ export const createProfile = mutation({
         employer: undefined,
         employerAddress: undefined,
       },
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
     });
 
     await ctx.db.patch(args.userId, {
       profileId: profileId,
-      updatedAt: Date.now(),
     });
 
     return profileId;
@@ -176,7 +173,6 @@ export const updateProfile = mutation({
         consularCard: { ...existingProfile.consularCard, ...args.consularCard },
       }),
       ...(args.status && { status: args.status as ProfileStatusType }),
-      updatedAt: Date.now(),
     };
 
     await ctx.db.patch(args.profileId, updateData);
@@ -209,7 +205,6 @@ export const updatePersonalInfo = mutation({
 
     await ctx.db.patch(args.profileId, {
       personal: { ...profile.personal, ...args.personal },
-      updatedAt: Date.now(),
     });
 
     return args.profileId;
@@ -248,7 +243,6 @@ export const updateFamilyInfo = mutation({
 
     await ctx.db.patch(args.profileId, {
       family: { ...profile.family, ...args.family },
-      updatedAt: Date.now(),
     });
 
     return args.profileId;
@@ -268,7 +262,6 @@ export const addEmergencyContact = mutation({
 
     await ctx.db.patch(args.profileId, {
       emergencyContacts: [...profile.emergencyContacts, args.emergencyContact],
-      updatedAt: Date.now(),
     });
 
     return args.profileId;
@@ -296,7 +289,6 @@ export const updateEmergencyContact = mutation({
 
     await ctx.db.patch(args.profileId, {
       emergencyContacts: updatedContacts,
-      updatedAt: Date.now(),
     });
 
     return args.profileId;
@@ -324,7 +316,6 @@ export const removeEmergencyContact = mutation({
 
     await ctx.db.patch(args.profileId, {
       emergencyContacts: updatedContacts,
-      updatedAt: Date.now(),
     });
 
     return args.profileId;
@@ -349,7 +340,6 @@ export const updateConsularCard = mutation({
 
     await ctx.db.patch(args.profileId, {
       consularCard: { ...profile.consularCard, ...args.consularCard },
-      updatedAt: Date.now(),
     });
 
     return args.profileId;
@@ -373,7 +363,6 @@ export const addDocumentToProfile = mutation({
 
     await ctx.db.patch(args.profileId, {
       documentIds: [...profile.documentIds, args.documentId],
-      updatedAt: Date.now(),
     });
 
     return args.profileId;
@@ -393,7 +382,6 @@ export const removeDocumentFromProfile = mutation({
 
     await ctx.db.patch(args.profileId, {
       documentIds: profile.documentIds.filter((id) => id !== args.documentId),
-      updatedAt: Date.now(),
     });
 
     return args.profileId;
@@ -408,7 +396,6 @@ export const updateProfileStatus = mutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.profileId, {
       status: args.status as ProfileStatusType,
-      updatedAt: Date.now(),
     });
 
     return args.profileId;
@@ -621,7 +608,6 @@ export const submitProfileForValidation = mutation({
     // Mettre à jour le statut du profil
     await ctx.db.patch(args.profileId, {
       status: ProfileStatus.Pending,
-      updatedAt: Date.now(),
     });
 
     return args.profileId;

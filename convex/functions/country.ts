@@ -26,8 +26,6 @@ export const createCountry = mutation({
       code: args.code,
       flag: args.flag,
       status: args.status ?? CountryStatus.Inactive,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
     });
 
     return countryId;

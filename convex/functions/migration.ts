@@ -323,14 +323,85 @@ export const importOrganizations = mutation({
           memberIds: [],
           serviceIds: [],
           childIds: [],
-          settings: {
+          settings: orgCountryConfigs.map((config) => ({
             appointmentSettings: postgresOrg.appointmentSettings || {},
-            workflowSettings: {},
-            notificationSettings: {},
-          },
+            workflowSettings: postgresOrg.workflowSettings || {},
+            notificationSettings: postgresOrg.notificationSettings || {},
+            countryCode: config.countryCode,
+            consularCard: config.config.consularCard,
+            contact: config.config.contact
+              ? {
+                  address: config.config.contact.address
+                    ? {
+                        street: config.config.contact.address.firstLine || '',
+                        city: config.config.contact.address.city || '',
+                        postalCode: config.config.contact.address.zipCode || '',
+                        country: config.config.contact.address.country || '',
+                      }
+                    : undefined,
+                  phone: config.config.contact.phone,
+                  email: config.config.contact.email,
+                  website: config.config.contact.website,
+                }
+              : undefined,
+            schedule: config.config.schedule
+              ? {
+                  monday: {
+                    isOpen: Boolean(config.config.schedule.monday?.isOpen),
+                    slots: (config.config.schedule.monday?.slots || []).map((s) => ({
+                      start: s.start ?? '',
+                      end: s.end ?? '',
+                    })),
+                  },
+                  tuesday: {
+                    isOpen: Boolean(config.config.schedule.tuesday?.isOpen),
+                    slots: (config.config.schedule.tuesday?.slots || []).map((s) => ({
+                      start: s.start ?? '',
+                      end: s.end ?? '',
+                    })),
+                  },
+                  wednesday: {
+                    isOpen: Boolean(config.config.schedule.wednesday?.isOpen),
+                    slots: (config.config.schedule.wednesday?.slots || []).map((s) => ({
+                      start: s.start ?? '',
+                      end: s.end ?? '',
+                    })),
+                  },
+                  thursday: {
+                    isOpen: Boolean(config.config.schedule.thursday?.isOpen),
+                    slots: (config.config.schedule.thursday?.slots || []).map((s) => ({
+                      start: s.start ?? '',
+                      end: s.end ?? '',
+                    })),
+                  },
+                  friday: {
+                    isOpen: Boolean(config.config.schedule.friday?.isOpen),
+                    slots: (config.config.schedule.friday?.slots || []).map((s) => ({
+                      start: s.start ?? '',
+                      end: s.end ?? '',
+                    })),
+                  },
+                  saturday: {
+                    isOpen: Boolean(config.config.schedule.saturday?.isOpen),
+                    slots: (config.config.schedule.saturday?.slots || []).map((s) => ({
+                      start: s.start ?? '',
+                      end: s.end ?? '',
+                    })),
+                  },
+                  sunday: {
+                    isOpen: Boolean(config.config.schedule.sunday?.isOpen),
+                    slots: (config.config.schedule.sunday?.slots || []).map((s) => ({
+                      start: s.start ?? '',
+                      end: s.end ?? '',
+                    })),
+                  },
+                }
+              : undefined,
+            holidays: (config.config.holidays || []).map((h) => new Date(h).getTime()),
+            closures: (config.config.closures || []).map((c) => new Date(c).getTime()),
+          })),
           legacyId: postgresOrg.id,
           metadata: postgresOrg.metadata || {},
-          createdAt: new Date(postgresOrg.createdAt).getTime(),
           updatedAt: new Date(postgresOrg.updatedAt).getTime(),
         });
 
@@ -362,97 +433,11 @@ export const importOrganizations = mutation({
       }
     }
 
-    // Importer les configurations par pays
-    console.log(`🔧 Import de ${orgCountryConfigs.length} configurations par pays...`);
-    let importedConfigs = 0;
-    for (const { orgId, countryCode, config } of orgCountryConfigs) {
-      try {
-        await ctx.db.insert('organizationCountryConfigs', {
-          organizationId: orgId,
-          countryCode,
-          contact: {
-            address: {
-              street: config.contact?.address?.firstLine || '',
-              city: config.contact?.address?.city || '',
-              postalCode: config.contact?.address?.zipCode || '',
-              country: config.contact?.address?.country || '',
-            },
-            phone: config.contact?.phone || '',
-            email: config.contact?.email || '',
-            website: config.contact?.website || undefined,
-          },
-          schedule: {
-            monday: {
-              isOpen: Boolean(config.schedule?.monday?.isOpen),
-              slots: (config.schedule?.monday?.slots || []).map((s) => ({
-                start: s.start ?? '',
-                end: s.end ?? '',
-              })),
-            },
-            tuesday: {
-              isOpen: Boolean(config.schedule?.tuesday?.isOpen),
-              slots: (config.schedule?.tuesday?.slots || []).map((s) => ({
-                start: s.start ?? '',
-                end: s.end ?? '',
-              })),
-            },
-            wednesday: {
-              isOpen: Boolean(config.schedule?.wednesday?.isOpen),
-              slots: (config.schedule?.wednesday?.slots || []).map((s) => ({
-                start: s.start ?? '',
-                end: s.end ?? '',
-              })),
-            },
-            thursday: {
-              isOpen: Boolean(config.schedule?.thursday?.isOpen),
-              slots: (config.schedule?.thursday?.slots || []).map((s) => ({
-                start: s.start ?? '',
-                end: s.end ?? '',
-              })),
-            },
-            friday: {
-              isOpen: Boolean(config.schedule?.friday?.isOpen),
-              slots: (config.schedule?.friday?.slots || []).map((s) => ({
-                start: s.start ?? '',
-                end: s.end ?? '',
-              })),
-            },
-            saturday: {
-              isOpen: Boolean(config.schedule?.saturday?.isOpen),
-              slots: (config.schedule?.saturday?.slots || []).map((s) => ({
-                start: s.start ?? '',
-                end: s.end ?? '',
-              })),
-            },
-            sunday: {
-              isOpen: Boolean(config.schedule?.sunday?.isOpen),
-              slots: (config.schedule?.sunday?.slots || []).map((s) => ({
-                start: s.start ?? '',
-                end: s.end ?? '',
-              })),
-            },
-          },
-          holidays: (config.holidays || []) as string[],
-          closures: (config.closures || []) as string[],
-          consularCard: {
-            rectoModelUrl: config.consularCard?.rectoModelUrl || undefined,
-            versoModelUrl: config.consularCard?.versoModelUrl || undefined,
-          },
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        });
-        importedConfigs++;
-      } catch (error) {
-        console.error(`❌ Erreur import config ${countryCode} pour org ${orgId}:`, error);
-      }
-    }
-
     console.log(`✅ ${importedOrgs.length} organisations importées`);
-    console.log(`✅ ${importedConfigs} configurations par pays importées`);
     return {
       importedCount: importedOrgs.length,
       orgIds: importedOrgs,
-      configsImported: importedConfigs,
+      configsImported: orgCountryConfigs.length,
     };
   },
 });
@@ -488,8 +473,6 @@ export const importCountries = mutation({
           code: postgresCountry.code,
           status: countryStatusMapping[postgresCountry.status],
           flag: postgresCountry.flag || undefined,
-          createdAt: new Date(postgresCountry.createdAt || Date.now()).getTime(),
-          updatedAt: new Date(postgresCountry.updatedAt || Date.now()).getTime(),
           metadata: postgresCountry.metadata || undefined,
         });
 
@@ -634,15 +617,13 @@ export const importUserWithData = mutation({
     const userId = await ctx.db.insert('users', {
       userId: args.user.clerkId || `temp_${args.user.id}`,
       legacyId: args.user.id,
-      firstName: args.user.name?.split(' ')[0] || undefined,
-      lastName: args.user.name?.split(' ').slice(1).join(' ') || undefined,
-      email: args.user.email || undefined,
-      phoneNumber: args.user.phoneNumber || undefined,
+      firstName: args.user.name?.split(' ')[0] || '',
+      lastName: args.user.name?.split(' ').slice(1).join(' ') || '',
+      email: args.user.email || '',
+      phoneNumber: args.user.phoneNumber || '',
       roles: args.user.roles?.map((role: string) => roleMapping[role]) || [UserRole.User],
       status: UserStatus.Active,
-      countryCode: args.user.countryCode || undefined,
-      createdAt: new Date(args.user.createdAt).getTime(),
-      updatedAt: new Date(args.user.updatedAt).getTime(),
+      countryCode: args.user.countryCode || '',
     });
     recordCount++;
 
@@ -729,8 +710,6 @@ export const importUserWithData = mutation({
           employer: args.profile.employer || undefined,
           employerAddress: args.profile.employerAddress || undefined,
         },
-        createdAt: new Date(args.profile.createdAt).getTime(),
-        updatedAt: new Date(args.profile.updatedAt).getTime(),
       });
       recordCount++;
 
@@ -756,8 +735,6 @@ export const importUserWithData = mutation({
             issuedAt: doc.issuedAt ? new Date(doc.issuedAt).getTime() : undefined,
             expiresAt: doc.expiresAt ? new Date(doc.expiresAt).getTime() : undefined,
             metadata: doc.metadata || {},
-            createdAt: new Date(doc.createdAt).getTime(),
-            updatedAt: new Date(doc.updatedAt).getTime(),
           });
           recordCount++;
         } catch (error) {
@@ -960,17 +937,13 @@ export const importNonUsersAccounts = mutation({
         const userId = await ctx.db.insert('users', {
           userId: account.clerkId || `temp_${account.id}`,
           legacyId: account.id,
-          firstName: account.name ? account.name.split(' ')[0] : undefined,
-          lastName: account.name
-            ? account.name.split(' ').slice(1).join(' ') || undefined
-            : undefined,
-          email: account.email || undefined,
-          phoneNumber: account.phoneNumber || undefined,
+          firstName: account.name ? account.name.split(' ')[0] : '',
+          lastName: account.name ? account.name.split(' ').slice(1).join(' ') || '' : '',
+          email: account.email || '',
+          phoneNumber: account.phoneNumber || '',
           roles: mappedRoles.length > 0 ? mappedRoles : [UserRole.Admin],
-          status: 'active',
+          status: UserStatus.Active,
           countryCode: undefined,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
         });
 
         importedUserIds.push(userId);

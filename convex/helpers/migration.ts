@@ -4,61 +4,21 @@ import {
   ProfileStatus,
   UserRole,
   UserStatus,
-} from '../lib/constants'
-import type { Doc, Id } from '../_generated/dataModel'
-import type { ActivityType } from '../lib/constants'
+} from '../lib/constants';
+import type { Doc, Id } from '../_generated/dataModel';
+import type { ActivityType } from '../lib/constants';
 
 // Interface pour les données legacy
 interface LegacyUser {
-  _id: string
-  name: string
-  email: string
-  phoneNumber: string
-  role: 'admin' | 'user'
-  userId: string // ID Clerk
-  pushToken?: string
-  createdAt: number
-  updatedAt: number
-}
-
-// Fonction pour migrer un utilisateur legacy vers la nouvelle structure
-export function migrateLegacyUser(legacyUser: LegacyUser): {
-  user: Partial<Doc<'users'>>
-  profile: Partial<Doc<'profiles'>>
-} {
-  // Mapper les rôles legacy vers les nouveaux rôles
-  const roleMapping: Record<string, UserRole> = {
-    admin: UserRole.Admin,
-    user: UserRole.User,
-  }
-
-  const newUser: Partial<Doc<'users'>> = {
-    email: legacyUser.email,
-    phoneNumber: legacyUser.phoneNumber,
-    // phoneNumberVerified: false, // Champ non défini dans le schéma
-    // emailVerified: undefined, // Champ non défini dans le schéma
-    roles: [roleMapping[legacyUser.role]],
-    status: UserStatus.Active,
-    countryCode: undefined, // À définir selon les besoins
-    createdAt: legacyUser.createdAt,
-    updatedAt: legacyUser.updatedAt,
-  }
-
-  // Créer un profil basique
-  const profile: Partial<Doc<'profiles'>> = {
-    // userId sera défini lors de l'insertion
-    personal: {
-      firstName: legacyUser.name.split(' ')[0] || legacyUser.name,
-      lastName: legacyUser.name.split(' ').slice(1).join(' ') || '',
-    },
-    category: ProfileCategory.Adult,
-    status: ProfileStatus.Active,
-    documentIds: [],
-    createdAt: legacyUser.createdAt,
-    updatedAt: legacyUser.updatedAt,
-  }
-
-  return { user: newUser, profile }
+  _id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  role: 'admin' | 'user';
+  userId: string; // ID Clerk
+  pushToken?: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
 // Fonction pour créer une organisation par défaut
@@ -75,17 +35,12 @@ export function createDefaultOrganization(): Omit<
     memberIds: [],
     serviceIds: [],
     childIds: [], // Ajout du champ manquant
-    settings: {
-      appointmentSettings: {},
-      workflowSettings: {},
-      notificationSettings: {},
-    },
+    settings: [],
     metadata: {
       isDefault: true,
     },
-    createdAt: Date.now(),
     updatedAt: Date.now(),
-  }
+  };
 }
 
 // Fonction pour créer des services par défaut
@@ -264,14 +219,14 @@ export function createDefaultServices(
       createdAt: Date.now(),
       updatedAt: Date.now(),
     },
-  ]
+  ];
 }
 
 // Fonction pour générer un numéro de demande unique
 export function generateRequestNumber(): string {
-  const timestamp = Date.now().toString(36)
-  const random = Math.random().toString(36).substring(2, 8)
-  return `REQ-${timestamp}-${random}`.toUpperCase()
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 8);
+  return `REQ-${timestamp}-${random}`.toUpperCase();
 }
 
 // Fonction pour créer une activité de demande
@@ -285,5 +240,5 @@ export function createRequestActivity(
     actorId,
     data,
     timestamp: Date.now(),
-  }
+  };
 }

@@ -35,7 +35,6 @@ export const saveFileToDocument = mutation({
       fileName: args.fileName,
       fileSize: args.fileSize,
       fileType: args.fileType,
-      updatedAt: Date.now(),
     });
 
     return { success: true, storageId: args.storageId };
@@ -71,7 +70,6 @@ export const deleteDocumentFile = mutation({
       fileName: undefined,
       fileSize: undefined,
       fileType: undefined,
-      updatedAt: Date.now(),
     });
 
     return { success: true };
@@ -111,8 +109,6 @@ export const createDocumentWithFile = mutation({
       expiresAt: args.expiresAt,
       version: 1,
       validations: [],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
     });
 
     return { documentId };
@@ -145,7 +141,6 @@ export const updateDocumentFile = mutation({
       fileName: args.fileName,
       fileSize: args.fileSize,
       fileType: args.fileType,
-      updatedAt: Date.now(),
     });
 
     return { success: true };
@@ -173,7 +168,6 @@ export const archiveDocument = mutation({
       fileName: undefined,
       fileSize: undefined,
       fileType: undefined,
-      updatedAt: Date.now(),
     });
 
     return { success: true };

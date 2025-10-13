@@ -39,8 +39,6 @@ export const createDocument = mutation({
       expiresAt: args.expiresAt,
       validations: [],
       metadata: args.metadata || {},
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
     });
 
     return documentId;
@@ -77,7 +75,6 @@ export const updateDocument = mutation({
       ...(args.issuedAt !== undefined && { issuedAt: args.issuedAt }),
       ...(args.expiresAt !== undefined && { expiresAt: args.expiresAt }),
       ...(args.metadata && { metadata: args.metadata }),
-      updatedAt: Date.now(),
     };
 
     await ctx.db.patch(args.documentId, updateData);
@@ -116,7 +113,6 @@ export const validateDocument = mutation({
     await ctx.db.patch(args.documentId, {
       status: newStatus,
       validations: [...document.validations, validation],
-      updatedAt: Date.now(),
     });
 
     return args.documentId;
@@ -158,8 +154,6 @@ export const createDocumentVersion = mutation({
       expiresAt: existingDocument.expiresAt,
       validations: [],
       metadata: args.metadata || existingDocument.metadata,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
     });
 
     return newVersionId;
@@ -175,7 +169,6 @@ export const updateDocumentStatus = mutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.documentId, {
       status: args.status as DocumentStatus,
-      updatedAt: Date.now(),
     });
 
     return args.documentId;
@@ -213,7 +206,6 @@ export const markDocumentAsExpiring = mutation({
     if (document.expiresAt <= expiryThreshold) {
       await ctx.db.patch(args.documentId, {
         status: DocumentStatus.Expiring,
-        updatedAt: Date.now(),
       });
     }
 

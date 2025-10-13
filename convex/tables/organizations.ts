@@ -1,8 +1,11 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import {
+  consularCardValidator,
+  contactValidator,
   organizationStatusValidator,
   organizationTypeValidator,
+  weeklyScheduleValidator,
 } from '../lib/validators';
 
 export const organizations = defineTable({
@@ -22,14 +25,25 @@ export const organizations = defineTable({
   serviceIds: v.array(v.id('services')),
 
   // Configuration
-  settings: v.object({
-    appointmentSettings: v.optional(v.any()),
-    workflowSettings: v.optional(v.any()),
-    notificationSettings: v.optional(v.any()),
-  }),
+  settings: v.array(
+    v.object({
+      appointmentSettings: v.optional(v.any()),
+      workflowSettings: v.optional(v.any()),
+      notificationSettings: v.optional(v.any()),
+      countryCode: v.string(),
+
+      contact: v.optional(contactValidator),
+
+      schedule: v.optional(weeklyScheduleValidator),
+
+      holidays: v.array(v.number()),
+      closures: v.array(v.number()),
+
+      consularCard: v.optional(consularCardValidator),
+    }),
+  ),
 
   metadata: v.optional(v.any()),
-  createdAt: v.number(),
   updatedAt: v.number(),
   legacyId: v.optional(v.string()),
 })

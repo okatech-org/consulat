@@ -1,11 +1,11 @@
-import { v } from "convex/values";
-import { mutation, query } from "../_generated/server";
-import { OrganizationStatus } from "../lib/constants";
-import type { OrganizationType } from "../lib/constants";
+import { v } from 'convex/values';
+import { mutation, query } from '../_generated/server';
+import { OrganizationStatus } from '../lib/constants';
+import type { OrganizationType } from '../lib/constants';
 import {
   getOrganizationServicesHelper,
   getOrganizationUsers,
-} from "../helpers/relationships";
+} from '../helpers/relationships';
 
 // Mutations
 export const createOrganization = mutation({
@@ -15,13 +15,13 @@ export const createOrganization = mutation({
     logo: v.optional(v.string()),
     type: v.string(),
     status: v.optional(v.string()),
-    parentId: v.optional(v.id("organizations")),
+    parentId: v.optional(v.id('organizations')),
     countryIds: v.optional(v.array(v.string())),
     settings: v.optional(v.any()),
     metadata: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
-    const organizationId = await ctx.db.insert("organizations", {
+    const organizationId = await ctx.db.insert('organizations', {
       code: args.code,
       name: args.name,
       logo: args.logo,
@@ -38,7 +38,6 @@ export const createOrganization = mutation({
         notificationSettings: {},
       },
       metadata: args.metadata || {},
-      createdAt: Date.now(),
       updatedAt: Date.now(),
     });
 
@@ -58,7 +57,7 @@ export const createOrganization = mutation({
 
 export const updateOrganization = mutation({
   args: {
-    organizationId: v.id("organizations"),
+    organizationId: v.id('organizations'),
     code: v.optional(v.string()),
     name: v.optional(v.string()),
     logo: v.optional(v.string()),
@@ -71,7 +70,7 @@ export const updateOrganization = mutation({
   handler: async (ctx, args) => {
     const existingOrg = await ctx.db.get(args.organizationId);
     if (!existingOrg) {
-      throw new Error("Organization not found");
+      throw new Error('Organization not found');
     }
 
     const updateData = {
@@ -93,17 +92,17 @@ export const updateOrganization = mutation({
 
 export const addServiceToOrganization = mutation({
   args: {
-    organizationId: v.id("organizations"),
-    serviceId: v.id("services"),
+    organizationId: v.id('organizations'),
+    serviceId: v.id('services'),
   },
   handler: async (ctx, args) => {
     const organization = await ctx.db.get(args.organizationId);
     if (!organization) {
-      throw new Error("Organization not found");
+      throw new Error('Organization not found');
     }
 
     if (organization.serviceIds.includes(args.serviceId)) {
-      throw new Error("Service already exists in organization");
+      throw new Error('Service already exists in organization');
     }
 
     await ctx.db.patch(args.organizationId, {
@@ -117,13 +116,13 @@ export const addServiceToOrganization = mutation({
 
 export const removeServiceFromOrganization = mutation({
   args: {
-    organizationId: v.id("organizations"),
-    serviceId: v.id("services"),
+    organizationId: v.id('organizations'),
+    serviceId: v.id('services'),
   },
   handler: async (ctx, args) => {
     const organization = await ctx.db.get(args.organizationId);
     if (!organization) {
-      throw new Error("Organization not found");
+      throw new Error('Organization not found');
     }
 
     await ctx.db.patch(args.organizationId, {
@@ -137,13 +136,13 @@ export const removeServiceFromOrganization = mutation({
 
 export const updateOrganizationSettings = mutation({
   args: {
-    organizationId: v.id("organizations"),
+    organizationId: v.id('organizations'),
     settings: v.any(),
   },
   handler: async (ctx, args) => {
     const organization = await ctx.db.get(args.organizationId);
     if (!organization) {
-      throw new Error("Organization not found");
+      throw new Error('Organization not found');
     }
 
     await ctx.db.patch(args.organizationId, {
@@ -155,6 +154,7 @@ export const updateOrganizationSettings = mutation({
   },
 });
 
+/* 
 export const createOrganizationCountryConfig = mutation({
   args: {
     organizationId: v.id("organizations"),
@@ -174,14 +174,15 @@ export const createOrganizationCountryConfig = mutation({
       holidays: args.holidays || [],
       closures: args.closures || [],
       consularCard: args.consularCard || {},
-      createdAt: Date.now(),
       updatedAt: Date.now(),
     });
 
     return configId;
   },
 });
+*/
 
+/* 
 export const updateOrganizationCountryConfig = mutation({
   args: {
     configId: v.id("organizationCountryConfigs"),
@@ -213,10 +214,11 @@ export const deleteOrganizationCountryConfig = mutation({
     return args.configId;
   },
 });
+*/
 
 // Queries
 export const getOrganization = query({
-  args: { organizationId: v.id("organizations") },
+  args: { organizationId: v.id('organizations') },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.organizationId);
   },
@@ -226,8 +228,8 @@ export const getOrganizationByCode = query({
   args: { code: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
-      .query("organizations")
-      .withIndex("by_code", (q) => q.eq("code", args.code))
+      .query('organizations')
+      .withIndex('by_code', (q) => q.eq('code', args.code))
       .first();
   },
 });
@@ -241,45 +243,35 @@ export const getAllOrganizations = query({
   handler: async (ctx, args) => {
     if (args.status) {
       const organizations = await ctx.db
-        .query("organizations")
-        .withIndex("by_status", (q) => q.eq("status", args.status!))
-        .order("desc")
+        .query('organizations')
+        .withIndex('by_status', (q) => q.eq('status', args.status!))
+        .order('desc')
         .collect();
 
       return args.limit ? organizations.slice(0, args.limit) : organizations;
     }
 
-    const organizations = await ctx.db
-      .query("organizations")
-      .order("desc")
-      .collect();
+    const organizations = await ctx.db.query('organizations').order('desc').collect();
 
     return args.limit ? organizations.slice(0, args.limit) : organizations;
   },
 });
 
 export const getOrganizationWithDetails = query({
-  args: { organizationId: v.id("organizations") },
+  args: { organizationId: v.id('organizations') },
   handler: async (ctx, args) => {
     const organization = await ctx.db.get(args.organizationId);
     if (!organization) return null;
 
-    const [services, members, countryConfigs] = await Promise.all([
+    const [services, members] = await Promise.all([
       getOrganizationServicesHelper(ctx, args.organizationId),
       getOrganizationUsers(ctx, args.organizationId),
-      ctx.db
-        .query("organizationCountryConfigs")
-        .withIndex("by_organization", (q) =>
-          q.eq("organizationId", args.organizationId),
-        )
-        .collect(),
     ]);
 
     return {
       ...organization,
       services,
       members,
-      countryConfigs,
     };
   },
 });
@@ -287,7 +279,7 @@ export const getOrganizationWithDetails = query({
 export const getOrganizationsByCountry = query({
   args: { countryCode: v.string() },
   handler: async (ctx, args) => {
-    const organizations = await ctx.db.query("organizations").collect();
+    const organizations = await ctx.db.query('organizations').collect();
 
     return organizations.filter(
       (org) => org.countryIds && org.countryIds.includes(args.countryCode),
@@ -296,12 +288,13 @@ export const getOrganizationsByCountry = query({
 });
 
 export const getOrganizationServices = query({
-  args: { organizationId: v.id("organizations") },
+  args: { organizationId: v.id('organizations') },
   handler: async (ctx, args) => {
     return await getOrganizationServicesHelper(ctx, args.organizationId);
   },
 });
 
+/* 
 export const getOrganizationCountryConfig = query({
   args: {
     organizationId: v.id("organizations"),
@@ -318,3 +311,4 @@ export const getOrganizationCountryConfig = query({
       .first();
   },
 });
+*/
