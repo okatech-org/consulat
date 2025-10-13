@@ -249,6 +249,20 @@ const serviceStatusMapping: { [key: string]: ServiceStatus } = {
   SUSPENDED: ServiceStatus.Suspended,
 };
 
+const feedbackCategoryMapping: { [key: string]: string } = {
+  BUG: 'bug',
+  FEATURE: 'feature',
+  IMPROVEMENT: 'improvement',
+  OTHER: 'other',
+};
+
+const feedbackStatusMapping: { [key: string]: string } = {
+  PENDING: 'pending',
+  IN_REVIEW: 'in_review',
+  RESOLVED: 'resolved',
+  CLOSED: 'closed',
+};
+
 // Mapping des modes de livraison (Prisma enums -> Convex strings)
 const deliveryModeMapping: {
   [key: string]: 'in_person' | 'postal' | 'electronic' | 'by_proxy';
@@ -851,7 +865,52 @@ export const importUserWithData = mutation({
       }
     }
 
-    // 7. Importer les autorités parentales (parentalAuthorities)
+    // 7. Importer les feedbacks
+    if (args.feedbacks && args.feedbacks.length > 0) {
+      for (const feedback of args.feedbacks) {
+        try {
+          // Trouver les IDs Convex correspondants
+          const serviceId = feedback.serviceId
+            ? await findConvexServiceByLegacyId(ctx, feedback.serviceId)
+            : undefined;
+          const requestId = feedback.requestId
+            ? await findConvexRequestByLegacyId(ctx, feedback.requestId)
+            : undefined;
+          const organizationId = feedback.organizationId
+            ? await findConvexOrganizationByLegacyId(ctx, feedback.organizationId)
+            : undefined;
+
+          await ctx.db.insert('tickets', {
+            subject: feedback.subject,
+            message: feedback.message,
+            category: feedbackCategoryMapping[feedback.category] || 'other',
+            rating: feedback.rating,
+            status: feedbackStatusMapping[feedback.status] || 'pending',
+            userId: userId,
+            email: feedback.email,
+            phoneNumber: feedback.phoneNumber,
+            response: feedback.response,
+            respondedById: feedback.respondedById
+              ? await findConvexUserByLegacyId(ctx, feedback.respondedById)
+              : undefined,
+            respondedAt: feedback.respondedAt
+              ? new Date(feedback.respondedAt).getTime()
+              : undefined,
+            serviceId: serviceId,
+            requestId: requestId,
+            organizationId: organizationId,
+            metadata: feedback.metadata || {},
+            createdAt: new Date(feedback.createdAt).getTime(),
+            updatedAt: new Date(feedback.updatedAt).getTime(),
+          });
+          recordCount++;
+        } catch (error) {
+          console.error(`Erreur import feedback ${feedback.id}:`, error);
+        }
+      }
+    }
+
+    // 8. Importer les autorités parentales (parentalAuthorities)
     if (args.childAuthorities && args.childAuthorities.length > 0) {
       for (const pa of args.childAuthorities) {
         try {
