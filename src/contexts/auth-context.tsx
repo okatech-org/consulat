@@ -25,7 +25,10 @@ export function AuthProvider({ children, userId }: AuthProviderProps) {
 
   return (
     <AuthContext.Provider
-      value={{ user: userData ?? null, loading: userData === undefined }}
+      value={{
+        user: userData ?? null,
+        loading: userData === undefined && userId !== null,
+      }}
     >
       {children}
     </AuthContext.Provider>
