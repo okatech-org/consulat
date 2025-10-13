@@ -3,7 +3,7 @@
 import { Card } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import { useDateLocale } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useQuery } from 'convex/react';
 import { api } from 'convex/_generated/api';
@@ -11,19 +11,22 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function UserOverview() {
   const { user } = useCurrentUser();
-  const profile = useQuery(api.functions.user.getUserProfile, { userId: user?._id });
-  const isLoading = user === undefined;
+  const dashboardData = useQuery(
+    api.functions.user.getUserDashboardData,
+    user?._id ? { userId: user._id } : 'skip',
+  );
+  const isLoading = user === undefined || dashboardData === undefined;
   const { formatDate } = useDateLocale();
   const t = useTranslations('dashboard.unified.user_overview');
-  const requestStats = {
-    inProgress: 0,
-    completed: 0,
-    pending: 0,
-  };
 
   if (isLoading) {
     return <LoadingSkeleton variant="card" className="!w-full h-48" />;
   }
+
+  // Extraire les données du dashboard
+  const { profile, requestStats, user: userData } = dashboardData;
+  const firstName = profile?.personal?.firstName || userData?.firstName;
+  const lastName = profile?.personal?.lastName || userData?.lastName;
 
   // Générer les initiales à partir du profil
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
@@ -41,9 +44,9 @@ export function UserOverview() {
 
   // Formatage de la date de création du profil
   const getMemberSince = () => {
-    if (!profile) return t('member_since_unknown');
+    if (!profile?.createdAt) return t('member_since_unknown');
     try {
-      const createdDate = new Date();
+      const createdDate = new Date(profile.createdAt);
       return t('member_since') + ' ' + formatDate(createdDate, 'MMMM yyyy');
     } catch {
       return t('member_since_unknown');
@@ -56,11 +59,7 @@ export function UserOverview() {
         {/* Informations utilisateur */}
         <div className="flex items-center gap-4">
           <Avatar className="size-12 bg-muted md:size-20">
-            {profile?.identityPicture ? (
-              <AvatarImage src={profile?.identityPicture.fileUrl} alt={firstName || ''} />
-            ) : (
-              <AvatarFallback>{getInitials(firstName, lastName)}</AvatarFallback>
-            )}
+            <AvatarFallback>{getInitials(firstName, lastName)}</AvatarFallback>
           </Avatar>
           <div>
             <h3 className="font-semibold text-lg">
@@ -79,7 +78,7 @@ export function UserOverview() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-muted/30 rounded-lg">
             <div className="text-2xl font-bold text-blue-600">
-              {requestStats.inProgress}
+              {requestStats?.pending || 0}
             </div>
             <div className="text-xs text-muted-foreground font-medium">
               {t('stats.in_progress')}
@@ -87,20 +86,24 @@ export function UserOverview() {
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-lg">
             <div className="text-2xl font-bold text-green-600">
-              {requestStats.completed}
+              {requestStats?.completed || 0}
             </div>
             <div className="text-xs text-muted-foreground font-medium">
               {t('stats.completed')}
             </div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-amber-600">{0}</div>
+            <div className="text-2xl font-bold text-amber-600">
+              {dashboardData?.documentsCount || 0}
+            </div>
             <div className="text-xs text-muted-foreground font-medium">
               {t('stats.documents')}
             </div>
           </div>
           <div className="text-center p-4 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-cyan-600">{0}</div>
+            <div className="text-2xl font-bold text-cyan-600">
+              {requestStats?.total || 0}
+            </div>
             <div className="text-xs text-muted-foreground font-medium">
               {t('stats.children')}
             </div>

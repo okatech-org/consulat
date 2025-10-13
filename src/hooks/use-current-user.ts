@@ -3,9 +3,10 @@
 import { useAuth } from '@/contexts/auth-context';
 
 export function useCurrentUser() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   return {
     user,
+    loading,
   };
 }

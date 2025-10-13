@@ -13,11 +13,18 @@ import type { RequestStatus } from '@prisma/client';
 import { useQuery } from 'convex/react';
 import { api as convexApi } from 'convex/_generated/api';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function RecentHistory() {
+  const { user } = useCurrentUser();
   const requests = useQuery(
-    convexApi.functions.requests.getRecentRequests.getRecentRequests,
-    { limit: 5 },
+    convexApi.functions.request.getRecentRequests,
+    user
+      ? {
+          limit: 5,
+          userId: user._id,
+        }
+      : 'skip',
   );
   const isLoading = requests === undefined;
   const t = useTranslations('dashboard.unified.recent_history');
@@ -126,7 +133,7 @@ export function RecentHistory() {
             const statusInfo = getStatusBadge(request.status as RequestStatus);
             return (
               <div
-                key={request.id}
+                key={request._id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -134,7 +141,7 @@ export function RecentHistory() {
                     <FileText className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-sm">{request.service.name}</h4>
+                    <h4 className="font-medium text-sm">{request.service?.name}</h4>
                     <p className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(request.createdAt), {
                         addSuffix: true,

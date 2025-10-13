@@ -16,12 +16,21 @@ import { useQuery } from 'convex/react';
 import { api as convexApi } from 'convex/_generated/api';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useDateLocale } from '@/lib/utils';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function CurrentRequestCard() {
   const { formatDate } = useDateLocale();
+  const { user } = useCurrentUser();
+
   const currentRequest = useQuery(
-    convexApi.functions.requests.getCurrentRequest.getCurrentRequest,
+    convexApi.functions.request.getCurrentRequest,
+    user
+      ? {
+          userId: user._id,
+        }
+      : 'skip',
   );
+  console.log('currentRequest', currentRequest);
   const isLoading = currentRequest === undefined;
   const t = useTranslations('dashboard.unified.current_request');
 
@@ -54,7 +63,7 @@ export function CurrentRequestCard() {
     {
       label: t('steps.request_submitted'),
       completed: true,
-      date: formatDate(currentRequest.createdAt, 'dd/MM/yyyy - HH:mm'),
+      date: formatDate(new Date(currentRequest._creationTime), 'dd/MM/yyyy - HH:mm'),
     },
     {
       label: t('steps.documents_verified'),
@@ -64,7 +73,7 @@ export function CurrentRequestCard() {
     {
       label: t('steps.processing'),
       current: currentRequest.status === 'PENDING',
-      agent: currentRequest.organization.name,
+      agent: 'N/A',
     },
     { label: t('steps.final_validation'), completed: false, status: t('steps.waiting') },
     {
@@ -80,7 +89,7 @@ export function CurrentRequestCard() {
       <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-primary-foreground p-6 hidden md:block">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h2 className="text-xl font-bold mb-2">{currentRequest.service.name}</h2>
+            <h2 className="text-xl font-bold mb-2">{currentRequest.service?.name}</h2>
             <p className="text-primary-foreground/80 text-sm">
               {t('submitted_ago')}{' '}
               {formatDistanceToNow(new Date(currentRequest.createdAt), {
@@ -115,7 +124,7 @@ export function CurrentRequestCard() {
 
         <div className="flex gap-3">
           <Link
-            href={ROUTES.user.service_request_details(currentRequest.id)}
+            href={ROUTES.user.service_request_details(currentRequest._id)}
             className={buttonVariants({ variant: 'defaultReverse', size: 'default' })}
           >
             <Eye className="size-icon" />
@@ -134,7 +143,7 @@ export function CurrentRequestCard() {
       {/* Version mobile */}
       <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white p-4 md:hidden">
         <div className="text-center mb-4">
-          <h2 className="text-lg font-bold mb-1">{currentRequest.service.name}</h2>
+          <h2 className="text-lg font-bold mb-1">{currentRequest.service?.name}</h2>
           <p className="text-blue-100 text-xs mb-2">
             {t('submitted_ago')}{' '}
             {formatDistanceToNow(new Date(currentRequest.createdAt), {
@@ -188,7 +197,7 @@ export function CurrentRequestCard() {
 
         <div className="space-y-2">
           <Link
-            href={ROUTES.user.service_request_details(currentRequest.id)}
+            href={ROUTES.user.service_request_details(currentRequest._id)}
             className={
               buttonVariants({ variant: 'defaultReverse', size: 'default' }) + ' w-full'
             }

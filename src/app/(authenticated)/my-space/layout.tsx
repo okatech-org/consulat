@@ -1,40 +1,66 @@
+'use client';
+
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/ui/site-header';
 import { UserSidebar } from '@/components/layouts/user-sidebar';
 import { UserBottomNavigation } from '@/components/ui/user-bottom-navigation';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { Spinner } from '@/components/ui/spinner';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { redirect } from 'next/navigation';
+import { UserRole } from '@/convex/lib/constants';
 
-export const metadata = {
+/**export const metadata = {
   title: 'Mon Espace Consulaire',
   description: 'Gérez vos demandes et accédez à tous vos services consulaires',
-};
+};*/
 
-export default async function MySpaceLayout({
+export default function MySpaceLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getCurrentUser();
-
-  if (user?.roles?.includes('INTEL_AGENT')) {
-    redirect(ROUTES.intel.base);
-  }
-
-  if (!user?.roles?.includes('USER')) {
-    redirect(ROUTES.dashboard.base);
-  }
   return (
     <SidebarProvider>
-      <UserSidebar />
-      <SidebarInset className="bg-background overflow-hidden">
-        <SiteHeader />
-        <div className="absolute pt-14 pb-safe md:pb-6! inset-0 overflow-y-scroll overflow-x-hidden container">
-          {children}
-        </div>
-        <UserBottomNavigation />
-      </SidebarInset>
+      <Guard>
+        <UserSidebar />
+        <SidebarInset className="bg-background overflow-hidden">
+          <SiteHeader />
+          <div className="absolute pt-14 pb-safe md:pb-6! inset-0 overflow-y-scroll overflow-x-hidden container">
+            {children}
+          </div>
+          <UserBottomNavigation />
+        </SidebarInset>
+      </Guard>
     </SidebarProvider>
   );
+}
+
+function Guard({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useCurrentUser();
+
+  if (loading) {
+    return <Spinner />;
+  }
+
+  if (!user || !user.roles.includes(UserRole.User)) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="flex flex-col items-center gap-4">
+          <h1 className="text-2xl font-bold">
+            Vous n&apos;êtes pas autorisé à accéder à cette page
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Veuillez vous connecter pour accéder à cette page
+          </p>
+          <Link href={ROUTES.base}>
+            <Button variant="outline">Retour à l&apos;accueil</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return children;
 }
