@@ -9,7 +9,7 @@ import {
 } from '../lib/constants';
 import { Doc } from '../_generated/dataModel';
 import { query } from '../_generated/server';
-import { getUserRequestsHelper } from '../helpers/relationships';
+import { requestStatusValidator } from '../lib/validators';
 
 export const createRequest = mutation({
   args: {
@@ -135,7 +135,7 @@ export const getRequestByNumber = query({
 
 export const getAllRequests = query({
   args: {
-    status: v.optional(v.string()),
+    status: v.optional(requestStatusValidator),
     requesterId: v.optional(v.id('users')),
     assignedToId: v.optional(v.id('users')),
     serviceId: v.optional(v.id('services')),
@@ -233,7 +233,7 @@ export const searchRequests = query({
   args: {
     searchTerm: v.string(),
     requesterId: v.optional(v.id('users')),
-    status: v.optional(v.string()),
+    status: v.optional(requestStatusValidator),
   },
   handler: async (ctx, args) => {
     let requests: Array<Doc<'requests'>> = [];
@@ -267,7 +267,11 @@ export const searchRequests = query({
 export const getUserRequests = query({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => {
-    return await getUserRequestsHelper(ctx, args.userId);
+    return await ctx.db
+      .query('requests')
+      .withIndex('by_requester', (q) => q.eq('requesterId', args.userId))
+      .order('desc')
+      .collect();
   },
 });
 

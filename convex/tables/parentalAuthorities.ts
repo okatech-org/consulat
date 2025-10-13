@@ -7,9 +7,7 @@ export const parentalAuthorities = defineTable({
   parentUserId: v.id('users'),
   role: parentalRoleValidator,
   isActive: v.boolean(),
-
-  createdAt: v.number(),
-  updatedAt: v.number(),
+  sharedRequests: v.array(v.id('requests')),
 })
   .index('by_profile', ['profileId'])
   .index('by_parent', ['parentUserId'])

@@ -13,7 +13,7 @@ import { useTranslations } from 'next-intl';
 import type { RequestStatus } from '@prisma/client';
 import { EmptyState } from './empty-state';
 import { useQuery } from 'convex/react';
-import { api as convexApi } from 'convex/_generated/api';
+import { api } from 'convex/_generated/api';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useDateLocale } from '@/lib/utils';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -23,7 +23,7 @@ export function CurrentRequestCard() {
   const { user } = useCurrentUser();
 
   const currentRequest = useQuery(
-    convexApi.functions.request.getCurrentRequest,
+    api.functions.request.getCurrentRequest,
     user
       ? {
           userId: user._id,
@@ -63,7 +63,7 @@ export function CurrentRequestCard() {
     {
       label: t('steps.request_submitted'),
       completed: true,
-      date: formatDate(new Date(currentRequest._creationTime), 'dd/MM/yyyy - HH:mm'),
+      date: formatDate(new Date(currentRequest?.submittedAt ?? 0), 'dd/MM/yyyy - HH:mm'),
     },
     {
       label: t('steps.documents_verified'),

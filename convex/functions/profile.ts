@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from '../_generated/server';
-import { ProfileStatus } from '../lib/constants';
+import { ProfileStatus, RequestStatus } from '../lib/constants';
 import type { ProfileStatus as ProfileStatusType } from '../lib/constants';
 import type { Doc } from '../_generated/dataModel';
 import {
@@ -12,6 +12,7 @@ import {
   nationalityAcquisitionValidator,
   profileCategoryValidator,
 } from '../lib/validators';
+import { api } from '../_generated/api';
 
 // Mutations
 export const createProfile = mutation({
@@ -649,5 +650,69 @@ export const submitProfileForValidation = mutation({
     });
 
     return args.profileId;
+  },
+});
+
+export const getOverviewProfile = query({
+  args: { userId: v.id('users') },
+  handler: async (ctx, args) => {
+    const profileRequest = ctx.db
+      .query('profiles')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .first();
+
+    const documentsRequest = ctx.db
+      .query('documents')
+      .withIndex('by_owner', (q) =>
+        q.eq('ownerId', args.userId).eq('ownerType', 'profile'),
+      )
+      .collect();
+
+    const requestsRequest: Promise<Array<Doc<'requests'>>> = ctx.runQuery(
+      api.functions.request.getUserRequests,
+      {
+        userId: args.userId,
+      },
+    );
+
+    const parentalAuthoritiesRequest = ctx.db
+      .query('parentalAuthorities')
+      .withIndex('by_parent', (q) => q.eq('parentUserId', args.userId))
+      .collect();
+
+    const [profile, documents, userRequests, parentalAuthorities] = await Promise.all([
+      profileRequest,
+      documentsRequest,
+      requestsRequest,
+      parentalAuthoritiesRequest,
+    ]);
+
+    const pendingRequests = userRequests.filter((request) =>
+      [
+        RequestStatus.Submitted,
+        RequestStatus.Pending,
+        RequestStatus.PendingCompletion,
+      ].includes(request.status as RequestStatus),
+    );
+    const completedRequests = userRequests.filter((request) =>
+      [
+        RequestStatus.Validated,
+        RequestStatus.InProduction,
+        RequestStatus.ReadyForPickup,
+        RequestStatus.AppointmentScheduled,
+        RequestStatus.Completed,
+      ].includes(request.status as RequestStatus),
+    );
+
+    return {
+      documentsCount: documents.length,
+      requestStats: {
+        total: userRequests.length,
+        pending: pendingRequests.length,
+        completed: completedRequests.length,
+      },
+      profile,
+      childrenCount: parentalAuthorities.length,
+    };
   },
 });

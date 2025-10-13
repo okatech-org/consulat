@@ -893,8 +893,7 @@ export const importUserWithData = mutation({
                   ? 'mother'
                   : 'legal_guardian',
             isActive: pa.isActive ?? true,
-            createdAt: pa.createdAt ? new Date(pa.createdAt).getTime() : Date.now(),
-            updatedAt: pa.updatedAt ? new Date(pa.updatedAt).getTime() : Date.now(),
+            sharedRequests: [],
           });
           recordCount++;
         } catch (error) {

@@ -257,6 +257,9 @@ export const handleNewUser = action({
           category: ProfileCategory.Adult,
           firstName: clerkUser.firstName || '',
           lastName: clerkUser.lastName || '',
+          email: email || '',
+          phoneNumber: phoneNumber || '',
+          residenceCountry: country.code,
         },
       );
 
