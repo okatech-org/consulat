@@ -6,6 +6,8 @@ import type {
   CountryExport,
   NonUsersAccountsExport,
   OrganizationExport,
+  ParentalAuthorityExport,
+  RequestExport,
   ServiceExport,
   UserCentricDataExport,
 } from './export-prisma-to-json';
@@ -31,6 +33,7 @@ interface MigrationTracking {
     services: string[];
     'non-users-accounts': string[];
     'users-data': string[];
+    'parental-authorities': string[];
   };
   stats: {
     countries: number;
@@ -38,6 +41,7 @@ interface MigrationTracking {
     services: number;
     'non-users-accounts': number;
     'users-data': number;
+    'parental-authorities': number;
   };
 }
 
@@ -80,6 +84,7 @@ async function loadMigrationTracking() {
         services: [],
         'non-users-accounts': [],
         'users-data': [],
+        'parental-authorities': [],
       },
       stats: {
         countries: 0,
@@ -87,6 +92,7 @@ async function loadMigrationTracking() {
         services: 0,
         'non-users-accounts': 0,
         'users-data': 0,
+        'parental-authorities': 0,
       },
     };
   }
@@ -363,6 +369,21 @@ async function importUserCentricData() {
         `\n   📍 Import utilisateur : ${userData.email || userData.name || userData.id}`,
       );
 
+      const documents = userData.profile
+        ? [
+            // @ts-expect-error - its defined in the schema
+            userData.profile.passport,
+            // @ts-expect-error - its defined in the schema
+            userData.profile.birthCertificate,
+            // @ts-expect-error - its defined in the schema
+            userData.profile.residencePermit,
+            // @ts-expect-error - its defined in the schema
+            userData.profile.addressProof,
+            // @ts-expect-error - its defined in the schema
+            userData.profile.identityPicture,
+          ]
+        : [].filter(Boolean);
+
       const result = await convex.mutation(api.functions.migration.importUserWithData, {
         user: {
           id: userData.id,
@@ -404,12 +425,11 @@ async function importUserCentricData() {
               updatedAt: userData.profile.updatedAt,
             }
           : undefined,
-        documents: userData.documents || [],
+        documents,
         requests: userData.submittedRequests || [],
         appointments: userData.appointmentsToAttend || [],
         notifications: userData.notifications || [],
         feedbacks: userData.feedbacks || [],
-        childAuthorities: userData.childAuthorities || [],
       });
 
       addMigratedId('users-data', userData.id);
@@ -431,6 +451,74 @@ async function importUserCentricData() {
   console.log(
     `\n✅ ${totalImported}/${usersToImport.length} utilisateurs importés avec leurs données`,
   );
+}
+
+async function importParentalAuthorities() {
+  console.log('\n👤 Import des autorités parentales...');
+  const parentalAuthorities: {
+    parentalAuthorities: ParentalAuthorityExport[];
+    requests: RequestExport[];
+  } = await loadJsonFile('parental-authorities.json');
+  initStat('parental-authorities', parentalAuthorities.parentalAuthorities.length);
+
+  console.log(`   À importer : ${parentalAuthorities.parentalAuthorities.length}`);
+
+  let totalImported = 0;
+  let totalFailed = 0;
+
+  const parentalAuthoritiesGroupedByProfileId: {
+    [profileId: string]: ParentalAuthorityExport[];
+  } = {};
+
+  parentalAuthorities.parentalAuthorities.forEach((pa) => {
+    parentalAuthoritiesGroupedByProfileId[pa.profile.id] = [
+      ...(parentalAuthoritiesGroupedByProfileId[pa.profile.id] || []),
+      pa,
+    ];
+  });
+
+  const items = Object.entries(parentalAuthoritiesGroupedByProfileId).map(
+    ([profileId, authorities]) => {
+      const request = parentalAuthorities.requests.find(
+        (r) => r.requestedForId === profileId,
+      );
+      return {
+        parentalAuthority: {
+          id: authorities[0]?.id ?? '',
+          profile: authorities[0]?.profile,
+          isActive: authorities[0]?.isActive,
+          parents: authorities.map((parent) => ({
+            userId: parent.parentUserId,
+            role: parent.role,
+          })),
+        },
+        request,
+      };
+    },
+  );
+
+  for (const item of items) {
+    try {
+      console.log(`\n   📍 Import parental authorities : ${item.parentalAuthority.id}`);
+      const result = await convex.mutation(
+        api.functions.migration.importParentalAuthority,
+        item,
+      );
+
+      addMigratedId('parental-authorities', item.parentalAuthority.id);
+      await saveMigrationTracking();
+
+      console.log(`   ✅ ${result.importedCount} autorités parentales importées`);
+      totalImported++;
+    } catch (error) {
+      console.error('❌ Erreur import parental authorities:', error);
+      totalFailed++;
+    }
+  }
+
+  stats['parental-authorities']!.success = totalImported;
+  stats['parental-authorities']!.failed = totalFailed;
+  console.log(`✅ ${items.length} autorités parentales importées`);
 }
 
 async function printStats() {
@@ -474,6 +562,7 @@ async function main() {
 
     await importBaseData();
     await importUserCentricData();
+    await importParentalAuthorities();
 
     await printStats();
 

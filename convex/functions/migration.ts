@@ -1,6 +1,22 @@
 import { v } from 'convex/values';
 import { mutation } from '../_generated/server';
-import { Note, RequestAction } from '@prisma/client';
+import {
+  Note,
+  RequestAction,
+  RequestStatus as PrismaRequestStatus,
+  ProcessingMode as PrismaProcessingMode,
+  DeliveryMode as PrismaDeliveryMode,
+  ParentalRole as PrismaParentalRole,
+  ServiceRequest,
+  Feedback,
+  Appointment,
+  UserDocument,
+  User,
+  Notification,
+  RequestActionType,
+} from '@prisma/client';
+import type { FullProfile } from '../../src/types/profile';
+
 import {
   AppointmentStatus,
   AppointmentType,
@@ -10,11 +26,9 @@ import {
   Gender,
   MaritalStatus,
   NationalityAcquisition,
-  NotificationStatus,
   NotificationType,
   OrganizationStatus,
   OrganizationType,
-  ProfileCategory,
   ProfileStatus,
   RequestStatus,
   ServiceCategory,
@@ -27,6 +41,8 @@ import {
   DeliveryMode,
   FeedbackStatus,
   FeedbackCategory,
+  ParentalRole,
+  ActivityType,
 } from '../lib/constants';
 import type { Id } from '../_generated/dataModel';
 import type { MutationCtx } from '../_generated/server';
@@ -77,11 +93,6 @@ const roleMapping: { [key: string]: UserRole } = {
   EDUCATION_AGENT: UserRole.EducationAgent,
 };
 
-const profileCategoryMapping: { [key: string]: ProfileCategory } = {
-  ADULT: ProfileCategory.Adult,
-  MINOR: ProfileCategory.Minor,
-};
-
 const genderMapping: { [key: string]: Gender } = {
   MALE: Gender.Male,
   FEMALE: Gender.Female,
@@ -94,6 +105,12 @@ const maritalStatusMapping: { [key: string]: MaritalStatus } = {
   WIDOWED: MaritalStatus.Widowed,
   CIVIL_UNION: MaritalStatus.CivilUnion,
   COHABITING: MaritalStatus.Cohabiting,
+};
+
+const serviceStatusMapping: { [key: string]: ServiceStatus } = {
+  ACTIVE: ServiceStatus.Active,
+  INACTIVE: ServiceStatus.Inactive,
+  SUSPENDED: ServiceStatus.Suspended,
 };
 
 const workStatusMapping: { [key: string]: WorkStatus } = {
@@ -141,6 +158,20 @@ const documentTypeMapping: { [key: string]: DocumentType } = {
   NATURALIZATION_DECREE: DocumentType.NaturalizationDecree,
   IDENTITY_PHOTO: DocumentType.IdentityPhoto,
   CONSULAR_CARD: DocumentType.ConsularCard,
+};
+
+const processingModeMapping: Record<PrismaProcessingMode, ProcessingMode> = {
+  ONLINE_ONLY: ProcessingMode.OnlineOnly,
+  PRESENCE_REQUIRED: ProcessingMode.PresenceRequired,
+  HYBRID: ProcessingMode.Hybrid,
+  BY_PROXY: ProcessingMode.ByProxy,
+};
+
+const deliveryModeMapping: Record<PrismaDeliveryMode, DeliveryMode> = {
+  IN_PERSON: DeliveryMode.InPerson,
+  POSTAL: DeliveryMode.Postal,
+  ELECTRONIC: DeliveryMode.Electronic,
+  BY_PROXY: DeliveryMode.ByProxy,
 };
 
 const documentStatusMapping: { [key: string]: DocumentStatus } = {
@@ -199,21 +230,54 @@ const notificationTypeMapping: { [key: string]: NotificationType } = {
   CONSULAR_REGISTRATION_COMPLETED: NotificationType.Updated,
 };
 
-const notificationStatusMapping: { [key: string]: NotificationStatus } = {
-  PENDING: NotificationStatus.Pending,
-  SENT: NotificationStatus.Sent,
-  READ: NotificationStatus.Read,
-  FAILED: NotificationStatus.Failed,
+const parentalRoleMapping: Record<PrismaParentalRole, ParentalRole> = {
+  FATHER: ParentalRole.Father,
+  MOTHER: ParentalRole.Mother,
+  LEGAL_GUARDIAN: ParentalRole.LegalGuardian,
 };
 
-// Mapping des modes de livraison (Prisma enums -> Convex strings)
-const deliveryModeMapping: {
-  [key: string]: 'in_person' | 'postal' | 'electronic' | 'by_proxy';
-} = {
-  IN_PERSON: 'in_person',
-  POSTAL: 'postal',
-  ELECTRONIC: 'electronic',
-  BY_PROXY: 'by_proxy',
+const requestStatusMapping: Record<PrismaRequestStatus, RequestStatus> = {
+  EDITED: RequestStatus.Edited,
+  DRAFT: RequestStatus.Draft,
+  SUBMITTED: RequestStatus.Submitted,
+  PENDING: RequestStatus.Pending,
+  PENDING_COMPLETION: RequestStatus.PendingCompletion,
+  VALIDATED: RequestStatus.Validated,
+  REJECTED: RequestStatus.Rejected,
+  COMPLETED: RequestStatus.Completed,
+  CARD_IN_PRODUCTION: RequestStatus.InProduction,
+  DOCUMENT_IN_PRODUCTION: RequestStatus.InProduction,
+  READY_FOR_PICKUP: RequestStatus.ReadyForPickup,
+  APPOINTMENT_SCHEDULED: RequestStatus.AppointmentScheduled,
+};
+
+const profileStatusMapping: Record<PrismaRequestStatus, ProfileStatus> = {
+  EDITED: ProfileStatus.Pending,
+  DRAFT: ProfileStatus.Draft,
+  SUBMITTED: ProfileStatus.Pending,
+  PENDING: ProfileStatus.Pending,
+  PENDING_COMPLETION: ProfileStatus.Pending,
+  VALIDATED: ProfileStatus.Active,
+  REJECTED: ProfileStatus.Inactive,
+  COMPLETED: ProfileStatus.Active,
+  CARD_IN_PRODUCTION: ProfileStatus.Active,
+  DOCUMENT_IN_PRODUCTION: ProfileStatus.Active,
+  READY_FOR_PICKUP: ProfileStatus.Active,
+  APPOINTMENT_SCHEDULED: ProfileStatus.Active,
+};
+
+const mapRequestActionType: Record<RequestActionType, ActivityType> = {
+  ASSIGNMENT: ActivityType.RequestAssigned,
+  STATUS_CHANGE: ActivityType.StatusChanged,
+  NOTE_ADDED: ActivityType.CommentAdded,
+  DOCUMENT_ADDED: ActivityType.DocumentUploaded,
+  DOCUMENT_VALIDATED: ActivityType.DocumentValidated,
+  DOCUMENT_DELETED: ActivityType.DocumentDeleted,
+  PAYMENT_RECEIVED: ActivityType.PaymentReceived,
+  COMPLETED: ActivityType.RequestCompleted,
+  PROFILE_UPDATE: ActivityType.ProfileUpdate,
+  DOCUMENT_UPDATED: ActivityType.DocumentUpdated,
+  APPOINTMENT_SCHEDULED: ActivityType.AppointmentScheduled,
 };
 
 export const importOrganizations = mutation({
@@ -463,8 +527,6 @@ export const importServices = mutation({
   handler: async (ctx: MutationCtx, args) => {
     console.log(`🚀 Import de ${args.services.length} services...`);
 
-    console.log({ argsInImportServices: args });
-
     const importedServices: Array<Id<'services'>> = [];
     const importedLegacyIds: Array<string> = [];
 
@@ -488,7 +550,7 @@ export const importServices = mutation({
           name: service.name,
           description: service.description || undefined,
           category: serviceCategoryMapping[service.category] || ServiceCategory.Other,
-          status: (service.status.toLowerCase() as ServiceStatus) || ServiceStatus.Active,
+          status: serviceStatusMapping[service.status] || ServiceStatus.Active,
           organizationId: organization._id,
           config: {
             requiredDocuments: service.requiredDocuments || [],
@@ -505,7 +567,7 @@ export const importServices = mutation({
           steps: [],
           processingMode: 'online_only',
           deliveryModes: (service.deliveryMode || []).map(
-            (m: string) => deliveryModeMapping[m] || 'in_person',
+            (m: string) => deliveryModeMapping[m as PrismaDeliveryMode] || 'in_person',
           ) || ['in_person'],
           requiresAppointment: service.requiresAppointment || false,
           appointmentDuration: service.appointmentDuration || undefined,
@@ -551,121 +613,139 @@ export const importUserWithData = mutation({
     appointments: v.optional(v.array(v.any())),
     notifications: v.optional(v.array(v.any())),
     feedbacks: v.optional(v.array(v.any())),
-    childAuthorities: v.optional(
-      v.array(
-        v.object({
-          id: v.string(),
-          profileId: v.string(),
-          parentUserId: v.string(),
-          role: v.string(),
-          isActive: v.optional(v.boolean()),
-          createdAt: v.optional(v.any()),
-          updatedAt: v.optional(v.any()),
-        }),
-      ),
-    ),
   },
   returns: v.object({
     userId: v.id('users'),
     recordsImported: v.number(),
   }),
   handler: async (ctx: MutationCtx, args) => {
+    const typedArgs = args as {
+      user: User;
+      profile: FullProfile;
+      documents: UserDocument[];
+      requests: Array<ServiceRequest & { notes: Note[]; actions: RequestAction[] }>;
+      appointments: Appointment[];
+      notifications: Notification[];
+      feedbacks: Feedback[];
+    };
+    const { user, profile, documents, requests, appointments, notifications, feedbacks } =
+      typedArgs;
     let recordCount = 0;
 
     // 1. Créer l'utilisateur
     const userId = await ctx.db.insert('users', {
-      userId: args.user.clerkId || `temp_${args.user.id}`,
-      legacyId: args.user.id,
-      firstName: args.user.name?.split(' ')[0] || '',
-      lastName: args.user.name?.split(' ').slice(1).join(' ') || '',
-      email: args.user.email || '',
-      phoneNumber: args.user.phoneNumber || '',
-      roles: args.user.roles?.map((role: string) => roleMapping[role]) || [UserRole.User],
+      userId: user.clerkId || `temp_${user.id}`,
+      legacyId: user.id,
+      firstName: user.name?.split(' ')[0] || '',
+      lastName: user.name?.split(' ').slice(1).join(' ') || '',
+      email: user.email || '',
+      phoneNumber: user.phoneNumber || '',
+      roles: user.roles?.map((role: string) => roleMapping[role]) || [UserRole.User],
       status: UserStatus.Active,
-      countryCode: args.user.countryCode || '',
+      countryCode: user.countryCode || '',
     });
     recordCount++;
 
     // 2. Créer le profil si présent
     let profileId: Id<'profiles'> | undefined = undefined;
-    if (args.profile) {
+    if (profile) {
       profileId = await ctx.db.insert('profiles', {
         userId: userId,
-        category: profileCategoryMapping[args.profile.category] || ProfileCategory.Adult,
         status:
-          (args.profile.status.toLowerCase() as ProfileStatus) || ProfileStatus.Pending,
-        residenceCountry: args.profile.residenceCountyCode || undefined,
+          profileStatusMapping[profile.status as PrismaRequestStatus] ||
+          ProfileStatus.Pending,
+        residenceCountry: profile.residenceCountyCode || undefined,
         consularCard: {
-          cardNumber: args.profile.cardNumber || undefined,
-          cardPin: args.profile.cardPin || undefined,
-          cardIssuedAt: args.profile.cardIssuedAt
-            ? new Date(args.profile.cardIssuedAt).getTime()
+          cardNumber: profile.cardNumber || undefined,
+          cardIssuedAt: profile.cardIssuedAt
+            ? new Date(profile.cardIssuedAt).getTime()
             : undefined,
-          cardExpiresAt: args.profile.cardExpiresAt
-            ? new Date(args.profile.cardExpiresAt).getTime()
+          cardExpiresAt: profile.cardExpiresAt
+            ? new Date(profile.cardExpiresAt).getTime()
             : undefined,
         },
         contacts: {
-          email: args.profile.email || undefined,
-          phone: args.profile.phoneNumber || undefined,
-          address: args.profile.address
+          email: profile.email || undefined,
+          phone: profile.phoneNumber || undefined,
+          address: profile.address
             ? {
-                street: args.profile.address.firstLine || '',
-                complement: args.profile.address.secondLine || undefined,
-                city: args.profile.address.city || '',
-                postalCode: args.profile.address.zipCode || '',
+                street: profile.address.firstLine || '',
+                complement: profile.address.secondLine || undefined,
+                city: profile.address.city || '',
+                postalCode: profile.address.zipCode || '',
                 state: undefined,
-                country: args.profile.address.country || 'FR',
+                country: profile.address.country || 'FR',
                 coordinates: undefined,
               }
             : undefined,
         },
         personal: {
-          firstName: args.profile.firstName || '',
-          lastName: args.profile.lastName || '',
-          birthDate: args.profile.birthDate
-            ? new Date(args.profile.birthDate).getTime()
+          firstName: profile.firstName || '',
+          lastName: profile.lastName || '',
+          birthDate: profile.birthDate
+            ? new Date(profile.birthDate).getTime()
             : undefined,
-          birthPlace: args.profile.birthPlace || undefined,
-          birthCountry: args.profile.birthCountry || undefined,
-          gender: args.profile.gender ? genderMapping[args.profile.gender] : undefined,
-          nationality: args.profile.nationality || 'GA',
-          acquisitionMode: args.profile.acquisitionMode
-            ? nationalityAcquisitionMapping[args.profile.acquisitionMode]
+          birthPlace: profile.birthPlace || undefined,
+          birthCountry: profile.birthCountry || undefined,
+          gender: profile.gender ? genderMapping[profile.gender] : undefined,
+          nationality: profile.nationality || 'GA',
+          acquisitionMode: profile.acquisitionMode
+            ? nationalityAcquisitionMapping[profile.acquisitionMode]
             : NationalityAcquisition.Birth,
+          passportInfos: {
+            number: profile.passportNumber || undefined,
+            issueDate: profile.passportIssueDate
+              ? new Date(profile.passportIssueDate).getTime()
+              : undefined,
+            expiryDate: profile.passportExpiryDate
+              ? new Date(profile.passportExpiryDate).getTime()
+              : undefined,
+            issueAuthority: profile.passportIssueAuthority || undefined,
+          },
+          nipCode: profile.cardPin || undefined,
         },
         family: {
-          maritalStatus: args.profile.maritalStatus
-            ? maritalStatusMapping[args.profile.maritalStatus]
+          maritalStatus: profile.maritalStatus
+            ? maritalStatusMapping[profile.maritalStatus]
             : MaritalStatus.Single,
-          father: args.profile.fatherFullName
-            ? {
-                firstName: args.profile.fatherFullName.split(' ')[0] || undefined,
-                lastName:
-                  args.profile.fatherFullName.split(' ').slice(1).join(' ') || undefined,
-              }
-            : undefined,
-          mother: args.profile.motherFullName
-            ? {
-                firstName: args.profile.motherFullName.split(' ')[0] || undefined,
-                lastName:
-                  args.profile.motherFullName.split(' ').slice(1).join(' ') || undefined,
-              }
-            : undefined,
-          spouse: args.profile.spouseFullName
-            ? {
-                firstName: args.profile.spouseFullName.split(' ')[0] || undefined,
-                lastName:
-                  args.profile.spouseFullName.split(' ').slice(1).join(' ') || undefined,
-              }
-            : undefined,
+          father:
+            profile.fatherFullName && typeof profile.fatherFullName === 'string'
+              ? {
+                  firstName: profile.fatherFullName.split(' ')[0] || undefined,
+                  lastName:
+                    profile.fatherFullName.split(' ').slice(1).join(' ') || undefined,
+                }
+              : undefined,
+          mother:
+            profile.motherFullName && typeof profile.motherFullName === 'string'
+              ? {
+                  firstName: profile.motherFullName.split(' ')[0] || undefined,
+                  lastName:
+                    profile.motherFullName.split(' ').slice(1).join(' ') || undefined,
+                }
+              : undefined,
+          spouse:
+            profile.spouseFullName && typeof profile.spouseFullName === 'string'
+              ? {
+                  firstName: profile.spouseFullName.split(' ')[0] || undefined,
+                  lastName:
+                    profile.spouseFullName.split(' ').slice(1).join(' ') || undefined,
+                }
+              : undefined,
         },
-        emergencyContacts: [args.profile.residentContact, args.profile.homeLandContact]
-          .filter((c) => c !== undefined)
+        emergencyContacts: [profile.residentContact, profile.homeLandContact]
+          .filter((c): c is NonNullable<typeof c> => Boolean(c))
           .map((c) => ({
             firstName: c.firstName || '',
             lastName: c.lastName || '',
-            relationship: c.relationship.toLowerCase() || 'other',
+            relationship:
+              (c.relationship?.toLowerCase() as
+                | 'father'
+                | 'mother'
+                | 'spouse'
+                | 'legal_guardian'
+                | 'child'
+                | 'other') || 'other',
             phoneNumber: c.phoneNumber || '',
             email: c.email || '',
             address: c.address
@@ -682,15 +762,16 @@ export const importUserWithData = mutation({
             userId: undefined,
           })),
         professionSituation: {
-          workStatus: args.profile.workStatus
-            ? workStatusMapping[args.profile.workStatus]
+          workStatus: profile.workStatus
+            ? workStatusMapping[profile.workStatus]
             : WorkStatus.Unemployed,
-          profession: args.profile.profession || undefined,
-          employer: args.profile.employer || undefined,
-          employerAddress: args.profile.employerAddress || undefined,
+          profession: profile.profession || undefined,
+          employer: profile.employer || undefined,
+          employerAddress: profile.employerAddress || undefined,
           cv: undefined,
         },
       });
+
       recordCount++;
 
       // Mettre à jour l'utilisateur avec le profileId
@@ -698,8 +779,11 @@ export const importUserWithData = mutation({
     }
 
     // 3. Importer les documents
-    if (args.documents && args.documents.length > 0) {
-      for (const doc of args.documents) {
+    if (documents && documents.length > 0) {
+      for (const doc of documents) {
+        if (!doc) {
+          continue;
+        }
         try {
           await ctx.db.insert('documents', {
             type: documentTypeMapping[doc.type] || 'other',
@@ -718,21 +802,45 @@ export const importUserWithData = mutation({
           });
           recordCount++;
         } catch (error) {
-          console.error(`Erreur import document ${doc.id}:`, error);
+          console.error(`Erreur import document ${doc.type}:`, error);
         }
       }
     }
 
     // 4. Importer les demandes (requests)
-    if (args.requests && args.requests.length > 0) {
-      for (const req of args.requests) {
+    if (requests && requests.length > 0 && profile) {
+      const filteredRequests = requests.filter((r) => r.requestedForId === profile.id);
+      for (const req of filteredRequests) {
         try {
           const serviceId = await findConvexServiceByLegacyId(ctx, req.serviceId);
+          const assignedToId = await findConvexUserByLegacyId(
+            ctx,
+            req.assignedToId ?? '',
+          );
+          const activities = await Promise.all(
+            req.actions
+              .map(async (a: RequestAction) => {
+                const actorId = await findConvexUserByLegacyId(ctx, a.userId);
+                if (!actorId) {
+                  console.warn(`Utilisateur ${a.userId} introuvable`);
+                  return undefined;
+                }
+                return {
+                  actorId: actorId ?? ('' as Id<'users'>),
+                  data: a.data,
+                  type: mapRequestActionType[a.type] || ActivityType.StatusChanged,
+                  timestamp: new Date(a.createdAt).getTime(),
+                };
+              })
+              .filter((a) => a !== undefined),
+          );
 
           if (serviceId) {
             await ctx.db.insert('requests', {
               number: `REQ-${req.id.substring(0, 8).toUpperCase()}`,
-              status: req.status.toLowerCase() || RequestStatus.Pending,
+              status:
+                requestStatusMapping[req.status as PrismaRequestStatus] ||
+                RequestStatus.Pending,
               priority: req.priority === 'URGENT' ? 1 : 0,
               serviceId: serviceId,
               requesterId: userId,
@@ -740,15 +848,12 @@ export const importUserWithData = mutation({
               formData: req.formData || {},
               documentIds: [],
               notes: req.notes.map((n: Note) => ({
-                id: n.id,
                 type: (n.type || 'feedback').toString().toLowerCase(),
                 authorId: undefined,
                 content: n.content || '',
                 serviceRequestId: undefined,
               })),
-              assignedToId: req.assignedToId
-                ? await findConvexUserByLegacyId(ctx, req.assignedToId)
-                : undefined,
+              assignedToId: assignedToId ?? undefined,
               metadata: {
                 submittedAt: req.submittedAt
                   ? new Date(req.submittedAt).getTime()
@@ -759,39 +864,18 @@ export const importUserWithData = mutation({
                 assignedAt: req.assignedAt
                   ? new Date(req.assignedAt).getTime()
                   : undefined,
-                activities: req.actions.map(async (a: RequestAction) => ({
-                  actorId: await findConvexUserByLegacyId(ctx, a.userId),
-                  data: a.data,
-                  type: a.type,
-                  timestamp: a.createdAt.getTime(),
-                })),
+                activities: activities.filter((a) => a !== undefined),
               },
               config: {
                 processingMode:
-                  (req.processingMode.toLowerCase() as ProcessingMode) ||
-                  ProcessingMode.OnlineOnly,
+                  processingModeMapping[
+                    req.chosenProcessingMode as PrismaProcessingMode
+                  ] || ProcessingMode.OnlineOnly,
                 deliveryMode:
-                  (req.deliveryMode.toLowerCase() as DeliveryMode) ||
+                  deliveryModeMapping[req.chosenDeliveryMode as PrismaDeliveryMode] ||
                   DeliveryMode.InPerson,
-                deliveryAddress: req.deliveryAddress
-                  ? {
-                      street: req.deliveryAddress.firstLine || '',
-                      complement: req.deliveryAddress.secondLine || undefined,
-                      city: req.deliveryAddress.city || '',
-                      postalCode: req.deliveryAddress.zipCode || '',
-                      state: req.deliveryAddress.state || undefined,
-                      country: req.deliveryAddress.country || 'FR',
-                      coordinates: req.deliveryAddress.coordinates || undefined,
-                    }
-                  : undefined,
-                proxy: req.proxy
-                  ? {
-                      firstName: req.proxy.firstName || '',
-                      lastName: req.proxy.lastName || '',
-                      identityDoc: req.proxy.identityDoc || undefined,
-                      powerOfAttorneyDoc: req.proxy.powerOfAttorneyDoc || undefined,
-                    }
-                  : undefined,
+                deliveryAddress: undefined,
+                proxy: undefined,
               },
               generatedDocuments: [],
             });
@@ -804,8 +888,8 @@ export const importUserWithData = mutation({
     }
 
     // 5. Importer les rendez-vous (appointments)
-    if (args.appointments && args.appointments.length > 0) {
-      for (const apt of args.appointments) {
+    if (appointments && appointments.length > 0) {
+      for (const apt of appointments) {
         try {
           const organizationId = await findConvexOrganizationByLegacyId(
             ctx,
@@ -848,23 +932,21 @@ export const importUserWithData = mutation({
     }
 
     // 6. Importer les notifications
-    if (args.notifications && args.notifications.length > 0) {
-      for (const notif of args.notifications) {
+    if (notifications && notifications.length > 0) {
+      for (const notif of notifications) {
         try {
           await ctx.db.insert('notifications', {
             userId: userId,
             type: notificationTypeMapping[notif.type] || NotificationType.Updated,
             title: notif.title,
             content: notif.message,
-            status: notificationStatusMapping[notif.status] || NotificationStatus.Pending,
-            channels: ['app', 'email'],
+            channels: ['app', 'email', 'sms'],
             deliveryStatus: {
-              app: notif.read || false,
-              email: false,
-              sms: false,
+              appAt: notif.read ? new Date(notif.createdAt).getTime() : undefined,
+              emailAt: notif.read ? new Date(notif.createdAt).getTime() : undefined,
+              smsAt: notif.read ? new Date(notif.createdAt).getTime() : undefined,
             },
-            readAt: notif.read ? new Date(notif.createdAt).getTime() + 1000 : undefined,
-            createdAt: new Date(notif.createdAt).getTime(),
+            readAt: notif.read ? new Date(notif.createdAt).getTime() : undefined,
           });
           recordCount++;
         } catch (error) {
@@ -874,8 +956,8 @@ export const importUserWithData = mutation({
     }
 
     // 7. Importer les feedbacks
-    if (args.feedbacks && args.feedbacks.length > 0) {
-      for (const feedback of args.feedbacks) {
+    if (feedbacks && feedbacks.length > 0) {
+      for (const feedback of feedbacks) {
         try {
           // Trouver les IDs Convex correspondants
           const serviceId = feedback.serviceId
@@ -919,36 +1001,243 @@ export const importUserWithData = mutation({
       }
     }
 
-    // 8. Importer les autorités parentales (parentalAuthorities)
-    if (args.childAuthorities && args.childAuthorities.length > 0) {
-      for (const pa of args.childAuthorities) {
-        try {
-          // Trouver le user parent Convex par legacyId
-          const parentConvexUserId = await findConvexUserByLegacyId(ctx, pa.parentUserId);
-          if (!parentConvexUserId || !profileId) continue;
-
-          await ctx.db.insert('parentalAuthorities', {
-            profileId: profileId,
-            parentUserId: parentConvexUserId,
-            role:
-              pa.role === 'FATHER'
-                ? 'father'
-                : pa.role === 'MOTHER'
-                  ? 'mother'
-                  : 'legal_guardian',
-            isActive: pa.isActive ?? true,
-            sharedRequests: [],
-          });
-          recordCount++;
-        } catch (error) {
-          console.error(`Erreur import parentalAuthority ${pa.id}:`, error);
-        }
-      }
-    }
-
     return {
       userId,
       recordsImported: recordCount,
+    };
+  },
+});
+
+export const importParentalAuthority = mutation({
+  args: {
+    parentalAuthority: v.object({
+      id: v.string(),
+      profile: v.any(),
+      isActive: v.optional(v.boolean()),
+      createdAt: v.optional(v.any()),
+      updatedAt: v.optional(v.any()),
+      parents: v.array(
+        v.object({
+          userId: v.string(),
+          role: v.string(),
+        }),
+      ),
+    }),
+    request: v.any(),
+  },
+  returns: v.object({
+    importedCount: v.number(),
+  }),
+  handler: async (ctx: MutationCtx, args) => {
+    let importedCount = 0;
+
+    const parentUsers = await Promise.all(
+      args.parentalAuthority.parents.map(async (parent) => {
+        const user = await getUserByLegacyId(ctx, parent.userId);
+
+        if (!user) {
+          console.warn(`Utilisateur ${parent.userId} introuvable`);
+          return undefined;
+        }
+
+        return {
+          userId: user._id,
+          role:
+            parentalRoleMapping[parent.role as PrismaParentalRole] ||
+            ParentalRole.LegalGuardian,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          phoneNumber: user.phoneNumber || '',
+        };
+      }),
+    );
+
+    if (!parentUsers.some((parent) => parent?.userId)) {
+      console.warn(
+        `❌ Utilisateur ${args.parentalAuthority.parents.map((parent) => parent.userId).join(', ')} introuvable`,
+      );
+      return {
+        importedCount: 0,
+      };
+    }
+
+    const childProfileId = await ctx.db.insert('childProfiles', {
+      authorUserId: parentUsers[0]?.userId as Id<'users'>,
+      parents: parentUsers.filter((parent) => parent !== undefined),
+      status:
+        profileStatusMapping[
+          args.parentalAuthority.profile.status as PrismaRequestStatus
+        ] || ProfileStatus.Pending,
+      consularCard: {
+        cardNumber: args.parentalAuthority.profile.cardNumber || undefined,
+        cardIssuedAt: args.parentalAuthority.profile.cardIssuedAt
+          ? new Date(args.parentalAuthority.profile.cardIssuedAt).getTime()
+          : undefined,
+        cardExpiresAt: args.parentalAuthority.profile.cardExpiresAt
+          ? new Date(args.parentalAuthority.profile.cardExpiresAt).getTime()
+          : undefined,
+      },
+      personal: {
+        firstName: args.parentalAuthority.profile.firstName || undefined,
+        lastName: args.parentalAuthority.profile.lastName || undefined,
+        birthDate: args.parentalAuthority.profile.birthDate
+          ? new Date(args.parentalAuthority.profile.birthDate).getTime()
+          : undefined,
+        birthPlace: args.parentalAuthority.profile.birthPlace || undefined,
+        birthCountry: args.parentalAuthority.profile.birthCountry || undefined,
+        gender: genderMapping[args.parentalAuthority.profile.gender] || Gender.Male,
+        nationality: args.parentalAuthority.profile.nationality || undefined,
+        acquisitionMode:
+          nationalityAcquisitionMapping[args.parentalAuthority.profile.acquisitionMode] ||
+          NationalityAcquisition.Birth,
+        nipCode: args.parentalAuthority.profile.nipCode || undefined,
+        passportInfos: {
+          number: args.parentalAuthority.profile.passportNumber || undefined,
+          issueDate: args.parentalAuthority.profile.passportIssueDate
+            ? new Date(args.parentalAuthority.profile.passportIssueDate).getTime()
+            : undefined,
+          expiryDate: args.parentalAuthority.profile.passportExpiryDate
+            ? new Date(args.parentalAuthority.profile.passportExpiryDate).getTime()
+            : undefined,
+          issueAuthority:
+            args.parentalAuthority.profile.passportIssueAuthority || undefined,
+        },
+      },
+    });
+
+    const documents = [
+      args.parentalAuthority.profile.passport,
+      args.parentalAuthority.profile.birthCertificate,
+      args.parentalAuthority.profile.residencePermit,
+      args.parentalAuthority.profile.addressProof,
+      args.parentalAuthority.profile.identityPicture,
+    ].filter(Boolean);
+
+    for (const doc of documents) {
+      if (!doc) {
+        continue;
+      }
+      try {
+        await ctx.db.insert('documents', {
+          type: documentTypeMapping[doc.type] || 'other',
+          status: documentStatusMapping[doc.status] || DocumentStatus.Pending,
+          ownerId: childProfileId,
+          ownerType: 'profile',
+          fileUrl: doc.fileUrl,
+          fileName: doc.fileUrl?.split('/').pop() || 'document',
+          fileType: doc.fileType || 'application/pdf',
+          fileSize: undefined,
+          version: 1,
+          validations: [],
+          issuedAt: doc.issuedAt ? new Date(doc.issuedAt).getTime() : undefined,
+          expiresAt: doc.expiresAt ? new Date(doc.expiresAt).getTime() : undefined,
+          metadata: doc.metadata || {},
+        });
+      } catch (error) {
+        console.error(`Erreur import document`, error);
+      }
+    }
+
+    // 4. Importer les demandes (requests)
+    if (
+      childProfileId &&
+      args.parentalAuthority.profile.validationRequestId &&
+      args.request &&
+      args.request.length > 0
+    ) {
+      const serviceId = await findConvexServiceByLegacyId(ctx, args.request.serviceId);
+      const requesterId = await findConvexUserByLegacyId(ctx, args.request.submittedById);
+      const assignedToId = await findConvexUserByLegacyId(ctx, args.request.assignedToId);
+
+      if (args.request && serviceId && requesterId) {
+        const activities = await Promise.all(
+          args.request.actions.map(async (a: RequestAction) => {
+            const actorId = await findConvexUserByLegacyId(ctx, a.userId);
+            if (!actorId) {
+              console.warn(`Utilisateur ${a.userId} introuvable`);
+              return undefined;
+            }
+            return {
+              actorId: actorId ?? ('' as Id<'users'>),
+              data: a.data,
+              type: mapRequestActionType[a.type] || ActivityType.StatusChanged,
+              timestamp: new Date(a.createdAt).getTime(),
+            };
+          }),
+        );
+
+        const requestId = await ctx.db.insert('requests', {
+          number: `REQ-${args.request.id.substring(0, 8).toUpperCase()}`,
+          status:
+            requestStatusMapping[args.request.status as PrismaRequestStatus] ||
+            RequestStatus.Pending,
+          priority: args.request.priority === 'URGENT' ? 1 : 0,
+          serviceId: serviceId,
+          requesterId: requesterId,
+          profileId: childProfileId,
+          formData: args.request.formData || {},
+          documentIds: [],
+          notes: args.request.notes.map((n: Note) => ({
+            type: (n.type || 'feedback').toString().toLowerCase(),
+            authorId: undefined,
+            content: n.content || '',
+            serviceRequestId: undefined,
+          })),
+          assignedToId: assignedToId ?? undefined,
+          metadata: {
+            submittedAt: args.request.submittedAt
+              ? new Date(args.request.submittedAt).getTime()
+              : undefined,
+            completedAt: args.request.completedAt
+              ? new Date(args.request.completedAt).getTime()
+              : undefined,
+            assignedAt: args.request.assignedAt
+              ? new Date(args.request.assignedAt).getTime()
+              : undefined,
+            activities: activities.filter((a) => a !== undefined),
+          },
+          config: {
+            processingMode:
+              processingModeMapping[
+                args.request.processingMode as PrismaProcessingMode
+              ] || ProcessingMode.OnlineOnly,
+            deliveryMode:
+              deliveryModeMapping[args.request.deliveryMode as PrismaDeliveryMode] ||
+              DeliveryMode.InPerson,
+            deliveryAddress: args.request.deliveryAddress
+              ? {
+                  street: args.request.deliveryAddress.firstLine || '',
+                  complement: args.request.deliveryAddress.secondLine || undefined,
+                  city: args.request.deliveryAddress.city || '',
+                  postalCode: args.request.deliveryAddress.zipCode || '',
+                  state: args.request.deliveryAddress.state || undefined,
+                  country: args.request.deliveryAddress.country || 'FR',
+                  coordinates: args.request.deliveryAddress.coordinates || undefined,
+                }
+              : undefined,
+            proxy: args.request.proxy
+              ? {
+                  firstName: args.request.proxy.firstName || '',
+                  lastName: args.request.proxy.lastName || '',
+                  identityDoc: args.request.proxy.identityDoc || undefined,
+                  powerOfAttorneyDoc: args.request.proxy.powerOfAttorneyDoc || undefined,
+                }
+              : undefined,
+          },
+          generatedDocuments: [],
+        });
+
+        await ctx.db.patch(childProfileId, {
+          registrationRequest: requestId,
+        });
+      }
+    }
+
+    importedCount++;
+
+    return {
+      importedCount,
     };
   },
 });
@@ -1025,14 +1314,13 @@ export const importNonUsersAccounts = mutation({
                 type: notificationTypeMapping[notif.type] || NotificationType.Updated,
                 title: notif.title,
                 content: notif.message,
-                status:
-                  notificationStatusMapping[notif.status] || NotificationStatus.Pending,
                 channels: ['app'],
-                deliveryStatus: { app: notif.read || false },
+                deliveryStatus: {
+                  appAt: notif.read ? new Date(notif.createdAt).getTime() : undefined,
+                },
                 readAt: notif.read
                   ? new Date(notif.createdAt).getTime() + 1000
                   : undefined,
-                createdAt: new Date(notif.createdAt).getTime(),
               });
               notificationsCreated++;
             } catch (error) {
@@ -1147,6 +1435,14 @@ async function findConvexUserByLegacyId(
     .filter((q) => q.eq(q.field('legacyId'), legacyId))
     .first();
   return user?._id;
+}
+
+async function getUserByLegacyId(ctx: MutationCtx, legacyId: string) {
+  const user = await ctx.db
+    .query('users')
+    .filter((q) => q.eq(q.field('legacyId'), legacyId))
+    .first();
+  return user;
 }
 
 async function findConvexRequestByLegacyId(

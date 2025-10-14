@@ -185,12 +185,16 @@ export enum ActivityType {
   RequestAssigned = 'request_assigned',
   DocumentUploaded = 'document_uploaded',
   DocumentValidated = 'document_validated',
+  DocumentDeleted = 'document_deleted',
   DocumentRejected = 'document_rejected',
   PaymentReceived = 'payment_received',
   RequestCompleted = 'request_completed',
   RequestCancelled = 'request_cancelled',
   CommentAdded = 'comment_added',
   StatusChanged = 'status_changed',
+  ProfileUpdate = 'profile_update',
+  AppointmentScheduled = 'appointment_scheduled',
+  DocumentUpdated = 'document_updated',
 }
 
 // Enums pour les validations

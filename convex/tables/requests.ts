@@ -17,7 +17,7 @@ export const requests = defineTable({
 
   // Demandeur
   requesterId: v.id('users'),
-  profileId: v.optional(v.id('profiles')), // Pour qui
+  profileId: v.optional(v.union(v.id('profiles'), v.id('childProfiles'))), // Pour qui
 
   // État avec validation enum
   status: requestStatusValidator,

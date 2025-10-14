@@ -231,70 +231,6 @@ const exportUserCentricDataInclude: Prisma.UserSelect = {
       userId: true,
       status: true,
       category: true,
-      parentAuthorities: {
-        include: {
-          profile: {
-            select: {
-              id: true,
-              userId: true,
-              category: true,
-
-              validationRequestId: true,
-              firstName: true,
-              lastName: true,
-              gender: true,
-              birthDate: true,
-              birthPlace: true,
-              birthCountry: true,
-              nationality: true,
-              maritalStatus: true,
-              workStatus: true,
-              acquisitionMode: true,
-              passportNumber: true,
-              passportIssueDate: true,
-              passportExpiryDate: true,
-              passportIssueAuthority: true,
-              identityPictureId: true,
-              passportId: true,
-              birthCertificateId: true,
-              residencePermitId: true,
-              addressProofId: true,
-              address: {
-                select: {
-                  id: true,
-                  firstLine: true,
-                  secondLine: true,
-                  city: true,
-                  zipCode: true,
-                  country: true,
-                },
-              },
-              phoneNumber: true,
-              email: true,
-              residentContact: true,
-              homeLandContact: true,
-              activityInGabon: true,
-              fatherFullName: true,
-              motherFullName: true,
-              spouseFullName: true,
-              profession: true,
-              employer: true,
-              employerAddress: true,
-              cardNumber: true,
-              cardIssuedAt: true,
-              cardExpiresAt: true,
-              cardPin: true,
-              status: true,
-              validationNotes: true,
-              validatedAt: true,
-              validatedBy: true,
-              submittedAt: true,
-              assignedOrganizationId: true,
-              residenceCountyCode: true,
-            },
-          },
-        },
-      },
       validationRequestId: true,
       firstName: true,
       lastName: true,
@@ -364,6 +300,7 @@ const exportUserCentricDataInclude: Prisma.UserSelect = {
     },
   },
   feedbacks: true,
+  childAuthorities: true,
 };
 
 export type UserCentricDataExport = Prisma.UserGetPayload<{
@@ -384,6 +321,133 @@ async function exportUserCentricData() {
   console.log(`✅ ${users.length} utilisateurs avec données exportés → ${filePath}`);
 
   return { entity: 'users-data', count: users.length, file: filePath };
+}
+
+const exportParentalAuthorityInclude: Prisma.ParentalAuthoritySelect = {
+  id: true,
+  profile: {
+    select: {
+      id: true,
+      userId: true,
+      status: true,
+      category: true,
+      validationRequestId: true,
+      firstName: true,
+      lastName: true,
+      gender: true,
+      birthDate: true,
+      birthPlace: true,
+      birthCountry: true,
+      nationality: true,
+      maritalStatus: true,
+      workStatus: true,
+      acquisitionMode: true,
+      passportNumber: true,
+      passportIssueDate: true,
+      passportExpiryDate: true,
+      passportIssueAuthority: true,
+      identityPicture: true,
+      passport: true,
+      birthCertificate: true,
+      residencePermit: true,
+      addressProof: true,
+      address: {
+        select: {
+          id: true,
+          firstLine: true,
+          city: true,
+          zipCode: true,
+          country: true,
+        },
+      },
+      phoneNumber: true,
+      email: true,
+      residentContact: true,
+      homeLandContact: true,
+      activityInGabon: true,
+      fatherFullName: true,
+      motherFullName: true,
+      spouseFullName: true,
+      profession: true,
+      employer: true,
+      employerAddress: true,
+      cardNumber: true,
+      cardIssuedAt: true,
+      cardExpiresAt: true,
+      cardPin: true,
+      validationNotes: true,
+      validatedAt: true,
+      validatedBy: true,
+      submittedAt: true,
+      assignedOrganizationId: true,
+      residenceCountyCode: true,
+    },
+  },
+  parentUserId: true,
+  role: true,
+  isActive: true,
+};
+
+export type ParentalAuthorityExport = Prisma.ParentalAuthorityGetPayload<{
+  select: typeof exportParentalAuthorityInclude;
+}>;
+
+export type RequestExport = Prisma.ServiceRequestGetPayload<{
+  include: {
+    notes: true;
+    actions: true;
+  };
+}>;
+
+async function exportUserParentalAuthorities() {
+  console.log('\n👤 Export des autorités parentales...');
+  const parentalAuthorities = await prisma.parentalAuthority.findMany({
+    select: exportParentalAuthorityInclude,
+    orderBy: { createdAt: 'asc' },
+    where: {
+      profile: {
+        status: {
+          not: 'DRAFT',
+        },
+      },
+    },
+  });
+
+  const requetsToInclude = parentalAuthorities.map(
+    (pa) => pa.profile.validationRequestId,
+  );
+
+  const requests = await Promise.all(
+    requetsToInclude
+      .filter((r) => r !== null)
+      .map(async (r) => {
+        return await prisma.serviceRequest.findUnique({
+          where: { id: r },
+        });
+      }),
+  );
+
+  const filePath = path.join(EXPORT_DIR, 'parental-authorities.json');
+  await fs.writeFile(
+    filePath,
+    JSON.stringify(
+      {
+        parentalAuthorities,
+        requests,
+      },
+      null,
+      2,
+    ),
+  );
+
+  console.log(
+    `✅ ${parentalAuthorities.length} autorités parentales exportées → ${filePath}`,
+  );
+  return {
+    entity: 'parental-authorities',
+    count: parentalAuthorities.length,
+    file: filePath,
+  };
 }
 
 async function generateMetadata(stats: ExportStats[]) {
@@ -452,11 +516,10 @@ async function generateImportManifest() {
       },
       {
         step: 5,
-        entity: 'orphaned-data',
-        file: 'orphaned-data.json',
-        description: 'Import des données orphelines (sans utilisateur)',
-        dependencies: ['users-data', 'services', 'organizations'],
-        optional: true,
+        entity: 'parental-authorities',
+        file: 'parental-authorities.json',
+        description: 'Import des autorités parentales',
+        dependencies: ['users-data'],
       },
     ],
     warnings: [
@@ -484,6 +547,7 @@ async function generateMigrationTracking() {
       services: [],
       'non-users-accounts': [],
       'users-data': [],
+      'parental-authorities': [],
     },
     stats: {
       countries: 0,
@@ -491,6 +555,7 @@ async function generateMigrationTracking() {
       services: 0,
       'non-users-accounts': 0,
       'users-data': 0,
+      'parental-authorities': 0,
     },
   };
 
@@ -539,8 +604,7 @@ async function printSummary(
   console.log('       ↳ Rendez-vous');
   console.log('       ↳ Notifications');
   console.log('       ↳ Feedbacks');
-  console.log('       ↳ Autorités parentales');
-  console.log('   5️⃣  Orphaned-Data (données sans user)');
+  console.log('   5️⃣  Parental-Authorities');
 
   console.log('\n🎯 Prochaines étapes :');
   console.log('   1. Vérifier les fichiers JSON dans ./data/exports/');
@@ -566,6 +630,7 @@ async function main() {
     stats.push(await exportServices());
     stats.push(await exportNonUsersAccounts());
     stats.push(await exportUserCentricData());
+    stats.push(await exportUserParentalAuthorities());
 
     const metadata = await generateMetadata(stats);
     await generateImportManifest();

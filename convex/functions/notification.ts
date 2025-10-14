@@ -1,10 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from '../_generated/server';
-import {
-  NotificationChannel,
-  NotificationStatus,
-  NotificationType,
-} from '../lib/constants';
+import { NotificationChannel, NotificationType } from '../lib/constants';
 import type { Doc } from '../_generated/dataModel';
 
 // Mutations
@@ -26,20 +22,14 @@ export const createNotification = mutation({
       type: args.type as NotificationType,
       title: args.title,
       content: args.content,
-      status: NotificationStatus.Pending,
       readAt: undefined,
       channels: args.channels as Array<NotificationChannel>,
       deliveryStatus: {
-        app: false,
-        email: false,
-        sms: false,
+        appAt: undefined,
+        emailAt: undefined,
+        smsAt: undefined,
       },
       scheduledFor: args.scheduledFor,
-      sentAt: undefined,
-      relatedId: args.relatedId,
-      relatedType: args.relatedType,
-      createdAt: Date.now(),
-      expiresAt: args.expiresAt,
     });
 
     return notificationId;
@@ -65,20 +55,14 @@ export const createBulkNotifications = mutation({
         type: args.type as NotificationType,
         title: args.title,
         content: args.content,
-        status: NotificationStatus.Pending,
         readAt: undefined,
         channels: args.channels as Array<NotificationChannel>,
         deliveryStatus: {
-          app: false,
-          email: false,
-          sms: false,
+          appAt: undefined,
+          emailAt: undefined,
+          smsAt: undefined,
         },
         scheduledFor: args.scheduledFor,
-        sentAt: undefined,
-        relatedId: undefined,
-        relatedType: undefined,
-        createdAt: Date.now(),
-        expiresAt: args.expiresAt,
       });
 
       notificationIds.push(notificationId);
@@ -121,20 +105,14 @@ export const createAppointmentReminder = mutation({
         type: NotificationType.Reminder,
         title: 'Rappel de rendez-vous',
         content: `Vous avez un rendez-vous dans ${args.reminderType.replace('_', ' ')}`,
-        status: NotificationStatus.Pending,
         readAt: undefined,
         channels: [NotificationChannel.App, NotificationChannel.Email],
         deliveryStatus: {
-          app: false,
-          email: false,
-          sms: false,
+          appAt: undefined,
+          emailAt: undefined,
+          smsAt: undefined,
         },
         scheduledFor: scheduledFor,
-        sentAt: undefined,
-        relatedId: args.appointmentId,
-        relatedType: 'appointment',
-        createdAt: Date.now(),
-        expiresAt: appointment.startAt,
       });
 
       notificationIds.push(notificationId);
@@ -184,21 +162,6 @@ export const markAllNotificationsAsRead = mutation({
   },
 });
 
-export const updateNotificationStatus = mutation({
-  args: {
-    notificationId: v.id('notifications'),
-    status: v.string(),
-  },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.notificationId, {
-      status: args.status as NotificationStatus,
-      ...(args.status === 'sent' && { sentAt: Date.now() }),
-    });
-
-    return args.notificationId;
-  },
-});
-
 export const updateDeliveryStatus = mutation({
   args: {
     notificationId: v.id('notifications'),
@@ -236,8 +199,11 @@ export const rescheduleNotification = mutation({
 
     await ctx.db.patch(args.notificationId, {
       scheduledFor: args.newScheduledFor,
-      status: NotificationStatus.Pending,
-      sentAt: undefined,
+      deliveryStatus: {
+        appAt: undefined,
+        emailAt: undefined,
+        smsAt: undefined,
+      },
     });
 
     return args.notificationId;
@@ -252,12 +218,21 @@ export const cancelNotification = mutation({
       throw new Error('Notification not found');
     }
 
-    if (notification.status === NotificationStatus.Sent) {
+    if (
+      notification.deliveryStatus.appAt ||
+      notification.deliveryStatus.emailAt ||
+      notification.deliveryStatus.smsAt
+    ) {
       throw new Error('Cannot cancel sent notification');
     }
 
     await ctx.db.patch(args.notificationId, {
-      status: NotificationStatus.Failed,
+      scheduledFor: undefined,
+      deliveryStatus: {
+        appAt: undefined,
+        emailAt: undefined,
+        smsAt: undefined,
+      },
     });
 
     return args.notificationId;
@@ -291,8 +266,8 @@ export const deleteExpiredNotifications = mutation({
     const olderThan = args.olderThan || 30 * 24 * 60 * 60 * 1000;
 
     const expiredNotifications = notifications.filter((notification) => {
-      const isExpired = notification.expiresAt && notification.expiresAt < now;
-      const isOld = notification.createdAt < now - olderThan;
+      const isExpired = notification.scheduledFor && notification.scheduledFor < now;
+      const isOld = notification._creationTime < now - olderThan;
       const isRead = notification.readAt && notification.readAt < now - olderThan;
 
       return isExpired || isOld || isRead;
@@ -337,9 +312,7 @@ export const getNotificationsByUser = query({
     } else {
       notifications = await ctx.db
         .query('notifications')
-        .withIndex('by_user_status', (q) =>
-          q.eq('userId', args.userId).eq('status', args.status || 'sent'),
-        )
+        .filter((q) => q.eq(q.field('userId'), args.userId))
         .order('desc')
         .collect();
     }
@@ -371,15 +344,10 @@ export const getAllNotifications = query({
       notifications = await ctx.db
         .query('notifications')
         .withIndex('by_type', (q) => q.eq('type', args.type!))
-        .filter((q) => q.eq(q.field('status'), args.status!))
         .order('desc')
         .collect();
     } else if (args.status) {
-      notifications = await ctx.db
-        .query('notifications')
-        .filter((q) => q.eq(q.field('status'), args.status!))
-        .order('desc')
-        .collect();
+      notifications = await ctx.db.query('notifications').order('desc').collect();
     } else if (args.type) {
       notifications = await ctx.db
         .query('notifications')
@@ -432,7 +400,12 @@ export const getScheduledNotifications = query({
       );
     }
 
-    return notifications.filter((n) => n.status === 'pending');
+    return notifications.filter(
+      (n) =>
+        n.deliveryStatus.appAt === undefined &&
+        n.deliveryStatus.emailAt === undefined &&
+        n.deliveryStatus.smsAt === undefined,
+    );
   },
 });
 
@@ -444,46 +417,5 @@ export const getNotificationsByType = query({
       .withIndex('by_type', (q) => q.eq('type', args.type))
       .order('desc')
       .collect();
-  },
-});
-
-export const getNotificationsByRelated = query({
-  args: {
-    relatedId: v.string(),
-    relatedType: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const allNotifications = await ctx.db.query('notifications').order('desc').collect();
-
-    return allNotifications.filter(
-      (notification) =>
-        notification.relatedId === args.relatedId &&
-        notification.relatedType === args.relatedType,
-    );
-  },
-});
-
-export const getNotificationStats = query({
-  args: { userId: v.id('users') },
-  handler: async (ctx, args) => {
-    const notifications = await ctx.db
-      .query('notifications')
-      .filter((q) => q.eq(q.field('userId'), args.userId))
-      .collect();
-
-    const stats = {
-      total: notifications.length,
-      unread: notifications.filter((n) => !n.readAt).length,
-      byType: {} as Record<string, number>,
-      byStatus: {} as Record<string, number>,
-    };
-
-    notifications.forEach((notification) => {
-      stats.byType[notification.type] = (stats.byType[notification.type] || 0) + 1;
-      stats.byStatus[notification.status] =
-        (stats.byStatus[notification.status] || 0) + 1;
-    });
-
-    return stats;
   },
 });

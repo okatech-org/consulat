@@ -11,7 +11,7 @@ import { appointments } from './tables/appointments';
 import { notifications } from './tables/notifications';
 import { countries } from './tables/countries';
 import { tickets } from './tables/tickets';
-import { parentalAuthorities } from './tables/parentalAuthorities';
+import { childProfiles } from './tables/childProfiles';
 
 export default defineSchema({
   users,
@@ -25,5 +25,5 @@ export default defineSchema({
   notifications,
   countries,
   tickets,
-  parentalAuthorities,
+  childProfiles,
 });

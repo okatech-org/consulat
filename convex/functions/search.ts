@@ -136,7 +136,7 @@ export const globalSearch = query({
           title:
             `${profile.personal.firstName || ''} ${profile.personal.lastName || ''}`.trim() ||
             'Profil sans nom',
-          subtitle: profile.consularCard.cardNumber || profile.category.toString(),
+          subtitle: profile.consularCard.cardNumber,
           data: profile,
         }));
       results.push(...matchingProfiles);

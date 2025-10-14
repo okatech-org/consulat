@@ -6,7 +6,6 @@ import {
   genderValidator,
   maritalStatusValidator,
   nationalityAcquisitionValidator,
-  profileCategoryValidator,
   profileStatusValidator,
   workStatusValidator,
 } from '../lib/validators';
@@ -14,12 +13,10 @@ import {
 // Table Profiles - Données personnelles
 export const profiles = defineTable({
   userId: v.id('users'),
-  category: profileCategoryValidator,
   status: profileStatusValidator,
   residenceCountry: v.optional(v.string()),
 
   consularCard: v.object({
-    cardPin: v.optional(v.string()),
     cardNumber: v.optional(v.string()),
     cardIssuedAt: v.optional(v.number()),
     cardExpiresAt: v.optional(v.number()),
@@ -40,6 +37,15 @@ export const profiles = defineTable({
     gender: v.optional(genderValidator),
     nationality: v.optional(v.string()),
     acquisitionMode: v.optional(nationalityAcquisitionValidator),
+    passportInfos: v.optional(
+      v.object({
+        number: v.optional(v.string()),
+        issueDate: v.optional(v.number()),
+        expiryDate: v.optional(v.number()),
+        issueAuthority: v.optional(v.string()),
+      }),
+    ),
+    nipCode: v.optional(v.string()),
   }),
 
   family: v.object({

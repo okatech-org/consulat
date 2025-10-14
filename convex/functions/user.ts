@@ -525,17 +525,13 @@ export const getUserNotifications = query({
     if (args.status) {
       notifications = await ctx.db
         .query('notifications')
-        .withIndex('by_user_status', (q) =>
-          q.eq('userId', args.userId).eq('status', args.status!),
-        )
+        .filter((q) => q.eq(q.field('userId'), args.userId))
         .order('desc')
         .collect();
     } else {
       notifications = await ctx.db
         .query('notifications')
-        .withIndex('by_user_status', (q) =>
-          q.eq('userId', args.userId).eq('status', 'sent'),
-        )
+        .filter((q) => q.eq(q.field('userId'), args.userId))
         .order('desc')
         .collect();
     }

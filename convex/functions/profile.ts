@@ -37,11 +37,9 @@ export const createProfile = mutation({
 
     const profileId = await ctx.db.insert('profiles', {
       userId: args.userId,
-      category: args.category,
       status: ProfileStatus.Draft,
       residenceCountry: args.residenceCountry,
       consularCard: {
-        cardPin: undefined,
         cardNumber: undefined,
         cardIssuedAt: undefined,
         cardExpiresAt: undefined,
@@ -60,6 +58,8 @@ export const createProfile = mutation({
         gender: undefined,
         nationality: undefined,
         acquisitionMode: undefined,
+        passportInfos: undefined,
+        nipCode: undefined,
       },
       family: {
         father: undefined,
@@ -380,7 +380,6 @@ export const getProfileByUser = query({
 export const getAllProfiles = query({
   args: {
     status: v.optional(v.string()),
-    category: v.optional(v.string()),
     residenceCountry: v.optional(v.string()),
     limit: v.optional(v.number()),
   },
@@ -395,10 +394,6 @@ export const getAllProfiles = query({
         .collect();
     } else {
       profiles = await ctx.db.query('profiles').order('desc').collect();
-    }
-
-    if (args.category) {
-      profiles = profiles.filter((profile) => profile.category === args.category);
     }
 
     if (args.residenceCountry) {
@@ -421,17 +416,6 @@ export const getProfilesByStatus = query({
     return await ctx.db
       .query('profiles')
       .withIndex('by_status', (q) => q.eq('status', args.status))
-      .order('desc')
-      .collect();
-  },
-});
-
-export const getProfilesByCategory = query({
-  args: { category: v.string() },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query('profiles')
-      .filter((q) => q.eq(q.field('category'), args.category))
       .order('desc')
       .collect();
   },
@@ -472,7 +456,6 @@ export const searchProfiles = query({
   args: {
     searchTerm: v.string(),
     status: v.optional(v.string()),
-    category: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     let profiles: Array<Doc<'profiles'>> = [];
@@ -484,10 +467,6 @@ export const searchProfiles = query({
         .collect();
     } else {
       profiles = await ctx.db.query('profiles').collect();
-    }
-
-    if (args.category) {
-      profiles = profiles.filter((profile) => profile.category === args.category);
     }
 
     return profiles.filter((profile) => {
@@ -599,8 +578,8 @@ export const getOverviewProfile = query({
     );
 
     const parentalAuthoritiesRequest = ctx.db
-      .query('parentalAuthorities')
-      .withIndex('by_parent', (q) => q.eq('parentUserId', args.userId))
+      .query('childProfiles')
+      .filter((q) => q.eq(q.field('authorUserId'), args.userId))
       .collect();
 
     const [profile, documents, userRequests, parentalAuthorities] = await Promise.all([

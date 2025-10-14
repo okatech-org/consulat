@@ -49,7 +49,7 @@ export const getDashboardStats = query({
     const allNotifications = await ctx.db.query('notifications').collect();
     const notificationsInPeriod = allNotifications.filter(
       (notification) =>
-        notification.createdAt >= startDate && notification.createdAt <= endDate,
+        notification._creationTime >= startDate && notification._creationTime <= endDate,
     );
 
     return {
