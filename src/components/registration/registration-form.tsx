@@ -54,6 +54,8 @@ export function RegistrationForm({
   availableCountries: Doc<'countries'>[];
   profile: FullProfile;
 }) {
+  if (!profile) return null;
+
   const {
     currentStep,
     setCurrentStep,
@@ -264,24 +266,13 @@ export function RegistrationForm({
         const professionSituationUpdate: Record<string, unknown> = {};
 
         if (currentTab === 'basicInfo') {
-          if (editedFields.firstName !== undefined)
-            personalUpdate.firstName = editedFields.firstName;
-          if (editedFields.lastName !== undefined)
-            personalUpdate.lastName = editedFields.lastName;
-          if (editedFields.gender !== undefined)
-            personalUpdate.gender = editedFields.gender as any;
-          if (editedFields.birthPlace !== undefined)
-            personalUpdate.birthPlace = editedFields.birthPlace;
-          if (editedFields.birthCountry !== undefined)
-            personalUpdate.birthCountry = editedFields.birthCountry as any;
-          if (editedFields.nationality !== undefined)
-            personalUpdate.nationality = editedFields.nationality as any;
-          if (editedFields.acquisitionMode !== undefined)
-            personalUpdate.acquisitionMode = editedFields.acquisitionMode as any;
-          if (editedFields.birthDate)
-            personalUpdate.birthDate = new Date(
-              editedFields.birthDate as string,
-            ).getTime();
+          const 
+          convexUpdate({
+            profileId: profile._id,
+            personal: {
+
+            },
+          });
         }
 
         if (currentTab === 'contactInfo') {

@@ -35,7 +35,7 @@ export const documentsFields: (keyof FullProfile)[] = [
   'addressProof',
 ];
 
-export const basicInfoFields: (keyof FullProfile)[] = [
+export const basicInfoFields: (keyof FullProfile['personal'])[] = [
   'firstName',
   'lastName',
   'gender',
@@ -49,7 +49,7 @@ export const basicInfoFields: (keyof FullProfile)[] = [
   'passportIssueDate',
   'passportExpiryDate',
   'passportIssueAuthority',
-  'cardPin',
+  'nipCode',
 ];
 
 export const familyInfoFields: (keyof FullProfile)[] = [
