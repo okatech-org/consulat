@@ -3,13 +3,14 @@
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import {
   BasicInfoSchema,
   ContactInfoSchema,
   FamilyInfoSchema,
   ProfessionalInfoSchema,
   DocumentsSchema,
-  type FullProfileUpdateFormData,
   type DocumentsFormData,
   type BasicInfoFormData,
   type FamilyInfoFormData,
@@ -17,7 +18,12 @@ import {
   type ProfessionalInfoFormData,
 } from '@/schemas/registration';
 import { createFormStorage } from '@/lib/form-storage';
-import { type ErrorMessageKey, extractFieldsFromObject, getValuable } from '@/lib/utils';
+import {
+  type ErrorMessageKey,
+  extractFieldsFromObject,
+  getValuable,
+  tryCatch,
+} from '@/lib/utils';
 import { type CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
 import {
   MaritalStatus,
@@ -28,14 +34,26 @@ import type { FullProfile } from '@/types/convex-profile';
 
 const homeLandCountry = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as CountryCode;
 
-export const documentsFields: (keyof FullProfile)[] = [
-  'passport',
-  'birthCertificate',
-  'residencePermit',
-  'addressProof',
-];
+// Constantes pour les champs de chaque section - correspondent exactement à Convex
+export const documentsFields: (
+  | 'passport'
+  | 'birthCertificate'
+  | 'residencePermit'
+  | 'addressProof'
+)[] = ['passport', 'birthCertificate', 'residencePermit', 'addressProof'];
 
-export const basicInfoFields: (keyof FullProfile['personal'])[] = [
+export const basicInfoFields: (
+  | 'firstName'
+  | 'lastName'
+  | 'gender'
+  | 'acquisitionMode'
+  | 'birthDate'
+  | 'birthPlace'
+  | 'birthCountry'
+  | 'nationality'
+  | 'passportInfos'
+  | 'nipCode'
+)[] = [
   'firstName',
   'lastName',
   'gender',
@@ -44,68 +62,104 @@ export const basicInfoFields: (keyof FullProfile['personal'])[] = [
   'birthPlace',
   'birthCountry',
   'nationality',
-  'identityPicture',
-  'passportNumber',
-  'passportIssueDate',
-  'passportExpiryDate',
-  'passportIssueAuthority',
+  'passportInfos',
   'nipCode',
 ];
 
-export const familyInfoFields: (keyof FullProfile)[] = [
+export const familyInfoFields: ('maritalStatus' | 'father' | 'mother' | 'spouse')[] = [
   'maritalStatus',
-  'fatherFullName',
-  'motherFullName',
-  'spouseFullName',
+  'father',
+  'mother',
+  'spouse',
 ];
 
-export const contactInfoFields: (keyof FullProfile)[] = [
+export const contactInfoFields: ('email' | 'phone' | 'address')[] = [
   'email',
-  'phoneNumber',
+  'phone',
   'address',
-  'residentContact',
-  'homeLandContact',
 ];
 
-export const professionalInfoFields: (keyof FullProfile)[] = [
-  'workStatus',
-  'profession',
-  'employer',
-  'employerAddress',
-  'activityInGabon',
-];
+export const professionalInfoFields: (
+  | 'workStatus'
+  | 'profession'
+  | 'employer'
+  | 'employerAddress'
+  | 'activityInGabon'
+)[] = ['workStatus', 'profession', 'employer', 'employerAddress', 'activityInGabon'];
 
 export function useRegistrationForm({ profile }: { profile: FullProfile }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ErrorMessageKey | undefined>();
-  const defaultNumber = `${getCountryCode(profile?.residenceCountyCode as CountryCode)}-`;
+  const defaultNumber = `${getCountryCode(profile?.residenceCountry as CountryCode)}-`;
   const { saveData, loadSavedData, clearData } = createFormStorage('consular_form_data');
   const cleanedProfile = getValuable({ ...profile });
 
+  // Mutations Convex pour mettre à jour le profil
+  const updatePersonalInfo = useMutation(api.functions.profile.updatePersonalInfo);
+  const updateFamilyInfo = useMutation(api.functions.profile.updateFamilyInfo);
+  const updateProfessionalInfo = useMutation(
+    api.functions.profile.updateProfessionalInfo,
+  );
+  const updateContacts = useMutation(api.functions.profile.updateContacts);
+
+  // Extraction directe des données Convex - pas de conversions complexes
   const documentsFormData = extractFieldsFromObject(
-    cleanedProfile,
+    {
+      passport: cleanedProfile.passport
+        ? { ...cleanedProfile.passport, id: cleanedProfile.passport._id }
+        : undefined,
+      birthCertificate: cleanedProfile.birthCertificate
+        ? { ...cleanedProfile.birthCertificate, id: cleanedProfile.birthCertificate._id }
+        : undefined,
+      residencePermit: cleanedProfile.residencePermit
+        ? { ...cleanedProfile.residencePermit, id: cleanedProfile.residencePermit._id }
+        : undefined,
+      addressProof: cleanedProfile.addressProof
+        ? { ...cleanedProfile.addressProof, id: cleanedProfile.addressProof._id }
+        : undefined,
+    },
     documentsFields,
   ) as DocumentsFormData;
+
   const basicInfoFormData = extractFieldsFromObject(
     {
-      ...cleanedProfile,
-      birthDate: cleanedProfile.birthDate?.toISOString().split('T')[0],
-      passportIssueDate: cleanedProfile.passportIssueDate?.toISOString().split('T')[0],
-      passportExpiryDate: cleanedProfile.passportExpiryDate?.toISOString().split('T')[0],
+      ...cleanedProfile.personal,
+      // Conversion minimale des dates pour l'interface
+      birthDate: cleanedProfile.personal?.birthDate
+        ? new Date(cleanedProfile.personal.birthDate).toISOString().split('T')[0]
+        : undefined,
+      passportInfos: cleanedProfile.personal?.passportInfos
+        ? {
+            ...cleanedProfile.personal.passportInfos,
+            issueDate: cleanedProfile.personal.passportInfos.issueDate
+              ? new Date(cleanedProfile.personal.passportInfos.issueDate)
+                  .toISOString()
+                  .split('T')[0]
+              : undefined,
+            expiryDate: cleanedProfile.personal.passportInfos.expiryDate
+              ? new Date(cleanedProfile.personal.passportInfos.expiryDate)
+                  .toISOString()
+                  .split('T')[0]
+              : undefined,
+          }
+        : undefined,
     },
     basicInfoFields,
   ) as BasicInfoFormData;
+
   const familyInfoFormData = extractFieldsFromObject(
-    cleanedProfile,
+    cleanedProfile.family || {},
     familyInfoFields,
   ) as FamilyInfoFormData;
+
   const contactInfoFormData = extractFieldsFromObject(
-    cleanedProfile,
+    cleanedProfile.contacts || {},
     contactInfoFields,
   ) as ContactInfoFormData;
+
   const professionalInfoFormData = extractFieldsFromObject(
-    cleanedProfile,
+    cleanedProfile.professionSituation || {},
     professionalInfoFields,
   ) as ProfessionalInfoFormData;
 
@@ -123,7 +177,7 @@ export function useRegistrationForm({ profile }: { profile: FullProfile }) {
         nationality: basicInfoFormData?.nationality ?? homeLandCountry,
         gender: basicInfoFormData?.gender,
         acquisitionMode:
-          basicInfoFormData?.acquisitionMode ?? NationalityAcquisition.BIRTH,
+          basicInfoFormData?.acquisitionMode ?? NationalityAcquisition.Birth,
       },
       reValidateMode: 'onBlur',
     }),
@@ -131,51 +185,90 @@ export function useRegistrationForm({ profile }: { profile: FullProfile }) {
       resolver: zodResolver(FamilyInfoSchema),
       defaultValues: {
         ...familyInfoFormData,
-        maritalStatus: familyInfoFormData?.maritalStatus ?? MaritalStatus.SINGLE,
+        maritalStatus: familyInfoFormData?.maritalStatus ?? MaritalStatus.Single,
       },
     }),
     contactInfo: useForm<ContactInfoFormData>({
       resolver: zodResolver(ContactInfoSchema),
       defaultValues: {
         ...contactInfoFormData,
-        phoneNumber: contactInfoFormData?.phoneNumber ?? defaultNumber,
-        address: {
-          ...contactInfoFormData?.address,
-          country:
-            contactInfoFormData?.address?.country ??
-            profile?.residenceCountyCode ??
-            undefined,
-        },
-        residentContact: {
-          ...contactInfoFormData?.residentContact,
-          address: {
-            ...contactInfoFormData?.residentContact?.address,
-            country:
-              contactInfoFormData?.residentContact?.address?.country ??
-              profile?.residenceCountyCode ??
-              undefined,
-          },
-          phoneNumber: contactInfoFormData?.residentContact?.phoneNumber ?? defaultNumber,
-        },
+        phone: contactInfoFormData?.phone ?? defaultNumber,
       },
     }),
     professionalInfo: useForm<ProfessionalInfoFormData>({
       resolver: zodResolver(ProfessionalInfoSchema),
       defaultValues: {
         ...professionalInfoFormData,
-        workStatus: professionalInfoFormData?.workStatus ?? WorkStatus.UNEMPLOYED,
+        workStatus: professionalInfoFormData?.workStatus ?? WorkStatus.Unemployed,
       },
     }),
   };
 
+  // Fonctions de mapping simplifiées - correspondent directement à Convex
+  const mapBasicInfoToConvex = useCallback((data: BasicInfoFormData) => {
+    return {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      gender: data.gender,
+      acquisitionMode: data.acquisitionMode,
+      birthDate: data.birthDate ? new Date(data.birthDate).getTime() : undefined,
+      birthPlace: data.birthPlace,
+      birthCountry: data.birthCountry,
+      nationality: data.nationality,
+      passportInfos: data.passportInfos
+        ? {
+            number: data.passportInfos.number,
+            issueDate: data.passportInfos.issueDate
+              ? new Date(data.passportInfos.issueDate).getTime()
+              : undefined,
+            expiryDate: data.passportInfos.expiryDate
+              ? new Date(data.passportInfos.expiryDate).getTime()
+              : undefined,
+            issueAuthority: data.passportInfos.issueAuthority,
+          }
+        : undefined,
+      nipCode: data.nipCode,
+    };
+  }, []);
+
+  const mapFamilyInfoToConvex = useCallback((data: FamilyInfoFormData) => {
+    return {
+      maritalStatus: data.maritalStatus,
+      father: data.father,
+      mother: data.mother,
+      spouse: data.spouse,
+    };
+  }, []);
+
+  const mapContactInfoToConvex = useCallback((data: ContactInfoFormData) => {
+    return {
+      email: data.email,
+      phone: data.phone || undefined,
+      address: data.address
+        ? {
+            street: data.address.firstLine,
+            city: data.address.city,
+            postalCode: data.address.zipCode || '',
+            country: data.address.country,
+            complement: data.address.secondLine || undefined,
+          }
+        : undefined,
+    };
+  }, []);
+
+  const mapProfessionalInfoToConvex = useCallback((data: ProfessionalInfoFormData) => {
+    return {
+      workStatus: data.workStatus,
+      profession: data.profession,
+      employer: data.employer,
+      employerAddress: data.employerAddress,
+      activityInGabon: data.activityInGabon,
+    };
+  }, []);
+
   // Sauvegarde automatique des données
   const handleDataChange = useCallback(
-    (
-      data: Record<
-        keyof FullProfileUpdateFormData,
-        FullProfileUpdateFormData[keyof FullProfileUpdateFormData]
-      >,
-    ) => {
+    (data: Record<string, unknown>) => {
       const currentData = loadSavedData();
 
       saveData({
@@ -184,6 +277,67 @@ export function useRegistrationForm({ profile }: { profile: FullProfile }) {
       });
     },
     [saveData, loadSavedData],
+  );
+
+  // Sauvegarde des données vers Convex
+  const saveToConvex = useCallback(
+    async (
+      step: keyof typeof forms,
+      formData: Record<string, unknown>,
+    ): Promise<unknown> => {
+      if (!profile?._id) return undefined;
+
+      const { error } = await tryCatch(
+        (async () => {
+          switch (step) {
+            case 'basicInfo':
+              await updatePersonalInfo({
+                profileId: profile._id,
+                personal: mapBasicInfoToConvex(formData as BasicInfoFormData),
+              });
+              break;
+            case 'familyInfo':
+              await updateFamilyInfo({
+                profileId: profile._id,
+                family: mapFamilyInfoToConvex(formData as FamilyInfoFormData),
+              });
+              break;
+            case 'contactInfo':
+              await updateContacts({
+                profileId: profile._id,
+                contacts: mapContactInfoToConvex(formData as ContactInfoFormData),
+              });
+              break;
+            case 'professionalInfo':
+              await updateProfessionalInfo({
+                profileId: profile._id,
+                professionSituation: mapProfessionalInfoToConvex(
+                  formData as ProfessionalInfoFormData,
+                ),
+              });
+              break;
+          }
+        })(),
+      );
+
+      if (error) {
+        console.error('Erreur lors de la sauvegarde vers Convex:', error);
+        throw error;
+      }
+
+      return undefined;
+    },
+    [
+      profile?._id,
+      updatePersonalInfo,
+      updateFamilyInfo,
+      updateContacts,
+      updateProfessionalInfo,
+      mapBasicInfoToConvex,
+      mapFamilyInfoToConvex,
+      mapContactInfoToConvex,
+      mapProfessionalInfoToConvex,
+    ],
   );
 
   return {
@@ -196,5 +350,6 @@ export function useRegistrationForm({ profile }: { profile: FullProfile }) {
     forms,
     handleDataChange,
     clearData,
+    saveToConvex,
   };
 }

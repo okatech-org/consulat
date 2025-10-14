@@ -1,5 +1,6 @@
 import * as z from 'zod';
-import { DocumentStatus, FamilyLink, Gender, DocumentType } from '@prisma/client';
+import { Gender, FamilyLink } from '@/convex/lib/constants';
+import { DocumentStatus, DocumentType } from '@prisma/client';
 import {
   type CountryCode,
   type CountryIndicator,

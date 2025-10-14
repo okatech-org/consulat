@@ -37,7 +37,6 @@ import CardContainer from '../layouts/card-container';
 import { ArrowLeft, ArrowRight, Info } from 'lucide-react';
 import { CountrySelect } from '../ui/country-select';
 import { type CountryCode } from '@/lib/autocomplete-datas';
-import { Dialog, DialogContent } from '../ui/dialog';
 import Link from 'next/link';
 import { CountryStatus } from '@/convex/lib/constants';
 import { ErrorCard } from '../ui/error-card';
@@ -47,13 +46,7 @@ import { useTabs } from '@/hooks/use-tabs';
 import { DocumentType } from '@/convex/lib/constants';
 import type { Doc } from '@/convex/_generated/dataModel';
 
-export function RegistrationForm({
-  availableCountries,
-  profile,
-}: {
-  availableCountries: Doc<'countries'>[];
-  profile: FullProfile;
-}) {
+export function RegistrationForm({ profile }: { profile: FullProfile }) {
   if (!profile) return null;
 
   const {
@@ -65,9 +58,8 @@ export function RegistrationForm({
     error,
     forms,
     clearData,
+    saveToConvex,
   } = useRegistrationForm({ profile });
-  const country = undefined;
-  const convexUpdate = useMutation(api.functions.profile.updateProfile);
   const convexSubmit = useMutation(api.functions.profile.submitProfileForValidation);
   const router = useRouter();
   const t = useTranslations('registration');
@@ -165,16 +157,16 @@ export function RegistrationForm({
       }
 
       if (cleanedData.familyInfo && forms.familyInfo) {
-        const { fatherFullName, motherFullName, maritalStatus } = cleanedData.familyInfo;
+        const { father, mother, maritalStatus } = cleanedData.familyInfo;
 
-        if (fatherFullName) {
-          forms.familyInfo.setValue('fatherFullName', fatherFullName, {
+        if (father) {
+          forms.familyInfo.setValue('father', father, {
             shouldDirty: true,
           });
         }
 
-        if (motherFullName) {
-          forms.familyInfo.setValue('motherFullName', motherFullName, {
+        if (mother) {
+          forms.familyInfo.setValue('mother', mother, {
             shouldDirty: true,
           });
         }
@@ -258,85 +250,14 @@ export function RegistrationForm({
       const stepData = stepForm?.getValues();
       const editedFields = filterUneditedKeys(stepData, stepForm.formState.dirtyFields);
 
-      // If there are changes, save them (mapped vers Convex selon l'étape)
+      // If there are changes, save them using Convex mutations
       if (editedFields && Object.keys(editedFields).length > 0) {
-        const personalUpdate: Record<string, unknown> = {};
-        const contactsUpdate: Record<string, unknown> = {};
-        const familyUpdate: Record<string, unknown> = {};
-        const professionSituationUpdate: Record<string, unknown> = {};
-
-        if (currentTab === 'basicInfo') {
-          const 
-          convexUpdate({
-            profileId: profile._id,
-            personal: {
-
-            },
-          });
-        }
-
-        if (currentTab === 'contactInfo') {
-          if (editedFields.email !== undefined) contactsUpdate.email = editedFields.email;
-          if (editedFields.phoneNumber !== undefined)
-            contactsUpdate.phone = editedFields.phoneNumber;
-          if (editedFields.address) {
-            const a = editedFields.address as ContactInfoFormData['address'];
-            personalUpdate.address = {
-              street: a.firstLine,
-              complement: a.secondLine,
-              city: a.city,
-              postalCode: a.zipCode,
-              country: a.country as any,
-            };
-          }
-        }
-
-        if (currentTab === 'familyInfo') {
-          const fi = editedFields as unknown as FamilyInfoFormData;
-          if (fi.maritalStatus !== undefined)
-            personalUpdate.maritalStatus = fi.maritalStatus as any;
-          if (fi.fatherFullName) {
-            const [firstName, ...rest] = fi.fatherFullName.split(' ');
-            familyUpdate.father = { firstName, lastName: rest.join(' ') };
-          }
-          if (fi.motherFullName) {
-            const [firstName, ...rest] = fi.motherFullName.split(' ');
-            familyUpdate.mother = { firstName, lastName: rest.join(' ') };
-          }
-          if (fi.spouseFullName) {
-            const [firstName, ...rest] = fi.spouseFullName.split(' ');
-            familyUpdate.spouse = { firstName, lastName: rest.join(' ') };
-          }
-        }
-
-        if (currentTab === 'professionalInfo') {
-          const pi = editedFields as unknown as ProfessionalInfoFormData;
-          if (pi.workStatus !== undefined)
-            personalUpdate.workStatus = pi.workStatus as any;
-          if (pi.profession !== undefined)
-            professionSituationUpdate.profession = pi.profession;
-          if (pi.employer !== undefined) professionSituationUpdate.employer = pi.employer;
-          if (pi.employerAddress !== undefined)
-            professionSituationUpdate.employerAddress = pi.employerAddress;
-        }
-
-        const { error } = await tryCatch(
-          convexUpdate({
-            profileId: profile._id as any,
-            personal: Object.keys(personalUpdate).length
-              ? (personalUpdate as any)
-              : undefined,
-            contacts: Object.keys(contactsUpdate).length
-              ? (contactsUpdate as any)
-              : undefined,
-            family: Object.keys(familyUpdate).length ? (familyUpdate as any) : undefined,
-            professionSituation: Object.keys(professionSituationUpdate).length
-              ? (professionSituationUpdate as any)
-              : undefined,
-          }),
-        );
-
-        if (error) {
+        try {
+          await saveToConvex(
+            currentTab as keyof typeof forms,
+            stepForm?.getValues() as Record<string, unknown>,
+          );
+        } catch (error) {
           const { title, description } = handleFormError(error, t);
           toast({ title, description, variant: 'destructive' });
           setIsLoading(false);
@@ -346,7 +267,7 @@ export function RegistrationForm({
 
       // Handle final step logic
       if (currentStepIndex === totalSteps - 1) {
-        if (profile.status !== 'draft') {
+        if (profile.status !== 'Draft') {
           toast({
             title: t('submission.success.title'),
             description: t('submission.success.description'),
@@ -386,8 +307,8 @@ export function RegistrationForm({
 
     const result = await tryCatch(
       convexSubmit({
-        profileId: profile._id as any,
-        isChild: profile.category === 'minor',
+        profileId: profile._id,
+        isChild: false, // TODO: déterminer si c'est un profil mineur basé sur la date de naissance
       }),
     );
 
@@ -418,7 +339,7 @@ export function RegistrationForm({
       required: false,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024, // 5MB
-      expectedType: DocumentType.PASSPORT,
+      expectedType: DocumentType.Passport,
     },
     {
       id: 'birthCertificate' as const,
@@ -427,7 +348,7 @@ export function RegistrationForm({
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
-      expectedType: DocumentType.BIRTH_CERTIFICATE,
+      expectedType: DocumentType.BirthCertificate,
     },
     {
       id: 'residencePermit' as const,
@@ -436,7 +357,7 @@ export function RegistrationForm({
       required: false,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
-      expectedType: DocumentType.RESIDENCE_PERMIT,
+      expectedType: DocumentType.ResidencePermit,
     },
     {
       id: 'addressProof' as const,
@@ -445,14 +366,14 @@ export function RegistrationForm({
       required: true,
       acceptedTypes: ['image/*', 'application/pdf'],
       maxSize: 5 * 1024 * 1024,
-      expectedType: DocumentType.PROOF_OF_ADDRESS,
+      expectedType: DocumentType.ProofOfAddress,
     },
   ] as const;
 
   const stepsComponents: Record<keyof typeof forms | 'review', React.ReactNode> = {
     documents: (
       <DocumentUploadSection
-        profileId={profile._id as any}
+        profileId={profile._id}
         form={forms.documents}
         onAnalysisComplete={handleDocumentsAnalysis}
         handleSubmitAction={() => handleNext()}
@@ -465,7 +386,7 @@ export function RegistrationForm({
         form={forms.basicInfo}
         onSubmit={() => handleNext()}
         isLoading={isLoading}
-        profileId={profile._id as any}
+        profileId={profile._id}
       />
     ),
     familyInfo: (
@@ -608,9 +529,7 @@ export function RegistrationForm({
                   }
                 >
                   {currentStepIndex === totalSteps - 1
-                    ? profile.validationRequestId
-                      ? 'Valider mes modifications'
-                      : t('navigation.submit')
+                    ? "Finaliser l'inscription"
                     : `${currentStepDirty ? 'Enregistrer et continuer' : 'Continuer'} (${currentStepIndex + 1}/${totalSteps})`}
                 </Button>
               </div>
@@ -645,11 +564,6 @@ export function RegistrationForm({
           </div>
         </main>
       </div>
-      <Dialog open={!country}>
-        <DialogContent>
-          <SelectRegistrationCountryForm countries={availableCountries} />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
@@ -669,7 +583,11 @@ function AnalysisWarningBanner() {
   );
 }
 
-export function SelectRegistrationCountryForm({ countries }: { countries: Country[] }) {
+export function SelectRegistrationCountryForm({
+  countries,
+}: {
+  countries: Doc<'countries'>[];
+}) {
   const t = useTranslations('registration');
   const [selectedCountry, setSelectedCountry] = useState<CountryCode | undefined>(
     countries[0]?.code as CountryCode,
@@ -687,7 +605,7 @@ export function SelectRegistrationCountryForm({ countries }: { countries: Countr
           onChange={(value) => setSelectedCountry(value)}
           options={countries.map((item) => item.code as CountryCode)}
           disabledOptions={countries
-            .filter((item) => item.status !== CountryStatus.ACTIVE)
+            .filter((item) => item.status !== CountryStatus.Active)
             .map((item) => item.code as CountryCode)}
         />
       </div>

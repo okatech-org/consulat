@@ -18,9 +18,6 @@ export default function ProfileFormPage() {
     api.functions.profile.getCurrentProfile,
     user ? { userId: user._id } : 'skip',
   );
-  const countries = useQuery(api.functions.country.getAllCountries, {
-    status: CountryStatus.Active,
-  });
 
   if (profile === undefined) {
     return (
@@ -34,9 +31,7 @@ export default function ProfileFormPage() {
     <PageContainer title={tInputs('newProfile.title')}>
       {!profile && <CardContainer title="Profile non trouvé"></CardContainer>}
 
-      {profile && (
-        <RegistrationForm availableCountries={countries ?? []} profile={profile} />
-      )}
+      {profile && <RegistrationForm profile={profile} />}
     </PageContainer>
   );
 }
