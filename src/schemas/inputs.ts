@@ -1,6 +1,5 @@
 import * as z from 'zod';
-import { Gender, FamilyLink } from '@/convex/lib/constants';
-import { DocumentStatus, DocumentType } from '@prisma/client';
+import { Gender, FamilyLink, DocumentStatus, DocumentType } from '@/convex/lib/constants';
 import {
   type CountryCode,
   type CountryIndicator,
@@ -89,7 +88,6 @@ export const CountryIndicatorSchema = z
 export const EmailSchema = z
   .string({
     error: 'messages.errors.field_required',
-    invalid_type_error: 'messages.errors.invalid_email',
   })
   .email('messages.errors.invalid_email')
   .max(VALIDATION_RULES.EMAIL_MAX_LENGTH, 'messages.errors.email_too_long');
@@ -98,7 +96,6 @@ export const AddressSchema = z.object({
   firstLine: z
     .string({
       error: 'messages.errors.field_required',
-      invalid_type_error: 'messages.errors.invalid_field',
     })
     .min(1, 'messages.errors.field_required')
     .max(VALIDATION_RULES.ADDRESS_MAX_LENGTH),
@@ -106,7 +103,6 @@ export const AddressSchema = z.object({
   secondLine: z
     .string({
       error: 'messages.errors.field_required',
-      invalid_type_error: 'messages.errors.invalid_field',
     })
     .max(VALIDATION_RULES.ADDRESS_MAX_LENGTH)
     .nullable()
@@ -115,14 +111,12 @@ export const AddressSchema = z.object({
   city: z
     .string({
       error: 'messages.errors.field_required',
-      invalid_type_error: 'messages.errors.invalid_field',
     })
     .min(1, 'messages.errors.field_required'),
 
   zipCode: z
     .string({
       error: 'messages.errors.field_required',
-      invalid_type_error: 'messages.errors.invalid_field',
     })
     .nullable()
     .optional(),
@@ -131,28 +125,12 @@ export const AddressSchema = z.object({
 });
 
 export const BasicAddressSchema = z.object({
-  firstLine: z
-    .string({
-      invalid_type_error: 'messages.errors.invalid_field',
-    })
-    .optional(),
-  secondLine: z
-    .string({
-      invalid_type_error: 'messages.errors.invalid_field',
-    })
-    .optional(),
+  firstLine: z.string().optional(),
+  secondLine: z.string().optional(),
 
-  city: z
-    .string({
-      invalid_type_error: 'messages.errors.invalid_field',
-    })
-    .optional(),
+  city: z.string().optional(),
 
-  zipCode: z
-    .string({
-      invalid_type_error: 'messages.errors.invalid_field',
-    })
-    .optional(),
+  zipCode: z.string().optional(),
 
   country: z.string().optional(),
 });
@@ -194,7 +172,6 @@ export const NameSchema = z
 export const DateSchema = z
   .string({
     error: 'messages.errors.field_required',
-    invalid_type_error: 'messages.errors.invalid_date',
   })
   .min(1, 'messages.errors.field_required');
 
@@ -229,28 +206,33 @@ export const EmergencyContactSchema = z.object({
 export type AddressInput = z.infer<typeof AddressSchema>;
 
 export const UserDocumentSchema = z.object({
-  id: z.string({
-    error: 'messages.errors.field_required',
-    invalid_type_error: 'messages.errors.invalid_field',
-  }),
-  type: z.nativeEnum(DocumentType, {
-    error: 'messages.errors.field_required',
-    invalid_type_error: 'messages.errors.invalid_field',
-  }),
-  status: z.nativeEnum(DocumentStatus, {
-    error: 'messages.errors.field_required',
-    invalid_type_error: 'messages.errors.invalid_field',
-  }),
-  fileUrl: z.string({
-    error: 'messages.errors.field_required',
-    invalid_type_error: 'messages.errors.invalid_field',
-  }),
-  issuedAt: DateSchema.nullable().optional(),
-  expiresAt: DateSchema.nullable().optional(),
-  metadata: z.record(z.string(), z.any()).nullable().optional(),
-  userId: z.string().nullable().optional(),
-  serviceRequestId: z.string().nullable().optional(),
-  validatedById: z.string().nullable().optional(),
+  id: z.string(),
+  type: z.enum(Object.values(DocumentType)),
+  status: z.enum(Object.values(DocumentStatus)),
+  storageId: z.string().optional(),
+  fileUrl: z.string().optional(),
+  fileName: z.string(),
+  fileType: z.string(),
+  fileSize: z.number().optional(),
+  checksum: z.string().optional(),
+  version: z.number(),
+  previousVersionId: z.string().optional(),
+  ownerId: z.string(),
+  ownerType: z.string(),
+  issuedAt: z.number().optional(),
+  expiresAt: z.number().optional(),
+  validations: z
+    .array(
+      z.object({
+        validatorId: z.string(),
+        status: z.string(),
+        comments: z.string().optional(),
+        timestamp: z.number(),
+      }),
+    )
+    .optional()
+    .default([]),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export type UserDocumentInput = z.infer<typeof UserDocumentSchema>;

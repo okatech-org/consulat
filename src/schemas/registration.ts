@@ -10,18 +10,16 @@ import {
   CountryCodeSchema,
   DateSchema,
   EmailSchema,
-  EmergencyContactSchema,
   NameSchema,
   PhoneNumberSchema,
   UserDocumentSchema,
 } from './inputs';
 
-// Schémas adaptés à la structure Convex - corrigés
 export const ConvexPersonalInfoSchema = z.object({
   firstName: NameSchema,
   lastName: NameSchema,
-  gender: z.nativeEnum(Gender),
-  acquisitionMode: z.nativeEnum(NationalityAcquisition),
+  gender: z.enum(Object.values(Gender)),
+  acquisitionMode: z.enum(Object.values(NationalityAcquisition)),
   birthDate: DateSchema,
   birthPlace: z.string(),
   birthCountry: z.string(),
@@ -42,7 +40,7 @@ export const ConvexPersonalInfoSchema = z.object({
 });
 
 export const ConvexFamilyInfoSchema = z.object({
-  maritalStatus: z.nativeEnum(MaritalStatus),
+  maritalStatus: z.enum(Object.values(MaritalStatus)),
   father: z
     .object({
       firstName: NameSchema.optional(),
@@ -70,7 +68,7 @@ export const ConvexContactInfoSchema = z.object({
 });
 
 export const ConvexProfessionalInfoSchema = z.object({
-  workStatus: z.nativeEnum(WorkStatus),
+  workStatus: z.enum(Object.values(WorkStatus)),
   profession: NameSchema.optional(),
   employer: NameSchema.optional(),
   employerAddress: z.string().optional(),
@@ -113,9 +111,9 @@ export const ProfessionalInfoSchema = ConvexProfessionalInfoSchema;
 
 export const DocumentsSchema = z.object({
   passport: UserDocumentSchema.nullable().optional(),
-  birthCertificate: UserDocumentSchema,
+  birthCertificate: UserDocumentSchema.nullable().optional(),
   residencePermit: UserDocumentSchema.nullable().optional(),
-  addressProof: UserDocumentSchema,
+  addressProof: UserDocumentSchema.nullable().optional(),
 });
 
 export type DocumentsFormData = z.infer<typeof DocumentsSchema>;
