@@ -11,7 +11,7 @@ export const tickets = defineTable({
 
   // Relations
   userId: v.optional(v.id('users')),
-  email: v.optional(v.string()), // Pour les utilisateurs non connectés
+  email: v.optional(v.string()),
   phoneNumber: v.optional(v.string()),
 
   // Réponse de l'admin
@@ -26,14 +26,10 @@ export const tickets = defineTable({
 
   // Métadonnées
   metadata: v.optional(v.any()),
-
-  createdAt: v.number(),
-  updatedAt: v.number(),
 })
   .index('by_user', ['userId'])
   .index('by_category', ['category'])
   .index('by_status', ['status'])
-  .index('by_created_at', ['createdAt'])
   .index('by_service', ['serviceId'])
   .index('by_request', ['requestId'])
   .index('by_organization', ['organizationId']);

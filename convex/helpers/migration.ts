@@ -234,7 +234,7 @@ export function createRequestActivity(
   type: ActivityType,
   actorId?: Id<'users'>,
   data?: any,
-): Doc<'requests'>['activities'][0] {
+): Doc<'requests'>['metadata']['activities'][0] {
   return {
     type,
     actorId,

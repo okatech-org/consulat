@@ -1,12 +1,7 @@
 import { v } from 'convex/values';
 import { mutation } from '../_generated/server';
 import { validateRequest } from '../helpers/validation';
-import {
-  ActivityType,
-  RequestActionType,
-  RequestPriority,
-  RequestStatus,
-} from '../lib/constants';
+import { ActivityType, RequestPriority, RequestStatus } from '../lib/constants';
 import { Doc } from '../_generated/dataModel';
 import { query } from '../_generated/server';
 import { requestStatusValidator } from '../lib/validators';
@@ -48,19 +43,14 @@ export const createRequest = mutation({
       formData: args.formData,
       documentIds: args.documentIds || [],
       assignedToId: undefined,
-      assignedAt: undefined,
-      activities: [
-        {
-          type: ActivityType.RequestCreated,
-          actorId: args.requesterId,
-          data: { requestNumber },
-          timestamp: Date.now(),
-        },
-      ],
-      actions: [],
-      submittedAt: undefined,
-      completedAt: undefined,
-      updatedAt: Date.now(),
+      notes: [],
+      metadata: {
+        submittedAt: undefined,
+        completedAt: undefined,
+        assignedAt: undefined,
+        activities: [],
+      },
+      generatedDocuments: [],
     });
 
     return requestId;
@@ -305,24 +295,29 @@ export const updateRequest = mutation({
       }
     }
 
-    const updateData: any = {
+    const updateData: Partial<Doc<'requests'>> & Record<string, unknown> = {
       ...(args.status && { status: args.status as RequestStatus }),
       ...(args.priority !== undefined && {
         priority: args.priority as RequestPriority,
       }),
       ...(args.formData && { formData: args.formData }),
       ...(args.documentIds && { documentIds: args.documentIds }),
-      ...(args.assignedToId && {
-        assignedToId: args.assignedToId,
-        assignedAt: Date.now(),
-      }),
-      updatedAt: Date.now(),
+      ...(args.assignedToId && { assignedToId: args.assignedToId }),
     };
+
+    const now = Date.now();
+    let metadataChanged = false;
+    const newMetadata = { ...existingRequest.metadata };
+
+    if (args.assignedToId) {
+      newMetadata.assignedAt = now;
+      metadataChanged = true;
+    }
 
     // Ajouter une activité pour les changements de statut
     if (args.status && args.status !== existingRequest.status) {
-      updateData.activities = [
-        ...existingRequest.activities,
+      newMetadata.activities = [
+        ...existingRequest.metadata.activities,
         {
           type: ActivityType.StatusChanged,
           actorId: args.assignedToId || existingRequest.requesterId,
@@ -330,26 +325,16 @@ export const updateRequest = mutation({
             from: existingRequest.status,
             to: args.status,
           },
-          timestamp: Date.now(),
+          timestamp: now,
         },
       ];
-
-      // Ajouter une action
-      updateData.actions = [
-        ...existingRequest.actions,
-        {
-          type: RequestActionType.StatusChange,
-          data: {
-            from: existingRequest.status,
-            to: args.status,
-          },
-          userId: args.assignedToId || existingRequest.requesterId,
-          createdAt: Date.now(),
-        },
-      ];
+      metadataChanged = true;
     }
 
-    await ctx.db.patch(args.requestId, updateData);
+    await ctx.db.patch(args.requestId, {
+      ...updateData,
+      ...(metadataChanged ? { metadata: newMetadata } : {}),
+    });
     return args.requestId;
   },
 });
@@ -368,28 +353,19 @@ export const submitRequest = mutation({
 
     await ctx.db.patch(args.requestId, {
       status: RequestStatus.Submitted,
-      submittedAt: Date.now(),
-      activities: [
-        ...request.activities,
-        {
-          type: ActivityType.RequestSubmitted,
-          actorId: request.requesterId,
-          data: {},
-          timestamp: Date.now(),
-        },
-      ],
-      actions: [
-        ...request.actions,
-        {
-          type: RequestActionType.StatusChange,
-          data: {
-            from: RequestStatus.Draft,
-            to: RequestStatus.Submitted,
+      metadata: {
+        ...request.metadata,
+        submittedAt: Date.now(),
+        activities: [
+          ...request.metadata.activities,
+          {
+            type: ActivityType.RequestSubmitted,
+            actorId: request.requesterId,
+            data: {},
+            timestamp: Date.now(),
           },
-          userId: request.requesterId,
-        },
-      ],
-      updatedAt: Date.now(),
+        ],
+      },
     });
 
     return args.requestId;
@@ -410,25 +386,19 @@ export const assignRequest = mutation({
 
     await ctx.db.patch(args.requestId, {
       assignedToId: args.assignedToId,
-      assignedAt: Date.now(),
-      activities: [
-        ...request.activities,
-        {
-          type: ActivityType.RequestAssigned,
-          actorId: args.assignedById,
-          data: { assignedToId: args.assignedToId },
-          timestamp: Date.now(),
-        },
-      ],
-      actions: [
-        ...request.actions,
-        {
-          type: RequestActionType.Assignment,
-          data: { assignedToId: args.assignedToId },
-          userId: args.assignedById,
-        },
-      ],
-      updatedAt: Date.now(),
+      metadata: {
+        ...request.metadata,
+        assignedAt: Date.now(),
+        activities: [
+          ...request.metadata.activities,
+          {
+            type: ActivityType.RequestAssigned,
+            actorId: args.assignedById,
+            data: { assignedToId: args.assignedToId },
+            timestamp: Date.now(),
+          },
+        ],
+      },
     });
 
     return args.requestId;
@@ -448,25 +418,19 @@ export const completeRequest = mutation({
 
     await ctx.db.patch(args.requestId, {
       status: RequestStatus.Completed,
-      completedAt: Date.now(),
-      activities: [
-        ...request.activities,
-        {
-          type: ActivityType.RequestCompleted,
-          actorId: args.completedById,
-          data: {},
-          timestamp: Date.now(),
-        },
-      ],
-      actions: [
-        ...request.actions,
-        {
-          type: RequestActionType.Completed,
-          data: {},
-          userId: args.completedById,
-        },
-      ],
-      updatedAt: Date.now(),
+      metadata: {
+        ...request.metadata,
+        completedAt: Date.now(),
+        activities: [
+          ...request.metadata.activities,
+          {
+            type: ActivityType.RequestCompleted,
+            actorId: args.completedById,
+            data: {},
+            timestamp: Date.now(),
+          },
+        ],
+      },
     });
 
     return args.requestId;
@@ -491,24 +455,18 @@ export const addRequestDocument = mutation({
 
     await ctx.db.patch(args.requestId, {
       documentIds: [...request.documentIds, args.documentId],
-      activities: [
-        ...request.activities,
-        {
-          type: ActivityType.DocumentUploaded,
-          actorId: args.addedById,
-          data: { documentId: args.documentId },
-          timestamp: Date.now(),
-        },
-      ],
-      actions: [
-        ...request.actions,
-        {
-          type: RequestActionType.DocumentAdded,
-          data: { documentId: args.documentId },
-          userId: args.addedById,
-        },
-      ],
-      updatedAt: Date.now(),
+      metadata: {
+        ...request.metadata,
+        activities: [
+          ...request.metadata.activities,
+          {
+            type: ActivityType.DocumentUploaded,
+            actorId: args.addedById,
+            data: { documentId: args.documentId },
+            timestamp: Date.now(),
+          },
+        ],
+      },
     });
 
     return args.requestId;
@@ -518,7 +476,10 @@ export const addRequestDocument = mutation({
 export const addRequestNote = mutation({
   args: {
     requestId: v.id('requests'),
-    note: v.string(),
+    note: v.object({
+      type: v.union(v.literal('internal'), v.literal('feedback')),
+      content: v.string(),
+    }),
     addedById: v.id('users'),
   },
   handler: async (ctx, args) => {
@@ -528,24 +489,18 @@ export const addRequestNote = mutation({
     }
 
     await ctx.db.patch(args.requestId, {
-      activities: [
-        ...request.activities,
-        {
-          type: ActivityType.CommentAdded,
-          actorId: args.addedById,
-          data: { note: args.note },
-          timestamp: Date.now(),
-        },
-      ],
-      actions: [
-        ...request.actions,
-        {
-          type: RequestActionType.NoteAdded,
-          data: { note: args.note },
-          userId: args.addedById,
-        },
-      ],
-      updatedAt: Date.now(),
+      metadata: {
+        ...request.metadata,
+        activities: [
+          ...request.metadata.activities,
+          {
+            type: ActivityType.CommentAdded,
+            actorId: args.addedById,
+            data: { note: args.note.content, type: args.note.type },
+            timestamp: Date.now(),
+          },
+        ],
+      },
     });
 
     return args.requestId;

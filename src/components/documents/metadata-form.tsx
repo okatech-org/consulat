@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DocumentType } from '@prisma/client';
+import { DocumentType } from '@/convex/lib/constants';
 
 interface MetadataFormProps {
   documentType: DocumentType;
@@ -33,7 +33,7 @@ export function MetadataForm({ documentType, metadata, onSubmit }: MetadataFormP
   // Définir les champs de métadonnées selon le type de document
   const getMetadataFields = (type: DocumentType) => {
     switch (type) {
-      case DocumentType.PASSPORT:
+      case DocumentType.Passport:
         return [
           {
             name: 'documentNumber',
@@ -48,7 +48,7 @@ export function MetadataForm({ documentType, metadata, onSubmit }: MetadataFormP
             required: true,
           },
         ];
-      case DocumentType.RESIDENCE_PERMIT:
+      case DocumentType.ResidencePermit:
         return [
           { name: 'permitNumber', label: 'permit_number', type: 'text', required: true },
           {
@@ -65,7 +65,7 @@ export function MetadataForm({ documentType, metadata, onSubmit }: MetadataFormP
             options: ['TEMPORARY', 'PERMANENT', 'STUDENT', 'WORK'],
           },
         ];
-      case DocumentType.BIRTH_CERTIFICATE:
+      case DocumentType.BirthCertificate:
         return [
           {
             name: 'registryNumber',
@@ -81,7 +81,7 @@ export function MetadataForm({ documentType, metadata, onSubmit }: MetadataFormP
           },
           { name: 'placeOfBirth', label: 'place_of_birth', type: 'text', required: true },
         ];
-      case DocumentType.PROOF_OF_ADDRESS:
+      case DocumentType.ProofOfAddress:
         return [
           {
             name: 'documentType',
@@ -117,7 +117,7 @@ export function MetadataForm({ documentType, metadata, onSubmit }: MetadataFormP
                   {field.type === 'select' ? (
                     <Select
                       onValueChange={formField.onChange}
-                      defaultValue={formField.value}
+                      defaultValue={formField.value as string}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t(`metadata.select_${field.label}`)} />
@@ -131,7 +131,7 @@ export function MetadataForm({ documentType, metadata, onSubmit }: MetadataFormP
                       </SelectContent>
                     </Select>
                   ) : (
-                    <Input {...formField} />
+                    <Input {...formField} value={formField.value as string} />
                   )}
                 </FormControl>
                 <TradFormMessage />

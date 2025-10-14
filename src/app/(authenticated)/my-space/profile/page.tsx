@@ -13,6 +13,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import type { FullProfile } from '@/types/convex-profile';
 import { useCurrentUser } from '@/hooks/use-current-user';
 
 export default function ProfilePage() {
@@ -20,7 +21,7 @@ export default function ProfilePage() {
   const profile = useQuery(
     api.functions.profile.getCurrentProfile,
     user ? { userId: user._id } : 'skip',
-  );
+  ) as FullProfile | null | undefined;
 
   // Gérer le chargement
   if (profile === undefined) {
@@ -31,7 +32,7 @@ export default function ProfilePage() {
     );
   }
 
-  const registrationRequest = profile?.registrationRequest;
+  const registrationRequest = profile?.registrationRequest || null;
 
   if (!profile) {
     return (
@@ -54,9 +55,7 @@ export default function ProfilePage() {
       return false;
     }
 
-    if (profile.validationRequestId) {
-      return false;
-    }
+    // Convex: pas de validationRequestId sur le profil
 
     if (calculateProfileCompletion(profile) !== 100) {
       return false;
@@ -77,16 +76,29 @@ export default function ProfilePage() {
           <ProfileTabs profile={profile} />
         </div>
         <div className={'col-span-full flex flex-col gap-4 lg:col-span-3'}>
-          {registrationRequest && registrationRequest.notes?.length > 0 && (
-            <NotesList
-              notes={registrationRequest.notes.filter(
-                (note: any) => note.type === 'FEEDBACK',
-              )}
-            />
-          )}
+          {(() => {
+            const rawNotes: Array<Record<string, unknown>> = Array.isArray(
+              (registrationRequest as { notes?: unknown })?.notes,
+            )
+              ? ((
+                  (registrationRequest as { notes?: unknown })?.notes as Array<unknown>
+                ).filter(
+                  (n): n is Record<string, unknown> =>
+                    typeof n === 'object' && n !== null,
+                ) as Array<Record<string, unknown>>)
+              : [];
+            const feedbackNotes = rawNotes.filter(
+              (n) =>
+                typeof n['type'] === 'string' &&
+                (n['type'] as string).toLowerCase() === 'feedback',
+            );
+            return feedbackNotes.length > 0 ? (
+              <NotesList notes={feedbackNotes as never[]} />
+            ) : null;
+          })()}
           <ProfileProgressBar profile={profile} />
 
-          <SubmitProfileButton canSubmit={canSubmit()} profileId={profile.id} />
+          <SubmitProfileButton canSubmit={canSubmit()} profileId={profile._id} />
         </div>
       </div>
     </PageContainer>

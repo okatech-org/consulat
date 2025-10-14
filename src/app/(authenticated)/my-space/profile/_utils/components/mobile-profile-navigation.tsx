@@ -10,7 +10,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { FullProfile } from '@/types';
 import { BasicInfoSection } from './sections/basic-info-section';
 import { ContactInfoSection } from './sections/contact-info-section';
 import { DocumentsSection } from './sections/documents-section';
@@ -18,7 +17,7 @@ import { FamilyInfoSection } from './sections/family-info-section';
 import { ProfessionalInfoSection } from './sections/professional-info-section';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { ServiceRequest } from '@prisma/client';
+import type { ServiceRequest } from '@prisma/client';
 import { RequestsSection } from './sections/requests-section';
 import { useProfileCompletion } from '../hooks/use-profile-completion';
 import {
@@ -32,6 +31,7 @@ import {
   Circle,
   Save,
 } from 'lucide-react';
+import type { FullProfile } from '@/types/convex-profile';
 
 type MobileProfileNavigationProps = {
   profile: FullProfile;
@@ -53,6 +53,10 @@ export function MobileProfileNavigation({
   requestId,
   requests,
 }: MobileProfileNavigationProps) {
+  if (!profile) {
+    return undefined;
+  }
+
   const t = useTranslations('profile');
   const router = useRouter();
   const completion = useProfileCompletion(profile);
@@ -79,8 +83,7 @@ export function MobileProfileNavigation({
       content: (
         <BasicInfoSection
           profile={profile}
-          onSave={() => handleSectionSave('basic-info')}
-          requestId={requestId}
+          onSaveAction={() => handleSectionSave('basic-info')}
         />
       ),
     },
@@ -128,9 +131,8 @@ export function MobileProfileNavigation({
             residencePermit: profile.residencePermit,
             addressProof: profile.addressProof,
           }}
-          profileId={profile.id}
-          onSave={() => handleSectionSave('documents')}
-          requestId={requestId}
+          profileId={profile._id}
+          onSaveAction={() => handleSectionSave('documents')}
         />
       ),
     },

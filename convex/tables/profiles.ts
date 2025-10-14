@@ -14,7 +14,6 @@ import {
 // Table Profiles - Données personnelles
 export const profiles = defineTable({
   userId: v.id('users'),
-  documentIds: v.array(v.id('documents')),
   category: profileCategoryValidator,
   status: profileStatusValidator,
   residenceCountry: v.optional(v.string()),
@@ -29,6 +28,7 @@ export const profiles = defineTable({
   contacts: v.object({
     email: v.optional(v.string()),
     phone: v.optional(v.string()),
+    address: v.optional(addressValidator),
   }),
 
   personal: v.object({
@@ -39,13 +39,11 @@ export const profiles = defineTable({
     birthCountry: v.optional(v.string()),
     gender: v.optional(genderValidator),
     nationality: v.optional(v.string()),
-    maritalStatus: v.optional(maritalStatusValidator),
-    workStatus: v.optional(workStatusValidator),
     acquisitionMode: v.optional(nationalityAcquisitionValidator),
-    address: v.optional(addressValidator),
   }),
 
   family: v.object({
+    maritalStatus: v.optional(maritalStatusValidator),
     father: v.optional(
       v.object({
         firstName: v.optional(v.string()),
@@ -70,9 +68,11 @@ export const profiles = defineTable({
   emergencyContacts: v.array(emergencyContactValidator),
 
   professionSituation: v.object({
+    workStatus: v.optional(workStatusValidator),
     profession: v.optional(v.string()),
     employer: v.optional(v.string()),
     employerAddress: v.optional(v.string()),
+    cv: v.optional(v.id('documents')),
   }),
 
   registrationRequest: v.optional(v.id('requests')),

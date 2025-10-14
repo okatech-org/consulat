@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as functions_admin from "../functions/admin.js";
 import type * as functions_analytics from "../functions/analytics.js";
 import type * as functions_appointment from "../functions/appointment.js";
 import type * as functions_country from "../functions/country.js";
@@ -65,6 +66,7 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  "functions/admin": typeof functions_admin;
   "functions/analytics": typeof functions_analytics;
   "functions/appointment": typeof functions_appointment;
   "functions/country": typeof functions_country;

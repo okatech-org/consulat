@@ -229,6 +229,7 @@ const exportUserCentricDataInclude: Prisma.UserSelect = {
     select: {
       id: true,
       userId: true,
+      status: true,
       category: true,
       parentAuthorities: {
         include: {
@@ -338,7 +339,6 @@ const exportUserCentricDataInclude: Prisma.UserSelect = {
       cardIssuedAt: true,
       cardExpiresAt: true,
       cardPin: true,
-      status: true,
       validationNotes: true,
       validatedAt: true,
       validatedBy: true,
@@ -349,7 +349,12 @@ const exportUserCentricDataInclude: Prisma.UserSelect = {
   },
   countryCode: true,
   notifications: true,
-  submittedRequests: true,
+  submittedRequests: {
+    include: {
+      notes: true,
+      actions: true,
+    },
+  },
   documents: true,
   appointmentsToAttend: {
     include: {

@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { InfoField } from '@/components/ui/info-field';
 import { useDateLocale } from '@/lib/utils';
-import type { FullProfile } from '@/types';
+import type { FullProfile } from '@/types/convex-profile';
 import {
   User,
   Calendar,
@@ -38,7 +38,7 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
             label={t_profile('identityPicture')}
             value={
               <UserDocument
-                document={profile.identityPicture as AppUserDocument}
+                document={profile.identityPicture as unknown as AppUserDocument}
                 expectedType={DocumentType.IDENTITY_PHOTO}
                 label=""
                 description=""
@@ -58,13 +58,13 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
         <div className="grid gap-4 grid-cols-2">
           <InfoField
             label={t_profile('firstName')}
-            value={profile.firstName}
+            value={profile.personal?.firstName}
             icon={<User className="size-4" />}
             required
           />
           <InfoField
             label={t_profile('lastName')}
-            value={profile.lastName}
+            value={profile.personal?.lastName}
             icon={<User className="size-4" />}
             required
           />
@@ -76,7 +76,9 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
           <InfoField
             label={t_profile('gender')}
             value={
-              profile.gender ? t_inputs(`gender.options.${profile.gender}`) : undefined
+              profile.personal?.gender
+                ? t_inputs(`gender.options.${profile.personal.gender}`)
+                : undefined
             }
             icon={<User className="size-4" />}
             required
@@ -85,8 +87,8 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
           <InfoField
             label={t_profile('birthDate')}
             value={
-              profile.birthDate
-                ? formatDate(new Date(profile.birthDate), 'dd/MM/yyyy')
+              profile.personal?.birthDate
+                ? formatDate(new Date(profile.personal.birthDate), 'dd/MM/yyyy')
                 : undefined
             }
             icon={<Calendar className="size-4" />}
@@ -94,28 +96,38 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
           />
           <InfoField
             label={t_profile('birthPlace')}
-            value={profile.birthPlace}
+            value={profile.personal?.birthPlace}
             icon={<MapPin className="size-4" />}
             required
           />
 
           <InfoField
             label={t_profile('birthCountry')}
-            value={t_countries(profile.birthCountry)}
+            value={
+              profile.personal?.birthCountry
+                ? t_countries(profile.personal.birthCountry as any)
+                : undefined
+            }
             icon={<Globe className="size-4" />}
             required
           />
           <InfoField
             label={t_profile('nationality')}
-            value={t_countries(profile.nationality)}
+            value={
+              profile.personal?.nationality
+                ? t_countries(profile.personal.nationality as any)
+                : undefined
+            }
             icon={<Flag className="size-4" />}
             required
           />
           <InfoField
             label={t_profile('acquisitionMode')}
             value={
-              profile.acquisitionMode
-                ? t_inputs(`nationality_acquisition.options.${profile.acquisitionMode}`)
+              profile.personal?.acquisitionMode
+                ? t_inputs(
+                    `nationality_acquisition.options.${profile.personal.acquisitionMode}`,
+                  )
                 : undefined
             }
             icon={<Flag className="size-4" />}
@@ -124,57 +136,16 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
         </div>
       </div>
 
-      <Separator />
-
-      {/* Informations passeport */}
-      <div className="space-y-4">
-        <h4 className="font-medium text-lg">{t_profile('passport')}</h4>
-
-        <InfoField
-          label={t_profile('passportNumber')}
-          value={profile.passportNumber}
-          icon={<CreditCard className="size-4" />}
-          required
-        />
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <InfoField
-            label={t_profile('passportIssueDate')}
-            value={
-              profile.passportIssueDate
-                ? formatDate(new Date(profile.passportIssueDate), 'dd/MM/yyyy')
-                : undefined
-            }
-            icon={<Calendar className="size-4" />}
-            required
-          />
-          <InfoField
-            label={t_profile('passportExpiryDate')}
-            value={
-              profile.passportExpiryDate
-                ? formatDate(new Date(profile.passportExpiryDate), 'dd/MM/yyyy')
-                : undefined
-            }
-            icon={<Calendar className="size-4" />}
-            required
-          />
-        </div>
-
-        <InfoField
-          label={t_profile('passportIssueAuthority')}
-          value={profile.passportIssueAuthority}
-          icon={<Building className="size-4" />}
-          required
-        />
-
-        {profile.cardPin && (
+      {profile.consularCard?.cardPin && (
+        <>
+          <Separator />
           <InfoField
             label="Code NIP"
-            value={profile.cardPin}
+            value={profile.consularCard.cardPin}
             icon={<CreditCard className="size-4" />}
           />
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }

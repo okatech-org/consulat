@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { ConvexFullProfile } from '@/types/convex-profile';
+import type { FullProfile as ConvexFullProfile } from '@/types/convex-profile';
 
 interface SectionCompletion {
   name: string;

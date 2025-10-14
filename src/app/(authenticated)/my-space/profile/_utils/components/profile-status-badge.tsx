@@ -1,10 +1,10 @@
 import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { RequestStatus } from '@/convex/lib/constants';
+import { ProfileStatus } from '@/convex/lib/constants';
 
 interface ProfileStatusBadgeProps {
-  status: RequestStatus;
+  status: ProfileStatus;
   label?: string;
   className?: string;
 }
@@ -16,15 +16,15 @@ export function ProfileStatusBadge({
 }: ProfileStatusBadgeProps) {
   const t = useTranslations('inputs');
 
-  const getStatusStyles = (status: RequestStatus) => {
+  const getStatusStyles = (status: ProfileStatus) => {
     switch (status) {
-      case RequestStatus.Draft:
+      case ProfileStatus.Draft:
         return 'bg-muted text-muted-foreground';
-      case RequestStatus.Submitted:
+      case ProfileStatus.Pending:
         return 'bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-blue-100';
-      case RequestStatus.Validated:
+      case ProfileStatus.Active:
         return 'bg-green-100 text-green-700 dark:bg-green-700 dark:text-green-100';
-      case RequestStatus.Rejected:
+      case ProfileStatus.Suspended:
         return 'bg-red-100 text-red-700 dark:bg-red-700 dark:text-red-100';
       default:
         return 'bg-muted text-muted-foreground';

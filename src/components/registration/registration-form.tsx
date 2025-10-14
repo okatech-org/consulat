@@ -25,7 +25,8 @@ import { handleFormError } from '@/lib/form/errors';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { submitProfileForValidation, updateProfile } from '@/actions/profile';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import {
   type ErrorMessageKey,
   filterUneditedKeys,
@@ -40,7 +41,7 @@ import { Dialog, DialogContent } from '../ui/dialog';
 import Link from 'next/link';
 import { type Country, CountryStatus } from '@prisma/client';
 import { ErrorCard } from '../ui/error-card';
-import { type FullProfile } from '@/types';
+import { type FullProfile } from '@/types/convex-profile';
 import React from 'react';
 import { useTabs } from '@/hooks/use-tabs';
 import { DocumentType } from '@prisma/client';
@@ -62,7 +63,9 @@ export function RegistrationForm({
     forms,
     clearData,
   } = useRegistrationForm({ profile });
-  const country = profile?.user?.countryCode;
+  const country = undefined;
+  const convexUpdate = useMutation(api.functions.profile.updateProfile);
+  const convexSubmit = useMutation(api.functions.profile.submitProfileForValidation);
   const router = useRouter();
   const t = useTranslations('registration');
   const tInputs = useTranslations('inputs');
@@ -252,9 +255,94 @@ export function RegistrationForm({
       const stepData = stepForm?.getValues();
       const editedFields = filterUneditedKeys(stepData, stepForm.formState.dirtyFields);
 
-      // If there are changes, save them
+      // If there are changes, save them (mapped vers Convex selon l'étape)
       if (editedFields && Object.keys(editedFields).length > 0) {
-        const { error } = await tryCatch(updateProfile(profile.id, editedFields));
+        const personalUpdate: Record<string, unknown> = {};
+        const contactsUpdate: Record<string, unknown> = {};
+        const familyUpdate: Record<string, unknown> = {};
+        const professionSituationUpdate: Record<string, unknown> = {};
+
+        if (currentTab === 'basicInfo') {
+          if (editedFields.firstName !== undefined)
+            personalUpdate.firstName = editedFields.firstName;
+          if (editedFields.lastName !== undefined)
+            personalUpdate.lastName = editedFields.lastName;
+          if (editedFields.gender !== undefined)
+            personalUpdate.gender = editedFields.gender as any;
+          if (editedFields.birthPlace !== undefined)
+            personalUpdate.birthPlace = editedFields.birthPlace;
+          if (editedFields.birthCountry !== undefined)
+            personalUpdate.birthCountry = editedFields.birthCountry as any;
+          if (editedFields.nationality !== undefined)
+            personalUpdate.nationality = editedFields.nationality as any;
+          if (editedFields.acquisitionMode !== undefined)
+            personalUpdate.acquisitionMode = editedFields.acquisitionMode as any;
+          if (editedFields.birthDate)
+            personalUpdate.birthDate = new Date(
+              editedFields.birthDate as string,
+            ).getTime();
+        }
+
+        if (currentTab === 'contactInfo') {
+          if (editedFields.email !== undefined) contactsUpdate.email = editedFields.email;
+          if (editedFields.phoneNumber !== undefined)
+            contactsUpdate.phone = editedFields.phoneNumber;
+          if (editedFields.address) {
+            const a = editedFields.address as ContactInfoFormData['address'];
+            personalUpdate.address = {
+              street: a.firstLine,
+              complement: a.secondLine,
+              city: a.city,
+              postalCode: a.zipCode,
+              country: a.country as any,
+            };
+          }
+        }
+
+        if (currentTab === 'familyInfo') {
+          const fi = editedFields as unknown as FamilyInfoFormData;
+          if (fi.maritalStatus !== undefined)
+            personalUpdate.maritalStatus = fi.maritalStatus as any;
+          if (fi.fatherFullName) {
+            const [firstName, ...rest] = fi.fatherFullName.split(' ');
+            familyUpdate.father = { firstName, lastName: rest.join(' ') };
+          }
+          if (fi.motherFullName) {
+            const [firstName, ...rest] = fi.motherFullName.split(' ');
+            familyUpdate.mother = { firstName, lastName: rest.join(' ') };
+          }
+          if (fi.spouseFullName) {
+            const [firstName, ...rest] = fi.spouseFullName.split(' ');
+            familyUpdate.spouse = { firstName, lastName: rest.join(' ') };
+          }
+        }
+
+        if (currentTab === 'professionalInfo') {
+          const pi = editedFields as unknown as ProfessionalInfoFormData;
+          if (pi.workStatus !== undefined)
+            personalUpdate.workStatus = pi.workStatus as any;
+          if (pi.profession !== undefined)
+            professionSituationUpdate.profession = pi.profession;
+          if (pi.employer !== undefined) professionSituationUpdate.employer = pi.employer;
+          if (pi.employerAddress !== undefined)
+            professionSituationUpdate.employerAddress = pi.employerAddress;
+        }
+
+        const { error } = await tryCatch(
+          convexUpdate({
+            profileId: profile._id as any,
+            personal: Object.keys(personalUpdate).length
+              ? (personalUpdate as any)
+              : undefined,
+            contacts: Object.keys(contactsUpdate).length
+              ? (contactsUpdate as any)
+              : undefined,
+            family: Object.keys(familyUpdate).length ? (familyUpdate as any) : undefined,
+            professionSituation: Object.keys(professionSituationUpdate).length
+              ? (professionSituationUpdate as any)
+              : undefined,
+          }),
+        );
 
         if (error) {
           const { title, description } = handleFormError(error, t);
@@ -266,7 +354,7 @@ export function RegistrationForm({
 
       // Handle final step logic
       if (currentStepIndex === totalSteps - 1) {
-        if (profile.status !== 'DRAFT') {
+        if (profile.status !== 'draft') {
           toast({
             title: t('submission.success.title'),
             description: t('submission.success.description'),
@@ -305,7 +393,10 @@ export function RegistrationForm({
     setIsLoading(true);
 
     const result = await tryCatch(
-      submitProfileForValidation(profile.id, profile.category === 'MINOR'),
+      convexSubmit({
+        profileId: profile._id as any,
+        isChild: profile.category === 'minor',
+      }),
     );
 
     setIsLoading(false);
@@ -369,7 +460,7 @@ export function RegistrationForm({
   const stepsComponents: Record<keyof typeof forms | 'review', React.ReactNode> = {
     documents: (
       <DocumentUploadSection
-        profileId={profile.id}
+        profileId={profile._id as any}
         form={forms.documents}
         onAnalysisComplete={handleDocumentsAnalysis}
         handleSubmitAction={() => handleNext()}
@@ -382,7 +473,7 @@ export function RegistrationForm({
         form={forms.basicInfo}
         onSubmit={() => handleNext()}
         isLoading={isLoading}
-        profileId={profile.id}
+        profileId={profile._id as any}
       />
     ),
     familyInfo: (

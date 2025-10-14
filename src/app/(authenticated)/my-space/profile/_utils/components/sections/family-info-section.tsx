@@ -7,8 +7,9 @@ import { useTranslations } from 'next-intl';
 import { FamilyInfoSchema, type FamilyInfoFormData } from '@/schemas/registration';
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
-import { updateProfile } from '@/actions/profile';
-import type { FullProfile } from '@/types';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { FullProfile } from '@/types/convex-profile';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { FamilyInfoForm } from '@/components/registration/family-info';
 import { FamilyInfoDisplay } from './family-info-display';
@@ -37,13 +38,42 @@ export function FamilyInfoSection({
     },
   });
 
+  const convexUpdate = useMutation(api.functions.profile.updateProfile);
+
   const handleSave = async () => {
     setIsLoading(true);
     const data = form.getValues();
 
     filterUneditedKeys<FamilyInfoFormData>(data, form.formState.dirtyFields);
 
-    const result = await tryCatch(updateProfile(profile.id, data, requestId));
+    // Mapper vers Convex: family.father/mother/spouse + personal.maritalStatus
+    const familyUpdate: Record<string, unknown> = {};
+    if (typeof data.fatherFullName !== 'undefined' && data.fatherFullName) {
+      const [firstName, ...rest] = data.fatherFullName.split(' ');
+      familyUpdate.father = { firstName, lastName: rest.join(' ') };
+    }
+    if (typeof data.motherFullName !== 'undefined' && data.motherFullName) {
+      const [firstName, ...rest] = data.motherFullName.split(' ');
+      familyUpdate.mother = { firstName, lastName: rest.join(' ') };
+    }
+    if (typeof data.spouseFullName !== 'undefined' && data.spouseFullName) {
+      const [firstName, ...rest] = data.spouseFullName.split(' ');
+      familyUpdate.spouse = { firstName, lastName: rest.join(' ') };
+    }
+
+    const personalUpdate: Record<string, unknown> = {};
+    if (typeof data.maritalStatus !== 'undefined')
+      personalUpdate.maritalStatus = data.maritalStatus as any;
+
+    const result = await tryCatch(
+      convexUpdate({
+        profileId: profile._id as any,
+        family: Object.keys(familyUpdate).length ? (familyUpdate as any) : undefined,
+        personal: Object.keys(personalUpdate).length
+          ? (personalUpdate as any)
+          : undefined,
+      }),
+    );
 
     if (result.error) {
       toast({

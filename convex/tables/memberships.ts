@@ -19,8 +19,7 @@ export const memberships = defineTable({
   status: membershipStatusValidator,
   assignedCountries: v.array(v.string()),
 
-  managerIds: v.array(v.id('users')),
-  agentIds: v.array(v.id('users')),
+  managerId: v.optional(v.id('users')),
 
   assignedServices: v.array(v.id('services')),
 
@@ -28,9 +27,6 @@ export const memberships = defineTable({
   joinedAt: v.number(),
   leftAt: v.optional(v.number()),
   lastActiveAt: v.optional(v.number()),
-
-  createdAt: v.number(),
-  updatedAt: v.number(),
 })
   .index('by_user', ['userId'])
   .index('by_organization', ['organizationId'])

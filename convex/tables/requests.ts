@@ -1,10 +1,14 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import {
-  activityTypeValidator,
-  requestActionTypeValidator,
   requestPriorityValidator,
   requestStatusValidator,
+  noteValidator,
+  deliveryModeValidator,
+  processingModeValidator,
+  addressValidator,
+  deliveryStatusValidator,
+  activityValidator,
 } from '../lib/validators';
 
 export const requests = defineTable({
@@ -25,29 +29,42 @@ export const requests = defineTable({
 
   // Assignation
   assignedToId: v.optional(v.id('users')),
-  assignedAt: v.optional(v.number()),
 
-  // Traçabilité et actions
-  activities: v.array(
+  config: v.optional(
     v.object({
-      type: activityTypeValidator,
-      actorId: v.optional(v.id('users')),
-      data: v.optional(v.any()),
-      timestamp: v.number(),
-    }),
-  ),
-  actions: v.array(
-    v.object({
-      type: requestActionTypeValidator,
-      data: v.optional(v.any()),
-      userId: v.id('users'),
+      processingMode: processingModeValidator,
+      deliveryMode: deliveryModeValidator,
+      deliveryAddress: v.optional(addressValidator),
+      proxy: v.optional(
+        v.object({
+          firstName: v.string(),
+          lastName: v.string(),
+          identityDoc: v.id('documents'),
+          powerOfAttorneyDoc: v.id('documents'),
+        }),
+      ),
     }),
   ),
 
-  // Timestamps
-  submittedAt: v.optional(v.number()),
-  completedAt: v.optional(v.number()),
-  updatedAt: v.number(),
+  delivery: v.optional(
+    v.object({
+      address: addressValidator,
+      trackingNumber: v.string(),
+      status: deliveryStatusValidator,
+    }),
+  ),
+
+  generatedDocuments: v.array(v.id('documents')),
+
+  notes: v.array(noteValidator),
+
+  metadata: v.object({
+    submittedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+    assignedAt: v.optional(v.number()),
+    // Traçabilité et actions
+    activities: v.array(activityValidator),
+  }),
 })
   .index('by_number', ['number'])
   .index('by_service', ['serviceId'])

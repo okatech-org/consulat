@@ -4,21 +4,21 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import type { Profile } from '@prisma/client';
-import { WorkStatus } from '@prisma/client';
 import {
   ProfessionalInfoSchema,
   type ProfessionalInfoFormData,
 } from '@/schemas/registration';
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
-import { updateProfile } from '@/actions/profile';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
+import type { FullProfile } from '@/types/convex-profile';
 import { ProfessionalInfoForm } from '@/components/registration/professional-info';
 import { ProfessionalInfoDisplay } from './professional-info-display';
 
 interface ProfessionalInfoSectionProps {
-  profile: Profile;
+  profile: FullProfile;
   onSave: () => void;
   requestId?: string;
 }
@@ -36,13 +36,15 @@ export function ProfessionalInfoSection({
   const form = useForm<ProfessionalInfoFormData>({
     resolver: zodResolver(ProfessionalInfoSchema),
     defaultValues: {
-      workStatus: profile.workStatus ?? WorkStatus.EMPLOYEE,
-      profession: profile.profession || '',
-      employer: profile.employer || '',
-      employerAddress: profile.employerAddress || '',
-      activityInGabon: profile.activityInGabon || '',
+      workStatus: (profile.personal?.workStatus as any) ?? 'employee',
+      profession: profile.professionSituation?.profession || '',
+      employer: profile.professionSituation?.employer || '',
+      employerAddress: profile.professionSituation?.employerAddress || '',
+      activityInGabon: '',
     },
   });
+
+  const convexUpdate = useMutation(api.functions.profile.updateProfile);
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -50,7 +52,29 @@ export function ProfessionalInfoSection({
 
     filterUneditedKeys<ProfessionalInfoFormData>(data, form.formState.dirtyFields);
 
-    const result = await tryCatch(updateProfile(profile.id, data, requestId));
+    const personalUpdate: Record<string, unknown> = {};
+    const professionSituationUpdate: Record<string, unknown> = {};
+
+    if (typeof data.workStatus !== 'undefined')
+      personalUpdate.workStatus = data.workStatus as any;
+    if (typeof data.profession !== 'undefined')
+      professionSituationUpdate.profession = data.profession;
+    if (typeof data.employer !== 'undefined')
+      professionSituationUpdate.employer = data.employer;
+    if (typeof data.employerAddress !== 'undefined')
+      professionSituationUpdate.employerAddress = data.employerAddress;
+
+    const result = await tryCatch(
+      convexUpdate({
+        profileId: profile._id as any,
+        personal: Object.keys(personalUpdate).length
+          ? (personalUpdate as any)
+          : undefined,
+        professionSituation: Object.keys(professionSituationUpdate).length
+          ? (professionSituationUpdate as any)
+          : undefined,
+      }),
+    );
 
     if (result.error) {
       toast({

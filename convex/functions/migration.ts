@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation } from '../_generated/server';
+import { Note, RequestAction } from '@prisma/client';
 import {
   AppointmentStatus,
   AppointmentType,
@@ -22,6 +23,10 @@ import {
   UserStatus,
   MembershipStatus,
   WorkStatus,
+  ProcessingMode,
+  DeliveryMode,
+  FeedbackStatus,
+  FeedbackCategory,
 } from '../lib/constants';
 import type { Id } from '../_generated/dataModel';
 import type { MutationCtx } from '../_generated/server';
@@ -77,14 +82,6 @@ const profileCategoryMapping: { [key: string]: ProfileCategory } = {
   MINOR: ProfileCategory.Minor,
 };
 
-const profileStatusMapping: { [key: string]: ProfileStatus } = {
-  ACTIVE: ProfileStatus.Active,
-  INACTIVE: ProfileStatus.Inactive,
-  PENDING: ProfileStatus.Pending,
-  SUSPENDED: ProfileStatus.Suspended,
-  DRAFT: ProfileStatus.Pending,
-};
-
 const genderMapping: { [key: string]: Gender } = {
   MALE: Gender.Male,
   FEMALE: Gender.Female,
@@ -126,21 +123,6 @@ const serviceCategoryMapping: { [key: string]: ServiceCategory } = {
   ASSISTANCE: ServiceCategory.Assistance,
   TRAVEL_DOCUMENT: ServiceCategory.TravelDocument,
   OTHER: ServiceCategory.Other,
-};
-
-const requestStatusMapping: { [key: string]: RequestStatus } = {
-  EDITED: RequestStatus.Edited,
-  DRAFT: RequestStatus.Draft,
-  SUBMITTED: RequestStatus.Submitted,
-  PENDING: RequestStatus.Pending,
-  PENDING_COMPLETION: RequestStatus.PendingCompletion,
-  VALIDATED: RequestStatus.Validated,
-  REJECTED: RequestStatus.Rejected,
-  CARD_IN_PRODUCTION: RequestStatus.InProduction,
-  DOCUMENT_IN_PRODUCTION: RequestStatus.InProduction,
-  READY_FOR_PICKUP: RequestStatus.ReadyForPickup,
-  APPOINTMENT_SCHEDULED: RequestStatus.AppointmentScheduled,
-  COMPLETED: RequestStatus.Completed,
 };
 
 const documentTypeMapping: { [key: string]: DocumentType } = {
@@ -224,45 +206,6 @@ const notificationStatusMapping: { [key: string]: NotificationStatus } = {
   FAILED: NotificationStatus.Failed,
 };
 
-const countryStatusMapping: { [key: string]: CountryStatus } = {
-  ACTIVE: CountryStatus.Active,
-  INACTIVE: CountryStatus.Inactive,
-};
-
-const organizationTypeMapping: { [key: string]: OrganizationType } = {
-  EMBASSY: OrganizationType.Embassy,
-  CONSULATE: OrganizationType.Consulate,
-  GENERAL_CONSULATE: OrganizationType.GeneralConsulate,
-  HONORARY_CONSULATE: OrganizationType.HonoraryConsulate,
-  THIRD_PARTY: OrganizationType.ThirdParty,
-};
-
-const organizationStatusMapping: { [key: string]: OrganizationStatus } = {
-  ACTIVE: OrganizationStatus.Active,
-  INACTIVE: OrganizationStatus.Inactive,
-  SUSPENDED: OrganizationStatus.Suspended,
-};
-
-const serviceStatusMapping: { [key: string]: ServiceStatus } = {
-  ACTIVE: ServiceStatus.Active,
-  INACTIVE: ServiceStatus.Inactive,
-  SUSPENDED: ServiceStatus.Suspended,
-};
-
-const feedbackCategoryMapping: { [key: string]: string } = {
-  BUG: 'bug',
-  FEATURE: 'feature',
-  IMPROVEMENT: 'improvement',
-  OTHER: 'other',
-};
-
-const feedbackStatusMapping: { [key: string]: string } = {
-  PENDING: 'pending',
-  IN_REVIEW: 'in_review',
-  RESOLVED: 'resolved',
-  CLOSED: 'closed',
-};
-
 // Mapping des modes de livraison (Prisma enums -> Convex strings)
 const deliveryModeMapping: {
   [key: string]: 'in_person' | 'postal' | 'electronic' | 'by_proxy';
@@ -331,8 +274,8 @@ export const importOrganizations = mutation({
             postgresOrg.code || `ORG_${String(postgresOrg.id.toUpperCase().slice(0, 4))}`,
           name: postgresOrg.name,
           logo: postgresOrg.logo || undefined,
-          type: organizationTypeMapping[postgresOrg.type],
-          status: organizationStatusMapping[postgresOrg.status],
+          type: postgresOrg.type.toLowerCase() as OrganizationType,
+          status: postgresOrg.status.toLowerCase() as OrganizationStatus,
           countryIds: countryIds,
           memberIds: [],
           serviceIds: [],
@@ -485,7 +428,7 @@ export const importCountries = mutation({
         const countryId = await ctx.db.insert('countries', {
           name: postgresCountry.name,
           code: postgresCountry.code,
-          status: countryStatusMapping[postgresCountry.status],
+          status: postgresCountry.status.toLowerCase() as CountryStatus,
           flag: postgresCountry.flag || undefined,
           metadata: postgresCountry.metadata || undefined,
         });
@@ -520,6 +463,8 @@ export const importServices = mutation({
   handler: async (ctx: MutationCtx, args) => {
     console.log(`🚀 Import de ${args.services.length} services...`);
 
+    console.log({ argsInImportServices: args });
+
     const importedServices: Array<Id<'services'>> = [];
     const importedLegacyIds: Array<string> = [];
 
@@ -543,7 +488,7 @@ export const importServices = mutation({
           name: service.name,
           description: service.description || undefined,
           category: serviceCategoryMapping[service.category] || ServiceCategory.Other,
-          status: serviceStatusMapping[service.status] || ServiceStatus.Active,
+          status: (service.status.toLowerCase() as ServiceStatus) || ServiceStatus.Active,
           organizationId: organization._id,
           config: {
             requiredDocuments: service.requiredDocuments || [],
@@ -646,9 +591,9 @@ export const importUserWithData = mutation({
     if (args.profile) {
       profileId = await ctx.db.insert('profiles', {
         userId: userId,
-        documentIds: [],
         category: profileCategoryMapping[args.profile.category] || ProfileCategory.Adult,
-        status: profileStatusMapping[args.profile.status] || ProfileStatus.Pending,
+        status:
+          (args.profile.status.toLowerCase() as ProfileStatus) || ProfileStatus.Pending,
         residenceCountry: args.profile.residenceCountyCode || undefined,
         consularCard: {
           cardNumber: args.profile.cardNumber || undefined,
@@ -663,26 +608,6 @@ export const importUserWithData = mutation({
         contacts: {
           email: args.profile.email || undefined,
           phone: args.profile.phoneNumber || undefined,
-        },
-        personal: {
-          firstName: args.profile.firstName || '',
-          lastName: args.profile.lastName || '',
-          birthDate: args.profile.birthDate
-            ? new Date(args.profile.birthDate).getTime()
-            : undefined,
-          birthPlace: args.profile.birthPlace || undefined,
-          birthCountry: args.profile.birthCountry || undefined,
-          gender: args.profile.gender ? genderMapping[args.profile.gender] : undefined,
-          nationality: args.profile.nationality || 'GA',
-          maritalStatus: args.profile.maritalStatus
-            ? maritalStatusMapping[args.profile.maritalStatus]
-            : MaritalStatus.Single,
-          workStatus: args.profile.workStatus
-            ? workStatusMapping[args.profile.workStatus]
-            : WorkStatus.Unemployed,
-          acquisitionMode: args.profile.acquisitionMode
-            ? nationalityAcquisitionMapping[args.profile.acquisitionMode]
-            : NationalityAcquisition.Birth,
           address: args.profile.address
             ? {
                 street: args.profile.address.firstLine || '',
@@ -695,7 +620,24 @@ export const importUserWithData = mutation({
               }
             : undefined,
         },
+        personal: {
+          firstName: args.profile.firstName || '',
+          lastName: args.profile.lastName || '',
+          birthDate: args.profile.birthDate
+            ? new Date(args.profile.birthDate).getTime()
+            : undefined,
+          birthPlace: args.profile.birthPlace || undefined,
+          birthCountry: args.profile.birthCountry || undefined,
+          gender: args.profile.gender ? genderMapping[args.profile.gender] : undefined,
+          nationality: args.profile.nationality || 'GA',
+          acquisitionMode: args.profile.acquisitionMode
+            ? nationalityAcquisitionMapping[args.profile.acquisitionMode]
+            : NationalityAcquisition.Birth,
+        },
         family: {
+          maritalStatus: args.profile.maritalStatus
+            ? maritalStatusMapping[args.profile.maritalStatus]
+            : MaritalStatus.Single,
           father: args.profile.fatherFullName
             ? {
                 firstName: args.profile.fatherFullName.split(' ')[0] || undefined,
@@ -718,11 +660,35 @@ export const importUserWithData = mutation({
               }
             : undefined,
         },
-        emergencyContacts: [],
+        emergencyContacts: [args.profile.residentContact, args.profile.homeLandContact]
+          .filter((c) => c !== undefined)
+          .map((c) => ({
+            firstName: c.firstName || '',
+            lastName: c.lastName || '',
+            relationship: c.relationship.toLowerCase() || 'other',
+            phoneNumber: c.phoneNumber || '',
+            email: c.email || '',
+            address: c.address
+              ? {
+                  street: c.address.firstLine || '',
+                  complement: c.address.secondLine || undefined,
+                  city: c.address.city || '',
+                  postalCode: c.address.zipCode || '',
+                  state: undefined,
+                  country: c.address.country || 'FR',
+                  coordinates: undefined,
+                }
+              : undefined,
+            userId: undefined,
+          })),
         professionSituation: {
+          workStatus: args.profile.workStatus
+            ? workStatusMapping[args.profile.workStatus]
+            : WorkStatus.Unemployed,
           profession: args.profile.profession || undefined,
           employer: args.profile.employer || undefined,
           employerAddress: args.profile.employerAddress || undefined,
+          cv: undefined,
         },
       });
       recordCount++;
@@ -765,27 +731,69 @@ export const importUserWithData = mutation({
 
           if (serviceId) {
             await ctx.db.insert('requests', {
-              number: req.id.substring(0, 12).toUpperCase(),
-              status: requestStatusMapping[req.status] || RequestStatus.Pending,
+              number: `REQ-${req.id.substring(0, 8).toUpperCase()}`,
+              status: req.status.toLowerCase() || RequestStatus.Pending,
               priority: req.priority === 'URGENT' ? 1 : 0,
               serviceId: serviceId,
               requesterId: userId,
               profileId: profileId,
               formData: req.formData || {},
               documentIds: [],
-              activities: [],
-              actions: [],
+              notes: req.notes.map((n: Note) => ({
+                id: n.id,
+                type: (n.type || 'feedback').toString().toLowerCase(),
+                authorId: undefined,
+                content: n.content || '',
+                serviceRequestId: undefined,
+              })),
               assignedToId: req.assignedToId
                 ? await findConvexUserByLegacyId(ctx, req.assignedToId)
                 : undefined,
-              assignedAt: req.assignedAt ? new Date(req.assignedAt).getTime() : undefined,
-              submittedAt: req.submittedAt
-                ? new Date(req.submittedAt).getTime()
-                : undefined,
-              completedAt: req.completedAt
-                ? new Date(req.completedAt).getTime()
-                : undefined,
-              updatedAt: new Date(req.updatedAt).getTime(),
+              metadata: {
+                submittedAt: req.submittedAt
+                  ? new Date(req.submittedAt).getTime()
+                  : undefined,
+                completedAt: req.completedAt
+                  ? new Date(req.completedAt).getTime()
+                  : undefined,
+                assignedAt: req.assignedAt
+                  ? new Date(req.assignedAt).getTime()
+                  : undefined,
+                activities: req.actions.map(async (a: RequestAction) => ({
+                  actorId: await findConvexUserByLegacyId(ctx, a.userId),
+                  data: a.data,
+                  type: a.type,
+                  timestamp: a.createdAt.getTime(),
+                })),
+              },
+              config: {
+                processingMode:
+                  (req.processingMode.toLowerCase() as ProcessingMode) ||
+                  ProcessingMode.OnlineOnly,
+                deliveryMode:
+                  (req.deliveryMode.toLowerCase() as DeliveryMode) ||
+                  DeliveryMode.InPerson,
+                deliveryAddress: req.deliveryAddress
+                  ? {
+                      street: req.deliveryAddress.firstLine || '',
+                      complement: req.deliveryAddress.secondLine || undefined,
+                      city: req.deliveryAddress.city || '',
+                      postalCode: req.deliveryAddress.zipCode || '',
+                      state: req.deliveryAddress.state || undefined,
+                      country: req.deliveryAddress.country || 'FR',
+                      coordinates: req.deliveryAddress.coordinates || undefined,
+                    }
+                  : undefined,
+                proxy: req.proxy
+                  ? {
+                      firstName: req.proxy.firstName || '',
+                      lastName: req.proxy.lastName || '',
+                      identityDoc: req.proxy.identityDoc || undefined,
+                      powerOfAttorneyDoc: req.proxy.powerOfAttorneyDoc || undefined,
+                    }
+                  : undefined,
+              },
+              generatedDocuments: [],
             });
             recordCount++;
           }
@@ -883,25 +891,26 @@ export const importUserWithData = mutation({
           await ctx.db.insert('tickets', {
             subject: feedback.subject,
             message: feedback.message,
-            category: feedbackCategoryMapping[feedback.category] || 'other',
-            rating: feedback.rating,
-            status: feedbackStatusMapping[feedback.status] || 'pending',
+            category:
+              (feedback.category.toLowerCase() as FeedbackCategory) ||
+              FeedbackCategory.Other,
+            rating: undefined,
+            status:
+              (feedback.status.toLowerCase() as FeedbackStatus) || FeedbackStatus.Pending,
             userId: userId,
-            email: feedback.email,
-            phoneNumber: feedback.phoneNumber,
-            response: feedback.response,
+            email: feedback.email ?? undefined,
+            phoneNumber: feedback.phoneNumber ?? undefined,
+            response: feedback.response ?? undefined,
             respondedById: feedback.respondedById
               ? await findConvexUserByLegacyId(ctx, feedback.respondedById)
-              : undefined,
+              : userId,
             respondedAt: feedback.respondedAt
               ? new Date(feedback.respondedAt).getTime()
               : undefined,
-            serviceId: serviceId,
-            requestId: requestId,
-            organizationId: organizationId,
+            serviceId: serviceId ?? undefined,
+            requestId: requestId ?? undefined,
+            organizationId: organizationId ?? undefined,
             metadata: feedback.metadata || {},
-            createdAt: new Date(feedback.createdAt).getTime(),
-            updatedAt: new Date(feedback.updatedAt).getTime(),
           });
           recordCount++;
         } catch (error) {
@@ -1037,19 +1046,6 @@ export const importNonUsersAccounts = mutation({
         if (legacyOrgId) {
           const orgId = await findConvexOrganizationByLegacyOrCode(ctx, legacyOrgId);
           if (orgId) {
-            const managerIds = account.managedByUserId
-              ? [
-                  (await findConvexUserByLegacyId(
-                    ctx,
-                    account.managedByUserId,
-                  )) as Id<'users'>,
-                ]
-              : [];
-            const agentIds = account.managedAgentIds
-              ? ((await Promise.all(
-                  account.managedAgentIds.map((id) => findConvexUserByLegacyId(ctx, id)),
-                )) as Id<'users'>[])
-              : [];
             await ctx.db.insert('memberships', {
               userId,
               organizationId: orgId,
@@ -1060,14 +1056,16 @@ export const importNonUsersAccounts = mutation({
               account.assignedCountries.length > 0
                 ? account.assignedCountries
                 : []) as string[],
-              managerIds: managerIds,
-              agentIds: agentIds,
+              managerId: account.managedByUserId
+                ? ((await findConvexUserByLegacyId(
+                    ctx,
+                    account.managedByUserId,
+                  )) as Id<'users'>)
+                : undefined,
               assignedServices: [] as Id<'services'>[],
               joinedAt: Date.now(),
               leftAt: undefined,
               lastActiveAt: undefined,
-              createdAt: Date.now(),
-              updatedAt: Date.now(),
             });
             membershipsCreated++;
 

@@ -32,7 +32,7 @@ import {
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useProfileCompletion } from '../hooks/use-profile-completion';
-import type { FullProfile } from '@/types';
+import type { FullProfile } from '@/types/convex-profile';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 

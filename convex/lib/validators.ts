@@ -136,6 +136,13 @@ export const activityValidator = v.object({
   timestamp: v.number(),
 });
 
+// Validateur pour une note (aligné sur Prisma: id, type, authorId, content, serviceRequestId, createdAt)
+export const noteValidator = v.object({
+  type: noteTypeValidator,
+  authorId: v.optional(v.id('users')),
+  content: v.string(),
+});
+
 export const validationValidator = v.object({
   validatorId: v.id('users'),
   status: validationStatusValidator, // Type-safe avec enum
@@ -174,6 +181,7 @@ export const emergencyContactValidator = v.object({
   ),
   phoneNumber: v.optional(v.string()),
   address: v.optional(addressValidator),
+  userId: v.optional(v.id('users')),
 });
 
 // Validateur pour les horaires d'un jour

@@ -1,19 +1,17 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DocumentType } from '@prisma/client';
-import type { UserDocument as PrismaUserDocument } from '@prisma/client';
+import type { Doc } from '@/convex/_generated/dataModel';
 import { EditableSection } from '../editable-section';
-import type { AppUserDocument } from '@/types';
 import { UserDocument } from '@/components/documents/user-document';
-
+import { DocumentType } from '@/convex/lib/constants';
 interface DocumentsSectionProps {
   documents: {
-    passport?: PrismaUserDocument | null;
-    birthCertificate?: PrismaUserDocument | null;
-    residencePermit?: PrismaUserDocument | null;
-    addressProof?: PrismaUserDocument | null;
-    identityPhoto?: PrismaUserDocument | null;
+    passport?: Doc<'documents'>;
+    birthCertificate?: Doc<'documents'>;
+    residencePermit?: Doc<'documents'>;
+    addressProof?: Doc<'documents'>;
+    identityPhoto?: Doc<'documents'>;
   };
   profileId: string;
   onSave: () => void;
@@ -28,26 +26,14 @@ export function DocumentsSection({
 }: DocumentsSectionProps) {
   const t_common = useTranslations('common');
 
-  const convertDocument = (
-    doc: PrismaUserDocument | null | undefined,
-  ): AppUserDocument | null => {
-    if (!doc) return null;
-
-    return {
-      ...doc,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      metadata: doc.metadata as Record<string, any> | null,
-    };
-  };
-
   return (
-    <EditableSection isEditing={false} allowEdit={false} id="documents">
+    <EditableSection allowEdit={false} id="documents">
       <div className="grid gap-6 lg:grid-cols-2">
         <UserDocument
           label={t_common('documents.types.birth_certificate')}
           description={t_common('documents.descriptions.birth_certificate')}
-          document={convertDocument(documents.birthCertificate)}
-          expectedType={DocumentType.BIRTH_CERTIFICATE}
+          document={documents.birthCertificate}
+          expectedType={DocumentType.BirthCertificate}
           profileId={profileId}
           allowEdit={true}
           required
@@ -61,8 +47,8 @@ export function DocumentsSection({
         <UserDocument
           label={t_common('documents.types.passport')}
           description={t_common('documents.descriptions.passport')}
-          document={convertDocument(documents.passport)}
-          expectedType={DocumentType.PASSPORT}
+          document={documents.passport}
+          expectedType={DocumentType.Passport}
           profileId={profileId}
           allowEdit={true}
           required
@@ -76,8 +62,8 @@ export function DocumentsSection({
         <UserDocument
           label={t_common('documents.types.residence_permit')}
           description={t_common('documents.descriptions.residence_permit')}
-          document={convertDocument(documents.residencePermit)}
-          expectedType={DocumentType.RESIDENCE_PERMIT}
+          document={documents.residencePermit}
+          expectedType={DocumentType.ResidencePermit}
           profileId={profileId}
           allowEdit={true}
           onDelete={onSave}
@@ -89,8 +75,8 @@ export function DocumentsSection({
         <UserDocument
           label={t_common('documents.types.proof_of_address')}
           description={t_common('documents.descriptions.proof_of_address')}
-          document={convertDocument(documents.addressProof)}
-          expectedType={DocumentType.PROOF_OF_ADDRESS}
+          document={documents.addressProof}
+          expectedType={DocumentType.ProofOfAddress}
           profileId={profileId}
           allowEdit={true}
           required

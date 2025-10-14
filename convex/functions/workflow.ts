@@ -56,8 +56,10 @@ export const executeWorkflowStep = mutation({
     };
 
     await ctx.db.patch(args.requestId, {
-      activities: [...request.activities, workflowActivity],
-      updatedAt: Date.now(),
+      metadata: {
+        ...request.metadata,
+        activities: [...request.metadata.activities, workflowActivity],
+      },
     });
 
     return { success: true, activity: workflowActivity };
@@ -72,7 +74,7 @@ export const getWorkflowProgress = query({
       throw new Error('Request not found');
     }
 
-    const workflowActivities = request.activities.filter(
+    const workflowActivities = request.metadata.activities.filter(
       (activity) => activity.type === ActivityType.StatusChanged,
     );
 

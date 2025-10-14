@@ -453,6 +453,13 @@ async function printStats() {
   console.log('\n' + '='.repeat(80));
 }
 
+async function importBaseData() {
+  await importCountries();
+  await importOrganizations();
+  await importServices();
+  await importNonUsersAccounts();
+}
+
 async function main() {
   console.log('🚀 IMPORT JSON → CONVEX');
   console.log('='.repeat(80));
@@ -465,10 +472,7 @@ async function main() {
 
     await loadMigrationTracking();
 
-    //await importCountries();
-    //await importOrganizations();
-    //await importServices();
-    //await importNonUsersAccounts();
+    await importBaseData();
     await importUserCentricData();
 
     await printStats();

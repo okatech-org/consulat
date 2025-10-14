@@ -10,7 +10,7 @@ import CardContainer from '@/components/layouts/card-container';
 import { generateVCardString } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 import type { FullProfile } from '@/types/convex-profile';
-import type { RequestStatus } from '@/convex/lib/constants';
+import { ProfileStatus } from '@/convex/lib/constants';
 
 interface ProfileHeaderProps {
   profile: FullProfile;
@@ -27,7 +27,7 @@ export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps
       firstName: profile.personal?.firstName || '',
       lastName: profile.personal?.lastName || '',
       emails: profile.contacts?.email ? [{ value: profile.contacts.email }] : [],
-      phones: profile.user?.phoneNumber ? [profile.user.phoneNumber] : [],
+      phones: profile.contacts?.phone ? [profile.contacts.phone] : [],
       photoUrl: profile.identityPicture?.fileUrl || undefined,
     };
 
@@ -104,7 +104,7 @@ export function ProfileHeader({ profile, inMySpace = false }: ProfileHeaderProps
           <h1 className="text-lg font-bold md:text-3xl">
             {`${profile?.personal?.firstName} ${profile?.personal?.lastName}`}
           </h1>
-          {inMySpace && <ProfileStatusBadge status={profile?.status as RequestStatus} />}
+          {inMySpace && <ProfileStatusBadge status={profile?.status as ProfileStatus} />}
         </div>
 
         <div className="mt-2 flex w-full flex-row flex-wrap items-center gap-1 md:mt-4 md:gap-2">

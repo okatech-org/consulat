@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import type { AppUserDocument } from '@/types';
-import { DocumentStatus, DocumentType } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
@@ -37,11 +36,12 @@ import { DocumentValidationDialog } from '@/components/profile/document-validati
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import type { SessionUser } from '@/types/user';
 import { toast } from 'sonner';
+import type { Doc } from '@/convex/_generated/dataModel';
+import { DocumentStatus, DocumentType } from '@/convex/lib/constants';
 
 interface UserDocumentProps {
-  document?: AppUserDocument | null;
+  document?: Doc<'documents'>;
   expectedType?: DocumentType;
   profileId?: string;
   userId?: string;
@@ -104,7 +104,7 @@ export function UserDocument({
   description,
   profileId,
   userId,
-  expectedType = DocumentType.OTHER,
+  expectedType = DocumentType.Other,
   required = false,
   disabled = false,
   allowEdit = true,
@@ -270,23 +270,23 @@ export function UserDocument({
     if (!document) return;
 
     try {
-      await handleUpdate(document.id, data);
+      await handleUpdate(document._id, data);
       setIsUpdating(false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getStatusBadge = (status: DocumentStatus) => {
+  const getStatusBadge = (status: string) => {
     const variants: Record<DocumentStatus, 'default' | 'destructive' | 'warning'> = {
-      PENDING: 'warning',
-      VALIDATED: 'default',
-      REJECTED: 'destructive',
-      EXPIRED: 'destructive',
-      EXPIRING: 'warning',
+      pending: 'warning',
+      validated: 'default',
+      rejected: 'destructive',
+      expired: 'destructive',
+      expiring: 'warning',
     };
     return (
-      <Badge className={'min-w-max ml-2'} variant={variants[status]}>
+      <Badge className={'min-w-max ml-2'} variant={variants[status as DocumentStatus]}>
         {t_common(`status.${status}`)}
       </Badge>
     );
@@ -308,7 +308,7 @@ export function UserDocument({
         // Appel de l'action serveur pour remplacer le fichier
         const { error, data: updatedDoc } = await tryCatch(
           replaceUserDocumentFile(
-            document.id,
+            document._id,
             uploaded.serverData.fileUrl,
             uploaded.type,
           ),
@@ -344,7 +344,7 @@ export function UserDocument({
 
     try {
       setIsLoading(true);
-      if (document?.id) {
+      if (document?._id) {
         // Si le document existe déjà, le remplacer
         await handleReplaceFile(processedFile);
         toast.success("L'arrière-plan a été supprimé et le document mis à jour.");
@@ -385,7 +385,7 @@ export function UserDocument({
             {required && <span className="text-sm">{' (Obligatoire)'}</span>}
           </span>
           {document?.status &&
-            hasAnyRole(user as SessionUser, ['ADMIN', 'AGENT', 'SUPER_ADMIN']) &&
+            hasAnyRole(user, ['ADMIN', 'AGENT', 'SUPER_ADMIN']) &&
             getStatusBadge(document.status)}
         </div>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
@@ -458,13 +458,13 @@ export function UserDocument({
       {/* Image Cropper Dialog */}
       {tempImageUrl && (
         <ImageCropper
-          fileName={`${document?.type}-${document?.id ?? ''}`}
+          fileName={`${document?.type}-${document?._id ?? ''}`}
           imageUrl={tempImageUrl}
           onCropComplete={handleCropComplete}
           onCancel={handleCropCancel}
           open={cropperOpen}
           guide={
-            expectedType === DocumentType.IDENTITY_PHOTO ? (
+            expectedType === DocumentType.IdentityPhoto ? (
               <IdentityPhotoGuide />
             ) : undefined
           }
@@ -527,10 +527,10 @@ export function UserDocument({
             <TabsContent value="metadata">
               {document && (
                 <MetadataForm
-                  documentType={document.type}
+                  documentType={document.type as DocumentType}
                   metadata={document.metadata}
                   onSubmit={async (metadata) => {
-                    await handleUpdate(document.id, { metadata });
+                    await handleUpdate(document._id, { metadata });
                     setIsUpdating(false);
                   }}
                 />
@@ -543,7 +543,7 @@ export function UserDocument({
       {/* Document Validation Dialog */}
       {isDialogOpen && document && (
         <DocumentValidationDialog
-          documentId={document?.id}
+          documentId={document?._id}
           documentType={label}
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}

@@ -43,16 +43,16 @@ export function ProfileTabs({
   const router = useRouter();
   const isMobile = useIsMobile();
 
+  if (!profile) {
+    return undefined;
+  }
+
   const profileTabs = [
     {
       id: 'basic-info',
       title: t('sections.basic_info'),
       content: (
-        <BasicInfoSection
-          profile={profile}
-          onSave={() => router.refresh()}
-          requestId={requestId}
-        />
+        <BasicInfoSection profile={profile} onSaveAction={() => router.refresh()} />
       ),
     },
     {
@@ -99,7 +99,7 @@ export function ProfileTabs({
             residencePermit: profile.residencePermit,
             addressProof: profile.addressProof,
           }}
-          profileId={profile.id}
+          profileId={profile._id}
           onSave={() => router.refresh()}
           requestId={requestId}
         />

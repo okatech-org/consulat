@@ -44,8 +44,6 @@ export const createTicket = mutation({
       requestId: args.requestId,
       organizationId: args.organizationId,
       metadata: args.metadata || {},
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
     });
 
     return ticketId;
@@ -106,7 +104,6 @@ export const respondToTicket = mutation({
       respondedById: args.respondedById,
       respondedAt: Date.now(),
       status: FeedbackStatus.Resolved,
-      updatedAt: Date.now(),
     });
 
     return args.ticketId;
@@ -121,7 +118,6 @@ export const closeTicket = mutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.ticketId, {
       status: FeedbackStatus.Closed,
-      updatedAt: Date.now(),
     });
 
     return args.ticketId;
@@ -251,8 +247,8 @@ export const getRecentTickets = query({
   handler: async (ctx, args) => {
     const tickets = await ctx.db
       .query('tickets')
-      .withIndex('by_created_at', (q) =>
-        q.gte('createdAt', Date.now() - 7 * 24 * 60 * 60 * 1000),
+      .withIndex('by_creation_time', (q) =>
+        q.gte('_creationTime', Date.now() - 7 * 24 * 60 * 60 * 1000),
       )
       .order('desc')
       .collect();

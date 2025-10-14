@@ -7,8 +7,9 @@ import { useTranslations } from 'next-intl';
 import { ContactInfoSchema, type ContactInfoFormData } from '@/schemas/registration';
 import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
-import { updateProfile } from '@/actions/profile';
-import type { FullProfile } from '@/types';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { FullProfile } from '@/types/convex-profile';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { ContactInfoForm } from '@/components/registration/contact-form';
 import { ContactInfoDisplay } from './contact-info-display';
@@ -33,19 +34,20 @@ export function ContactInfoSection({
     resolver: zodResolver(ContactInfoSchema),
     // @ts-expect-error -- TODO: fix the don't accept null values
     defaultValues: {
-      ...profile,
-      phoneNumber: profile.phoneNumber ?? '+33-',
-      address: { ...profile.address, country: profile.address?.country ?? 'FR' },
-      residentContact: {
-        ...profile.residentContact,
-        phoneNumber: profile.residentContact?.phoneNumber ?? '+33-',
-        address: {
-          ...profile.residentContact?.address,
-          country: profile.residentContact?.address?.country ?? 'FR',
-        },
+      email: profile.contacts?.email ?? undefined,
+      phoneNumber: profile.contacts?.phone ?? '+33-',
+      address: {
+        firstLine: profile.personal?.address?.street ?? '',
+        city: profile.personal?.address?.city ?? '',
+        zipCode: profile.personal?.address?.postalCode ?? '',
+        country: (profile.personal?.address?.country as any) ?? 'FR',
+        secondLine: profile.personal?.address?.complement ?? '',
       },
+      residentContact: undefined,
     },
   });
+
+  const convexUpdate = useMutation(api.functions.profile.updateProfile);
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -53,7 +55,33 @@ export function ContactInfoSection({
 
     filterUneditedKeys<ContactInfoFormData>(data, form.formState.dirtyFields);
 
-    const result = await tryCatch(updateProfile(profile.id, data, requestId));
+    // Mapper vers Convex: contacts et personal.address
+    const personalUpdate: Record<string, unknown> = {};
+    const contactsUpdate: Record<string, unknown> = {};
+
+    if (data.address) {
+      personalUpdate.address = {
+        street: data.address.firstLine,
+        complement: data.address.secondLine,
+        city: data.address.city,
+        postalCode: data.address.zipCode,
+        country: data.address.country as any,
+      };
+    }
+    if (typeof data.email !== 'undefined') contactsUpdate.email = data.email;
+    if (typeof data.phoneNumber !== 'undefined') contactsUpdate.phone = data.phoneNumber;
+
+    const result = await tryCatch(
+      convexUpdate({
+        profileId: profile._id as any,
+        personal: Object.keys(personalUpdate).length
+          ? (personalUpdate as any)
+          : undefined,
+        contacts: Object.keys(contactsUpdate).length
+          ? (contactsUpdate as any)
+          : undefined,
+      }),
+    );
 
     if (result.error) {
       toast({

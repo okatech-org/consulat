@@ -37,7 +37,6 @@ export const createProfile = mutation({
 
     const profileId = await ctx.db.insert('profiles', {
       userId: args.userId,
-      documentIds: [],
       category: args.category,
       status: ProfileStatus.Draft,
       residenceCountry: args.residenceCountry,
@@ -50,6 +49,7 @@ export const createProfile = mutation({
       contacts: {
         email: args.email,
         phone: args.phoneNumber,
+        address: undefined,
       },
       personal: {
         firstName: args.firstName,
@@ -59,10 +59,7 @@ export const createProfile = mutation({
         birthCountry: undefined,
         gender: undefined,
         nationality: undefined,
-        maritalStatus: undefined,
-        workStatus: undefined,
         acquisitionMode: undefined,
-        address: undefined,
       },
       family: {
         father: undefined,
@@ -71,9 +68,11 @@ export const createProfile = mutation({
       },
       emergencyContacts: [],
       professionSituation: {
+        workStatus: undefined,
         profession: undefined,
         employer: undefined,
         employerAddress: undefined,
+        cv: undefined,
       },
     });
 
@@ -346,48 +345,6 @@ export const updateConsularCard = mutation({
   },
 });
 
-export const addDocumentToProfile = mutation({
-  args: {
-    profileId: v.id('profiles'),
-    documentId: v.id('documents'),
-  },
-  handler: async (ctx, args) => {
-    const profile = await ctx.db.get(args.profileId);
-    if (!profile) {
-      throw new Error('Profile not found');
-    }
-
-    if (profile.documentIds.includes(args.documentId)) {
-      throw new Error('Document already exists in profile');
-    }
-
-    await ctx.db.patch(args.profileId, {
-      documentIds: [...profile.documentIds, args.documentId],
-    });
-
-    return args.profileId;
-  },
-});
-
-export const removeDocumentFromProfile = mutation({
-  args: {
-    profileId: v.id('profiles'),
-    documentId: v.id('documents'),
-  },
-  handler: async (ctx, args) => {
-    const profile = await ctx.db.get(args.profileId);
-    if (!profile) {
-      throw new Error('Profile not found');
-    }
-
-    await ctx.db.patch(args.profileId, {
-      documentIds: profile.documentIds.filter((id) => id !== args.documentId),
-    });
-
-    return args.profileId;
-  },
-});
-
 export const updateProfileStatus = mutation({
   args: {
     profileId: v.id('profiles'),
@@ -497,11 +454,16 @@ export const getProfileWithDocuments = query({
     const profile = await ctx.db.get(args.profileId);
     if (!profile) return null;
 
-    const documents = await Promise.all(profile.documentIds.map((id) => ctx.db.get(id)));
+    const documents = await ctx.db
+      .query('documents')
+      .withIndex('by_owner', (q) =>
+        q.eq('ownerId', profile._id).eq('ownerType', 'profile'),
+      )
+      .collect();
 
     return {
       ...profile,
-      documents: documents.filter(Boolean),
+      documents,
     };
   },
 });

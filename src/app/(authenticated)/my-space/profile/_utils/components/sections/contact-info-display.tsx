@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { InfoField } from '@/components/ui/info-field';
-import type { FullProfile } from '@/types';
+import type { FullProfile } from '@/types/convex-profile';
 import { Mail, Phone, MapPin, Users } from 'lucide-react';
 import { DisplayAddress } from '@/components/ui/display-address';
 import { Separator } from '@/components/ui/separator';
@@ -24,13 +24,13 @@ export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InfoField
             label={t_profile('email')}
-            value={profile.email}
+            value={profile.contacts?.email}
             icon={<Mail className="size-4" />}
             required
           />
           <InfoField
             label={t_profile('phoneNumber')}
-            value={profile.phoneNumber}
+            value={profile.contacts?.phone}
             icon={<Phone className="size-4" />}
             required
           />
@@ -40,7 +40,17 @@ export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
         <InfoField
           label={t_profile('address')}
           value={
-            profile.address ? <DisplayAddress address={profile.address} /> : undefined
+            profile.personal?.address ? (
+              <DisplayAddress
+                address={{
+                  firstLine: profile.personal.address.street,
+                  secondLine: profile.personal.address.complement,
+                  city: profile.personal.address.city,
+                  zipCode: profile.personal.address.postalCode,
+                  country: profile.personal.address.country as any,
+                }}
+              />
+            ) : undefined
           }
           icon={<MapPin className="size-4" />}
           required

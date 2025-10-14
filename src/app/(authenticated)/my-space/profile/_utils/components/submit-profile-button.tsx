@@ -41,7 +41,9 @@ export function SubmitProfileButton({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const router = useRouter();
 
-  const submitProfileMutation = useMutation(api.profile.submitProfileForValidation);
+  const submitProfileMutation = useMutation(
+    api.functions.profile.submitProfileForValidation,
+  );
 
   const handleSubmit = async () => {
     try {
