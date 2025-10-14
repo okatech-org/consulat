@@ -27,7 +27,6 @@ import { CountryCode } from '@/lib/autocomplete-datas';
 import CardContainer from '../layouts/card-container';
 import { FlagIcon } from '../ui/flag-icon';
 import { DisplayAddress } from '../ui/display-address';
-import { Address } from '@prisma/client';
 
 interface ReviewFieldsProps {
   data: Partial<FullProfileUpdateFormData>;

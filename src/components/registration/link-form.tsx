@@ -12,7 +12,7 @@ import {
   FormLabel,
   TradFormMessage,
 } from '@/components/ui/form';
-import { ParentalRole } from '@prisma/client';
+import { ParentalRole } from '@/convex/lib/constants';
 import CardContainer from '../layouts/card-container';
 import { MultiSelect } from '../ui/multi-select';
 import { Input } from '../ui/input';

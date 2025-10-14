@@ -11,6 +11,7 @@ import {
   workStatusValidator,
   nationalityAcquisitionValidator,
   profileCategoryValidator,
+  profileStatusValidator,
 } from '../lib/validators';
 import { api } from '../_generated/api';
 
@@ -22,8 +23,8 @@ export const createProfile = mutation({
     firstName: v.string(),
     lastName: v.string(),
     email: v.string(),
-    phoneNumber: v.string(),
-    residenceCountry: v.string(),
+    phone: v.string(),
+    residenceCountry: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existingProfile = await ctx.db
@@ -46,7 +47,7 @@ export const createProfile = mutation({
       },
       contacts: {
         email: args.email,
-        phone: args.phoneNumber,
+        phone: args.phone,
         address: undefined,
       },
       personal: {
@@ -74,6 +75,7 @@ export const createProfile = mutation({
         employerAddress: undefined,
         cv: undefined,
       },
+      registrationRequest: undefined,
     });
 
     await ctx.db.patch(args.userId, {
@@ -87,6 +89,26 @@ export const createProfile = mutation({
 export const updateProfile = mutation({
   args: {
     profileId: v.id('profiles'),
+    status: v.optional(profileStatusValidator),
+    residenceCountry: v.optional(v.string()),
+    registrationRequest: v.optional(v.id('requests')),
+
+    consularCard: v.optional(
+      v.object({
+        cardNumber: v.optional(v.string()),
+        cardIssuedAt: v.optional(v.number()),
+        cardExpiresAt: v.optional(v.number()),
+      }),
+    ),
+
+    contacts: v.optional(
+      v.object({
+        email: v.optional(v.string()),
+        phone: v.optional(v.string()),
+        address: v.optional(addressValidator),
+      }),
+    ),
+
     personal: v.optional(
       v.object({
         firstName: v.optional(v.string()),
@@ -96,14 +118,22 @@ export const updateProfile = mutation({
         birthCountry: v.optional(v.string()),
         gender: v.optional(genderValidator),
         nationality: v.optional(v.string()),
-        maritalStatus: v.optional(maritalStatusValidator),
-        workStatus: v.optional(workStatusValidator),
         acquisitionMode: v.optional(nationalityAcquisitionValidator),
-        address: v.optional(addressValidator),
+        passportInfos: v.optional(
+          v.object({
+            number: v.optional(v.string()),
+            issueDate: v.optional(v.number()),
+            expiryDate: v.optional(v.number()),
+            issueAuthority: v.optional(v.string()),
+          }),
+        ),
+        nipCode: v.optional(v.string()),
       }),
     ),
+
     family: v.optional(
       v.object({
+        maritalStatus: v.optional(maritalStatusValidator),
         father: v.optional(
           v.object({
             firstName: v.optional(v.string()),
@@ -124,24 +154,19 @@ export const updateProfile = mutation({
         ),
       }),
     ),
+
+    // Contacts d'urgence
     emergencyContacts: v.optional(v.array(emergencyContactValidator)),
+
     professionSituation: v.optional(
       v.object({
+        workStatus: v.optional(workStatusValidator),
         profession: v.optional(v.string()),
         employer: v.optional(v.string()),
         employerAddress: v.optional(v.string()),
+        cv: v.optional(v.id('documents')),
       }),
     ),
-    residenceCountry: v.optional(v.string()),
-    consularCard: v.optional(
-      v.object({
-        cardPin: v.optional(v.string()),
-        cardNumber: v.optional(v.string()),
-        cardIssuedAt: v.optional(v.number()),
-        cardExpiresAt: v.optional(v.number()),
-      }),
-    ),
-    status: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existingProfile = await ctx.db.get(args.profileId);
@@ -149,30 +174,56 @@ export const updateProfile = mutation({
       throw new Error('Profile not found');
     }
 
-    const updateData = {
-      ...(args.personal && {
-        personal: { ...existingProfile.personal, ...args.personal },
-      }),
-      ...(args.family && {
-        family: { ...existingProfile.family, ...args.family },
-      }),
-      ...(args.emergencyContacts && {
-        emergencyContacts: args.emergencyContacts,
-      }),
-      ...(args.professionSituation && {
-        professionSituation: {
-          ...existingProfile.professionSituation,
-          ...args.professionSituation,
-        },
-      }),
-      ...(args.residenceCountry !== undefined && {
-        residenceCountry: args.residenceCountry,
-      }),
-      ...(args.consularCard && {
-        consularCard: { ...existingProfile.consularCard, ...args.consularCard },
-      }),
-      ...(args.status && { status: args.status as ProfileStatusType }),
-    };
+    const updateData: {
+      personal?: typeof existingProfile.personal;
+      family?: typeof existingProfile.family;
+      emergencyContacts?: typeof existingProfile.emergencyContacts;
+      professionSituation?: typeof existingProfile.professionSituation;
+      residenceCountry?: string;
+      consularCard?: typeof existingProfile.consularCard;
+      contacts?: typeof existingProfile.contacts;
+      status?: ProfileStatusType;
+      registrationRequest?: typeof existingProfile.registrationRequest;
+    } = {};
+
+    if (args.personal !== undefined) {
+      updateData.personal = { ...existingProfile.personal, ...args.personal };
+    }
+
+    if (args.family !== undefined) {
+      updateData.family = { ...existingProfile.family, ...args.family };
+    }
+
+    if (args.emergencyContacts !== undefined) {
+      updateData.emergencyContacts = args.emergencyContacts;
+    }
+
+    if (args.professionSituation !== undefined) {
+      updateData.professionSituation = {
+        ...existingProfile.professionSituation,
+        ...args.professionSituation,
+      };
+    }
+
+    if (args.residenceCountry !== undefined) {
+      updateData.residenceCountry = args.residenceCountry;
+    }
+
+    if (args.consularCard !== undefined) {
+      updateData.consularCard = { ...existingProfile.consularCard, ...args.consularCard };
+    }
+
+    if (args.contacts !== undefined) {
+      updateData.contacts = { ...existingProfile.contacts, ...args.contacts };
+    }
+
+    if (args.status !== undefined) {
+      updateData.status = args.status as ProfileStatusType;
+    }
+
+    if (args.registrationRequest !== undefined) {
+      updateData.registrationRequest = args.registrationRequest;
+    }
 
     await ctx.db.patch(args.profileId, updateData);
     return args.profileId;
@@ -190,10 +241,16 @@ export const updatePersonalInfo = mutation({
       birthCountry: v.optional(v.string()),
       gender: v.optional(genderValidator),
       nationality: v.optional(v.string()),
-      maritalStatus: v.optional(maritalStatusValidator),
-      workStatus: v.optional(workStatusValidator),
       acquisitionMode: v.optional(nationalityAcquisitionValidator),
-      address: v.optional(addressValidator),
+      passportInfos: v.optional(
+        v.object({
+          number: v.optional(v.string()),
+          issueDate: v.optional(v.number()),
+          expiryDate: v.optional(v.number()),
+          issueAuthority: v.optional(v.string()),
+        }),
+      ),
+      nipCode: v.optional(v.string()),
     }),
   },
   handler: async (ctx, args) => {
@@ -325,7 +382,6 @@ export const updateConsularCard = mutation({
   args: {
     profileId: v.id('profiles'),
     consularCard: v.object({
-      cardPin: v.optional(v.string()),
       cardNumber: v.optional(v.string()),
       cardIssuedAt: v.optional(v.number()),
       cardExpiresAt: v.optional(v.number()),
@@ -560,13 +616,19 @@ export const getOverviewProfile = query({
   handler: async (ctx, args) => {
     const profileRequest = ctx.db
       .query('profiles')
-      .withIndex('by_id', (q) => q.eq('_id', args.profileId))
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
       .first();
+
+    const profile = await profileRequest;
+
+    if (!profile) {
+      return null;
+    }
 
     const documentsRequest = ctx.db
       .query('documents')
       .withIndex('by_owner', (q) =>
-        q.eq('ownerId', args.profileId).eq('ownerType', 'profile'),
+        q.eq('ownerId', profile._id).eq('ownerType', 'profile'),
       )
       .collect();
 
@@ -582,8 +644,7 @@ export const getOverviewProfile = query({
       .filter((q) => q.eq(q.field('authorUserId'), args.userId))
       .collect();
 
-    const [profile, documents, userRequests, parentalAuthorities] = await Promise.all([
-      profileRequest,
+    const [documents, userRequests, parentalAuthorities] = await Promise.all([
       documentsRequest,
       requestsRequest,
       parentalAuthoritiesRequest,
@@ -613,8 +674,143 @@ export const getOverviewProfile = query({
         pending: pendingRequests.length,
         completed: completedRequests.length,
       },
-      profile,
+      profile: {
+        identityPicture: documents.find((d) => d?.type === 'identity_photo')?.fileUrl,
+        ...profile!,
+      },
       childrenCount: parentalAuthorities.length,
     };
+  },
+});
+
+// Fonction pour mettre à jour les informations personnelles du profil
+export const updatePersonalInfo = mutation({
+  args: {
+    profileId: v.id('profiles'),
+    personal: v.object({
+      firstName: v.optional(v.string()),
+      lastName: v.optional(v.string()),
+      birthDate: v.optional(v.number()),
+      birthPlace: v.optional(v.string()),
+      birthCountry: v.optional(v.string()),
+      gender: v.optional(genderValidator),
+      nationality: v.optional(v.string()),
+      acquisitionMode: v.optional(nationalityAcquisitionValidator),
+      passportInfos: v.optional(
+        v.object({
+          number: v.optional(v.string()),
+          issueDate: v.optional(v.number()),
+          expiryDate: v.optional(v.number()),
+          issueAuthority: v.optional(v.string()),
+        }),
+      ),
+      nipCode: v.optional(v.string()),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    await ctx.db.patch(args.profileId, {
+      personal: { ...profile.personal, ...args.personal },
+    });
+
+    return args.profileId;
+  },
+});
+
+// Fonction pour mettre à jour les informations familiales du profil
+export const updateFamilyInfo = mutation({
+  args: {
+    profileId: v.id('profiles'),
+    family: v.object({
+      maritalStatus: v.optional(maritalStatusValidator),
+      father: v.optional(
+        v.object({
+          firstName: v.optional(v.string()),
+          lastName: v.optional(v.string()),
+        }),
+      ),
+      mother: v.optional(
+        v.object({
+          firstName: v.optional(v.string()),
+          lastName: v.optional(v.string()),
+        }),
+      ),
+      spouse: v.optional(
+        v.object({
+          firstName: v.optional(v.string()),
+          lastName: v.optional(v.string()),
+        }),
+      ),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    await ctx.db.patch(args.profileId, {
+      family: { ...profile.family, ...args.family },
+    });
+
+    return args.profileId;
+  },
+});
+
+// Fonction pour mettre à jour les informations professionnelles du profil
+export const updateProfessionalInfo = mutation({
+  args: {
+    profileId: v.id('profiles'),
+    professionSituation: v.object({
+      workStatus: v.optional(workStatusValidator),
+      profession: v.optional(v.string()),
+      employer: v.optional(v.string()),
+      employerAddress: v.optional(v.string()),
+      activityInGabon: v.optional(v.string()),
+      cv: v.optional(v.id('documents')),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    await ctx.db.patch(args.profileId, {
+      professionSituation: {
+        ...profile.professionSituation,
+        ...args.professionSituation,
+      },
+    });
+
+    return args.profileId;
+  },
+});
+
+// Fonction pour mettre à jour les contacts du profil
+export const updateContacts = mutation({
+  args: {
+    profileId: v.id('profiles'),
+    contacts: v.object({
+      email: v.optional(v.string()),
+      phone: v.optional(v.string()),
+      address: v.optional(addressValidator),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    await ctx.db.patch(args.profileId, {
+      contacts: { ...profile.contacts, ...args.contacts },
+    });
+
+    return args.profileId;
   },
 });

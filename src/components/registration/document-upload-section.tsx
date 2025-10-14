@@ -22,7 +22,7 @@ import {
 import type { UseFormReturn } from 'react-hook-form';
 import { analyzeDocuments } from '@/actions/documents';
 import { useToast } from '@/hooks/use-toast';
-import { DocumentType } from '@prisma/client';
+import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
 import type { AppUserDocument } from '@/types';
 

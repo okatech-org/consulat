@@ -1023,7 +1023,7 @@ export const importParentalAuthority = mutation({
         }),
       ),
     }),
-    request: v.any(),
+    request: v.optional(v.any()),
   },
   returns: v.object({
     importedCount: v.number(),

@@ -3,7 +3,7 @@
 import { Card, CardHeader } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import { useDateLocale } from '@/lib/utils';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useQuery } from 'convex/react';
 import { api } from 'convex/_generated/api';
@@ -58,21 +58,21 @@ export function UserOverview() {
         {/* Informations utilisateur */}
         <div className="flex items-center gap-4">
           <Avatar className="size-12 bg-muted md:size-20">
+            <AvatarImage src={overviewDatas.profile?.identityPicture} />
             <AvatarFallback>
               {getInitials(
-                overviewDatas.profile?.personal.firstName,
-                overviewDatas.profile?.personal.lastName,
+                overviewDatas.profile?.personal?.firstName,
+                overviewDatas.profile?.personal?.lastName,
               )}
             </AvatarFallback>
           </Avatar>
           <div>
             <h3 className="font-semibold text-lg">
-              {overviewDatas.profile?.personal.firstName}
+              {overviewDatas.profile?.personal?.firstName}
             </h3>
             {overviewDatas.profile?.status && (
               <p className="text-sm text-muted-foreground">
-                {t('status')} :{' '}
-                {t(`profile_status.${overviewDatas.profile.status.toLowerCase()}`)}
+                {t('status')} : {t(`profile_status.${overviewDatas.profile.status}`)}
               </p>
             )}
             <p className="text-sm text-muted-foreground">{getMemberSince()}</p>

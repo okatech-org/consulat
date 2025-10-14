@@ -2,9 +2,9 @@
 
 import { useTranslations } from 'next-intl';
 import { InfoField } from '@/components/ui/info-field';
-import type { FullProfile } from '@/types';
 import { Heart, User } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import type { FullProfile } from '@/types/convex-profile';
 
 interface FamilyInfoDisplayProps {
   profile: FullProfile;
@@ -21,8 +21,8 @@ export function FamilyInfoDisplay({ profile }: FamilyInfoDisplayProps) {
         <InfoField
           label={t_profile('maritalStatus')}
           value={
-            profile.maritalStatus
-              ? t_inputs(`maritalStatus.options.${profile.maritalStatus}`)
+            profile?.family?.maritalStatus
+              ? t_inputs(`maritalStatus.options.${profile?.family?.maritalStatus}`)
               : undefined
           }
           icon={<Heart className="size-4" />}
@@ -30,10 +30,10 @@ export function FamilyInfoDisplay({ profile }: FamilyInfoDisplayProps) {
         />
 
         {/* Conjoint */}
-        {profile.spouseFullName && (
+        {profile?.family?.spouse?.firstName && profile?.family?.spouse?.lastName && (
           <InfoField
             label={t_profile('spouseFullName')}
-            value={profile.spouseFullName}
+            value={`${profile?.family?.spouse?.firstName} ${profile?.family?.spouse?.lastName}`}
             icon={<Heart className="size-4" />}
           />
         )}
@@ -48,14 +48,14 @@ export function FamilyInfoDisplay({ profile }: FamilyInfoDisplayProps) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InfoField
             label={t_profile('fatherFullName')}
-            value={profile.fatherFullName}
+            value={`${profile?.family?.father?.firstName} ${profile?.family?.father?.lastName}`}
             icon={<User className="size-4" />}
             required
           />
 
           <InfoField
             label={t_profile('motherFullName')}
-            value={profile.motherFullName}
+            value={`${profile?.family?.mother?.firstName} ${profile?.family?.mother?.lastName}`}
             icon={<User className="size-4" />}
             required
           />

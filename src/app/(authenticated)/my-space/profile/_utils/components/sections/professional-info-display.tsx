@@ -2,15 +2,16 @@
 
 import { useTranslations } from 'next-intl';
 import { InfoField } from '@/components/ui/info-field';
-import type { FullProfile } from '@/types';
 import { Briefcase, Building, MapPin } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import type { FullProfile } from '@/types/convex-profile';
 
 interface ProfessionalInfoDisplayProps {
   profile: FullProfile;
 }
 
 export function ProfessionalInfoDisplay({ profile }: ProfessionalInfoDisplayProps) {
+  if (!profile) return null;
   const t_profile = useTranslations('profile.fields');
   const t_inputs = useTranslations('inputs');
 
@@ -20,8 +21,8 @@ export function ProfessionalInfoDisplay({ profile }: ProfessionalInfoDisplayProp
       <InfoField
         label={t_profile('workStatus')}
         value={
-          profile.workStatus
-            ? t_inputs(`workStatus.options.${profile.workStatus}`)
+          profile.professionSituation?.workStatus
+            ? t_inputs(`workStatus.options.${profile.professionSituation?.workStatus}`)
             : undefined
         }
         icon={<Briefcase className="size-4" />}
@@ -29,35 +30,36 @@ export function ProfessionalInfoDisplay({ profile }: ProfessionalInfoDisplayProp
       />
 
       {/* Informations professionnelles */}
-      {(profile.profession || profile.employer) && (
+      {(profile.professionSituation?.profession ||
+        profile.professionSituation?.employer) && (
         <>
           <Separator />
           <div className="space-y-4">
             <h4 className="font-medium text-lg">Informations professionnelles</h4>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {profile.profession && (
+              {profile.professionSituation?.profession && (
                 <InfoField
                   label={t_profile('profession')}
-                  value={profile.profession}
+                  value={profile.professionSituation?.profession}
                   icon={<Briefcase className="size-4" />}
                 />
               )}
 
-              {profile.employer && (
+              {profile.professionSituation?.employer && (
                 <InfoField
                   label={t_profile('employer')}
-                  value={profile.employer}
+                  value={profile.professionSituation?.employer}
                   icon={<Building className="size-4" />}
                 />
               )}
             </div>
 
             {/* Adresse de l'employeur */}
-            {profile.employerAddress && (
+            {profile.professionSituation?.employerAddress && (
               <InfoField
                 label={t_profile('employerAddress')}
-                value={profile.employerAddress}
+                value={profile.professionSituation?.employerAddress}
                 icon={<MapPin className="size-4" />}
               />
             )}
@@ -66,12 +68,12 @@ export function ProfessionalInfoDisplay({ profile }: ProfessionalInfoDisplayProp
       )}
 
       {/* Activité au Gabon */}
-      {profile.activityInGabon && (
+      {profile.professionSituation?.activityInGabon && (
         <>
           <Separator />
           <InfoField
             label="Activité au Gabon"
-            value={profile.activityInGabon}
+            value={profile.professionSituation?.activityInGabon}
             icon={<Briefcase className="size-4" />}
           />
         </>

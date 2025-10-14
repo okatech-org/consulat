@@ -48,11 +48,10 @@ export default {
       },
       profile_status: {
         draft: 'Brouillon',
-        submitted: 'Soumis',
-        validated: 'Validé',
-        completed: 'Terminé',
-        rejected: 'Rejeté',
+        active: 'Actif',
+        inactive: 'Inactif',
         pending: 'En attente',
+        suspended: 'Suspendu',
       },
     },
 

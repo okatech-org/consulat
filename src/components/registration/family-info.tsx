@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTranslations } from 'next-intl';
-import { MaritalStatus } from '@prisma/client';
+import { MaritalStatus } from '@/convex/lib/constants';
 import { FamilyInfoFormData } from '@/schemas/registration';
 import { Separator } from '@/components/ui/separator';
 

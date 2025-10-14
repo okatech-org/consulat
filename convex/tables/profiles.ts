@@ -78,6 +78,7 @@ export const profiles = defineTable({
     profession: v.optional(v.string()),
     employer: v.optional(v.string()),
     employerAddress: v.optional(v.string()),
+    activityInGabon: v.optional(v.string()),
     cv: v.optional(v.id('documents')),
   }),
 

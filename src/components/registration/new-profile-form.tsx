@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { RegistrationSchema, type RegistrationInput } from '@/schemas/user';
 import { ROUTES } from '@/schemas/routes';
-import type { Country } from '@prisma/client';
+import type { Country } from '@/convex/lib/constants';
 import { z } from 'zod';
 
 // Types

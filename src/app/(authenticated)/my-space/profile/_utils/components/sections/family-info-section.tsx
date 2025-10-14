@@ -20,11 +20,8 @@ interface FamilyInfoSectionProps {
   requestId?: string;
 }
 
-export function FamilyInfoSection({
-  profile,
-  onSave,
-  requestId,
-}: FamilyInfoSectionProps) {
+export function FamilyInfoSection({ profile, onSave }: FamilyInfoSectionProps) {
+  if (!profile) return null;
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
   const { toast } = useToast();
@@ -38,7 +35,7 @@ export function FamilyInfoSection({
     },
   });
 
-  const convexUpdate = useMutation(api.functions.profile.updateProfile);
+  const updateProfile = useMutation(api.functions.profile.updateProfile);
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -46,32 +43,10 @@ export function FamilyInfoSection({
 
     filterUneditedKeys<FamilyInfoFormData>(data, form.formState.dirtyFields);
 
-    // Mapper vers Convex: family.father/mother/spouse + personal.maritalStatus
-    const familyUpdate: Record<string, unknown> = {};
-    if (typeof data.fatherFullName !== 'undefined' && data.fatherFullName) {
-      const [firstName, ...rest] = data.fatherFullName.split(' ');
-      familyUpdate.father = { firstName, lastName: rest.join(' ') };
-    }
-    if (typeof data.motherFullName !== 'undefined' && data.motherFullName) {
-      const [firstName, ...rest] = data.motherFullName.split(' ');
-      familyUpdate.mother = { firstName, lastName: rest.join(' ') };
-    }
-    if (typeof data.spouseFullName !== 'undefined' && data.spouseFullName) {
-      const [firstName, ...rest] = data.spouseFullName.split(' ');
-      familyUpdate.spouse = { firstName, lastName: rest.join(' ') };
-    }
-
-    const personalUpdate: Record<string, unknown> = {};
-    if (typeof data.maritalStatus !== 'undefined')
-      personalUpdate.maritalStatus = data.maritalStatus as any;
-
     const result = await tryCatch(
-      convexUpdate({
-        profileId: profile._id as any,
-        family: Object.keys(familyUpdate).length ? (familyUpdate as any) : undefined,
-        personal: Object.keys(personalUpdate).length
-          ? (personalUpdate as any)
-          : undefined,
+      updateProfile({
+        profileId: profile._id,
+        family: { ...data },
       }),
     );
 

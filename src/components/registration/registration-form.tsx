@@ -39,18 +39,19 @@ import { CountrySelect } from '../ui/country-select';
 import { type CountryCode } from '@/lib/autocomplete-datas';
 import { Dialog, DialogContent } from '../ui/dialog';
 import Link from 'next/link';
-import { type Country, CountryStatus } from '@prisma/client';
+import { CountryStatus } from '@/convex/lib/constants';
 import { ErrorCard } from '../ui/error-card';
 import { type FullProfile } from '@/types/convex-profile';
 import React from 'react';
 import { useTabs } from '@/hooks/use-tabs';
-import { DocumentType } from '@prisma/client';
+import { DocumentType } from '@/convex/lib/constants';
+import type { Doc } from '@/convex/_generated/dataModel';
 
 export function RegistrationForm({
   availableCountries,
   profile,
 }: {
-  availableCountries: Country[];
+  availableCountries: Doc<'countries'>[];
   profile: FullProfile;
 }) {
   const {

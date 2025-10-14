@@ -1,5 +1,5 @@
 {
-  "lastUpdate": "2025-10-14T17:58:35.291Z",
+  "lastUpdate": "2025-10-14T18:10:26.351Z",
   "version": "1.0.0",
   "entities": {
     "countries": [
@@ -2112,6 +2112,10 @@
       "cmb0mroa80002k204hj5ikx46",
       "cmb1c8muu0002kz04a88nfmwg",
       "cmb2psmpx0002jy04rsw41uub",
+      "cmb6zca7s0002l4045txhylqb",
+      "cmb70c5ft0002ic044vt3sf65",
+      "cmb845h940006ib043uzpitnr",
+      "cmbam8zi00002jm04fjslq39r",
       "cmbetc2zr0002ie0406gtnuye",
       "cmbetw6160002lb045q3cifbo",
       "cmbidzwef0002lj046rxjznph",
@@ -2222,6 +2226,6 @@
     "services": 19,
     "non-users-accounts": 20,
     "users-data": 2006,
-    "parental-authorities": 136
+    "parental-authorities": 140
   }
 }

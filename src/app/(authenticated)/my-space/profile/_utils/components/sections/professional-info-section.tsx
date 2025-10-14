@@ -26,8 +26,8 @@ interface ProfessionalInfoSectionProps {
 export function ProfessionalInfoSection({
   profile,
   onSave,
-  requestId,
 }: ProfessionalInfoSectionProps) {
+  if (!profile) return null;
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
   const { toast } = useToast();
@@ -36,11 +36,11 @@ export function ProfessionalInfoSection({
   const form = useForm<ProfessionalInfoFormData>({
     resolver: zodResolver(ProfessionalInfoSchema),
     defaultValues: {
-      workStatus: (profile.personal?.workStatus as any) ?? 'employee',
-      profession: profile.professionSituation?.profession || '',
-      employer: profile.professionSituation?.employer || '',
-      employerAddress: profile.professionSituation?.employerAddress || '',
-      activityInGabon: '',
+      workStatus: profile.professionSituation?.workStatus,
+      profession: profile.professionSituation?.profession,
+      employer: profile.professionSituation?.employer,
+      employerAddress: profile.professionSituation?.employerAddress,
+      activityInGabon: profile.professionSituation?.activityInGabon,
     },
   });
 
@@ -52,27 +52,10 @@ export function ProfessionalInfoSection({
 
     filterUneditedKeys<ProfessionalInfoFormData>(data, form.formState.dirtyFields);
 
-    const personalUpdate: Record<string, unknown> = {};
-    const professionSituationUpdate: Record<string, unknown> = {};
-
-    if (typeof data.workStatus !== 'undefined')
-      personalUpdate.workStatus = data.workStatus as any;
-    if (typeof data.profession !== 'undefined')
-      professionSituationUpdate.profession = data.profession;
-    if (typeof data.employer !== 'undefined')
-      professionSituationUpdate.employer = data.employer;
-    if (typeof data.employerAddress !== 'undefined')
-      professionSituationUpdate.employerAddress = data.employerAddress;
-
     const result = await tryCatch(
       convexUpdate({
-        profileId: profile._id as any,
-        personal: Object.keys(personalUpdate).length
-          ? (personalUpdate as any)
-          : undefined,
-        professionSituation: Object.keys(professionSituationUpdate).length
-          ? (professionSituationUpdate as any)
-          : undefined,
+        profileId: profile._id,
+        professionSituation: { ...data },
       }),
     );
 

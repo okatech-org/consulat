@@ -23,7 +23,7 @@ import { ErrorCard } from '../ui/error-card';
 import { useTabs } from '@/hooks/use-tabs';
 import CardContainer from '../layouts/card-container';
 import type { BasicInfoFormData } from '@/schemas/registration';
-import { DocumentType } from '@prisma/client';
+import { DocumentType } from '@/convex/lib/constants';
 import { submitProfileForValidation } from '@/actions/profile';
 
 type ChildSteps = 'link' | 'documents' | 'identity';

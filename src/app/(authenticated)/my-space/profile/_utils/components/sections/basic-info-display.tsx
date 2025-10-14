@@ -4,26 +4,18 @@ import { useTranslations } from 'next-intl';
 import { InfoField } from '@/components/ui/info-field';
 import { useDateLocale } from '@/lib/utils';
 import type { FullProfile } from '@/types/convex-profile';
-import {
-  User,
-  Calendar,
-  MapPin,
-  Globe,
-  Flag,
-  CreditCard,
-  Camera,
-  Building,
-} from 'lucide-react';
+import { User, Calendar, MapPin, Globe, Flag, CreditCard, Camera } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { UserDocument } from '@/components/documents/user-document';
-import { DocumentType } from '@prisma/client';
-import type { AppUserDocument } from '@/types';
+import { DocumentType } from '@/convex/lib/constants';
+import { Fragment } from 'react';
 
 interface BasicInfoDisplayProps {
   profile: FullProfile;
 }
 
 export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
+  if (!profile) return null;
   const t_profile = useTranslations('profile.fields');
   const t_inputs = useTranslations('inputs');
   const t_countries = useTranslations('countries');
@@ -38,8 +30,8 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
             label={t_profile('identityPicture')}
             value={
               <UserDocument
-                document={profile.identityPicture as unknown as AppUserDocument}
-                expectedType={DocumentType.IDENTITY_PHOTO}
+                document={profile.identityPicture}
+                expectedType={DocumentType.IdentityPhoto}
                 label=""
                 description=""
                 allowEdit={false}
@@ -105,7 +97,7 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
             label={t_profile('birthCountry')}
             value={
               profile.personal?.birthCountry
-                ? t_countries(profile.personal.birthCountry as any)
+                ? t_countries(profile.personal.birthCountry)
                 : undefined
             }
             icon={<Globe className="size-4" />}
@@ -115,7 +107,7 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
             label={t_profile('nationality')}
             value={
               profile.personal?.nationality
-                ? t_countries(profile.personal.nationality as any)
+                ? t_countries(profile.personal.nationality)
                 : undefined
             }
             icon={<Flag className="size-4" />}
@@ -136,14 +128,29 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
         </div>
       </div>
 
-      {profile.consularCard?.cardPin && (
+      {profile.personal?.nipCode && (
         <>
           <Separator />
           <InfoField
             label="Code NIP"
-            value={profile.consularCard.cardPin}
+            value={profile.personal.nipCode}
             icon={<CreditCard className="size-4" />}
           />
+        </>
+      )}
+
+      {profile.personal?.passportInfos && (
+        <>
+          {Object.entries(profile.personal.passportInfos).map(([key, value]) => (
+            <Fragment key={key}>
+              <Separator />
+              <InfoField
+                label={key}
+                value={value}
+                icon={<CreditCard className="size-4" />}
+              />
+            </Fragment>
+          ))}
         </>
       )}
     </div>

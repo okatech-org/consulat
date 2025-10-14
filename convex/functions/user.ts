@@ -250,7 +250,7 @@ export const handleNewUser = action({
           firstName: clerkUser.firstName || '',
           lastName: clerkUser.lastName || '',
           email: email || '',
-          phoneNumber: phoneNumber || '',
+          phone: phoneNumber || '',
           residenceCountry: country.code,
         },
       );

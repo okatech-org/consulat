@@ -3,16 +3,26 @@
 import { PageContainer } from '@/components/layouts/page-container';
 import { RegistrationForm } from '@/components/registration/registration-form';
 import CardContainer from '@/components/layouts/card-container';
-import { api } from '@/trpc/react';
 import { useTranslations } from 'next-intl';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { CountryStatus } from '@/convex/lib/constants';
 
 export default function ProfileFormPage() {
   const tInputs = useTranslations('inputs');
-  const { data: profile, isLoading: profileLoading } = api.profile.getCurrent.useQuery();
-  const { data: availableCountries } = api.countries.getActive.useQuery();
+  const { user } = useCurrentUser();
 
-  if (profileLoading) {
+  const profile = useQuery(
+    api.functions.profile.getCurrentProfile,
+    user ? { userId: user._id } : 'skip',
+  );
+  const countries = useQuery(api.functions.country.getAllCountries, {
+    status: CountryStatus.Active,
+  });
+
+  if (profile === undefined) {
     return (
       <PageContainer title={tInputs('newProfile.title')}>
         <LoadingSkeleton variant="form" className="!w-full" />
@@ -25,10 +35,7 @@ export default function ProfileFormPage() {
       {!profile && <CardContainer title="Profile non trouvé"></CardContainer>}
 
       {profile && (
-        <RegistrationForm
-          availableCountries={availableCountries ?? []}
-          profile={profile}
-        />
+        <RegistrationForm availableCountries={countries ?? []} profile={profile} />
       )}
     </PageContainer>
   );

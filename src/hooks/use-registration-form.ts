@@ -9,18 +9,22 @@ import {
   FamilyInfoSchema,
   ProfessionalInfoSchema,
   DocumentsSchema,
-  FullProfileUpdateFormData,
-  DocumentsFormData,
-  BasicInfoFormData,
-  FamilyInfoFormData,
-  ContactInfoFormData,
-  ProfessionalInfoFormData,
+  type FullProfileUpdateFormData,
+  type DocumentsFormData,
+  type BasicInfoFormData,
+  type FamilyInfoFormData,
+  type ContactInfoFormData,
+  type ProfessionalInfoFormData,
 } from '@/schemas/registration';
 import { createFormStorage } from '@/lib/form-storage';
-import { ErrorMessageKey, extractFieldsFromObject, getValuable } from '@/lib/utils';
-import { FullProfile } from '@/types';
-import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
-import { MaritalStatus, NationalityAcquisition, WorkStatus } from '@prisma/client';
+import { type ErrorMessageKey, extractFieldsFromObject, getValuable } from '@/lib/utils';
+import { type CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
+import {
+  MaritalStatus,
+  NationalityAcquisition,
+  WorkStatus,
+} from '@/convex/lib/constants';
+import type { FullProfile } from '@/types/convex-profile';
 
 const homeLandCountry = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as CountryCode;
 

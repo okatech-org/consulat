@@ -669,18 +669,10 @@ export default {
   profileStatus: {
     label: 'Statut du profile',
     options: {
-      edited: 'Modifiée',
-      draft: 'Demande en cours de remplissage',
-      submitted: 'En attente de vérification',
-      pending: 'En traitement',
-      pending_completion: 'En attente de complément',
-      validated: 'Dossier validé',
-      rejected: 'Rejeté',
-      card_in_production: 'Carte en production',
-      ready_for_pickup: 'Prêt pour retrait et entretien',
-      document_in_production: 'Document en production',
-      appointment_scheduled: 'RDV programmé',
-      completed: 'Carte remise après entretien',
+      active: 'Actif',
+      inactive: 'Inactif',
+      pending: 'En attente',
+      suspended: 'Suspendu',
     },
   },
   requestStatus: {

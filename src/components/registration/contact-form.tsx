@@ -17,11 +17,11 @@ import { ContactInfoFormData } from '@/schemas/registration';
 import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
 import CardContainer from '../layouts/card-container';
 import { MultiSelect } from '../ui/multi-select';
-import { FamilyLink } from '@prisma/client';
+import { FamilyLink } from '@/convex/lib/constants';
 import { CountrySelect } from '../ui/country-select';
 import { Button } from '../ui/button';
 import { MinusIcon, PlusIcon } from 'lucide-react';
-import { FullProfile } from '@/types';
+import { FullProfile } from '@/types/convex-profile';
 import { PhoneInput } from '../ui/phone-input';
 
 interface ContactInfoFormProps {
@@ -111,7 +111,7 @@ export function ContactInfoForm({
               <FormItem className="sm:col-span-1">
                 <FormLabel>{t_inputs('phone.label')}</FormLabel>
                 <FormControl>
-                  <PhoneNumberInput
+                  <PhoneInput
                     value={field.value ?? defaultNumber}
                     onChangeAction={field.onChange}
                     disabled={Boolean(profile.phoneNumber) || isLoading}
@@ -571,7 +571,7 @@ export function ContactInfoForm({
                   <FormItem className="sm:col-span-1">
                     <FormLabel>{t_inputs('phone.label')}</FormLabel>
                     <FormControl>
-                      <PhoneNumberInput
+                      <PhoneInput
                         value={field.value ?? defaultNumber}
                         onChangeAction={field.onChange}
                         disabled={isLoading}

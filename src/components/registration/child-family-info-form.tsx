@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ParentalRole } from '@prisma/client';
+import { ParentalRole } from '@/convex/lib/constants';
 
 export interface ChildFamilyInfoFormData {
   parentRole: ParentalRole;

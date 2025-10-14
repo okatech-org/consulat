@@ -15,12 +15,12 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useTranslations } from 'next-intl';
 import type { CountryCode } from '@/lib/autocomplete-datas';
-import { NationalityAcquisition } from '@prisma/client';
+import { NationalityAcquisition } from '@/convex/lib/constants';
 import type { BasicInfoFormData } from '@/schemas/registration';
 import { Separator } from '@/components/ui/separator';
 import { CountrySelect } from '@/components/ui/country-select';
 import type { AppUserDocument } from '@/types';
-import { DocumentType } from '@prisma/client';
+import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
 import { capitalize } from '@/lib/utils';
 

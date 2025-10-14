@@ -32,11 +32,12 @@ import {
   Save,
 } from 'lucide-react';
 import type { FullProfile } from '@/types/convex-profile';
+import type { Doc } from '@/convex/_generated/dataModel';
 
 type MobileProfileNavigationProps = {
   profile: FullProfile;
   requestId?: string;
-  requests?: ServiceRequest[];
+  requests?: Doc<'requests'>[];
 };
 
 const sectionIcons = {
@@ -132,7 +133,7 @@ export function MobileProfileNavigation({
             addressProof: profile.addressProof,
           }}
           profileId={profile._id}
-          onSaveAction={() => handleSectionSave('documents')}
+          onSave={() => handleSectionSave('documents')}
         />
       ),
     },

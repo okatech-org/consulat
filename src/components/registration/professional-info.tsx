@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTranslations } from 'next-intl';
-import { WorkStatus } from '@prisma/client';
+import { WorkStatus } from '@/convex/lib/constants';
 import { ProfessionalInfoFormData } from '@/schemas/registration';
 import CardContainer from '../layouts/card-container';
 

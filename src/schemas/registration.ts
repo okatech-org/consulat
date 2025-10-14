@@ -4,7 +4,7 @@ import {
   MaritalStatus,
   NationalityAcquisition,
   WorkStatus,
-} from '@prisma/client';
+} from '@/convex/lib/constants';
 import {
   AddressSchema,
   CountryCodeSchema,

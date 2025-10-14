@@ -498,6 +498,11 @@ async function importParentalAuthorities() {
   );
 
   for (const item of items) {
+    if (isAlreadyMigrated('parental-authorities', item.parentalAuthority.id)) {
+      stats['parental-authorities']!.skipped++;
+      continue;
+    }
+
     try {
       console.log(`\n   📍 Import parental authorities : ${item.parentalAuthority.id}`);
       const result = await convex.mutation(

@@ -16,7 +16,7 @@ import {
 import { ChildCompleteFormData } from '@/schemas/child-registration';
 import { DocumentStatus, InfoField } from '@/components/ui/info-field';
 import { useDateLocale } from '@/lib/utils';
-import { ParentalRole } from '@prisma/client';
+import { ParentalRole } from '@/convex/lib/constants';
 
 interface ChildReviewFieldsProps<T extends keyof ChildCompleteFormData> {
   id: T;
