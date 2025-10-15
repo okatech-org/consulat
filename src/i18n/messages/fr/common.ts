@@ -567,4 +567,47 @@ export default {
       description: 'Affiche la barre latérale mobile.',
     },
   },
+  files: {
+    preview: {
+      title: 'Aperçu du fichier',
+      loading: 'Chargement...',
+      unsupported: 'Aperçu non disponible pour ce type de fichier',
+    },
+    actions: {
+      open: 'Ouvrir',
+      download: 'Télécharger',
+      delete: 'Supprimer',
+      replace: 'Remplacer',
+      view: 'Voir',
+    },
+    errors: {
+      download_failed: 'Échec du téléchargement',
+      delete_failed: 'Échec de la suppression',
+      upload_failed: "Échec de l'upload",
+      load_failed: 'Échec du chargement du fichier',
+    },
+    success: {
+      downloaded: 'Fichier téléchargé',
+      deleted: 'Fichier supprimé',
+      uploaded: 'Fichier téléchargé',
+    },
+    types: {
+      image: 'Image',
+      pdf: 'PDF',
+      document: 'Document',
+      video: 'Vidéo',
+      audio: 'Audio',
+      file: 'Fichier',
+    },
+    demo: {
+      title: 'Démonstration du système de fichiers',
+      description:
+        "Exemple d'utilisation du nouveau système de stockage de fichiers Convex",
+      uploading: 'Upload en cours...',
+      dropzone: 'Cliquez ici pour sélectionner un fichier',
+      supported: 'Images, PDFs, documents texte supportés',
+      uploaded_files: 'Fichiers téléchargés',
+      examples: "Exemples d'affichage",
+    },
+  },
 } as const;

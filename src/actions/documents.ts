@@ -3,7 +3,7 @@
 import sharp from 'sharp';
 import { getCurrentUser } from '@/lib/auth/utils';
 import { db } from '@/server/db';
-import { DocumentStatus, type UserDocument, DocumentType } from '@prisma/client';
+import { DocumentStatus, type UserDocument } from '@prisma/client';
 import type { AppUserDocument } from '@/types';
 import { checkAuth } from '@/lib/auth/action';
 import { getTranslations } from 'next-intl/server';
@@ -13,6 +13,7 @@ import { env } from '@/env';
 import { ROUTES } from '@/schemas/routes';
 import { documentSpecificFields, getFieldsForDocument } from '@/lib/document-fields';
 import { GeminiVisionAnalyzer, type StructuredOutput } from '@/lib/ai/gemini-analyzer';
+import { DocumentType } from '@/convex/lib/constants';
 
 import type {
   BasicInfoFormData,
@@ -79,22 +80,22 @@ function createStructuredOutputSchemaForDocument(
       Array<'basicInfo' | 'contactInfo' | 'familyInfo' | 'professionalInfo'>
     >
   > = {
-    [DocumentType.PASSPORT]: ['basicInfo'],
-    [DocumentType.BIRTH_CERTIFICATE]: ['basicInfo', 'familyInfo'],
-    [DocumentType.RESIDENCE_PERMIT]: ['basicInfo', 'professionalInfo'],
-    [DocumentType.PROOF_OF_ADDRESS]: ['contactInfo'],
+    [DocumentType.Passport]: ['basicInfo'],
+    [DocumentType.BirthCertificate]: ['basicInfo', 'familyInfo'],
+    [DocumentType.ResidencePermit]: ['basicInfo', 'professionalInfo'],
+    [DocumentType.ProofOfAddress]: ['contactInfo'],
     // Add default empty arrays for other document types
-    [DocumentType.IDENTITY_CARD]: ['basicInfo'],
-    [DocumentType.MARRIAGE_CERTIFICATE]: ['familyInfo'],
-    [DocumentType.DEATH_CERTIFICATE]: ['familyInfo'],
-    [DocumentType.DIVORCE_DECREE]: ['familyInfo'],
-    [DocumentType.NATIONALITY_CERTIFICATE]: ['basicInfo'],
-    [DocumentType.OTHER]: [],
-    [DocumentType.VISA_PAGES]: ['basicInfo'],
-    [DocumentType.EMPLOYMENT_PROOF]: ['professionalInfo'],
-    [DocumentType.NATURALIZATION_DECREE]: ['basicInfo'],
-    [DocumentType.IDENTITY_PHOTO]: ['basicInfo'],
-    [DocumentType.CONSULAR_CARD]: ['basicInfo'],
+    [DocumentType.IdentityCard]: ['basicInfo'],
+    [DocumentType.MarriageCertificate]: ['familyInfo'],
+    [DocumentType.DeathCertificate]: ['familyInfo'],
+    [DocumentType.DivorceDecree]: ['familyInfo'],
+    [DocumentType.NationalityCertificate]: ['basicInfo'],
+    [DocumentType.Other]: [],
+    [DocumentType.VisaPages]: ['basicInfo'],
+    [DocumentType.EmploymentProof]: ['professionalInfo'],
+    [DocumentType.NaturalizationDecree]: ['basicInfo'],
+    [DocumentType.IdentityPhoto]: ['basicInfo'],
+    [DocumentType.ConsularCard]: ['basicInfo'],
   };
 
   // Section schemas

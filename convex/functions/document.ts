@@ -369,3 +369,280 @@ export const getDocumentVersions = query({
     return versions;
   },
 });
+
+// Fonctions spécifiques aux documents utilisateur
+
+export const createUserDocument = mutation({
+  args: {
+    type: v.string(),
+    fileUrl: v.string(),
+    fileType: v.string(),
+    fileName: v.optional(v.string()),
+    userId: v.optional(v.string()),
+    profileId: v.optional(v.string()),
+    requestId: v.optional(v.string()),
+    issuedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    metadata: v.optional(v.record(v.string(), v.any())),
+  },
+  returns: v.id('documents'),
+  handler: async (ctx, args) => {
+    // Récupérer l'utilisateur actuel depuis le contexte d'authentification
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error('Unauthorized');
+    }
+
+    const ownerId = args.profileId || args.userId || identity.subject;
+    const ownerType = args.profileId ? 'profile' : 'user';
+
+    // Générer un nom de fichier si non fourni
+    const fileName =
+      args.fileName || `document-${Date.now()}.${args.fileType.split('/')[1]}`;
+
+    const documentId = await ctx.db.insert('documents', {
+      type: args.type as DocumentType,
+      status: DocumentStatus.Pending,
+      fileUrl: args.fileUrl,
+      fileName,
+      fileType: args.fileType,
+      ownerId,
+      ownerType: ownerType as OwnerType,
+      issuedAt: args.issuedAt,
+      expiresAt: args.expiresAt,
+      validations: [],
+      metadata: args.metadata || {},
+      version: 1,
+    });
+
+    return documentId;
+  },
+});
+
+export const replaceUserDocumentFile = mutation({
+  args: {
+    documentId: v.id('documents'),
+    fileUrl: v.string(),
+    fileType: v.string(),
+    fileName: v.optional(v.string()),
+  },
+  returns: v.id('documents'),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error('Unauthorized');
+    }
+
+    const document = await ctx.db.get(args.documentId);
+    if (!document) {
+      throw new Error('Document not found');
+    }
+
+    // Vérifier que l'utilisateur peut modifier ce document
+    const ownerId = document.ownerId;
+    if (ownerId !== identity.subject && document.ownerType !== 'user') {
+      throw new Error('Unauthorized to modify this document');
+    }
+
+    const updateData: any = {
+      fileUrl: args.fileUrl,
+      fileType: args.fileType,
+      status: DocumentStatus.Pending, // Remettre en attente après remplacement
+    };
+
+    if (args.fileName) {
+      updateData.fileName = args.fileName;
+    }
+
+    await ctx.db.patch(args.documentId, updateData);
+    return args.documentId;
+  },
+});
+
+export const updateUserDocument = mutation({
+  args: {
+    documentId: v.id('documents'),
+    issuedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    metadata: v.optional(v.record(v.string(), v.any())),
+  },
+  returns: v.id('documents'),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error('Unauthorized');
+    }
+
+    const document = await ctx.db.get(args.documentId);
+    if (!document) {
+      throw new Error('Document not found');
+    }
+
+    // Vérifier que l'utilisateur peut modifier ce document
+    const ownerId = document.ownerId;
+    if (ownerId !== identity.subject && document.ownerType !== 'user') {
+      throw new Error('Unauthorized to modify this document');
+    }
+
+    const updateData: any = {};
+    if (args.issuedAt !== undefined) updateData.issuedAt = args.issuedAt;
+    if (args.expiresAt !== undefined) updateData.expiresAt = args.expiresAt;
+    if (args.metadata !== undefined) updateData.metadata = args.metadata;
+
+    // Remettre le statut en attente si les dates sont modifiées
+    if (args.issuedAt !== undefined || args.expiresAt !== undefined) {
+      updateData.status = DocumentStatus.Pending;
+    }
+
+    await ctx.db.patch(args.documentId, updateData);
+    return args.documentId;
+  },
+});
+
+export const deleteUserDocument = mutation({
+  args: {
+    documentId: v.id('documents'),
+  },
+  returns: v.boolean(),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error('Unauthorized');
+    }
+
+    const document = await ctx.db.get(args.documentId);
+    if (!document) {
+      throw new Error('Document not found');
+    }
+
+    // Vérifier que l'utilisateur peut supprimer ce document
+    const ownerId = document.ownerId;
+    if (ownerId !== identity.subject && document.ownerType !== 'user') {
+      throw new Error('Unauthorized to delete this document');
+    }
+
+    // Supprimer le fichier du stockage si présent
+    if (document.storageId) {
+      await ctx.storage.delete(document.storageId);
+    }
+
+    await ctx.db.delete(args.documentId);
+    return true;
+  },
+});
+
+export const getUserDocuments = query({
+  args: {
+    userId: v.optional(v.string()),
+    profileId: v.optional(v.string()),
+    type: v.optional(v.string()),
+    status: v.optional(v.string()),
+  },
+  returns: v.array(v.any()),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error('Unauthorized');
+    }
+
+    let documents: Array<Doc<'documents'>> = [];
+
+    if (args.userId) {
+      documents = await ctx.db
+        .query('documents')
+        .withIndex('by_owner', (q) =>
+          q.eq('ownerId', args.userId!).eq('ownerType', 'user'),
+        )
+        .collect();
+    } else if (args.profileId) {
+      documents = await ctx.db
+        .query('documents')
+        .withIndex('by_owner', (q) =>
+          q.eq('ownerId', args.profileId!).eq('ownerType', 'profile'),
+        )
+        .collect();
+    } else {
+      // Récupérer tous les documents de l'utilisateur actuel
+      const userDocs = await ctx.db
+        .query('documents')
+        .withIndex('by_owner', (q) =>
+          q.eq('ownerId', identity.subject).eq('ownerType', 'user'),
+        )
+        .collect();
+
+      documents.push(...userDocs);
+    }
+
+    // Filtrer par type et statut si spécifié
+    if (args.type) {
+      documents = documents.filter((doc) => doc.type === args.type);
+    }
+
+    if (args.status) {
+      documents = documents.filter((doc) => doc.status === args.status);
+    }
+
+    // Enrichir avec les URLs des fichiers
+    const documentsWithUrls = await Promise.all(
+      documents.map(async (doc) => ({
+        ...doc,
+        fileUrl: doc.storageId ? await ctx.storage.getUrl(doc.storageId) : doc.fileUrl,
+      })),
+    );
+
+    return documentsWithUrls;
+  },
+});
+
+export const validateUserDocument = mutation({
+  args: {
+    documentId: v.id('documents'),
+    validatorId: v.id('users'),
+    status: v.string(),
+    comments: v.optional(v.string()),
+  },
+  returns: v.id('documents'),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error('Unauthorized');
+    }
+
+    const document = await ctx.db.get(args.documentId);
+    if (!document) {
+      throw new Error('Document not found');
+    }
+
+    // Vérifier que l'utilisateur peut valider ce document
+    if (!hasAdminRole(identity)) {
+      throw new Error('Unauthorized to validate documents');
+    }
+
+    const validation = {
+      validatorId: args.validatorId,
+      status: args.status as ValidationStatus,
+      comments: args.comments,
+      timestamp: Date.now(),
+    };
+
+    const newStatus =
+      args.status === 'approved'
+        ? DocumentStatus.Validated
+        : args.status === 'rejected'
+          ? DocumentStatus.Rejected
+          : document.status;
+
+    await ctx.db.patch(args.documentId, {
+      status: newStatus,
+      validations: [...document.validations, validation],
+    });
+
+    return args.documentId;
+  },
+});
+
+// Helper function to check admin role
+function hasAdminRole(identity: any): boolean {
+  const adminRoles = ['admin', 'agent', 'super_admin', 'manager'];
+  return identity.roles?.some((role: string) => adminRoles.includes(role)) || false;
+}

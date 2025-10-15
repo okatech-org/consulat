@@ -16,15 +16,16 @@ import { useState } from 'react';
 import { tryCatch, filterUneditedKeys } from '@/lib/utils';
 import { useChildRegistrationForm } from '@/hooks/use-child-registration-form';
 import { LinkForm } from './link-form';
-import { createChildProfile, updateChildProfile } from '@/actions/child-profiles';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, Info, Loader } from 'lucide-react';
 import { ErrorCard } from '../ui/error-card';
 import { useTabs } from '@/hooks/use-tabs';
 import CardContainer from '../layouts/card-container';
-import type { BasicInfoFormData } from '@/schemas/registration';
+import type { ChildBasicInfoFormData } from '@/schemas/child-registration';
 import { DocumentType } from '@/convex/lib/constants';
-import { submitProfileForValidation } from '@/actions/profile';
+import { useAuth } from '@/contexts/auth-context';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 type ChildSteps = 'link' | 'documents' | 'identity';
 
@@ -33,6 +34,7 @@ export function ChildRegistrationForm() {
   const t = useTranslations('registration');
   const t_inputs = useTranslations('inputs');
   const t_errors = useTranslations('messages.errors');
+  const { user } = useAuth();
 
   const {
     isLoading,
@@ -43,7 +45,13 @@ export function ChildRegistrationForm() {
     clearData,
     profileId,
     setProfileId,
+    createProfile,
+    updateBasicInfo,
   } = useChildRegistrationForm();
+
+  const submitChildProfileForValidation = useMutation(
+    api.functions.childProfile.submitChildProfileForValidation,
+  );
 
   const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
 
@@ -58,7 +66,7 @@ export function ChildRegistrationForm() {
   // Handler for analysis
 
   const handleDocumentsAnalysis = async (data: {
-    basicInfo?: Partial<BasicInfoFormData>;
+    basicInfo?: Partial<ChildBasicInfoFormData>;
   }) => {
     setIsLoading(true);
     setError(undefined);
@@ -74,11 +82,9 @@ export function ChildRegistrationForm() {
           'birthCountry',
           'gender',
           'acquisitionMode',
-          'passportExpiryDate',
-          'passportIssueAuthority',
-          'passportIssueDate',
-          'passportNumber',
-        ] as Array<keyof BasicInfoFormData>;
+          'nationality',
+          'nipCode',
+        ] as Array<keyof ChildBasicInfoFormData>;
 
         fieldsToUpdate.forEach((field) => {
           if (data.basicInfo?.[field]) {
@@ -87,6 +93,13 @@ export function ChildRegistrationForm() {
             });
           }
         });
+
+        // Handle passport info separately if present
+        if (data.basicInfo.passportInfos) {
+          forms.basicInfo.setValue('passportInfos', data.basicInfo.passportInfos, {
+            shouldDirty: true,
+          });
+        }
       }
 
       toast({
@@ -119,6 +132,12 @@ export function ChildRegistrationForm() {
     setError(undefined);
     setIsLoading(true);
 
+    if (!user?._id) {
+      setError(t_errors('unauthorized'));
+      setIsLoading(false);
+      return;
+    }
+
     switch (currentTab) {
       case 'link': {
         // First step - create the child profile
@@ -132,46 +151,25 @@ export function ChildRegistrationForm() {
         }
 
         if (!profileId) {
-          const { data: createChildProfileResult, error: createChildProfileError } =
-            await tryCatch(createChildProfile(linkData));
+          const { data: newProfileId, error: createError } = await tryCatch(
+            createProfile(linkData, user._id),
+          );
 
-          if (createChildProfileError) {
-            setError(createChildProfileError.message);
+          if (createError) {
+            setError(createError.message);
             setIsLoading(false);
             return;
           }
 
-          if (createChildProfileResult) {
-            setProfileId(createChildProfileResult.id);
+          if (newProfileId) {
+            setProfileId(newProfileId);
             const nextStep = orderedSteps[currentStepIndex + 1];
             if (nextStep) {
               handleTabChange(nextStep);
             }
           }
         } else {
-          const editedFields = filterUneditedKeys(
-            {
-              hasOtherParent: linkData.hasOtherParent,
-              parentRole: linkData.parentRole,
-              otherParentFirstName: linkData.otherParentFirstName,
-              otherParentLastName: linkData.otherParentLastName,
-              otherParentEmail: linkData.otherParentEmail,
-              otherParentPhone: linkData.otherParentPhone,
-              otherParentRole: linkData.otherParentRole,
-            },
-            forms.link.formState.dirtyFields,
-          );
-
-          if (editedFields) {
-            const { error } = await tryCatch(updateChildProfile(profileId, editedFields));
-
-            if (error) {
-              setError(error.message);
-              setIsLoading(false);
-              return;
-            }
-          }
-
+          // Profile already exists, just navigate to next step
           const nextStep = orderedSteps[currentStepIndex + 1];
           if (nextStep) {
             handleTabChange(nextStep);
@@ -191,13 +189,9 @@ export function ChildRegistrationForm() {
         }
 
         const stepData = currentForm.getValues();
-        const editedFields = filterUneditedKeys(
-          stepData,
-          currentForm.formState.dirtyFields,
-        );
 
-        if (editedFields && profileId) {
-          const { error } = await tryCatch(updateChildProfile(profileId, editedFields));
+        if (profileId && currentForm.formState.isDirty) {
+          const { error } = await tryCatch(updateBasicInfo(profileId, stepData));
 
           if (error) {
             setError(error.message);
@@ -207,27 +201,28 @@ export function ChildRegistrationForm() {
         }
 
         if (profileId) {
-          const { data: submitChildProfileResult, error: submitChildProfileError } =
-            await tryCatch(submitProfileForValidation(profileId, true));
+          const { error: submitError } = await tryCatch(
+            submitChildProfileForValidation({
+              childProfileId: profileId,
+            }),
+          );
 
-          if (submitChildProfileError) {
-            const { title, description } = handleFormError(submitChildProfileError, t);
+          if (submitError) {
+            const { title, description } = handleFormError(submitError, t);
             toast({ title, description, variant: 'destructive' });
             setIsLoading(false);
             return;
           }
 
-          if (submitChildProfileResult) {
-            clearData();
+          clearData();
 
-            toast({
-              title: t('submission.success.title'),
-              description: t('submission.success.description'),
-            });
+          toast({
+            title: t('submission.success.title'),
+            description: t('submission.success.description'),
+          });
 
-            setIsLoading(false);
-            router.push(ROUTES.user.children);
-          }
+          setIsLoading(false);
+          router.push(ROUTES.user.children);
         }
 
         break;

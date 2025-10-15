@@ -1,17 +1,19 @@
 import * as z from 'zod';
-import { ParentalRole } from '@prisma/client';
+import { ParentalRole } from '@/convex/lib/constants';
 import { BasicInfoSchema, DocumentsSchema } from './registration';
-import { PhoneNumberSchema } from './inputs';
+import { PhoneNumberSchema, NameSchema } from './inputs';
 
 export const LinkInfoSchema = z
   .object({
-    parentRole: z.nativeEnum(ParentalRole),
+    firstName: NameSchema,
+    lastName: NameSchema,
+    parentRole: z.enum(Object.values(ParentalRole)),
     hasOtherParent: z.boolean(),
     otherParentFirstName: z.string().optional(),
     otherParentLastName: z.string().optional(),
     otherParentEmail: z.string().email().optional(),
     otherParentPhone: PhoneNumberSchema.optional(),
-    otherParentRole: z.nativeEnum(ParentalRole).optional(),
+    otherParentRole: z.enum(Object.values(ParentalRole)).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.hasOtherParent) {
@@ -53,13 +55,32 @@ export const LinkInfoSchema = z
     }
   });
 
+// Child basic info schema (simplified version without passport fields)
+export const ChildBasicInfoSchema = BasicInfoSchema.omit({
+  passportInfos: true,
+}).extend({
+  passportInfos: z
+    .object({
+      number: z
+        .string()
+        .min(8)
+        .max(9)
+        .regex(/^[A-Z0-9]{8,9}$/)
+        .optional(),
+      issueDate: z.string().optional(),
+      expiryDate: z.string().optional(),
+      issueAuthority: z.string().min(2).max(100).optional(),
+    })
+    .optional(),
+});
+
 export const ChildCompleteFormSchema = z.object({
-  linkInfo: LinkInfoSchema,
-  basicInfo: BasicInfoSchema,
+  link: LinkInfoSchema,
+  basicInfo: ChildBasicInfoSchema,
   documents: DocumentsSchema,
 });
 
 export type LinkFormData = z.infer<typeof LinkInfoSchema>;
-export type BasicInfoSchema = z.infer<typeof BasicInfoSchema>;
+export type ChildBasicInfoFormData = z.infer<typeof ChildBasicInfoSchema>;
 export type ChildDocumentsFormData = z.infer<typeof DocumentsSchema>;
 export type ChildCompleteFormData = z.infer<typeof ChildCompleteFormSchema>;

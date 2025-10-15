@@ -60,7 +60,9 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
     clearData,
     saveToConvex,
   } = useRegistrationForm({ profile });
-  const convexSubmit = useMutation(api.functions.profile.submitProfileForValidation);
+  const submitProfileForValidation = useMutation(
+    api.functions.profile.submitProfileForValidation,
+  );
   const router = useRouter();
   const t = useTranslations('registration');
   const tInputs = useTranslations('inputs');
@@ -306,9 +308,8 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
     setIsLoading(true);
 
     const result = await tryCatch(
-      convexSubmit({
+      submitProfileForValidation({
         profileId: profile._id,
-        isChild: false, // TODO: déterminer si c'est un profil mineur basé sur la date de naissance
       }),
     );
 

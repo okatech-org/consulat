@@ -19,10 +19,10 @@ import { NationalityAcquisition } from '@/convex/lib/constants';
 import type { BasicInfoFormData } from '@/schemas/registration';
 import { Separator } from '@/components/ui/separator';
 import { CountrySelect } from '@/components/ui/country-select';
-import type { AppUserDocument } from '@/types';
 import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
 import { capitalize } from '@/lib/utils';
+import type { Doc } from '@/convex/_generated/dataModel';
 
 type BasicInfoFormProps = {
   form: UseFormReturn<BasicInfoFormData>;
@@ -58,8 +58,8 @@ export function BasicInfoForm({
                 <FormItem className="max-w-md">
                   <FormControl>
                     <UserDocument
-                      document={field.value as AppUserDocument}
-                      expectedType={DocumentType.IDENTITY_PHOTO}
+                      document={field.value}
+                      expectedType={DocumentType.IdentityPhoto}
                       label={t_inputs('identityPicture.label')}
                       description={t_inputs('identityPicture.help')}
                       required={true}

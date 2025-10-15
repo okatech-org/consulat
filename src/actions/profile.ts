@@ -15,10 +15,6 @@ import { tryCatch } from '@/lib/utils';
 import { assignAgentToRequest } from '@/actions/agents';
 import { checkExistingRegistrationRequest } from '@/lib/registration-guards';
 
-import type {
-  CreateProfileInput,
-  FullProfileUpdateFormData,
-} from '@/schemas/registration';
 import {
   NameSchema,
   CountryCodeSchema,
@@ -38,7 +34,7 @@ const CreateProfileAsyncSchema = z.object({
   otp: z.string().length(6, { message: 'messages.errors.otp_length' }).optional(),
 });
 
-export async function createUserProfile(input: CreateProfileInput, userId: string) {
+export async function createUserProfile(input: any, userId: string) {
   const { success, data } = CreateProfileAsyncSchema.safeParse(input);
 
   if (!success) {
@@ -97,7 +93,7 @@ export async function createUserProfile(input: CreateProfileInput, userId: strin
 
 export async function updateProfile(
   profileId: string,
-  data: Partial<FullProfileUpdateFormData>,
+  data: any,
   requestId?: string,
 ): Promise<Profile> {
   const { user } = await checkAuth();

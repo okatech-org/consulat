@@ -13,22 +13,19 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import type { AppUserDocument } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  createUserDocument,
-  replaceUserDocumentFile,
-  updateUserDocument,
-} from '@/actions/user-documents';
+import { api } from '@/convex/_generated/api';
+import { useMutation, useQuery } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/documents/metadata-form';
 import { FileInput } from '../ui/file-input';
+import { FileDisplay } from '../ui/file-display';
 import { type FileUploadResponse, uploadFileFromClient } from '../ui/uploadthing';
 import { ImageCropper } from '../ui/image-cropper';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -37,7 +34,7 @@ import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { toast } from 'sonner';
-import type { Doc } from '@/convex/_generated/dataModel';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { DocumentStatus, DocumentType } from '@/convex/lib/constants';
 
 interface UserDocumentProps {
@@ -51,7 +48,7 @@ interface UserDocumentProps {
   disabled?: boolean;
   allowEdit?: boolean;
   accept?: string;
-  onUpload?: (doc: AppUserDocument) => void;
+  onUpload?: (doc: Doc<'documents'>) => void;
   onDelete?: () => void;
   noFormLabel?: boolean;
   enableEditor?: boolean;
@@ -62,7 +59,7 @@ interface UserDocumentProps {
 const updateDocumentSchema = z.object({
   issuedAt: z.string().optional(),
   expiresAt: z.string().optional(),
-  metadata: z.record(z.string(), z.any()).nullable().optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 type UpdateDocumentData = z.infer<typeof updateDocumentSchema>;
@@ -131,37 +128,63 @@ export function UserDocument({
   const [showProcessedImageDialog, setShowProcessedImageDialog] = React.useState(false);
   const router = useRouter();
 
+  // Convex mutations and queries
+  const updateDocumentMutation = useMutation(
+    api.functions.document.updateDocumentMetadata,
+  );
+  const updateDocumentDatesMutation = useMutation(
+    api.functions.document.updateDocumentDates,
+  );
+  const validateDocumentMutation = useMutation(api.functions.document.validateDocument);
+
+  const createDocumentWithFileMutation = useMutation(
+    api.functions.file.createDocumentWithFile,
+  );
+  const updateDocumentFileMutation = useMutation(api.functions.file.updateDocumentFile);
+  const deleteDocumentFileMutation = useMutation(api.functions.file.deleteDocumentFile);
+  const getDocumentFileUrlQuery = useQuery(api.functions.file.getDocumentFileUrl);
+
   // Check if user has admin role
   const hasAdminRole = React.useMemo(() => {
     const adminRoles = ['ADMIN', 'AGENT', 'SUPER_ADMIN', 'MANAGER'];
     return user?.roles?.some((role) => adminRoles.includes(role));
   }, [user]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleUpdate = async (documentId: string, data: any) => {
+  const handleUpdate = async (documentId: Id<'documents'>, data: UpdateDocumentData) => {
     setIsLoading(true);
 
-    const { error, data: updatedDocument } = await tryCatch(
-      updateUserDocument(documentId, data),
-    );
-
-    if (error) {
-      toast.error(t_errors(error.message));
-    }
-
-    if (updatedDocument) {
-      onUpload?.(updatedDocument);
-
-      toast.success(t_messages('success.update_title'));
-
-      if (onUpload) {
-        onUpload(updatedDocument);
+    try {
+      // Mettre à jour les dates si fournies
+      if (data.issuedAt || data.expiresAt) {
+        await updateDocumentDatesMutation({
+          documentId,
+          issuedAt: data.issuedAt ? new Date(data.issuedAt).getTime() : undefined,
+          expiresAt: data.expiresAt ? new Date(data.expiresAt).getTime() : undefined,
+        });
       }
 
-      router.refresh();
-    }
+      // Mettre à jour les métadonnées si fournies
+      if (data.metadata) {
+        await updateDocumentMutation({
+          documentId,
+          metadata: data.metadata,
+        });
+      }
 
-    setIsLoading(false);
+      toast.success(t_messages('success.update_title'));
+      if (onUpload) {
+        onUpload({ _id: documentId, ...data });
+      }
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        t_errors(
+          error instanceof Error ? error.message : 'Erreur lors de la mise à jour',
+        ),
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const form = useForm<UpdateDocumentData>({
@@ -180,38 +203,35 @@ export function UserDocument({
   const handleFileChange = async (fileData: FileUploadResponse) => {
     setIsLoading(true);
 
-    const data = {
-      id: fileData.key,
-      type: expectedType,
-      fileUrl: fileData.serverData.fileUrl,
-      fileType: fileData.type,
-      userId: userId ?? '',
-      requestId,
-      ...(profileId && {
-        profileId,
-      }),
-    };
+    try {
+      const documentId = await uploadFileAction({
+        file: fileData.file, // Le fichier blob
+        fileName: fileData.name,
+        fileType: fileData.type,
+        documentType: expectedType,
+        ownerId: profileId || userId || user?.id || '',
+        ownerType: profileId ? 'profile' : 'user',
+        metadata: {
+          requestId,
+        },
+      });
 
-    const result = await tryCatch(createUserDocument(data));
+      if (documentId) {
+        if (onUpload) {
+          onUpload({ _id: documentId.documentId, ...fileData });
+        } else {
+          toast.success(t_messages('success.update_title'));
+        }
 
-    if (result.error) {
-      toast.error(t_errors(result.error.message));
-      setIsLoading(false);
-      return;
-    }
-
-    if (result.data) {
-      if (onUpload) {
-        onUpload(result.data);
-      } else {
-        toast.success(t_messages('success.update_title'));
+        router.refresh();
       }
-
+    } catch (error) {
+      toast.error(
+        t_errors(error instanceof Error ? error.message : "Erreur lors de l'upload"),
+      );
+    } finally {
       setIsLoading(false);
-      router.refresh();
     }
-
-    setIsLoading(false);
   };
 
   const handleFileSelection = async (file: File) => {
@@ -295,32 +315,28 @@ export function UserDocument({
   const handleReplaceFile = async (file: File) => {
     setIsLoading(true);
     try {
-      // Upload du fichier (réutilise la logique d'upload existante)
-      const uploadResult = await tryCatch(uploadFileFromClient(file));
-      if (uploadResult.error) {
-        toast.error(t_errors(uploadResult.error.message));
-        console.error(uploadResult.error);
-        setIsLoading(false);
-        return;
+      if (!document) {
+        throw new Error('Document not found');
       }
-      if (uploadResult.data && document) {
-        const uploaded = uploadResult.data[0] as FileUploadResponse;
-        // Appel de l'action serveur pour remplacer le fichier
-        const { error, data: updatedDoc } = await tryCatch(
-          replaceUserDocumentFile(
-            document._id,
-            uploaded.serverData.fileUrl,
-            uploaded.type,
-          ),
-        );
-        if (error) {
-          toast.error(t_errors(error.message));
-        } else if (updatedDoc) {
-          toast.success(t_messages('success.update_title'));
-          onUpload?.(updatedDoc);
-          router.refresh();
-        }
+
+      // Utiliser l'action Convex pour remplacer le fichier
+      const result = await replaceFileAction({
+        file,
+        fileName: file.name,
+        fileType: file.type,
+        documentId: document._id,
+      });
+
+      if (result) {
+        toast.success(t_messages('success.update_title'));
+        onUpload?.({ _id: result.documentId, fileUrl: result.fileUrl });
+        router.refresh();
       }
+    } catch (error) {
+      toast.error(
+        t_errors(error instanceof Error ? error.message : 'Erreur lors du remplacement'),
+      );
+      console.error(error);
     } finally {
       setIsLoading(false);
       setIsReplacing(false);
@@ -376,6 +392,37 @@ export function UserDocument({
     setProcessedFile(null);
   };
 
+  // Gestionnaire de suppression de fichier
+  const handleDeleteFile = async () => {
+    if (!document?.storageId || !document?._id) return;
+
+    try {
+      setIsLoading(true);
+
+      // Utiliser la mutation de suppression de fichier
+      const result = await deleteFileMutation({
+        storageId: document.storageId as Id<'_storage'>,
+        documentId: document._id,
+      });
+
+      if (result?.success) {
+        toast.success(t_messages('success.deleted'));
+        if (onDelete) {
+          onDelete();
+        }
+        router.refresh();
+      }
+    } catch (error) {
+      toast.error(
+        t_errors(
+          error instanceof Error ? error.message : 'Erreur lors de la suppression',
+        ),
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="relative w-full h-auto space-y-2 mb-12">
       <div>
@@ -392,6 +439,26 @@ export function UserDocument({
       </div>
 
       <div className={'relative w-full'}>
+        {document?.storageId && (
+          <div className="mb-4">
+            <FileDisplay
+              storageId={document.storageId as Id<'_storage'>}
+              fileName={document.fileName}
+              fileType={document.fileType}
+              variant="card"
+              showActions={allowEdit}
+              onDelete={
+                allowEdit
+                  ? () => {
+                      // Gestionnaire de suppression
+                      handleDeleteFile();
+                    }
+                  : undefined
+              }
+            />
+          </div>
+        )}
+
         <FileInput
           onChangeAction={handleFileSelection}
           accept={accept}
@@ -399,7 +466,7 @@ export function UserDocument({
           loading={isLoading}
           fileUrl={document?.fileUrl}
           fileType={document?.fileType}
-          showPreview={true}
+          showPreview={!document?.storageId} // Ne pas montrer l'aperçu si on a déjà un fichier
           enableBackgroundRemoval={enableBackgroundRemoval}
           onProcessedImageChange={async (processedUrl) => {
             if (processedUrl) {

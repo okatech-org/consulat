@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from '../_generated/server';
-import { ProfileStatus, RequestStatus } from '../lib/constants';
+import { ProfileStatus, RequestStatus, ServiceCategory } from '../lib/constants';
 import type { ProfileStatus as ProfileStatusType } from '../lib/constants';
 import type { Doc } from '../_generated/dataModel';
 import {
@@ -511,11 +511,10 @@ export const getCurrentProfile = query({
   },
 });
 
-// Nouvelle fonction pour soumettre un profil pour validation
+// Submit adult profile for validation (with full validation logic)
 export const submitProfileForValidation = mutation({
   args: {
     profileId: v.id('profiles'),
-    isChild: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.profileId);
@@ -527,9 +526,164 @@ export const submitProfileForValidation = mutation({
       throw new Error('Only draft profiles can be submitted');
     }
 
-    // Mettre à jour le statut du profil
+    // Get the user who owns this profile
+    const user = profile.userId ? await ctx.db.get(profile.userId) : null;
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const userCountryCode = user.countryCode;
+    if (!userCountryCode) {
+      throw new Error('User country code not found');
+    }
+
+    // Check if there's already a registration request
+    if (profile.registrationRequest) {
+      throw new Error('profile_already_has_validation_request');
+    }
+
+    // Check for existing registration request - we need to check through the service
+    const existingRequest = await ctx.db
+      .query('requests')
+      .filter((q) =>
+        q.and(
+          q.eq(q.field('profileId'), args.profileId),
+          q.or(
+            q.eq(q.field('status'), RequestStatus.Pending),
+            q.eq(q.field('status'), RequestStatus.Submitted),
+            q.eq(q.field('status'), RequestStatus.UnderReview),
+            q.eq(q.field('status'), RequestStatus.InProduction),
+            q.eq(q.field('status'), RequestStatus.Validated),
+            q.eq(q.field('status'), RequestStatus.ReadyForPickup),
+            q.eq(q.field('status'), RequestStatus.AppointmentScheduled),
+          ),
+        ),
+      )
+      .first();
+
+    if (existingRequest) {
+      // Verify it's a registration request by checking the service
+      const service = await ctx.db.get(existingRequest.serviceId);
+      if (service?.category === ServiceCategory.Registration) {
+        throw new Error(`existing_registration_request:${existingRequest.status}`);
+      }
+    }
+
+    // Validate documents - Adult profiles require passport, birth certificate, and address proof
+    const documents = await ctx.db
+      .query('documents')
+      .withIndex('by_owner', (q) => q.eq('ownerId', profile._id).eq('ownerType', 'profile'))
+      .collect();
+
+    const passport = documents.find((d) => d?.type === 'passport');
+    const birthCertificate = documents.find((d) => d?.type === 'birth_certificate');
+    const addressProof = documents.find((d) => d?.type === 'proof_of_address');
+
+    const missingDocs = [];
+    if (!birthCertificate) missingDocs.push('birthCertificate');
+    if (!passport) missingDocs.push('passport');
+    if (!addressProof) missingDocs.push('addressProof');
+
+    if (missingDocs.length > 0) {
+      throw new Error(`missing_documents:${missingDocs.join(',')}`);
+    }
+
+    // Validate basic information
+    const requiredBasicInfo = [
+      { name: 'firstName', value: profile.personal?.firstName },
+      { name: 'lastName', value: profile.personal?.lastName },
+      { name: 'birthDate', value: profile.personal?.birthDate },
+      { name: 'birthPlace', value: profile.personal?.birthPlace },
+      { name: 'nationality', value: profile.personal?.nationality },
+    ];
+
+    const missingBasicInfo = requiredBasicInfo
+      .filter((field) => !field.value)
+      .map((field) => field.name);
+
+    if (missingBasicInfo.length > 0) {
+      throw new Error(`missing_basic_info:${missingBasicInfo.join(',')}`);
+    }
+
+    // Validate contact information for adults
+    const requiredContactInfo = [
+      { name: 'address', value: profile.contacts?.address },
+      { name: 'phone', value: profile.contacts?.phone },
+      { name: 'email', value: profile.contacts?.email },
+    ];
+
+    const missingContactInfo = requiredContactInfo
+      .filter((field) => !field.value)
+      .map((field) => field.name);
+
+    if (missingContactInfo.length > 0) {
+      throw new Error(`missing_contact_info:${missingContactInfo.join(',')}`);
+    }
+
+    // Check emergency contacts
+    if (!profile.emergencyContacts || profile.emergencyContacts.length === 0) {
+      throw new Error('missing_contact_info:emergencyContacts');
+    }
+
+    // Get the registration service for the user's country
+    const service = await ctx.db
+      .query('services')
+      .filter((q) =>
+        q.and(
+          q.eq(q.field('category'), ServiceCategory.Registration),
+          q.eq(q.field('status'), 'active'),
+        ),
+      )
+      .first();
+
+    if (!service) {
+      throw new Error('service_not_found');
+    }
+
+    // Get the organization for this service
+    const organization = service.organizationId
+      ? await ctx.db.get(service.organizationId)
+      : null;
+
+    if (!organization) {
+      throw new Error('organization_not_found');
+    }
+
+    // Generate unique request number
+    const now = Date.now();
+    const requestNumber = `REG-${now}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+    // Create the service request
+    const requestId = await ctx.db.insert('requests', {
+      number: requestNumber,
+      serviceId: service._id,
+      profileId: args.profileId,
+      requesterId: profile.userId!,
+      status: RequestStatus.Submitted,
+      priority: 0,
+      documentIds: [],
+      generatedDocuments: [],
+      notes: [],
+      metadata: {
+        submittedAt: now,
+        activities: [
+          {
+            type: 'request_submitted',
+            actorId: profile.userId!,
+            timestamp: now,
+            data: {
+              profileType: 'adult',
+              description: 'Adult profile submitted for validation',
+            },
+          },
+        ],
+      },
+    });
+
+    // Update profile status and link to request
     await ctx.db.patch(args.profileId, {
       status: ProfileStatus.Pending,
+      registrationRequest: requestId,
     });
 
     return args.profileId;

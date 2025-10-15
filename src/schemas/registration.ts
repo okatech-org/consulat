@@ -7,7 +7,6 @@ import {
 } from '@/convex/lib/constants';
 import {
   AddressSchema,
-  CountryCodeSchema,
   DateSchema,
   EmailSchema,
   NameSchema,
@@ -15,7 +14,7 @@ import {
   UserDocumentSchema,
 } from './inputs';
 
-export const ConvexPersonalInfoSchema = z.object({
+export const BasicInfoSchema = z.object({
   firstName: NameSchema,
   lastName: NameSchema,
   gender: z.enum(Object.values(Gender)),
@@ -37,9 +36,10 @@ export const ConvexPersonalInfoSchema = z.object({
     })
     .optional(),
   nipCode: z.string().optional(),
+  identityPicture: UserDocumentSchema.optional(),
 });
 
-export const ConvexFamilyInfoSchema = z.object({
+export const FamilyInfoSchema = z.object({
   maritalStatus: z.enum(Object.values(MaritalStatus)),
   father: z
     .object({
@@ -61,13 +61,13 @@ export const ConvexFamilyInfoSchema = z.object({
     .optional(),
 });
 
-export const ConvexContactInfoSchema = z.object({
+export const ContactInfoSchema = z.object({
   email: EmailSchema.optional(),
   phone: PhoneNumberSchema.nullable(),
   address: AddressSchema.optional(),
 });
 
-export const ConvexProfessionalInfoSchema = z.object({
+export const ProfessionalInfoSchema = z.object({
   workStatus: z.enum(Object.values(WorkStatus)),
   profession: NameSchema.optional(),
   employer: NameSchema.optional(),
@@ -75,45 +75,20 @@ export const ConvexProfessionalInfoSchema = z.object({
   activityInGabon: z.string().max(200).optional(),
 });
 
-// Types pour les formulaires - adaptés à Convex
-export type BasicInfoFormData = z.infer<typeof ConvexPersonalInfoSchema>;
+export type BasicInfoFormData = z.infer<typeof BasicInfoSchema>;
 
-export type FamilyInfoFormData = z.infer<typeof ConvexFamilyInfoSchema>;
+export type FamilyInfoFormData = z.infer<typeof FamilyInfoSchema>;
 
-export type ContactInfoFormData = z.infer<typeof ConvexContactInfoSchema>;
+export type ContactInfoFormData = z.infer<typeof ContactInfoSchema>;
 
-export type ProfessionalInfoFormData = z.infer<typeof ConvexProfessionalInfoSchema>;
-
-// Garder les anciens schémas pour compatibilité si nécessaire
-export const CreateProfileSchema = z.object({
-  firstName: NameSchema,
-  lastName: NameSchema,
-  residenceCountyCode: CountryCodeSchema,
-  email: EmailSchema.optional(),
-  phoneNumber: PhoneNumberSchema,
-  emailVerified: DateSchema.optional(),
-  phoneVerified: DateSchema.optional(),
-});
-
-export type CreateProfileInput = z.infer<typeof CreateProfileSchema>;
-
-// Schémas avec validations pour l'interface existante
-export const BasicInfoSchema = ConvexPersonalInfoSchema.extend({
-  identityPicture: UserDocumentSchema.optional(),
-  cardPin: z.string().optional(),
-});
-
-export const FamilyInfoSchema = ConvexFamilyInfoSchema;
-
-export const ContactInfoSchema = ConvexContactInfoSchema;
-
-export const ProfessionalInfoSchema = ConvexProfessionalInfoSchema;
+export type ProfessionalInfoFormData = z.infer<typeof ProfessionalInfoSchema>;
 
 export const DocumentsSchema = z.object({
   passport: UserDocumentSchema.nullable().optional(),
   birthCertificate: UserDocumentSchema.nullable().optional(),
   residencePermit: UserDocumentSchema.nullable().optional(),
   addressProof: UserDocumentSchema.nullable().optional(),
+  identityPicture: UserDocumentSchema.nullable().optional(),
 });
 
 export type DocumentsFormData = z.infer<typeof DocumentsSchema>;

@@ -1,7 +1,14 @@
 import { httpRouter } from 'convex/server';
 import { Webhook } from 'svix';
 import { httpAction } from './_generated/server';
-import { handleUploadOptions, serveFile, uploadFile } from './storage';
+import {
+  handleUploadOptions,
+  serveFile,
+  uploadFile,
+  uploadFileViaHttp,
+  handleFileUploadOptions,
+  handleFileServeOptions,
+} from './storage';
 import { internal } from './_generated/api';
 import { resend } from './functions/email';
 import { twilio } from './lib/twilio';
@@ -79,7 +86,7 @@ http.route({
   handler: handleClerkWebhook,
 });
 
-// Storage routes
+// Storage routes (legacy - à utiliser avec les nouvelles fonctions)
 http.route({
   path: '/storage/:storageId',
   method: 'GET',
@@ -96,6 +103,31 @@ http.route({
   path: '/upload',
   method: 'OPTIONS',
   handler: handleUploadOptions,
+});
+
+// Nouvelles routes pour le stockage de fichiers
+http.route({
+  path: '/files/upload',
+  method: 'POST',
+  handler: uploadFileViaHttp,
+});
+
+http.route({
+  path: '/files/upload',
+  method: 'OPTIONS',
+  handler: handleFileUploadOptions,
+});
+
+http.route({
+  path: '/files/serve',
+  method: 'GET',
+  handler: serveFile,
+});
+
+http.route({
+  path: '/files/serve',
+  method: 'OPTIONS',
+  handler: handleFileServeOptions,
 });
 
 http.route({

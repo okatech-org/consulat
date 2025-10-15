@@ -24,7 +24,6 @@ import { analyzeDocuments } from '@/actions/documents';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
-import type { AppUserDocument } from '@/types';
 
 export type DocumentUploadItem = {
   id: 'birthCertificate' | 'passport' | 'residencePermit' | 'addressProof';
@@ -74,7 +73,7 @@ export function DocumentUploadSection({
     Object.entries(form.getValues()).forEach(([key, document]) => {
       const doc = documents.find((d) => d.id === key);
       if (document && doc) {
-        const userDoc = document as AppUserDocument;
+        const userDoc = document;
         if (userDoc?.fileUrl) {
           documentsToAnalyze[doc.expectedType] = userDoc.fileUrl;
         }
@@ -132,7 +131,7 @@ export function DocumentUploadSection({
                     <FormItem>
                       <FormControl>
                         <UserDocument
-                          document={field.value as AppUserDocument}
+                          document={field.value}
                           expectedType={doc.expectedType}
                           label={doc.label}
                           description={doc.description}

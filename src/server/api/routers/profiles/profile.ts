@@ -1,12 +1,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
 import { TRPCError } from '@trpc/server';
-import {
-  FullProfileUpdateSchema,
-  ProfileSectionSchema,
-  CreateProfileSchema,
-  BasicInfoSchema,
-} from '@/schemas/registration';
+import { BasicInfoSchema } from '@/schemas/registration';
 import { FullProfileInclude, DashboardProfileSelect } from '@/types/profile';
 import {
   createUserProfile,
@@ -26,7 +21,6 @@ import { notify } from '@/lib/services/notifications';
 import { NotificationChannel } from '@/types/notifications';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
-import { LinkInfoSchema } from '@/schemas/child-registration';
 import {
   FullParentalAuthorityInclude,
   DashboardChildProfileSelect,
@@ -246,48 +240,36 @@ export const profileRouter = createTRPCRouter({
     }),
 
   // Créer un profil utilisateur
-  create: protectedProcedure
-    .input(CreateProfileSchema)
-    .mutation(async ({ ctx, input }) => {
-      try {
-        const profile = await createUserProfile(input, ctx.user.id);
-        return profile;
-      } catch (error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Erreur lors de la création du profil',
-        });
-      }
-    }),
+  create: protectedProcedure.input(z.any()).mutation(async ({ ctx, input }) => {
+    try {
+      const profile = await createUserProfile(input, ctx.user.id);
+      return profile;
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message:
+          error instanceof Error ? error.message : 'Erreur lors de la création du profil',
+      });
+    }
+  }),
 
   // Mettre à jour un profil
-  update: protectedProcedure
-    .input(
-      z.object({
-        profileId: z.string(),
-        data: FullProfileUpdateSchema.partial(),
-        requestId: z.string().optional(),
-      }),
-    )
-    .mutation(async ({ input }) => {
-      const { profileId, data, requestId } = input;
+  update: protectedProcedure.input(z.any()).mutation(async ({ input }) => {
+    const { profileId, data, requestId } = input;
 
-      try {
-        const updatedProfile = await updateProfileAction(profileId, data, requestId);
-        return updatedProfile;
-      } catch (error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Erreur lors de la mise à jour du profil',
-        });
-      }
-    }),
+    try {
+      const updatedProfile = await updateProfileAction(profileId, data, requestId);
+      return updatedProfile;
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Erreur lors de la mise à jour du profil',
+      });
+    }
+  }),
 
   // Mettre à jour une section du profil
   updateSection: protectedProcedure
@@ -301,7 +283,7 @@ export const profileRouter = createTRPCRouter({
           'professionalInfo',
           'documents',
         ]),
-        data: ProfileSectionSchema,
+        data: z.any(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -614,7 +596,7 @@ export const profileRouter = createTRPCRouter({
    * Créer un nouveau profil enfant avec autorité parentale
    */
   createChildProfile: protectedProcedure
-    .input(LinkInfoSchema)
+    .input(z.any())
     .mutation(async ({ ctx, input }) => {
       try {
         const result = await ctx.db.$transaction(async (tx) => {

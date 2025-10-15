@@ -1,6 +1,6 @@
 import type { DocumentField } from '@/lib/utils';
 import type { FullProfile } from '@/types';
-import { DocumentType } from '@prisma/client';
+import { DocumentType } from '@/convex/lib/constants';
 export const documentFieldsToAnalyze: DocumentField[] = [
   {
     name: 'firstName',
@@ -102,7 +102,7 @@ export const documentFieldsToAnalyze: DocumentField[] = [
 
 // Configuration spécifique par type de document
 export const documentSpecificFields = {
-  PASSPORT: [
+  [DocumentType.Passport]: [
     'firstName',
     'lastName',
     'gender',
@@ -112,15 +112,15 @@ export const documentSpecificFields = {
     'passportNumber',
     'passportIssueDate',
     'passportExpiryDate',
-    'passportIssueAuthority'
+    'passportIssueAuthority',
   ],
-  BIRTH_CERTIFICATE: [
+  [DocumentType.BirthCertificate]: [
     'fatherFullName',
     'motherFullName',
     'acquisitionMode',
   ],
-  RESIDENCE_PERMIT: ['profession', 'workStatus', 'address'],
-  ADDRESS_PROOF: ['address'],
+  [DocumentType.ResidencePermit]: ['profession', 'workStatus', 'address'],
+  [DocumentType.ProofOfAddress]: ['address'],
 } as unknown as Record<DocumentType, Array<keyof FullProfile>>;
 
 /**

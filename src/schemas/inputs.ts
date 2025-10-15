@@ -1,5 +1,11 @@
 import * as z from 'zod';
-import { Gender, FamilyLink, DocumentStatus, DocumentType } from '@/convex/lib/constants';
+import {
+  Gender,
+  FamilyLink,
+  DocumentStatus,
+  DocumentType,
+  ValidationStatus,
+} from '@/convex/lib/constants';
 import {
   type CountryCode,
   type CountryIndicator,
@@ -63,7 +69,7 @@ export const DocumentFileSchema = z
     { message: 'messages.errors.field_required' },
   );
 
-export const GenderSchema = z.nativeEnum(Gender, {
+export const GenderSchema = z.enum(Gender, {
   error: 'messages.errors.field_required',
 });
 
@@ -85,12 +91,7 @@ export const CountryIndicatorSchema = z
     message: 'messages.errors.invalid_country_indicator',
   });
 
-export const EmailSchema = z
-  .string({
-    error: 'messages.errors.field_required',
-  })
-  .email('messages.errors.invalid_email')
-  .max(VALIDATION_RULES.EMAIL_MAX_LENGTH, 'messages.errors.email_too_long');
+export const EmailSchema = z.email('messages.errors.invalid_email');
 
 export const AddressSchema = z.object({
   firstLine: z
@@ -195,7 +196,7 @@ export const SelectSchema = z
 export const EmergencyContactSchema = z.object({
   firstName: NameSchema,
   lastName: NameSchema,
-  relationship: z.nativeEnum(FamilyLink, {
+  relationship: z.enum(FamilyLink, {
     error: 'messages.errors.field_required',
   }),
   email: EmailSchema.nullable().optional(),
@@ -207,8 +208,8 @@ export type AddressInput = z.infer<typeof AddressSchema>;
 
 export const UserDocumentSchema = z.object({
   id: z.string(),
-  type: z.enum(Object.values(DocumentType)),
-  status: z.enum(Object.values(DocumentStatus)),
+  type: z.enum(DocumentType),
+  status: z.enum(DocumentStatus),
   storageId: z.string().optional(),
   fileUrl: z.string().optional(),
   fileName: z.string(),
@@ -225,7 +226,7 @@ export const UserDocumentSchema = z.object({
     .array(
       z.object({
         validatorId: z.string(),
-        status: z.string(),
+        status: z.enum(ValidationStatus),
         comments: z.string().optional(),
         timestamp: z.number(),
       }),

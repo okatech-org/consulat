@@ -11,6 +11,7 @@
 import type * as functions_admin from "../functions/admin.js";
 import type * as functions_analytics from "../functions/analytics.js";
 import type * as functions_appointment from "../functions/appointment.js";
+import type * as functions_childProfile from "../functions/childProfile.js";
 import type * as functions_country from "../functions/country.js";
 import type * as functions_document from "../functions/document.js";
 import type * as functions_email from "../functions/email.js";
@@ -25,6 +26,7 @@ import type * as functions_search from "../functions/search.js";
 import type * as functions_service from "../functions/service.js";
 import type * as functions_sms from "../functions/sms.js";
 import type * as functions_ticket from "../functions/ticket.js";
+import type * as functions_upload from "../functions/upload.js";
 import type * as functions_user from "../functions/user.js";
 import type * as functions_workflow from "../functions/workflow.js";
 import type * as helpers_migration from "../helpers/migration.js";
@@ -69,6 +71,7 @@ declare const fullApi: ApiFromModules<{
   "functions/admin": typeof functions_admin;
   "functions/analytics": typeof functions_analytics;
   "functions/appointment": typeof functions_appointment;
+  "functions/childProfile": typeof functions_childProfile;
   "functions/country": typeof functions_country;
   "functions/document": typeof functions_document;
   "functions/email": typeof functions_email;
@@ -83,6 +86,7 @@ declare const fullApi: ApiFromModules<{
   "functions/service": typeof functions_service;
   "functions/sms": typeof functions_sms;
   "functions/ticket": typeof functions_ticket;
+  "functions/upload": typeof functions_upload;
   "functions/user": typeof functions_user;
   "functions/workflow": typeof functions_workflow;
   "helpers/migration": typeof helpers_migration;
