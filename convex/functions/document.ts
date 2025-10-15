@@ -4,7 +4,6 @@ import { DocumentStatus } from '../lib/constants';
 import type { DocumentType, OwnerType, ValidationStatus } from '../lib/constants';
 import { Doc } from '../_generated/dataModel';
 
-// Mutations
 export const createDocument = mutation({
   args: {
     type: v.string(),
@@ -378,8 +377,8 @@ export const createUserDocument = mutation({
     fileUrl: v.string(),
     fileType: v.string(),
     fileName: v.optional(v.string()),
-    userId: v.optional(v.string()),
-    profileId: v.optional(v.string()),
+    userId: v.optional(v.id('users')),
+    profileId: v.optional(v.id('profiles')),
     requestId: v.optional(v.string()),
     issuedAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),

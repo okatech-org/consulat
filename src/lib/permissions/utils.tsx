@@ -1,17 +1,17 @@
-import { UserRole } from '@prisma/client';
 import { ROLES } from './roles';
 import type { ResourceType } from './types';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import type { SessionUser } from '@/types';
+import type { Doc } from '@/convex/_generated/dataModel';
+import type { UserRole } from '@/convex/lib/constants';
 
 export function hasPermission<Resource extends keyof ResourceType>(
-  user: SessionUser,
+  user: Doc<'users'>,
   resource: Resource,
   action: ResourceType[Resource]['action'],
   data?: ResourceType[Resource]['dataType'],
 ): boolean {
   return user.roles.some((role) => {
-    const permission = ROLES[role]?.[resource]?.[action];
+    const permission = ROLES[role as UserRole]?.[resource]?.[action];
 
     if (permission == null) return false;
 
@@ -21,13 +21,13 @@ export function hasPermission<Resource extends keyof ResourceType>(
 }
 
 export function assertPermission<Resource extends keyof ResourceType>(
-  user: SessionUser,
+  user: Doc<'users'>,
   resource: Resource,
   action: ResourceType[Resource]['action'],
   data?: ResourceType[Resource]['dataType'],
 ): void {
   if (!hasPermission(user, resource, action, data)) {
-    throw new Error(`User ${user.id} does not have permission to ${action} ${resource}`);
+    throw new Error(`User ${user._id} does not have permission to ${action} ${resource}`);
   }
 }
 
@@ -35,10 +35,10 @@ export function assertPermission<Resource extends keyof ResourceType>(
 export function withPermission<Resource extends keyof ResourceType, T>(
   resource: Resource,
   action: ResourceType[Resource]['action'],
-  callback: (user: SessionUser, data?: ResourceType[Resource]['dataType']) => Promise<T>,
+  callback: (user: Doc<'users'>, data?: ResourceType[Resource]['dataType']) => Promise<T>,
 ) {
   return async (
-    user: SessionUser,
+    user: Doc<'users'>,
     data?: ResourceType[Resource]['dataType'],
   ): Promise<T> => {
     assertPermission(user, resource, action, data);
@@ -48,7 +48,7 @@ export function withPermission<Resource extends keyof ResourceType, T>(
 
 // Hook pour les composants React
 export function usePermission<Resource extends keyof ResourceType>(
-  user: SessionUser,
+  user: Doc<'users'>,
   resource: Resource,
   action: ResourceType[Resource]['action'],
   data?: ResourceType[Resource]['dataType'],
@@ -57,21 +57,21 @@ export function usePermission<Resource extends keyof ResourceType>(
 }
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a un rôle spécifique
-export function hasRole(user: SessionUser | null, role: UserRole): boolean {
+export function hasRole(user: Doc<'users'>, role: UserRole): boolean {
   if (!user?.roles) return false;
   return user.roles.includes(role);
 }
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a l'un des rôles spécifiés
-export function hasAnyRole(user: SessionUser | null, roles: UserRole[]): boolean {
+export function hasAnyRole(user: Doc<'users'>, roles: UserRole[]): boolean {
   if (!user?.roles || !roles) return false;
-  return user.roles.some((role) => roles.includes(role));
+  return user.roles.some((role) => roles.includes(role as UserRole));
 }
 
 // Nouvelle fonction utilitaire pour vérifier si un utilisateur a tous les rôles spécifiés
-export function hasAllRoles(user: SessionUser | null, roles: UserRole[]): boolean {
+export function hasAllRoles(user: Doc<'users'>, roles: UserRole[]): boolean {
   if (!user?.roles) return false;
-  return user.roles.every((role) => roles.includes(role));
+  return user.roles.every((role) => roles.includes(role as UserRole));
 }
 
 type Props = {
@@ -96,7 +96,7 @@ export function RoleGuard({ roles, children, fallback }: Readonly<Props>) {
 
 type ServerRoleGuardProps = {
   roles: UserRole[];
-  user?: SessionUser;
+  user?: Doc<'users'>;
   children: React.ReactNode;
   fallback?: React.ReactNode;
 };
@@ -119,7 +119,7 @@ export function ServerRoleGuard({
 }
 
 type PermissionGuardProps<Resource extends keyof ResourceType> = {
-  user: SessionUser;
+  user: Doc<'users'>;
   resource: Resource;
   action: ResourceType[Resource]['action'];
   data?: ResourceType[Resource]['dataType'];

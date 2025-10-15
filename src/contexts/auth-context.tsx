@@ -6,7 +6,7 @@ import { useQuery } from 'convex/react';
 import { createContext, useContext } from 'react';
 
 interface AuthContextValue {
-  user: Doc<'users'> | null;
+  user: Doc<'users'> | undefined;
   loading: boolean;
 }
 
@@ -26,7 +26,7 @@ export function AuthProvider({ children, userId }: AuthProviderProps) {
   return (
     <AuthContext.Provider
       value={{
-        user: userData ?? null,
+        user: userData ?? undefined,
         loading: userData === undefined && userId !== null,
       }}
     >

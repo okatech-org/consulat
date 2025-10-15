@@ -20,7 +20,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { api } from '@/convex/_generated/api';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/documents/metadata-form';
@@ -40,8 +40,8 @@ import { DocumentStatus, DocumentType } from '@/convex/lib/constants';
 interface UserDocumentProps {
   document?: Doc<'documents'>;
   expectedType?: DocumentType;
-  profileId?: string;
-  userId?: string;
+  profileId?: Id<'profiles'>;
+  userId?: Id<'users'>;
   label: string;
   description?: string;
   required?: boolean;
@@ -129,20 +129,16 @@ export function UserDocument({
   const router = useRouter();
 
   // Convex mutations and queries
-  const updateDocumentMutation = useMutation(
-    api.functions.document.updateDocumentMetadata,
+  const updateDocumentMutation = useMutation(api.functions.document.updateUserDocument);
+  const createUserDocumentMutation = useMutation(
+    api.functions.document.createUserDocument,
   );
-  const updateDocumentDatesMutation = useMutation(
-    api.functions.document.updateDocumentDates,
+  const replaceUserDocumentFileMutation = useMutation(
+    api.functions.document.replaceUserDocumentFile,
   );
-  const validateDocumentMutation = useMutation(api.functions.document.validateDocument);
-
-  const createDocumentWithFileMutation = useMutation(
-    api.functions.file.createDocumentWithFile,
+  const deleteUserDocumentMutation = useMutation(
+    api.functions.document.deleteUserDocument,
   );
-  const updateDocumentFileMutation = useMutation(api.functions.file.updateDocumentFile);
-  const deleteDocumentFileMutation = useMutation(api.functions.file.deleteDocumentFile);
-  const getDocumentFileUrlQuery = useQuery(api.functions.file.getDocumentFileUrl);
 
   // Check if user has admin role
   const hasAdminRole = React.useMemo(() => {
@@ -154,26 +150,17 @@ export function UserDocument({
     setIsLoading(true);
 
     try {
-      // Mettre à jour les dates si fournies
-      if (data.issuedAt || data.expiresAt) {
-        await updateDocumentDatesMutation({
-          documentId,
-          issuedAt: data.issuedAt ? new Date(data.issuedAt).getTime() : undefined,
-          expiresAt: data.expiresAt ? new Date(data.expiresAt).getTime() : undefined,
-        });
-      }
-
-      // Mettre à jour les métadonnées si fournies
-      if (data.metadata) {
-        await updateDocumentMutation({
-          documentId,
-          metadata: data.metadata,
-        });
-      }
+      // Mettre à jour les dates et métadonnées
+      await updateDocumentMutation({
+        documentId,
+        issuedAt: data.issuedAt ? new Date(data.issuedAt).getTime() : undefined,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt).getTime() : undefined,
+        metadata: data.metadata,
+      });
 
       toast.success(t_messages('success.update_title'));
       if (onUpload) {
-        onUpload({ _id: documentId, ...data });
+        onUpload({ _id: documentId, ...data } as any);
       }
       router.refresh();
     } catch (error) {
@@ -204,13 +191,15 @@ export function UserDocument({
     setIsLoading(true);
 
     try {
-      const documentId = await uploadFileAction({
-        file: fileData.file, // Le fichier blob
-        fileName: fileData.name,
+      // Use the fileUrl from uploadthing
+      const documentId = await createUserDocumentMutation({
+        type: expectedType,
+        fileUrl: fileData.url,
         fileType: fileData.type,
-        documentType: expectedType,
-        ownerId: profileId || userId || user?.id || '',
-        ownerType: profileId ? 'profile' : 'user',
+        fileName: fileData.name,
+        profileId: profileId,
+        issuedAt: undefined,
+        expiresAt: undefined,
         metadata: {
           requestId,
         },
@@ -218,7 +207,7 @@ export function UserDocument({
 
       if (documentId) {
         if (onUpload) {
-          onUpload({ _id: documentId.documentId, ...fileData });
+          onUpload({ _id: documentId, ...fileData } as any);
         } else {
           toast.success(t_messages('success.update_title'));
         }
@@ -319,17 +308,30 @@ export function UserDocument({
         throw new Error('Document not found');
       }
 
-      // Utiliser l'action Convex pour remplacer le fichier
-      const result = await replaceFileAction({
-        file,
-        fileName: file.name,
-        fileType: file.type,
-        documentId: document._id,
-      });
+      // Upload file using uploadthing
+      const uploadResult = await tryCatch(uploadFileFromClient(file));
 
-      if (result) {
+      if (uploadResult.error) {
+        toast.error(t_errors(uploadResult.error.message));
+        console.error(uploadResult.error);
+        setIsLoading(false);
+        setIsReplacing(false);
+        return;
+      }
+
+      if (uploadResult.data) {
+        const fileData = uploadResult.data[0] as FileUploadResponse;
+
+        // Remplacer le fichier du document
+        await replaceUserDocumentFileMutation({
+          documentId: document._id,
+          fileUrl: fileData.url,
+          fileType: fileData.type,
+          fileName: fileData.name,
+        });
+
         toast.success(t_messages('success.update_title'));
-        onUpload?.({ _id: result.documentId, fileUrl: result.fileUrl });
+        onUpload?.({ _id: document._id, fileUrl: fileData.url } as any);
         router.refresh();
       }
     } catch (error) {
@@ -394,24 +396,18 @@ export function UserDocument({
 
   // Gestionnaire de suppression de fichier
   const handleDeleteFile = async () => {
-    if (!document?.storageId || !document?._id) return;
+    if (!document?._id) return;
 
     try {
       setIsLoading(true);
 
-      // Utiliser la mutation de suppression de fichier
-      const result = await deleteFileMutation({
-        storageId: document.storageId as Id<'_storage'>,
+      // Supprimer le document utilisateur (supprime aussi le fichier associé)
+      await deleteUserDocumentMutation({
         documentId: document._id,
       });
 
-      if (result?.success) {
-        toast.success(t_messages('success.deleted'));
-        if (onDelete) {
-          onDelete();
-        }
-        router.refresh();
-      }
+      toast.success(t_messages('success.deleted'));
+      router.refresh();
     } catch (error) {
       toast.error(
         t_errors(

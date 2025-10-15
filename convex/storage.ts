@@ -98,7 +98,7 @@ export const uploadAndCreateDocument = action({
     documentId: v.id('documents'),
     fileUrl: v.string(),
   }),
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{ storageId: Id<'_storage'>; documentId: Id<'documents'>; fileUrl: string }> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       throw new Error('Unauthorized');
@@ -114,7 +114,7 @@ export const uploadAndCreateDocument = action({
     }
 
     // Étape 3: Créer le document
-    const documentId = await ctx.runMutation(api.functions.document.createUserDocument, {
+    const documentId: Id<'documents'> = await ctx.runMutation(api.functions.document.createUserDocument, {
       type: args.documentType,
       fileUrl,
       fileType: args.fileType,

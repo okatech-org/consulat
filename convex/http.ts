@@ -2,9 +2,7 @@ import { httpRouter } from 'convex/server';
 import { Webhook } from 'svix';
 import { httpAction } from './_generated/server';
 import {
-  handleUploadOptions,
   serveFile,
-  uploadFile,
   uploadFileViaHttp,
   handleFileUploadOptions,
   handleFileServeOptions,
@@ -96,13 +94,13 @@ http.route({
 http.route({
   path: '/upload',
   method: 'POST',
-  handler: uploadFile,
+  handler: uploadFileViaHttp,
 });
 
 http.route({
   path: '/upload',
   method: 'OPTIONS',
-  handler: handleUploadOptions,
+  handler: handleFileUploadOptions,
 });
 
 // Nouvelles routes pour le stockage de fichiers

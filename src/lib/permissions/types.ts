@@ -1,19 +1,9 @@
-import {
-  type User,
-  type Profile,
-  type Appointment,
-  type ServiceRequest,
-  type Organization,
-  type ConsularService,
-  type UserDocument,
-  UserRole,
-  type ParentalAuthority,
-  type IntelligenceNote,
-} from '@prisma/client';
+import type { Doc } from '@/convex/_generated/dataModel';
+import type { UserRole } from '@/convex/lib/constants';
 
 export type ResourceType = {
   profiles: {
-    dataType: Profile;
+    dataType: Doc<'profiles'>;
     action:
       | 'view'
       | 'create'
@@ -26,11 +16,11 @@ export type ResourceType = {
       | 'deleteChild';
   };
   appointments: {
-    dataType: Appointment;
+    dataType: Doc<'appointments'>;
     action: 'view' | 'create' | 'update' | 'delete' | 'reschedule' | 'cancel';
   };
   serviceRequests: {
-    dataType: ServiceRequest;
+    dataType: Doc<'requests'>;
     action:
       | 'view'
       | 'create'
@@ -42,37 +32,33 @@ export type ResourceType = {
       | 'complete';
   };
   organizations: {
-    dataType: Organization;
+    dataType: Doc<'organizations'>;
     action: 'view' | 'create' | 'update' | 'delete' | 'manage';
   };
   consularServices: {
-    dataType: ConsularService;
+    dataType: Doc<'services'>;
     action: 'view' | 'create' | 'update' | 'delete' | 'configure';
   };
   documents: {
-    dataType: UserDocument;
+    dataType: Doc<'documents'>;
     action: 'view' | 'create' | 'update' | 'delete' | 'validate';
   };
   users: {
-    dataType: User;
+    dataType: Doc<'users'>;
     action: 'view' | 'create' | 'update' | 'delete' | 'manage';
   };
-  parentalAuthorities: {
-    dataType: ParentalAuthority & {
-      profile?: Profile;
-      parentUsers?: User[];
+  childProfiles: {
+    dataType: Doc<'childProfiles'> & {
+      profile?: Doc<'profiles'>;
+      parentUsers?: Doc<'users'>[];
     };
     action: 'view' | 'create' | 'update' | 'delete' | 'manage';
-  };
-  intelligenceNotes: {
-    dataType: IntelligenceNote;
-    action: 'view' | 'create' | 'update' | 'delete' | 'viewHistory';
   };
 };
 
 export type PermissionCheck<Key extends keyof ResourceType> =
   | boolean
-  | ((user: User, data: ResourceType[Key]['dataType']) => boolean);
+  | ((user: Doc<'users'>, data: ResourceType[Key]['dataType']) => boolean);
 
 export type RolePermissions = {
   [Key in keyof ResourceType]?: {
