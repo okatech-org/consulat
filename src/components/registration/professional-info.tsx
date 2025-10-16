@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Form,
   FormControl,
@@ -20,35 +20,91 @@ import {
 } from '@/components/ui/select';
 import { useTranslations } from 'next-intl';
 import { WorkStatus } from '@/convex/lib/constants';
-import { ProfessionalInfoFormData } from '@/schemas/registration';
+import {
+  type ProfessionalInfoFormData,
+  ProfessionalInfoSchema,
+} from '@/schemas/registration';
 import CardContainer from '../layouts/card-container';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { FullProfile } from '@/types/convex-profile';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '../ui/button';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface ProfessionalInfoFormProps {
-  form: UseFormReturn<ProfessionalInfoFormData>;
-  onSubmit: (data: ProfessionalInfoFormData) => void;
-  formRef?: React.RefObject<HTMLFormElement>;
-  isLoading?: boolean;
+  profile: FullProfile;
+  onSave: () => void;
   banner?: React.ReactNode;
+  onNext?: () => void;
+  onPrevious?: () => void;
 }
 
 export function ProfessionalInfoForm({
-  form,
-  onSubmit,
-  formRef,
-  isLoading = false,
+  profile,
+  onSave,
   banner,
+  onNext,
+  onPrevious,
 }: Readonly<ProfessionalInfoFormProps>) {
+  if (!profile) return null;
   const t_inputs = useTranslations('inputs');
   const t = useTranslations('registration');
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const updateProfessionalInfo = useMutation(
+    api.functions.profile.updateProfessionalInfo,
+  );
+
+  const form = useForm<ProfessionalInfoFormData>({
+    resolver: zodResolver(ProfessionalInfoSchema),
+    defaultValues: {
+      workStatus: profile.professionSituation?.workStatus ?? WorkStatus.Unemployed,
+      profession: profile.professionSituation?.profession,
+      employer: profile.professionSituation?.employer,
+      employerAddress: profile.professionSituation?.employerAddress,
+      activityInGabon: profile.professionSituation?.activityInGabon,
+    },
+    reValidateMode: 'onBlur',
+  });
 
   const workStatus = form.watch('workStatus');
-  const showEmployerFields = workStatus === WorkStatus.EMPLOYEE;
+  const showEmployerFields = workStatus === WorkStatus.Employee;
   const showProfessionField =
-    workStatus === WorkStatus.EMPLOYEE || workStatus === WorkStatus.ENTREPRENEUR;
+    workStatus === WorkStatus.Employee || workStatus === WorkStatus.Entrepreneur;
+
+  const handleSubmit = async (data: ProfessionalInfoFormData) => {
+    setIsLoading(true);
+    try {
+      await updateProfessionalInfo({
+        profileId: profile._id,
+        professionSituation: data,
+      });
+
+      toast({
+        title: t_inputs('success.title'),
+        description: t_inputs('success.description'),
+      });
+
+      onSave();
+      if (onNext) onNext();
+    } catch (error) {
+      toast({
+        title: t_inputs('error.title'),
+        description: t_inputs('error.description'),
+        variant: 'destructive',
+      });
+      console.error('Failed to update professional info:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Form {...form}>
-      <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         {banner}
         {/* Statut professionnel */}
         <div className="space-y-6 pt-4">
@@ -65,7 +121,7 @@ export function ProfessionalInfoForm({
                   <Select
                     onValueChange={(value) => {
                       field.onChange(value);
-                      if (value !== WorkStatus.EMPLOYEE) {
+                      if (value !== WorkStatus.Employee) {
                         form.setValue('profession', undefined);
                         form.setValue('employer', undefined);
                         form.setValue('employerAddress', undefined);
@@ -110,6 +166,7 @@ export function ProfessionalInfoForm({
                             {...field}
                             value={field.value ?? ''}
                             placeholder={t_inputs('profession.placeholder')}
+                            disabled={isLoading}
                           />
                         </FormControl>
                         <TradFormMessage />
@@ -131,6 +188,7 @@ export function ProfessionalInfoForm({
                               {...field}
                               value={field.value ?? ''}
                               placeholder={t_inputs('employer.placeholder')}
+                              disabled={isLoading}
                             />
                           </FormControl>
                           <TradFormMessage />
@@ -149,6 +207,7 @@ export function ProfessionalInfoForm({
                               {...field}
                               value={field.value ?? ''}
                               placeholder={t_inputs('employerAddress.placeholder')}
+                              disabled={isLoading}
                             />
                           </FormControl>
                           <TradFormMessage />
@@ -176,6 +235,7 @@ export function ProfessionalInfoForm({
                       {...field}
                       value={field.value ?? ''}
                       placeholder={t_inputs('activityInGabon.placeholder')}
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <TradFormMessage />
@@ -183,6 +243,23 @@ export function ProfessionalInfoForm({
               )}
             />
           </CardContainer>
+        </div>
+
+        <div className="flex flex-col md:flex-row justify-between gap-4">
+          {onPrevious && (
+            <Button
+              type="button"
+              onClick={onPrevious}
+              variant="outline"
+              leftIcon={<ArrowLeft className="size-icon" />}
+            >
+              Précédent
+            </Button>
+          )}
+
+          <Button type="submit" disabled={isLoading} rightIcon={<ArrowRight className="size-icon" />}>
+            Enregistrer et continuer
+          </Button>
         </div>
       </form>
     </Form>

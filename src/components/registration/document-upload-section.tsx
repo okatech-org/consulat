@@ -1,17 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ScanBarcode } from 'lucide-react';
-import type {
-  BasicInfoFormData,
-  ContactInfoFormData,
-  DocumentsFormData,
-  FamilyInfoFormData,
-  ProfessionalInfoFormData,
-} from '@/schemas/registration';
+import { ArrowLeft, ArrowRight, ScanBarcode } from 'lucide-react';
+import { type DocumentsFormData, DocumentsSchema } from '@/schemas/registration';
 import {
   Form,
   FormField,
@@ -19,11 +13,13 @@ import {
   FormItem,
   FormControl,
 } from '@/components/ui/form';
-import type { UseFormReturn } from 'react-hook-form';
 import { analyzeDocuments } from '@/actions/documents';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
+import type { FullProfile } from '@/types/convex-profile';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 export type DocumentUploadItem = {
   id: 'birthCertificate' | 'passport' | 'residencePermit' | 'addressProof';
@@ -36,35 +32,43 @@ export type DocumentUploadItem = {
 };
 
 interface DocumentUploadSectionProps {
-  form: UseFormReturn<DocumentsFormData>;
-  handleSubmitAction: (data: DocumentsFormData) => void;
-  onAnalysisComplete?: (data: {
-    basicInfo?: Partial<BasicInfoFormData>;
-    contactInfo?: Partial<ContactInfoFormData>;
-    familyInfo?: Partial<FamilyInfoFormData>;
-    professionalInfo?: Partial<ProfessionalInfoFormData>;
-  }) => void;
-  isLoading?: boolean;
-  formRef?: React.RefObject<HTMLFormElement>;
-  profileId?: string;
+  profile: FullProfile;
+  onSave: () => void;
+  banner?: React.ReactNode;
+  onNext?: () => void;
+  onPrevious?: () => void;
   documents?: DocumentUploadItem[];
+  onAnalysisComplete?: (data: any) => void;
 }
 
 export function DocumentUploadSection({
-  form,
-  handleSubmitAction,
-  isLoading,
-  onAnalysisComplete,
-  formRef,
-  profileId,
+  profile,
+  onSave,
+  banner,
+  onNext,
+  onPrevious,
   documents = [],
+  onAnalysisComplete,
 }: DocumentUploadSectionProps) {
+  if (!profile) return null;
   const t = useTranslations('registration');
   const t_errors = useTranslations('messages.errors');
   const { toast } = useToast();
-  const [analysingState, setAnalysingState] = React.useState<
+  const [isLoading, setIsLoading] = useState(false);
+  const [analysingState, setAnalysingState] = useState<
     'idle' | 'analyzing' | 'success' | 'error'
   >('idle');
+
+  const form = useForm<DocumentsFormData>({
+    resolver: zodResolver(DocumentsSchema),
+    defaultValues: {
+      passport: profile.passport,
+      birthCertificate: profile.birthCertificate,
+      residencePermit: profile.residencePermit,
+      addressProof: profile.addressProof,
+    },
+    reValidateMode: 'onBlur',
+  });
 
   const handleAnalysis = async () => {
     const documentsToAnalyze: Partial<Record<DocumentType, string>> = {};
@@ -108,13 +112,29 @@ export function DocumentUploadSection({
     }
   };
 
+  const handleSubmit = async (data: DocumentsFormData) => {
+    setIsLoading(true);
+    try {
+      // Les documents sont déjà uploadés via UserDocument
+      // On peut maintenant passer à l'étape suivante
+      onSave();
+      if (onNext) onNext();
+    } catch (error) {
+      toast({
+        title: t('documents.error.title'),
+        description: t('documents.error.description'),
+        variant: 'destructive',
+      });
+      console.error('Failed to process documents:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Form {...form}>
-      <form
-        ref={formRef}
-        onSubmit={form.handleSubmit(handleSubmitAction)}
-        className="space-y-8"
-      >
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        {banner}
         <div className="grid gap-4 pt-4 sm:grid-cols-2 md:grid-cols-2">
           <AnimatePresence mode="sync">
             {documents.map((doc, index) => (
@@ -137,7 +157,7 @@ export function DocumentUploadSection({
                           description={doc.description}
                           required={doc.required}
                           disabled={isLoading}
-                          profileId={profileId}
+                          profileId={profile._id}
                           onUpload={field.onChange}
                           onDelete={() => {
                             field.onChange(null);
@@ -189,6 +209,27 @@ export function DocumentUploadSection({
               )}
             </div>
           )}
+        </div>
+
+        <div className="flex flex-col md:flex-row justify-between gap-4">
+          {onPrevious && (
+            <Button
+              type="button"
+              onClick={onPrevious}
+              variant="outline"
+              leftIcon={<ArrowLeft className="size-icon" />}
+            >
+              Précédent
+            </Button>
+          )}
+
+          <Button
+            type="submit"
+            disabled={isLoading}
+            rightIcon={<ArrowRight className="size-icon" />}
+          >
+            Continuer
+          </Button>
         </div>
       </form>
     </Form>

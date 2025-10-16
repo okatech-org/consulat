@@ -24,9 +24,9 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { calculateProfileCompletion, getValuable, tryCatch } from '@/lib/utils';
+import { calculateProfileCompletion, tryCatch } from '@/lib/utils';
 import CardContainer from '../layouts/card-container';
-import { ArrowLeft, ArrowRight, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { CountrySelect } from '../ui/country-select';
 import { type CountryCode } from '@/lib/autocomplete-datas';
 import Link from 'next/link';
@@ -73,110 +73,15 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
   const currentStepIndex = orderedSteps.indexOf(currentTab);
   const totalSteps = orderedSteps.length;
 
-  // Gestionnaire d'analyse des components
+  // Gestionnaire d'analyse des documents
   const handleDocumentsAnalysis = async (data: {
     basicInfo?: Partial<BasicInfoFormData>;
     contactInfo?: Partial<ContactInfoFormData>;
     familyInfo?: Partial<FamilyInfoFormData>;
     professionalInfo?: Partial<ProfessionalInfoFormData>;
   }) => {
-    const cleanedData = getValuable(data);
-
     try {
-      // Update each form with the data from the analysis
-      if (cleanedData.basicInfo && forms.basicInfo) {
-        const basicInfoFields = [
-          'firstName',
-          'lastName',
-          'birthDate',
-          'birthPlace',
-          'birthCountry',
-          'gender',
-          'passportExpiryDate',
-          'passportIssueDate',
-          'passportIssueAuthority',
-          'passportNumber',
-          'acquisitionMode',
-        ] as Array<keyof BasicInfoFormData>;
-
-        basicInfoFields.forEach((field) => {
-          if (cleanedData.basicInfo?.[field]) {
-            forms.basicInfo.setValue(field, cleanedData.basicInfo[field], {
-              shouldDirty: true,
-            });
-          }
-        });
-      }
-
-      if (cleanedData.contactInfo && forms.contactInfo) {
-        const address = cleanedData.contactInfo.address;
-
-        if (address) {
-          const { firstLine, city, zipCode, secondLine } = address;
-
-          if (firstLine) {
-            forms.contactInfo.setValue('address.firstLine', firstLine, {
-              shouldDirty: true,
-            });
-          }
-
-          if (city) {
-            forms.contactInfo.setValue('address.city', city, { shouldDirty: true });
-          }
-
-          if (zipCode) {
-            forms.contactInfo.setValue('address.zipCode', zipCode, { shouldDirty: true });
-          }
-
-          if (secondLine) {
-            forms.contactInfo.setValue('address.secondLine', secondLine, {
-              shouldDirty: true,
-            });
-          }
-        }
-      }
-
-      if (cleanedData.familyInfo && forms.familyInfo) {
-        const { father, mother, maritalStatus } = cleanedData.familyInfo;
-
-        if (father) {
-          forms.familyInfo.setValue('father', father, {
-            shouldDirty: true,
-          });
-        }
-
-        if (mother) {
-          forms.familyInfo.setValue('mother', mother, {
-            shouldDirty: true,
-          });
-        }
-
-        if (maritalStatus) {
-          forms.familyInfo.setValue('maritalStatus', maritalStatus, {
-            shouldDirty: true,
-          });
-        }
-      }
-
-      if (cleanedData.professionalInfo && forms.professionalInfo) {
-        const { profession, workStatus } = cleanedData.professionalInfo;
-
-        if (profession) {
-          forms.professionalInfo.setValue('profession', profession, {
-            shouldDirty: true,
-          });
-        }
-
-        if (workStatus) {
-          forms.professionalInfo.setValue('workStatus', workStatus, {
-            shouldDirty: true,
-          });
-        }
-      }
-
-      toast({
-        duration: 1000,
-        title: t('profile.analysis.success.title'),
+      toast.success(t('profile.analysis.success.title'), {
         description: (
           <div className="space-y-2">
             <p>{t('profile.analysis.success.description')}</p>
@@ -185,7 +90,6 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
             </Button>
           </div>
         ),
-        variant: 'success',
       });
 
       if (!displayAnalysisWarning) {
@@ -252,26 +156,19 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
 
   // Soumission finale
   const handleFinalSubmit = async () => {
-    setIsLoading(true);
-
     const result = await tryCatch(
       submitProfileForValidation({
         profileId: profile._id,
       }),
     );
 
-    setIsLoading(false);
-
     if (result.error) {
       const { title, description } = handleFormError(result.error, t);
-      toast({ title, description, variant: 'destructive' });
+      toast.error(title, { description });
     }
 
     if (result.data) {
-      clearData();
-
-      toast({
-        title: t('submission.success.title'),
+      toast.success(t('submission.success.title'), {
         description: t('submission.success.description'),
       });
 
@@ -318,36 +215,47 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
     },
   ] as const;
 
-  const stepsComponents: Record<RegistrationStep | 'review', React.ReactNode> = {
+  const stepsComponents: Record<RegistrationStep, React.ReactNode> = {
     documents: (
       <DocumentUploadSection
-        profileId={profile._id}
-        form={undefined}
+        profile={profile}
+        onSave={() => {}}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
         onAnalysisComplete={handleDocumentsAnalysis}
-        handleSubmitAction={() => handleNext()}
-        isLoading={false}
         documents={requiredDocuments}
       />
     ),
     'basic-info': (
-      <BasicInfoForm onNext={handleNext} onPrevious={handlePrevious} profile={profile} />
+      <BasicInfoForm
+        profile={profile}
+        onSave={() => {}}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
+      />
     ),
     'family-info': (
-      <FamilyInfoForm form={undefined} onSubmit={() => handleNext()} isLoading={false} />
+      <FamilyInfoForm
+        profile={profile}
+        onSave={() => {}}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
+      />
     ),
     'contact-info': (
       <ContactInfoForm
-        form={undefined}
-        onSubmitAction={() => handleNext()}
-        isLoading={false}
         profile={profile}
+        onSave={() => {}}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
       />
     ),
     'professional-info': (
       <ProfessionalInfoForm
-        form={undefined}
-        onSubmit={() => handleNext()}
-        isLoading={false}
+        profile={profile}
+        onSave={() => {}}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
       />
     ),
   };
@@ -415,31 +323,6 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
                 <AnalysisWarningBanner />
               )}
               <CardContainer>{renderCurrentStep()}</CardContainer>
-
-              <div className="flex flex-col md:flex-row justify-between gap-4">
-                <Button
-                  onClick={handlePrevious}
-                  variant="outline"
-                  disabled={currentStepIndex === 0}
-                  leftIcon={<ArrowLeft className="size-icon" />}
-                >
-                  {t('navigation.previous')}
-                </Button>
-
-                <Button
-                  type="submit"
-                  onClick={() => handleNext()}
-                  rightIcon={
-                    currentStepIndex !== totalSteps - 1 ? (
-                      <ArrowRight className="size-icon" />
-                    ) : undefined
-                  }
-                >
-                  {currentStepIndex === totalSteps - 1
-                    ? "Finaliser l'inscription"
-                    : `Enregistrer et continuer (${currentStepIndex + 1}/${totalSteps})`}
-                </Button>
-              </div>
             </div>
 
             {/* Progression mobile */}

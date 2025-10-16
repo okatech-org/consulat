@@ -13,7 +13,6 @@ import {
   countryIndicators,
   countryKeys,
 } from '@/lib/autocomplete-datas';
-import { ownerIdValidator, ownerTypeValidator } from '@/convex/lib/validators';
 
 export const VALIDATION_RULES = {
   NAME_MIN_LENGTH: 2,
@@ -96,19 +95,18 @@ export const CountryIndicatorSchema = z
 export const EmailSchema = z.email('messages.errors.invalid_email');
 
 export const AddressSchema = z.object({
-  firstLine: z
+  street: z
     .string({
       error: 'messages.errors.field_required',
     })
     .min(1, 'messages.errors.field_required')
     .max(VALIDATION_RULES.ADDRESS_MAX_LENGTH),
 
-  secondLine: z
+  complement: z
     .string({
       error: 'messages.errors.field_required',
     })
     .max(VALIDATION_RULES.ADDRESS_MAX_LENGTH)
-    .nullable()
     .optional(),
 
   city: z
@@ -117,11 +115,10 @@ export const AddressSchema = z.object({
     })
     .min(1, 'messages.errors.field_required'),
 
-  zipCode: z
+  postalCode: z
     .string({
       error: 'messages.errors.field_required',
     })
-    .nullable()
     .optional(),
 
   country: CountryCodeSchema,
@@ -201,15 +198,14 @@ export const EmergencyContactSchema = z.object({
   relationship: z.enum(FamilyLink, {
     error: 'messages.errors.field_required',
   }),
-  email: EmailSchema.nullable().optional(),
-  phoneNumber: PhoneNumberSchema.nullable(),
+  email: EmailSchema.optional(),
+  phoneNumber: PhoneNumberSchema.optional(),
   address: AddressSchema,
 });
 
 export type AddressInput = z.infer<typeof AddressSchema>;
 
 export const UserDocumentSchema = z.object({
-  id: z.any(),
   type: z.enum(DocumentType),
   status: z.enum(DocumentStatus),
   storageId: z.string().optional(),
@@ -220,8 +216,8 @@ export const UserDocumentSchema = z.object({
   checksum: z.string().optional(),
   version: z.number(),
   previousVersionId: z.string().optional(),
-  ownerId: ownerIdValidator,
-  ownerType: z.enum(OwnerType),
+  ownerId: z.string().optional(),
+  ownerType: z.enum(OwnerType).optional(),
   issuedAt: z.number().optional(),
   expiresAt: z.number().optional(),
   validations: z

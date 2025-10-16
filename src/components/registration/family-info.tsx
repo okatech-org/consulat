@@ -1,5 +1,7 @@
-import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
+'use client';
+
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Form,
   FormControl,
@@ -18,35 +20,85 @@ import {
 } from '@/components/ui/select';
 import { useTranslations } from 'next-intl';
 import { MaritalStatus } from '@/convex/lib/constants';
-import { FamilyInfoFormData } from '@/schemas/registration';
+import { type FamilyInfoFormData, FamilyInfoSchema } from '@/schemas/registration';
 import { Separator } from '@/components/ui/separator';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { FullProfile } from '@/types/convex-profile';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '../ui/button';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface FamilyInfoFormProps {
-  form: UseFormReturn<FamilyInfoFormData>;
-  onSubmit: (data: FamilyInfoFormData) => void;
-  formRef?: React.RefObject<HTMLFormElement>;
-  isLoading?: boolean;
+  profile: FullProfile;
+  onSave: () => void;
   banner?: React.ReactNode;
+  onNext?: () => void;
+  onPrevious?: () => void;
 }
 
 export function FamilyInfoForm({
-  form,
-  onSubmit,
-  formRef,
-  isLoading = false,
+  profile,
+  onSave,
   banner,
+  onNext,
+  onPrevious,
 }: Readonly<FamilyInfoFormProps>) {
+  if (!profile) return null;
   const t_inputs = useTranslations('inputs');
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const updateFamilyInfo = useMutation(api.functions.profile.updateFamilyInfo);
+
+  const form = useForm<FamilyInfoFormData>({
+    resolver: zodResolver(FamilyInfoSchema),
+    defaultValues: {
+      maritalStatus: profile.family?.maritalStatus ?? MaritalStatus.Single,
+      father: profile.family?.father,
+      mother: profile.family?.mother,
+      spouse: profile.family?.spouse,
+    },
+    reValidateMode: 'onBlur',
+  });
 
   const maritalStatus = form.watch('maritalStatus');
   const showSpouseFields =
-    maritalStatus === MaritalStatus.MARRIED ||
-    maritalStatus === MaritalStatus.COHABITING ||
-    maritalStatus === MaritalStatus.CIVIL_UNION;
+    maritalStatus === MaritalStatus.Married ||
+    maritalStatus === MaritalStatus.Cohabiting ||
+    maritalStatus === MaritalStatus.CivilUnion;
+
+  const handleSubmit = async (data: FamilyInfoFormData) => {
+    setIsLoading(true);
+    try {
+      await updateFamilyInfo({
+        profileId: profile._id,
+        family: data,
+      });
+
+      toast({
+        title: t_inputs('success.title'),
+        description: t_inputs('success.description'),
+      });
+
+      onSave();
+      if (onNext) onNext();
+    } catch (error) {
+      toast({
+        title: t_inputs('error.title'),
+        description: t_inputs('error.description'),
+        variant: 'destructive',
+      });
+      console.error('Failed to update family info:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Form {...form}>
-      <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         {banner}
         {/* État civil */}
 
@@ -62,11 +114,11 @@ export function FamilyInfoForm({
                     onValueChange={(value) => {
                       field.onChange(value);
                       if (
-                        value !== MaritalStatus.MARRIED &&
-                        value !== MaritalStatus.COHABITING &&
-                        value !== MaritalStatus.CIVIL_UNION
+                        value !== MaritalStatus.Married &&
+                        value !== MaritalStatus.Cohabiting &&
+                        value !== MaritalStatus.CivilUnion
                       ) {
-                        form.setValue('spouseFullName', undefined);
+                        form.setValue('spouse', undefined);
                       }
                     }}
                     defaultValue={field.value}
@@ -91,18 +143,37 @@ export function FamilyInfoForm({
 
             {/* Champs spécifiques si marié(e) */}
             {showSpouseFields && (
-              <div className="mt-4">
+              <div className="mt-4 grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="spouseFullName"
+                  name="spouse.firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t_inputs('spouseName.label')}</FormLabel>
+                      <FormLabel>{t_inputs('firstName.label')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
+                          value={field.value ?? ''}
                           disabled={isLoading}
-                          placeholder={t_inputs('spouseName.placeholder')}
+                          placeholder={t_inputs('firstName.placeholder')}
+                        />
+                      </FormControl>
+                      <TradFormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="spouse.lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t_inputs('lastName.label')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value ?? ''}
+                          disabled={isLoading}
+                          placeholder={t_inputs('lastName.placeholder')}
                         />
                       </FormControl>
                       <TradFormMessage />
@@ -116,42 +187,101 @@ export function FamilyInfoForm({
           <Separator />
 
           <div className="grid gap-4">
-            <FormField
-              control={form.control}
-              name="fatherFullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t_inputs('fatherName.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isLoading}
-                      placeholder={t_inputs('fatherName.placeholder')}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="father.firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t_inputs('firstName.label')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={field.value ?? ''}
+                        disabled={isLoading}
+                        placeholder={t_inputs('firstName.placeholder')}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="father.lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t_inputs('lastName.label')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={field.value ?? ''}
+                        disabled={isLoading}
+                        placeholder={t_inputs('lastName.placeholder')}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="motherFullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t_inputs('motherName.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isLoading}
-                      placeholder={t_inputs('motherName.placeholder')}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="mother.firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t_inputs('firstName.label')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={field.value ?? ''}
+                        disabled={isLoading}
+                        placeholder={t_inputs('firstName.placeholder')}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="mother.lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t_inputs('lastName.label')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={field.value ?? ''}
+                        disabled={isLoading}
+                        placeholder={t_inputs('lastName.placeholder')}
+                      />
+                    </FormControl>
+                    <TradFormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row justify-between gap-4">
+          {onPrevious && (
+            <Button
+              type="button"
+              onClick={onPrevious}
+              variant="outline"
+              leftIcon={<ArrowLeft className="size-icon" />}
+            >
+              Précédent
+            </Button>
+          )}
+
+          <Button type="submit" disabled={isLoading} rightIcon={<ArrowRight className="size-icon" />}>
+            Enregistrer et continuer
+          </Button>
         </div>
       </form>
     </Form>

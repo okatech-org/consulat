@@ -63,7 +63,7 @@ export const FamilyInfoSchema = z.object({
 
 export const ContactInfoSchema = z.object({
   email: EmailSchema.optional(),
-  phone: PhoneNumberSchema.nullable(),
+  phone: PhoneNumberSchema.optional(),
   address: AddressSchema.optional(),
 });
 

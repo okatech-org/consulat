@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Form,
   FormControl,
@@ -13,74 +13,87 @@ import {
 import { Input } from '@/components/ui/input';
 import { useTranslations } from 'next-intl';
 import { Separator } from '@/components/ui/separator';
-import { ContactInfoFormData } from '@/schemas/registration';
-import { CountryCode, getCountryCode } from '@/lib/autocomplete-datas';
-import CardContainer from '../layouts/card-container';
-import { MultiSelect } from '../ui/multi-select';
-import { FamilyLink } from '@/convex/lib/constants';
+import { type ContactInfoFormData, ContactInfoSchema } from '@/schemas/registration';
+import { type CountryCode } from '@/lib/autocomplete-datas';
 import { CountrySelect } from '../ui/country-select';
-import { Button } from '../ui/button';
-import { MinusIcon, PlusIcon } from 'lucide-react';
-import { FullProfile } from '@/types/convex-profile';
+import { type FullProfile } from '@/types/convex-profile';
 import { PhoneInput } from '../ui/phone-input';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '../ui/button';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface ContactInfoFormProps {
-  form: UseFormReturn<ContactInfoFormData>;
-  onSubmitAction: (data: ContactInfoFormData) => Promise<void>;
-  formRef?: React.RefObject<HTMLFormElement>;
-  isLoading?: boolean;
-  banner?: React.ReactNode;
   profile: FullProfile;
+  onSave: () => void;
+  banner?: React.ReactNode;
+  onNext?: () => void;
+  onPrevious?: () => void;
 }
 
-const homeLandCountryCode = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as
-  | CountryCode
-  | undefined;
-
 export function ContactInfoForm({
-  form,
-  onSubmitAction,
-  formRef,
-  isLoading = false,
-  banner,
   profile,
+  onSave,
+  banner,
+  onNext,
+  onPrevious,
 }: Readonly<ContactInfoFormProps>) {
-  const t_countries = useTranslations('countries');
+  if (!profile) return null;
   const t = useTranslations('registration');
   const t_inputs = useTranslations('inputs');
-  const residenceCountryCode = profile.residenceCountyCode as CountryCode;
-  const defaultNumber = `${getCountryCode(residenceCountryCode as CountryCode)}-`;
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  function toggleHomeLandContact() {
-    const homeLandContact = form.getValues('homeLandContact');
+  const updateContacts = useMutation(api.functions.profile.updateContacts);
 
-    if (homeLandContact) {
-      form.setValue('homeLandContact', undefined);
-    } else {
-      form.setValue('homeLandContact', {
-        firstName: '',
-        lastName: '',
-        email: '',
-        phoneNumber: defaultNumber,
-        relationship: 'MOTHER',
-        address: {
-          firstLine: '',
-          city: '',
-          country: homeLandCountryCode as CountryCode,
-          zipCode: '',
-          secondLine: '',
-        },
+  const form = useForm<ContactInfoFormData>({
+    resolver: zodResolver(ContactInfoSchema),
+    defaultValues: {
+      email: profile.contacts?.email ?? '',
+      phone: profile.contacts?.phone ?? '',
+      address: profile.contacts?.address ?? {
+        street: profile.contacts?.address?.street ?? '',
+        city: profile.contacts?.address?.city ?? '',
+        country: profile.contacts?.address?.country ?? profile.residenceCountry ?? '',
+        postalCode: profile.contacts?.address?.postalCode ?? '',
+        complement: profile.contacts?.address?.complement ?? '',
+      },
+    },
+    reValidateMode: 'onBlur',
+  });
+
+  const handleSubmit = async (data: ContactInfoFormData) => {
+    setIsLoading(true);
+    try {
+      await updateContacts({
+        profileId: profile._id,
+        contacts: data,
       });
+
+      toast({
+        title: t_inputs('success.title'),
+        description: t_inputs('success.description'),
+      });
+
+      onSave();
+      if (onNext) onNext();
+    } catch (error) {
+      toast({
+        title: t_inputs('error.title'),
+        description: t_inputs('error.description'),
+        variant: 'destructive',
+      });
+      console.error('Failed to update contacts:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Form {...form}>
-      <form
-        ref={formRef}
-        onSubmit={form.handleSubmit(onSubmitAction)}
-        className="space-y-6"
-      >
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         {banner}
         <div className="grid grid-cols-2 gap-6 pt-4">
           {/* Email */}
@@ -93,10 +106,11 @@ export function ContactInfoForm({
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value ?? ''}
                     type="email"
                     placeholder={t('form.email_placeholder')}
                     autoComplete="email"
-                    disabled={Boolean(profile.email) || isLoading}
+                    disabled={Boolean(profile.contacts?.email) || isLoading}
                   />
                 </FormControl>
                 <TradFormMessage />
@@ -106,16 +120,25 @@ export function ContactInfoForm({
 
           <FormField
             control={form.control}
-            name="phoneNumber"
+            name="phone"
             render={({ field }) => (
               <FormItem className="sm:col-span-1">
                 <FormLabel>{t_inputs('phone.label')}</FormLabel>
                 <FormControl>
                   <PhoneInput
-                    value={field.value ?? defaultNumber}
-                    onChangeAction={field.onChange}
-                    disabled={Boolean(profile.phoneNumber) || isLoading}
-                    options={residenceCountryCode ? [residenceCountryCode] : undefined}
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    disabled={Boolean(profile.contacts?.phone) || isLoading}
+                    countries={
+                      profile.residenceCountry
+                        ? [profile.residenceCountry as any]
+                        : undefined
+                    }
+                    defaultCountry={
+                      profile.residenceCountry
+                        ? (profile.residenceCountry as any)
+                        : undefined
+                    }
                   />
                 </FormControl>
                 <TradFormMessage />
@@ -130,14 +153,15 @@ export function ContactInfoForm({
             {/* Address Line 1 */}
             <FormField
               control={form.control}
-              name="address.firstLine"
+              name="address.street"
               render={({ field }) => (
                 <FormItem className={'col-span-full sm:col-span-1'}>
-                  <FormLabel>{t_inputs('address.firstLine.label')}</FormLabel>
+                  <FormLabel>{t_inputs('address.street.label')}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder={t_inputs('address.firstLine.placeholder')}
+                      value={field.value ?? ''}
+                      placeholder={t_inputs('address.street.placeholder')}
                       disabled={isLoading}
                     />
                   </FormControl>
@@ -149,15 +173,15 @@ export function ContactInfoForm({
             {/* Address Line 2 */}
             <FormField
               control={form.control}
-              name="address.secondLine"
+              name="address.complement"
               render={({ field }) => (
                 <FormItem className={'col-span-full sm:col-span-1'}>
-                  <FormLabel>{t_inputs('address.secondLine.label')}</FormLabel>
+                  <FormLabel>{t_inputs('address.complement.label')}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       value={field.value ?? ''}
-                      placeholder={t_inputs('address.secondLine.placeholder')}
+                      placeholder={t_inputs('address.complement.placeholder')}
                       disabled={isLoading}
                     />
                   </FormControl>
@@ -177,6 +201,7 @@ export function ContactInfoForm({
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value ?? ''}
                         placeholder={t_inputs('address.city.placeholder')}
                         disabled={isLoading}
                       />
@@ -188,15 +213,15 @@ export function ContactInfoForm({
 
               <FormField
                 control={form.control}
-                name="address.zipCode"
+                name="address.postalCode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t_inputs('address.zipCode.label')}</FormLabel>
+                    <FormLabel>{t_inputs('address.postalCode.label')}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        value={field.value ?? undefined}
-                        placeholder={t_inputs('address.zipCode.placeholder')}
+                        value={field.value ?? ''}
+                        placeholder={t_inputs('address.postalCode.placeholder')}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -218,8 +243,10 @@ export function ContactInfoForm({
                       type="single"
                       selected={field.value as CountryCode}
                       onChange={field.onChange}
-                      {...(residenceCountryCode && { options: [residenceCountryCode] })}
-                      disabled={Boolean(isLoading || residenceCountryCode)}
+                      {...(profile.residenceCountry && {
+                        options: [profile.residenceCountry as CountryCode],
+                      })}
+                      disabled={Boolean(isLoading || profile.residenceCountry)}
                     />
                   </FormControl>
                   <TradFormMessage />
@@ -227,469 +254,23 @@ export function ContactInfoForm({
               )}
             />
           </fieldset>
+        </div>
 
-          <Separator className="col-span-full" />
-
-          {/* Resident Contact */}
-          <CardContainer
-            className="col-span-full"
-            headerClass="p-4"
-            contentClass="col-span-full grid sm:grid-cols-2 gap-4 p-4 pt-0"
-            title={
-              t_inputs('emergencyContact.label') +
-              ' - ' +
-              t_countries(residenceCountryCode as CountryCode)
-            }
-          >
-            <FormField
-              control={form.control}
-              name="residentContact.firstName"
-              render={({ field }) => (
-                <FormItem className="sm:col-span-1">
-                  <FormLabel>{t_inputs('firstName.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isLoading}
-                      placeholder={t_inputs('firstName.placeholder')}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="residentContact.lastName"
-              render={({ field }) => (
-                <FormItem className="sm:col-span-1">
-                  <FormLabel>{t_inputs('lastName.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isLoading}
-                      placeholder={t_inputs('lastName.placeholder')}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="residentContact.relationship"
-              render={({ field }) => (
-                <FormItem className="sm:col-span-full flex flex-col gap-2">
-                  <FormLabel>{t_inputs('familyLink.label')}</FormLabel>
-                  <FormControl>
-                    <MultiSelect<FamilyLink>
-                      type="single"
-                      options={Object.values(FamilyLink).map((link) => ({
-                        label: t_inputs(`familyLink.options.${link}`),
-                        value: link,
-                      }))}
-                      selected={field.value}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Email */}
-            <FormField
-              control={form.control}
-              name="residentContact.email"
-              render={({ field }) => (
-                <FormItem className="w-full sm:col-span-1">
-                  <FormLabel>{t_inputs('email.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={field.value ?? undefined}
-                      type="email"
-                      placeholder={t_inputs('email.placeholder')}
-                      autoComplete="email"
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="residentContact.phoneNumber"
-              render={({ field }) => (
-                <FormItem className="sm:col-span-1">
-                  <FormLabel>{t_inputs('phone.label')}</FormLabel>
-                  <FormControl>
-                    <PhoneInput
-                      value={field.value ?? ''}
-                      onChange={field.onChange}
-                      disabled={isLoading}
-                      countries={
-                        residenceCountryCode ? [residenceCountryCode as any] : undefined
-                      }
-                      defaultCountry={
-                        residenceCountryCode ? (residenceCountryCode as any) : undefined
-                      }
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            <fieldset className="sm:col-span-full grid grid-cols-2 gap-x-4 space-y-4">
-              <legend className="text-sm font-medium sr-only">
-                {t_inputs('address.labelIn', {
-                  country: `${t_countries(residenceCountryCode as CountryCode)}`,
-                })}
-              </legend>
-              {/* Address Line 1 */}
-              <FormField
-                control={form.control}
-                name="residentContact.address.firstLine"
-                render={({ field }) => (
-                  <FormItem className={'col-span-full sm:col-span-1'}>
-                    <FormLabel>{t_inputs('address.firstLine.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder={t_inputs('address.firstLine.placeholder')}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Address Line 2 */}
-              <FormField
-                control={form.control}
-                name="residentContact.address.secondLine"
-                render={({ field }) => (
-                  <FormItem className={'col-span-full sm:col-span-1'}>
-                    <FormLabel>{t_inputs('address.secondLine.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ''}
-                        placeholder={t_inputs('address.secondLine.placeholder')}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* City and Zip Code */}
-              <div className="col-span-full grid grid-cols-3 gap-2">
-                <FormField
-                  control={form.control}
-                  name="residentContact.address.city"
-                  render={({ field }) => (
-                    <FormItem className={'col-span-2'}>
-                      <FormLabel>{t_inputs('address.city.label')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder={t_inputs('address.city.placeholder')}
-                          disabled={isLoading}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="residentContact.address.zipCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t_inputs('address.zipCode.label')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value ?? undefined}
-                          placeholder={t_inputs('address.zipCode.placeholder')}
-                          disabled={isLoading}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Country */}
-              <FormField
-                control={form.control}
-                name="residentContact.address.country"
-                render={({ field }) => (
-                  <FormItem className={'col-span-full'}>
-                    <FormLabel>{t_inputs('address.country.label')}</FormLabel>
-                    <FormControl>
-                      <CountrySelect
-                        type="single"
-                        selected={field.value as CountryCode}
-                        onChange={field.onChange}
-                        {...(residenceCountryCode && { options: [residenceCountryCode] })}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-            </fieldset>
-          </CardContainer>
-
-          {/* Toggle Home Land Contact */}
-          {!form.watch('homeLandContact') && (
-            <div className="col-span-full flex justify-end">
-              <Button variant="link" type="button" onClick={toggleHomeLandContact}>
-                <PlusIcon className="size-icon" />
-                {t_inputs('homeLandContact.add', {
-                  country: `${t_countries(homeLandCountryCode as CountryCode)}`,
-                })}
-              </Button>
-            </div>
-          )}
-
-          {/* Home Land Contact */}
-          {form.watch('homeLandContact') && (
-            <CardContainer
-              className="col-span-full"
-              headerClass="p-4"
-              contentClass="col-span-full grid sm:grid-cols-2 gap-4 p-4 pt-0"
-              title={
-                t_inputs('emergencyContact.label') +
-                ' - ' +
-                t_countries(homeLandCountryCode as CountryCode)
-              }
-              action={
-                <Button variant="link" type="button" onClick={toggleHomeLandContact}>
-                  <MinusIcon className="size-icon" />
-                  {t_inputs('homeLandContact.remove')}
-                </Button>
-              }
+        <div className="flex flex-col md:flex-row justify-between gap-4">
+          {onPrevious && (
+            <Button
+              type="button"
+              onClick={onPrevious}
+              variant="outline"
+              leftIcon={<ArrowLeft className="size-icon" />}
             >
-              <FormField
-                control={form.control}
-                name="homeLandContact.firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t_inputs('firstName.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isLoading}
-                        placeholder={t_inputs('firstName.placeholder')}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="homeLandContact.lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t_inputs('lastName.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isLoading}
-                        placeholder={t_inputs('lastName.placeholder')}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="homeLandContact.relationship"
-                render={({ field }) => (
-                  <FormItem className="sm:col-span-full flex flex-col gap-2">
-                    <FormLabel>{t_inputs('familyLink.label')}</FormLabel>
-                    <FormControl>
-                      <MultiSelect<FamilyLink>
-                        type="single"
-                        options={Object.values(FamilyLink).map((link) => ({
-                          label: t_inputs(`familyLink.options.${link}`),
-                          value: link,
-                        }))}
-                        selected={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Email */}
-              <FormField
-                control={form.control}
-                name="homeLandContact.email"
-                render={({ field }) => (
-                  <FormItem className="sm:col-span-1">
-                    <FormLabel>{t_inputs('email.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? undefined}
-                        type="email"
-                        placeholder={t_inputs('email.placeholder')}
-                        autoComplete="email"
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Phone */}
-
-              <FormField
-                control={form.control}
-                name="homeLandContact.phoneNumber"
-                render={({ field }) => (
-                  <FormItem className="sm:col-span-1">
-                    <FormLabel>{t_inputs('phone.label')}</FormLabel>
-                    <FormControl>
-                      <PhoneInput
-                        value={field.value ?? defaultNumber}
-                        onChangeAction={field.onChange}
-                        disabled={isLoading}
-                        options={homeLandCountryCode ? [homeLandCountryCode] : undefined}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <fieldset className="sm:col-span-full grid grid-cols-2 gap-x-4 space-y-4">
-                <legend className="text-sm font-medium sr-only">
-                  {t_inputs('address.labelIn', {
-                    country: `${t_countries(homeLandCountryCode as CountryCode)}`,
-                  })}
-                </legend>
-                {/* Address Line 1 */}
-                <FormField
-                  control={form.control}
-                  name="homeLandContact.address.firstLine"
-                  render={({ field }) => (
-                    <FormItem className={'col-span-full sm:col-span-1'}>
-                      <FormLabel>{t_inputs('address.firstLine.label')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder={t_inputs('address.firstLine.placeholder')}
-                          disabled={isLoading}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Address Line 2 */}
-                <FormField
-                  control={form.control}
-                  name="homeLandContact.address.secondLine"
-                  render={({ field }) => (
-                    <FormItem className={'col-span-full sm:col-span-1'}>
-                      <FormLabel>{t_inputs('address.secondLine.label')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value ?? ''}
-                          placeholder={t_inputs('address.secondLine.placeholder')}
-                          disabled={isLoading}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* City and Zip Code */}
-                <div className="col-span-full grid grid-cols-3 gap-2">
-                  <FormField
-                    control={form.control}
-                    name="homeLandContact.address.city"
-                    render={({ field }) => (
-                      <FormItem className={'col-span-2'}>
-                        <FormLabel>{t_inputs('address.city.label')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder={t_inputs('address.city.placeholder')}
-                            disabled={isLoading}
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="homeLandContact.address.zipCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t_inputs('address.zipCode.label')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            value={field.value ?? undefined}
-                            placeholder={t_inputs('address.zipCode.placeholder')}
-                            disabled={isLoading}
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Country */}
-                <FormField
-                  control={form.control}
-                  name="homeLandContact.address.country"
-                  render={({ field }) => (
-                    <FormItem className={'col-span-full'}>
-                      <FormLabel>{t_inputs('address.country.label')}</FormLabel>
-                      <FormControl>
-                        <CountrySelect
-                          type="single"
-                          selected={field.value as CountryCode}
-                          onChange={field.onChange}
-                          {...(homeLandCountryCode && { options: [homeLandCountryCode] })}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-              </fieldset>
-            </CardContainer>
+              Précédent
+            </Button>
           )}
+
+          <Button type="submit" disabled={isLoading} rightIcon={<ArrowRight className="size-icon" />}>
+            Enregistrer et continuer
+          </Button>
         </div>
       </form>
     </Form>

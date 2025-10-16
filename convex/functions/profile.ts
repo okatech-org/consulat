@@ -784,6 +784,7 @@ export const updatePersonalInfo = mutation({
         }),
       ),
       nipCode: v.optional(v.string()),
+      identityPicture: v.optional(v.any()),
     }),
   },
   handler: async (ctx, args) => {
