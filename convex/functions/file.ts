@@ -11,6 +11,12 @@ import {
   validateFileType as validateFileTypeFn,
 } from '../lib/fileTypes';
 import type { FileCategory, FileValidationResult } from '../lib/fileTypes';
+import {
+  documentTypeValidator,
+  documentStatusValidator,
+  ownerIdValidator,
+  ownerTypeValidator,
+} from '../lib/validators';
 
 export const saveFileToDocument = mutation({
   args: {
@@ -79,10 +85,10 @@ export const deleteDocumentFile = mutation({
 // Document File Management Mutations
 export const createDocumentWithFile = mutation({
   args: {
-    type: v.string(),
-    status: v.string(),
-    ownerId: v.string(),
-    ownerType: v.string(),
+    type: documentTypeValidator,
+    status: documentStatusValidator,
+    ownerId: ownerIdValidator,
+    ownerType: ownerTypeValidator,
     storageId: v.id('_storage'),
     fileName: v.string(),
     fileSize: v.number(),
@@ -401,8 +407,8 @@ export const getDocumentFileUrl = query({
 
 export const getFilesByOwner = query({
   args: {
-    ownerId: v.string(),
-    ownerType: v.string(),
+    ownerId: ownerIdValidator,
+    ownerType: ownerTypeValidator,
   },
   handler: async (ctx, args) => {
     const documents = await ctx.db
@@ -458,7 +464,7 @@ export const getFileMetadata = query({
 });
 
 export const getFileUsageStats = query({
-  args: { ownerId: v.optional(v.string()) },
+  args: { ownerId: v.optional(ownerIdValidator) },
   returns: v.object({
     totalFiles: v.number(),
     totalSize: v.number(),
@@ -518,10 +524,10 @@ export const getDocumentWithFileUrl = query({
 
 export const getDocumentsWithFiles = query({
   args: {
-    ownerId: v.string(),
-    ownerType: v.string(),
-    type: v.optional(v.string()),
-    status: v.optional(v.string()),
+    ownerId: ownerIdValidator,
+    ownerType: ownerTypeValidator,
+    type: v.optional(documentTypeValidator),
+    status: v.optional(documentStatusValidator),
     includeExpired: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {

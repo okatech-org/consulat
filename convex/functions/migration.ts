@@ -14,6 +14,11 @@ import {
   User,
   Notification,
   RequestActionType,
+  UserRole as PrismaUserRole,
+  FamilyLink as PrismaFamilyLink,
+  DocumentType as PrismaDocumentType,
+  NoteType as PrismaNoteType,
+  AppointmentStatus as PrismaAppointmentStatus,
 } from '@prisma/client';
 import type { FullProfile } from '../../src/types/profile';
 
@@ -43,6 +48,14 @@ import {
   FeedbackCategory,
   ParentalRole,
   ActivityType,
+  FamilyLink,
+  RequestPriority,
+  OwnerType,
+  NoteType,
+  ParticipantRole,
+  ParticipantStatus,
+  NotificationChannel,
+  UserPermission,
 } from '../lib/constants';
 import type { Id } from '../_generated/dataModel';
 import type { MutationCtx } from '../_generated/server';
@@ -83,7 +96,7 @@ type CountrySettings = {
 };
 
 // Mappings pour les enums
-const roleMapping: { [key: string]: UserRole } = {
+const roleMapping: { [key in PrismaUserRole]: UserRole } = {
   USER: UserRole.User,
   AGENT: UserRole.Agent,
   ADMIN: UserRole.Admin,
@@ -142,7 +155,7 @@ const serviceCategoryMapping: { [key: string]: ServiceCategory } = {
   OTHER: ServiceCategory.Other,
 };
 
-const documentTypeMapping: { [key: string]: DocumentType } = {
+const documentTypeMapping: Record<PrismaDocumentType, DocumentType> = {
   PASSPORT: DocumentType.Passport,
   IDENTITY_CARD: DocumentType.IdentityCard,
   BIRTH_CERTIFICATE: DocumentType.BirthCertificate,
@@ -191,13 +204,17 @@ const appointmentTypeMapping: { [key: string]: AppointmentType } = {
   OTHER: AppointmentType.Other,
 };
 
-const appointmentStatusMapping: { [key: string]: AppointmentStatus } = {
+const appointmentStatusMapping: Record<
+  PrismaAppointmentStatus | 'SCHEDULED',
+  AppointmentStatus
+> = {
   PENDING: AppointmentStatus.Pending,
   CONFIRMED: AppointmentStatus.Confirmed,
   CANCELLED: AppointmentStatus.Cancelled,
   COMPLETED: AppointmentStatus.Completed,
   MISSED: AppointmentStatus.Missed,
   RESCHEDULED: AppointmentStatus.Rescheduled,
+  SCHEDULED: AppointmentStatus.Scheduled,
 };
 
 const notificationTypeMapping: { [key: string]: NotificationType } = {
@@ -278,6 +295,15 @@ const mapRequestActionType: Record<RequestActionType, ActivityType> = {
   PROFILE_UPDATE: ActivityType.ProfileUpdate,
   DOCUMENT_UPDATED: ActivityType.DocumentUpdated,
   APPOINTMENT_SCHEDULED: ActivityType.AppointmentScheduled,
+};
+
+const familyLinkMapping: Record<PrismaFamilyLink, FamilyLink> = {
+  FATHER: FamilyLink.Father,
+  MOTHER: FamilyLink.Mother,
+  SPOUSE: FamilyLink.Spouse,
+  LEGAL_GUARDIAN: FamilyLink.LegalGuardian,
+  CHILD: FamilyLink.Child,
+  OTHER: FamilyLink.Other,
 };
 
 export const importOrganizations = mutation({
@@ -423,7 +449,6 @@ export const importOrganizations = mutation({
           })),
           legacyId: postgresOrg.id,
           metadata: postgresOrg.metadata || {},
-          updatedAt: new Date(postgresOrg.updatedAt).getTime(),
         });
 
         importedOrgs.push(orgId);
@@ -565,7 +590,7 @@ export const importServices = mutation({
                 : undefined,
           },
           steps: [],
-          processingMode: 'online_only',
+          processingMode: ProcessingMode.OnlineOnly,
           deliveryModes: (service.deliveryMode || []).map(
             (m: string) => deliveryModeMapping[m as PrismaDeliveryMode] || 'in_person',
           ) || ['in_person'],
@@ -632,6 +657,10 @@ export const importUserWithData = mutation({
       typedArgs;
     let recordCount = 0;
 
+    const roles = user.roles?.map((role: PrismaUserRole) => roleMapping[role]) || [
+      UserRole.User,
+    ];
+
     // 1. Créer l'utilisateur
     const userId = await ctx.db.insert('users', {
       userId: user.clerkId || `temp_${user.id}`,
@@ -640,7 +669,7 @@ export const importUserWithData = mutation({
       lastName: user.name?.split(' ').slice(1).join(' ') || '',
       email: user.email || '',
       phoneNumber: user.phoneNumber || '',
-      roles: user.roles?.map((role: string) => roleMapping[role]) || [UserRole.User],
+      roles: roles,
       status: UserStatus.Active,
       countryCode: user.countryCode || '',
     });
@@ -738,14 +767,14 @@ export const importUserWithData = mutation({
           .map((c) => ({
             firstName: c.firstName || '',
             lastName: c.lastName || '',
-            relationship:
-              (c.relationship?.toLowerCase() as
-                | 'father'
-                | 'mother'
-                | 'spouse'
-                | 'legal_guardian'
-                | 'child'
-                | 'other') || 'other',
+            relationship: (familyLinkMapping[c.relationship as PrismaFamilyLink] ||
+              FamilyLink.Other) as
+              | FamilyLink.Father
+              | FamilyLink.Mother
+              | FamilyLink.Spouse
+              | FamilyLink.LegalGuardian
+              | FamilyLink.Child
+              | FamilyLink.Other,
             phoneNumber: c.phoneNumber || '',
             email: c.email || '',
             address: c.address
@@ -786,10 +815,25 @@ export const importUserWithData = mutation({
         }
         try {
           await ctx.db.insert('documents', {
-            type: documentTypeMapping[doc.type] || 'other',
+            type: (documentTypeMapping[doc.type] || DocumentType.Other) as
+              | DocumentType.Passport
+              | DocumentType.IdentityCard
+              | DocumentType.BirthCertificate
+              | DocumentType.ResidencePermit
+              | DocumentType.ProofOfAddress
+              | DocumentType.MarriageCertificate
+              | DocumentType.DivorceDecree
+              | DocumentType.NationalityCertificate
+              | DocumentType.Other
+              | DocumentType.VisaPages
+              | DocumentType.EmploymentProof
+              | DocumentType.NaturalizationDecree
+              | DocumentType.IdentityPhoto
+              | DocumentType.ConsularCard
+              | DocumentType.DeathCertificate,
             status: documentStatusMapping[doc.status] || DocumentStatus.Pending,
             ownerId: profileId || userId,
-            ownerType: profileId ? 'profile' : 'user',
+            ownerType: profileId ? OwnerType.Profile : OwnerType.User,
             fileUrl: doc.fileUrl,
             fileName: doc.fileUrl?.split('/').pop() || 'document',
             fileType: doc.fileType || 'application/pdf',
@@ -798,7 +842,7 @@ export const importUserWithData = mutation({
             validations: [],
             issuedAt: doc.issuedAt ? new Date(doc.issuedAt).getTime() : undefined,
             expiresAt: doc.expiresAt ? new Date(doc.expiresAt).getTime() : undefined,
-            metadata: doc.metadata || {},
+            metadata: doc.metadata as Record<string, any> | undefined,
           });
           recordCount++;
         } catch (error) {
@@ -841,14 +885,21 @@ export const importUserWithData = mutation({
               status:
                 requestStatusMapping[req.status as PrismaRequestStatus] ||
                 RequestStatus.Pending,
-              priority: req.priority === 'URGENT' ? 1 : 0,
+              priority:
+                req.priority === 'URGENT'
+                  ? RequestPriority.Urgent
+                  : RequestPriority.Normal,
               serviceId: serviceId,
               requesterId: userId,
               profileId: profileId,
               formData: req.formData || {},
               documentIds: [],
               notes: req.notes.map((n: Note) => ({
-                type: (n.type || 'feedback').toString().toLowerCase(),
+                type:
+                  {
+                    INTERNAL: NoteType.Internal,
+                    FEEDBACK: NoteType.Feedback,
+                  }[n.type as PrismaNoteType] || NoteType.Internal,
                 authorId: undefined,
                 content: n.content || '',
                 serviceRequestId: undefined,
@@ -902,7 +953,13 @@ export const importUserWithData = mutation({
               endAt: new Date(apt.endTime || apt.date).getTime() + 60 * 60 * 1000,
               timezone: 'Europe/Paris',
               type: appointmentTypeMapping[apt.type] || AppointmentType.Other,
-              status: appointmentStatusMapping[apt.status] || AppointmentStatus.Pending,
+              status: (appointmentStatusMapping[apt.status] ||
+                AppointmentStatus.Pending) as
+                | AppointmentStatus.Pending
+                | AppointmentStatus.Scheduled
+                | AppointmentStatus.Confirmed
+                | AppointmentStatus.Completed
+                | AppointmentStatus.Cancelled,
               organizationId: organizationId,
               serviceId: apt.serviceId
                 ? await findConvexServiceByLegacyId(ctx, apt.serviceId)
@@ -913,8 +970,8 @@ export const importUserWithData = mutation({
               participants: [
                 {
                   userId: userId,
-                  role: 'attendee',
-                  status: 'confirmed',
+                  role: ParticipantRole.Attendee,
+                  status: ParticipantStatus.Confirmed,
                 },
               ],
               createdAt: new Date(apt.createdAt).getTime(),
@@ -940,7 +997,11 @@ export const importUserWithData = mutation({
             type: notificationTypeMapping[notif.type] || NotificationType.Updated,
             title: notif.title,
             content: notif.message,
-            channels: ['app', 'email', 'sms'],
+            channels: [
+              NotificationChannel.App,
+              NotificationChannel.Email,
+              NotificationChannel.Sms,
+            ],
             deliveryStatus: {
               appAt: notif.read ? new Date(notif.createdAt).getTime() : undefined,
               emailAt: notif.read ? new Date(notif.createdAt).getTime() : undefined,
@@ -1120,10 +1181,26 @@ export const importParentalAuthority = mutation({
       }
       try {
         await ctx.db.insert('documents', {
-          type: documentTypeMapping[doc.type] || 'other',
+          type: (documentTypeMapping[doc.type as PrismaDocumentType] ||
+            DocumentType.Other) as
+            | DocumentType.Passport
+            | DocumentType.IdentityCard
+            | DocumentType.BirthCertificate
+            | DocumentType.ResidencePermit
+            | DocumentType.ProofOfAddress
+            | DocumentType.MarriageCertificate
+            | DocumentType.DivorceDecree
+            | DocumentType.NationalityCertificate
+            | DocumentType.Other
+            | DocumentType.VisaPages
+            | DocumentType.EmploymentProof
+            | DocumentType.NaturalizationDecree
+            | DocumentType.IdentityPhoto
+            | DocumentType.ConsularCard
+            | DocumentType.DeathCertificate,
           status: documentStatusMapping[doc.status] || DocumentStatus.Pending,
           ownerId: childProfileId,
-          ownerType: 'profile',
+          ownerType: OwnerType.ChildProfile,
           fileUrl: doc.fileUrl,
           fileName: doc.fileUrl?.split('/').pop() || 'document',
           fileType: doc.fileType || 'application/pdf',
@@ -1172,7 +1249,10 @@ export const importParentalAuthority = mutation({
           status:
             requestStatusMapping[args.request.status as PrismaRequestStatus] ||
             RequestStatus.Pending,
-          priority: args.request.priority === 'URGENT' ? 1 : 0,
+          priority:
+            args.request.priority === 'URGENT'
+              ? RequestPriority.Urgent
+              : RequestPriority.Normal,
           serviceId: serviceId,
           requesterId: requesterId,
           profileId: childProfileId,
@@ -1288,7 +1368,7 @@ export const importNonUsersAccounts = mutation({
       try {
         const prismaRoles: Array<string> = account.roles || [];
         const mappedRoles: Array<UserRole> = prismaRoles
-          .map((r) => roleMapping[r])
+          .map((r) => roleMapping[r as PrismaUserRole])
           .filter((r): r is UserRole => Boolean(r) && r !== UserRole.User);
 
         const userId = await ctx.db.insert('users', {
@@ -1314,7 +1394,7 @@ export const importNonUsersAccounts = mutation({
                 type: notificationTypeMapping[notif.type] || NotificationType.Updated,
                 title: notif.title,
                 content: notif.message,
-                channels: ['app'],
+                channels: [NotificationChannel.App],
                 deliveryStatus: {
                   appAt: notif.read ? new Date(notif.createdAt).getTime() : undefined,
                 },
@@ -1338,7 +1418,14 @@ export const importNonUsersAccounts = mutation({
               userId,
               organizationId: orgId,
               role: (mappedRoles[0] as UserRole) || UserRole.Agent,
-              permissions: [] as string[],
+              permissions: [] as Array<
+                | UserPermission.ProfileRead
+                | UserPermission.ProfileWrite
+                | UserPermission.ProfileDelete
+                | UserPermission.RequestRead
+                | UserPermission.RequestWrite
+                | UserPermission.RequestDelete
+              >,
               status: MembershipStatus.Active,
               assignedCountries: (account.assignedCountries &&
               account.assignedCountries.length > 0

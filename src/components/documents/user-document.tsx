@@ -35,13 +35,11 @@ import { Separator } from '@/components/ui/separator';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { toast } from 'sonner';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
-import { DocumentStatus, DocumentType } from '@/convex/lib/constants';
+import { DocumentStatus, DocumentType, UserRole } from '@/convex/lib/constants';
 
 interface UserDocumentProps {
   document?: Doc<'documents'>;
   expectedType?: DocumentType;
-  profileId?: Id<'profiles'>;
-  userId?: Id<'users'>;
   label: string;
   description?: string;
   required?: boolean;
@@ -99,8 +97,6 @@ export function UserDocument({
   document,
   label,
   description,
-  profileId,
-  userId,
   expectedType = DocumentType.Other,
   required = false,
   disabled = false,
@@ -128,6 +124,10 @@ export function UserDocument({
   const [showProcessedImageDialog, setShowProcessedImageDialog] = React.useState(false);
   const router = useRouter();
 
+  if (!user) {
+    return null;
+  }
+
   // Convex mutations and queries
   const updateDocumentMutation = useMutation(api.functions.document.updateUserDocument);
   const createUserDocumentMutation = useMutation(
@@ -142,7 +142,12 @@ export function UserDocument({
 
   // Check if user has admin role
   const hasAdminRole = React.useMemo(() => {
-    const adminRoles = ['ADMIN', 'AGENT', 'SUPER_ADMIN', 'MANAGER'];
+    const adminRoles = [
+      UserRole.Admin,
+      UserRole.Agent,
+      UserRole.SuperAdmin,
+      UserRole.Manager,
+    ];
     return user?.roles?.some((role) => adminRoles.includes(role));
   }, [user]);
 
@@ -197,7 +202,7 @@ export function UserDocument({
         fileUrl: fileData.url,
         fileType: fileData.type,
         fileName: fileData.name,
-        profileId: profileId,
+        ownerId: document?.ownerId ?? user.profileId,
         issuedAt: undefined,
         expiresAt: undefined,
         metadata: {
@@ -428,7 +433,7 @@ export function UserDocument({
             {required && <span className="text-sm">{' (Obligatoire)'}</span>}
           </span>
           {document?.status &&
-            hasAnyRole(user, ['ADMIN', 'AGENT', 'SUPER_ADMIN']) &&
+            hasAnyRole(user, [UserRole.Admin, UserRole.Agent, UserRole.SuperAdmin]) &&
             getStatusBadge(document.status)}
         </div>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
@@ -591,7 +596,7 @@ export function UserDocument({
               {document && (
                 <MetadataForm
                   documentType={document.type as DocumentType}
-                  metadata={document.metadata}
+                  metadata={document.metadata ?? null}
                   onSubmit={async (metadata) => {
                     await handleUpdate(document._id, { metadata });
                     setIsUpdating(false);

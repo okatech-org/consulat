@@ -5,6 +5,7 @@ import {
   DocumentStatus,
   DocumentType,
   ValidationStatus,
+  OwnerType,
 } from '@/convex/lib/constants';
 import {
   type CountryCode,
@@ -12,6 +13,7 @@ import {
   countryIndicators,
   countryKeys,
 } from '@/lib/autocomplete-datas';
+import { ownerIdValidator, ownerTypeValidator } from '@/convex/lib/validators';
 
 export const VALIDATION_RULES = {
   NAME_MIN_LENGTH: 2,
@@ -207,7 +209,7 @@ export const EmergencyContactSchema = z.object({
 export type AddressInput = z.infer<typeof AddressSchema>;
 
 export const UserDocumentSchema = z.object({
-  id: z.string(),
+  id: z.any(),
   type: z.enum(DocumentType),
   status: z.enum(DocumentStatus),
   storageId: z.string().optional(),
@@ -218,8 +220,8 @@ export const UserDocumentSchema = z.object({
   checksum: z.string().optional(),
   version: z.number(),
   previousVersionId: z.string().optional(),
-  ownerId: z.string(),
-  ownerType: z.string(),
+  ownerId: ownerIdValidator,
+  ownerType: z.enum(OwnerType),
   issuedAt: z.number().optional(),
   expiresAt: z.number().optional(),
   validations: z

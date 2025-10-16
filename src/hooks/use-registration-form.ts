@@ -35,25 +35,14 @@ import type { FullProfile } from '@/types/convex-profile';
 const homeLandCountry = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as CountryCode;
 
 // Constantes pour les champs de chaque section - correspondent exactement à Convex
-export const documentsFields: (
-  | 'passport'
-  | 'birthCertificate'
-  | 'residencePermit'
-  | 'addressProof'
-)[] = ['passport', 'birthCertificate', 'residencePermit', 'addressProof'];
+export const documentsFields = [
+  'passport',
+  'birthCertificate',
+  'residencePermit',
+  'addressProof',
+] as const;
 
-export const basicInfoFields: (
-  | 'firstName'
-  | 'lastName'
-  | 'gender'
-  | 'acquisitionMode'
-  | 'birthDate'
-  | 'birthPlace'
-  | 'birthCountry'
-  | 'nationality'
-  | 'passportInfos'
-  | 'nipCode'
-)[] = [
+export const basicInfoFields = [
   'firstName',
   'lastName',
   'gender',
@@ -64,28 +53,20 @@ export const basicInfoFields: (
   'nationality',
   'passportInfos',
   'nipCode',
-];
+  'identityPicture',
+] as const;
 
-export const familyInfoFields: ('maritalStatus' | 'father' | 'mother' | 'spouse')[] = [
-  'maritalStatus',
-  'father',
-  'mother',
-  'spouse',
-];
+export const familyInfoFields = ['maritalStatus', 'father', 'mother', 'spouse'] as const;
 
-export const contactInfoFields: ('email' | 'phone' | 'address')[] = [
-  'email',
-  'phone',
-  'address',
-];
+export const contactInfoFields = ['email', 'phone', 'address'] as const;
 
-export const professionalInfoFields: (
-  | 'workStatus'
-  | 'profession'
-  | 'employer'
-  | 'employerAddress'
-  | 'activityInGabon'
-)[] = ['workStatus', 'profession', 'employer', 'employerAddress', 'activityInGabon'];
+export const professionalInfoFields = [
+  'workStatus',
+  'profession',
+  'employer',
+  'employerAddress',
+  'activityInGabon',
+] as const;
 
 export function useRegistrationForm({ profile }: { profile: FullProfile }) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -143,6 +124,9 @@ export function useRegistrationForm({ profile }: { profile: FullProfile }) {
                   .split('T')[0]
               : undefined,
           }
+        : undefined,
+      identityPicture: cleanedProfile.identityPicture
+        ? { ...cleanedProfile.identityPicture, id: cleanedProfile.identityPicture._id }
         : undefined,
     },
     basicInfoFields,

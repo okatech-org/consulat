@@ -1,20 +1,26 @@
 import { v } from 'convex/values';
 import { mutation, query } from '../_generated/server';
 import { DocumentStatus } from '../lib/constants';
-import type { DocumentType, OwnerType, ValidationStatus } from '../lib/constants';
-import { Doc } from '../_generated/dataModel';
+import { OwnerType, ValidationStatus } from '../lib/constants';
+import { Doc, Id } from '../_generated/dataModel';
+import {
+  documentStatusValidator,
+  documentTypeValidator,
+  ownerIdValidator,
+  ownerTypeValidator,
+} from '../lib/validators';
 
 export const createDocument = mutation({
   args: {
-    type: v.string(),
+    type: documentTypeValidator,
     fileName: v.string(),
     fileType: v.string(),
     fileSize: v.optional(v.number()),
     checksum: v.optional(v.string()),
-    storageId: v.optional(v.string()),
+    storageId: v.optional(v.id('storage')),
     fileUrl: v.optional(v.string()),
-    ownerId: v.string(),
-    ownerType: v.string(),
+    ownerId: ownerIdValidator,
+    ownerType: ownerTypeValidator,
     issuedAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
     metadata: v.optional(v.record(v.string(), v.any())),
@@ -22,7 +28,7 @@ export const createDocument = mutation({
   returns: v.id('documents'),
   handler: async (ctx, args) => {
     const documentId = await ctx.db.insert('documents', {
-      type: args.type as DocumentType,
+      type: args.type,
       status: DocumentStatus.Pending,
       storageId: args.storageId,
       fileUrl: args.fileUrl,
@@ -33,7 +39,7 @@ export const createDocument = mutation({
       version: 1,
       previousVersionId: undefined,
       ownerId: args.ownerId,
-      ownerType: args.ownerType as OwnerType,
+      ownerType: args.ownerType,
       issuedAt: args.issuedAt,
       expiresAt: args.expiresAt,
       validations: [],
@@ -222,10 +228,10 @@ export const getDocument = query({
 
 export const getDocumentsByOwner = query({
   args: {
-    ownerId: v.string(),
-    ownerType: v.string(),
-    type: v.optional(v.string()),
-    status: v.optional(v.string()),
+    ownerId: ownerIdValidator,
+    ownerType: ownerTypeValidator,
+    type: v.optional(documentTypeValidator),
+    status: v.optional(documentStatusValidator),
   },
   handler: async (ctx, args) => {
     const documents = await ctx.db
@@ -251,9 +257,9 @@ export const getDocumentsByOwner = query({
 
 export const getAllDocuments = query({
   args: {
-    type: v.optional(v.string()),
-    status: v.optional(v.string()),
-    ownerType: v.optional(v.string()),
+    type: v.optional(documentTypeValidator),
+    status: v.optional(documentStatusValidator),
+    ownerType: v.optional(ownerTypeValidator),
     limit: v.optional(v.number()),
   },
   returns: v.array(v.any()),
@@ -288,8 +294,7 @@ export const getAllDocuments = query({
 });
 
 export const getDocumentsByType = query({
-  args: { type: v.string() },
-  returns: v.array(v.any()),
+  args: { type: documentTypeValidator },
   handler: async (ctx, args) => {
     return await ctx.db
       .query('documents')
@@ -300,8 +305,7 @@ export const getDocumentsByType = query({
 });
 
 export const getDocumentsByStatus = query({
-  args: { status: v.string() },
-  returns: v.array(v.any()),
+  args: { status: documentStatusValidator },
   handler: async (ctx, args) => {
     return await ctx.db
       .query('documents')
@@ -314,10 +318,9 @@ export const getDocumentsByStatus = query({
 export const searchDocuments = query({
   args: {
     searchTerm: v.string(),
-    ownerType: v.optional(v.string()),
-    type: v.optional(v.string()),
+    ownerType: v.optional(ownerTypeValidator),
+    type: v.optional(documentTypeValidator),
   },
-  returns: v.array(v.any()),
   handler: async (ctx, args) => {
     let documents: Array<Doc<'documents'>> = [];
 
@@ -373,13 +376,13 @@ export const getDocumentVersions = query({
 
 export const createUserDocument = mutation({
   args: {
-    type: v.string(),
+    type: documentTypeValidator,
     fileUrl: v.string(),
     fileType: v.string(),
     fileName: v.optional(v.string()),
     userId: v.optional(v.id('users')),
     profileId: v.optional(v.id('profiles')),
-    requestId: v.optional(v.string()),
+    requestId: v.optional(v.id('requests')),
     issuedAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
     metadata: v.optional(v.record(v.string(), v.any())),
@@ -392,21 +395,21 @@ export const createUserDocument = mutation({
       throw new Error('Unauthorized');
     }
 
-    const ownerId = args.profileId || args.userId || identity.subject;
-    const ownerType = args.profileId ? 'profile' : 'user';
+    const ownerId = args.profileId || args.userId || (identity.subject as Id<'users'>);
+    const ownerType = args.profileId ? OwnerType.Profile : OwnerType.User;
 
     // Générer un nom de fichier si non fourni
     const fileName =
       args.fileName || `document-${Date.now()}.${args.fileType.split('/')[1]}`;
 
     const documentId = await ctx.db.insert('documents', {
-      type: args.type as DocumentType,
+      type: args.type,
       status: DocumentStatus.Pending,
       fileUrl: args.fileUrl,
       fileName,
       fileType: args.fileType,
       ownerId,
-      ownerType: ownerType as OwnerType,
+      ownerType: ownerType,
       issuedAt: args.issuedAt,
       expiresAt: args.expiresAt,
       validations: [],
@@ -532,12 +535,11 @@ export const deleteUserDocument = mutation({
 
 export const getUserDocuments = query({
   args: {
-    userId: v.optional(v.string()),
-    profileId: v.optional(v.string()),
-    type: v.optional(v.string()),
-    status: v.optional(v.string()),
+    userId: v.optional(v.id('users')),
+    profileId: v.optional(v.id('profiles')),
+    type: v.optional(documentTypeValidator),
+    status: v.optional(documentStatusValidator),
   },
-  returns: v.array(v.any()),
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
@@ -550,14 +552,14 @@ export const getUserDocuments = query({
       documents = await ctx.db
         .query('documents')
         .withIndex('by_owner', (q) =>
-          q.eq('ownerId', args.userId!).eq('ownerType', 'user'),
+          q.eq('ownerId', args.userId!).eq('ownerType', OwnerType.User),
         )
         .collect();
     } else if (args.profileId) {
       documents = await ctx.db
         .query('documents')
         .withIndex('by_owner', (q) =>
-          q.eq('ownerId', args.profileId!).eq('ownerType', 'profile'),
+          q.eq('ownerId', args.profileId!).eq('ownerType', OwnerType.Profile),
         )
         .collect();
     } else {
@@ -565,7 +567,9 @@ export const getUserDocuments = query({
       const userDocs = await ctx.db
         .query('documents')
         .withIndex('by_owner', (q) =>
-          q.eq('ownerId', identity.subject).eq('ownerType', 'user'),
+          q
+            .eq('ownerId', identity.subject as Id<'users'>)
+            .eq('ownerType', OwnerType.User),
         )
         .collect();
 

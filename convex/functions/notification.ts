@@ -2,6 +2,10 @@ import { v } from 'convex/values';
 import { mutation, query } from '../_generated/server';
 import { NotificationChannel, NotificationType } from '../lib/constants';
 import type { Doc } from '../_generated/dataModel';
+import {
+  notificationStatusValidator,
+  notificationTypeValidator,
+} from '../lib/validators';
 
 // Mutations
 export const createNotification = mutation({
@@ -333,8 +337,8 @@ export const getNotificationsByUser = query({
 
 export const getAllNotifications = query({
   args: {
-    status: v.optional(v.string()),
-    type: v.optional(v.string()),
+    status: v.optional(notificationStatusValidator),
+    type: v.optional(notificationTypeValidator),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -410,7 +414,7 @@ export const getScheduledNotifications = query({
 });
 
 export const getNotificationsByType = query({
-  args: { type: v.string() },
+  args: { type: notificationTypeValidator },
   handler: async (ctx, args) => {
     return await ctx.db
       .query('notifications')

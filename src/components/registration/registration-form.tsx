@@ -382,14 +382,7 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
         documents={requiredDocuments}
       />
     ),
-    basicInfo: (
-      <BasicInfoForm
-        form={forms.basicInfo}
-        onSubmit={() => handleNext()}
-        isLoading={isLoading}
-        profileId={profile._id}
-      />
-    ),
+    basicInfo: <BasicInfoForm onSubmit={() => handleNext()} profile={profile} />,
     familyInfo: (
       <FamilyInfoForm
         form={forms.familyInfo}

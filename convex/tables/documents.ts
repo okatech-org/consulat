@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import {
   documentStatusValidator,
   documentTypeValidator,
+  ownerIdValidator,
   ownerTypeValidator,
   validationStatusValidator,
 } from '../lib/validators';
@@ -11,27 +12,22 @@ export const documents = defineTable({
   type: documentTypeValidator,
   status: documentStatusValidator,
 
-  // Stockage (flexible pour Convex storage ou URL)
-  storageId: v.optional(v.string()), // Convex storage ID
-  fileUrl: v.optional(v.string()), // URL externe
+  storageId: v.optional(v.string()),
+  fileUrl: v.optional(v.string()),
   fileName: v.string(),
   fileType: v.string(),
   fileSize: v.optional(v.number()),
   checksum: v.optional(v.string()),
 
-  // Versioning
   version: v.number(),
   previousVersionId: v.optional(v.id('documents')),
 
-  // Propriétaire (polymorphique)
-  ownerId: v.string(), // ID de l'entité propriétaire
+  ownerId: ownerIdValidator,
   ownerType: ownerTypeValidator,
 
-  // Validité
   issuedAt: v.optional(v.number()),
   expiresAt: v.optional(v.number()),
 
-  // Validation
   validations: v.array(
     v.object({
       validatorId: v.id('users'),
@@ -41,7 +37,7 @@ export const documents = defineTable({
     }),
   ),
 
-  metadata: v.optional(v.any()),
+  metadata: v.optional(v.record(v.string(), v.any())),
 })
   .index('by_owner', ['ownerId', 'ownerType'])
   .index('by_type', ['type'])

@@ -1,11 +1,21 @@
 import { v } from 'convex/values';
 import { mutation, query } from '../_generated/server';
-import { ProfileStatus, ServiceCategory, RequestStatus } from '../lib/constants';
+import {
+  ProfileStatus,
+  ServiceCategory,
+  RequestStatus,
+  OwnerType,
+  ServiceStatus,
+  RequestPriority,
+  ActivityType,
+  DocumentType,
+} from '../lib/constants';
 import type { ProfileStatus as ProfileStatusType } from '../lib/constants';
-import type { Doc, Id } from '../_generated/dataModel';
+import type { Doc } from '../_generated/dataModel';
 import {
   genderValidator,
   nationalityAcquisitionValidator,
+  parentalAuthorityValidator,
   parentalRoleValidator,
   profileStatusValidator,
 } from '../lib/validators';
@@ -14,63 +24,12 @@ import {
 export const createChildProfile = mutation({
   args: {
     authorUserId: v.id('users'),
+    residenceCountry: v.string(),
     firstName: v.string(),
     lastName: v.string(),
-    parentRole: parentalRoleValidator,
-    hasOtherParent: v.optional(v.boolean()),
-    otherParentFirstName: v.optional(v.string()),
-    otherParentLastName: v.optional(v.string()),
-    otherParentEmail: v.optional(v.string()),
-    otherParentPhone: v.optional(v.string()),
-    otherParentRole: v.optional(parentalRoleValidator),
-    residenceCountry: v.optional(v.string()),
+    parents: v.array(parentalAuthorityValidator),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db.get(args.authorUserId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    // Get the user's profile to extract email and phone
-    const userProfile = await ctx.db
-      .query('profiles')
-      .withIndex('by_user', (q) => q.eq('userId', args.authorUserId))
-      .first();
-
-    const parents: Array<{
-      userId?: Id<'users'>;
-      role: string;
-      firstName: string;
-      lastName: string;
-      email?: string;
-      phoneNumber?: string;
-    }> = [
-      {
-        userId: args.authorUserId,
-        role: args.parentRole,
-        firstName: userProfile?.personal?.firstName || user.firstName || '',
-        lastName: userProfile?.personal?.lastName || user.lastName || '',
-        email: userProfile?.contacts?.email || user.email || undefined,
-        phoneNumber: userProfile?.contacts?.phone || user.phoneNumber || undefined,
-      },
-    ];
-
-    // Add other parent if provided
-    if (
-      args.hasOtherParent &&
-      args.otherParentFirstName &&
-      args.otherParentLastName &&
-      args.otherParentRole
-    ) {
-      parents.push({
-        role: args.otherParentRole,
-        firstName: args.otherParentFirstName,
-        lastName: args.otherParentLastName,
-        email: args.otherParentEmail,
-        phoneNumber: args.otherParentPhone,
-      });
-    }
-
     const childProfileId = await ctx.db.insert('childProfiles', {
       authorUserId: args.authorUserId,
       status: ProfileStatus.Draft,
@@ -92,7 +51,7 @@ export const createChildProfile = mutation({
         passportInfos: undefined,
         nipCode: undefined,
       },
-      parents,
+      parents: args.parents,
       registrationRequest: undefined,
     });
 
@@ -292,7 +251,7 @@ export const submitChildProfileForValidation = mutation({
     const documents = await ctx.db
       .query('documents')
       .withIndex('by_owner', (q) =>
-        q.eq('ownerId', profile._id).eq('ownerType', 'childProfile'),
+        q.eq('ownerId', profile._id).eq('ownerType', OwnerType.Profile),
       )
       .collect();
 
@@ -325,7 +284,7 @@ export const submitChildProfileForValidation = mutation({
       .filter((q) =>
         q.and(
           q.eq(q.field('category'), ServiceCategory.Registration),
-          q.eq(q.field('status'), 'active'),
+          q.eq(q.field('status'), ServiceStatus.Active),
         ),
       )
       .first();
@@ -354,7 +313,7 @@ export const submitChildProfileForValidation = mutation({
       profileId: args.childProfileId,
       requesterId: profile.authorUserId,
       status: RequestStatus.Submitted,
-      priority: 0,
+      priority: RequestPriority.Normal,
       documentIds: [],
       generatedDocuments: [],
       notes: [],
@@ -362,7 +321,7 @@ export const submitChildProfileForValidation = mutation({
         submittedAt: now,
         activities: [
           {
-            type: 'request_submitted',
+            type: ActivityType.RequestSubmitted,
             actorId: profile.authorUserId,
             timestamp: now,
             data: {
@@ -412,7 +371,7 @@ export const getChildProfileWithDocuments = query({
     const documents = await ctx.db
       .query('documents')
       .withIndex('by_owner', (q) =>
-        q.eq('ownerId', profile._id).eq('ownerType', 'childProfile'),
+        q.eq('ownerId', profile._id).eq('ownerType', OwnerType.ChildProfile),
       )
       .collect();
 
@@ -464,15 +423,19 @@ export const getCurrentChildProfile = query({
     const documents = await ctx.db
       .query('documents')
       .withIndex('by_owner', (q) =>
-        q.eq('ownerId', profile._id).eq('ownerType', 'childProfile'),
+        q.eq('ownerId', profile._id).eq('ownerType', OwnerType.ChildProfile),
       )
       .collect();
 
-    const identityPicture = documents.find((d) => d?.type === 'identity_photo');
-    const passport = documents.find((d) => d?.type === 'passport');
-    const birthCertificate = documents.find((d) => d?.type === 'birth_certificate');
-    const residencePermit = documents.find((d) => d?.type === 'residence_permit');
-    const addressProof = documents.find((d) => d?.type === 'proof_of_address');
+    const identityPicture = documents.find((d) => d?.type === DocumentType.IdentityPhoto);
+    const passport = documents.find((d) => d?.type === DocumentType.Passport);
+    const birthCertificate = documents.find(
+      (d) => d?.type === DocumentType.BirthCertificate,
+    );
+    const residencePermit = documents.find(
+      (d) => d?.type === DocumentType.ResidencePermit,
+    );
+    const addressProof = documents.find((d) => d?.type === DocumentType.ProofOfAddress);
 
     const registrationRequest = profile.registrationRequest
       ? await ctx.db.get(profile.registrationRequest)

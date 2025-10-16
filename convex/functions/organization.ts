@@ -6,6 +6,7 @@ import {
   getOrganizationServicesHelper,
   getOrganizationUsers,
 } from '../helpers/relationships';
+import { organizationStatusValidator } from '../lib/validators';
 
 // Mutations
 export const createOrganization = mutation({
@@ -14,11 +15,9 @@ export const createOrganization = mutation({
     name: v.string(),
     logo: v.optional(v.string()),
     type: v.string(),
-    status: v.optional(v.string()),
+    status: v.optional(organizationStatusValidator),
     parentId: v.optional(v.id('organizations')),
     countryIds: v.optional(v.array(v.string())),
-    settings: v.optional(v.any()),
-    metadata: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
     const organizationId = await ctx.db.insert('organizations', {
@@ -32,13 +31,8 @@ export const createOrganization = mutation({
       countryIds: args.countryIds || [],
       memberIds: [],
       serviceIds: [],
-      settings: args.settings || {
-        appointmentSettings: {},
-        workflowSettings: {},
-        notificationSettings: {},
-      },
-      metadata: args.metadata || {},
-      updatedAt: Date.now(),
+      settings: [],
+      metadata: {},
     });
 
     if (args.parentId) {
@@ -46,7 +40,6 @@ export const createOrganization = mutation({
       if (parent) {
         await ctx.db.patch(args.parentId, {
           childIds: [...parent.childIds, organizationId],
-          updatedAt: Date.now(),
         });
       }
     }
@@ -107,7 +100,6 @@ export const addServiceToOrganization = mutation({
 
     await ctx.db.patch(args.organizationId, {
       serviceIds: [...organization.serviceIds, args.serviceId],
-      updatedAt: Date.now(),
     });
 
     return args.organizationId;
@@ -127,7 +119,6 @@ export const removeServiceFromOrganization = mutation({
 
     await ctx.db.patch(args.organizationId, {
       serviceIds: organization.serviceIds.filter((id) => id !== args.serviceId),
-      updatedAt: Date.now(),
     });
 
     return args.organizationId;
@@ -147,7 +138,6 @@ export const updateOrganizationSettings = mutation({
 
     await ctx.db.patch(args.organizationId, {
       settings: { ...organization.settings, ...args.settings },
-      updatedAt: Date.now(),
     });
 
     return args.organizationId;
@@ -236,7 +226,7 @@ export const getOrganizationByCode = query({
 
 export const getAllOrganizations = query({
   args: {
-    status: v.optional(v.string()),
+    status: v.optional(organizationStatusValidator),
     type: v.optional(v.string()),
     limit: v.optional(v.number()),
   },

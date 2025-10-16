@@ -4,6 +4,12 @@ import {
   addMemberToOrganization,
   removeMemberFromOrganization,
 } from '../helpers/relationships';
+import {
+  membershipStatusValidator,
+  userPermissionValidator,
+  userRoleValidator,
+} from '../lib/validators';
+import { MembershipStatus } from '../lib/constants';
 
 // Mutations
 export const addMember = mutation({
@@ -61,9 +67,9 @@ export const removeMember = mutation({
 export const updateMembership = mutation({
   args: {
     membershipId: v.id('memberships'),
-    role: v.optional(v.string()),
-    permissions: v.optional(v.array(v.string())),
-    status: v.optional(v.string()),
+    role: v.optional(userRoleValidator),
+    permissions: v.optional(v.array(userPermissionValidator)),
+    status: v.optional(membershipStatusValidator),
   },
   returns: v.id('memberships'),
   handler: async (ctx, args) => {
@@ -100,7 +106,7 @@ export const getMembershipsByUser = query({
     return await ctx.db
       .query('memberships')
       .withIndex('by_user', (q) => q.eq('userId', args.userId))
-      .filter((q) => q.eq(q.field('status'), 'active'))
+      .filter((q) => q.eq(q.field('status'), MembershipStatus.Active))
       .collect();
   },
 });
@@ -112,7 +118,7 @@ export const getMembershipsByOrganization = query({
     return await ctx.db
       .query('memberships')
       .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
-      .filter((q) => q.eq(q.field('status'), 'active'))
+      .filter((q) => q.eq(q.field('status'), MembershipStatus.Active))
       .collect();
   },
 });
@@ -124,7 +130,7 @@ export const getUserOrganizations = query({
     const memberships = await ctx.db
       .query('memberships')
       .withIndex('by_user', (q) => q.eq('userId', args.userId))
-      .filter((q) => q.eq(q.field('status'), 'active'))
+      .filter((q) => q.eq(q.field('status'), MembershipStatus.Active))
       .collect();
 
     const organizations = await Promise.all(
@@ -145,7 +151,7 @@ export const getOrganizationMembers = query({
     const memberships = await ctx.db
       .query('memberships')
       .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
-      .filter((q) => q.eq(q.field('status'), 'active'))
+      .filter((q) => q.eq(q.field('status'), MembershipStatus.Active))
       .collect();
 
     const users = await Promise.all(

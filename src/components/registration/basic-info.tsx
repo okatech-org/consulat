@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   Form,
   FormControl,
@@ -15,72 +15,141 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useTranslations } from 'next-intl';
 import type { CountryCode } from '@/lib/autocomplete-datas';
-import { NationalityAcquisition } from '@/convex/lib/constants';
-import type { BasicInfoFormData } from '@/schemas/registration';
+import { Gender, NationalityAcquisition } from '@/convex/lib/constants';
+import { BasicInfoSchema, type BasicInfoFormData } from '@/schemas/registration';
 import { Separator } from '@/components/ui/separator';
 import { CountrySelect } from '@/components/ui/country-select';
 import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
 import { capitalize } from '@/lib/utils';
-import type { Doc } from '@/convex/_generated/dataModel';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { FullProfile } from '@/types/convex-profile';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { useToast } from '@/hooks/use-toast';
 
 type BasicInfoFormProps = {
-  form: UseFormReturn<BasicInfoFormData>;
+  profile: FullProfile;
   onSubmit: () => void;
-  formRef?: React.RefObject<HTMLFormElement>;
-  isLoading?: boolean;
-  displayIdentityPicture?: boolean;
   banner?: React.ReactNode;
-  profileId?: string;
 };
 
 export function BasicInfoForm({
-  form,
+  profile,
   onSubmit,
-  formRef,
-  isLoading = false,
-  displayIdentityPicture = true,
   banner,
-  profileId,
 }: Readonly<BasicInfoFormProps>) {
+  if (!profile) return null;
   const t_inputs = useTranslations('inputs');
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const updatePersonalInfo = useMutation(api.functions.profile.updatePersonalInfo);
+
+  const form = useForm<BasicInfoFormData>({
+    resolver: zodResolver(BasicInfoSchema),
+    defaultValues: {
+      ...profile.personal,
+      birthDate: profile.personal?.birthDate
+        ? new Date(profile.personal.birthDate)
+        : undefined,
+      passportInfos: profile.personal?.passportInfos
+        ? {
+            ...profile.personal.passportInfos,
+            issueDate: profile.personal.passportInfos.issueDate
+              ? new Date(profile.personal.passportInfos.issueDate)
+              : undefined,
+            expiryDate: profile.personal.passportInfos.expiryDate
+              ? new Date(profile.personal.passportInfos.expiryDate)
+              : undefined,
+          }
+        : undefined,
+      nationality: profile.personal?.nationality,
+      gender: profile.personal?.gender ?? Gender.Male,
+      acquisitionMode: profile.personal?.acquisitionMode ?? NationalityAcquisition.Birth,
+    },
+    reValidateMode: 'onBlur',
+  });
+
+  const handleSubmit = async (data: BasicInfoFormData) => {
+    setIsLoading(true);
+    try {
+      await updatePersonalInfo({
+        profileId: profile._id,
+        personal: {
+          ...data,
+          birthDate: data.birthDate ? new Date(data.birthDate).getTime() : undefined,
+          passportInfos: data.passportInfos
+            ? {
+                ...data.passportInfos,
+                issueDate: data.passportInfos.issueDate
+                  ? new Date(data.passportInfos.issueDate).getTime()
+                  : undefined,
+                expiryDate: data.passportInfos.expiryDate
+                  ? new Date(data.passportInfos.expiryDate).getTime()
+                  : undefined,
+              }
+            : undefined,
+        },
+      });
+
+      toast({
+        title: t_inputs('success.title'),
+        description: t_inputs('success.description'),
+      });
+
+      onSubmit();
+    } catch (error) {
+      toast({
+        title: t_inputs('error.title'),
+        description: t_inputs('error.description'),
+        variant: 'destructive',
+      });
+      console.error('Failed to update personal info:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onFormSubmit = async (data: BasicInfoFormData) => {
+    await handleSubmit(data);
+    onSubmit();
+  };
 
   return (
     <Form {...form}>
-      <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-6">
         {banner}
         <div className={'grid gap-6 pt-4'}>
-          {displayIdentityPicture && (
-            <FormField
-              control={form.control}
-              name="identityPicture"
-              render={({ field }) => (
-                <FormItem className="max-w-md">
-                  <FormControl>
-                    <UserDocument
-                      document={field.value}
-                      expectedType={DocumentType.IdentityPhoto}
-                      label={t_inputs('identityPicture.label')}
-                      description={t_inputs('identityPicture.help')}
-                      required={true}
-                      disabled={isLoading}
-                      profileId={profileId}
-                      onUpload={(doc) => {
-                        field.onChange(doc);
-                      }}
-                      onDelete={() => {
-                        field.onChange(null);
-                      }}
-                      accept="image/*"
-                      enableEditor={true}
-                      enableBackgroundRemoval={true}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <FormField
+            control={form.control}
+            name="identityPicture"
+            render={({ field }) => (
+              <FormItem className="max-w-md">
+                <FormControl>
+                  <UserDocument
+                    document={field.value}
+                    expectedType={DocumentType.IdentityPhoto}
+                    label={t_inputs('identityPicture.label')}
+                    description={t_inputs('identityPicture.help')}
+                    required={true}
+                    disabled={isLoading}
+                    profileId={profile._id}
+                    onUpload={(doc) => {
+                      field.onChange(doc);
+                    }}
+                    onDelete={() => {
+                      field.onChange(null);
+                    }}
+                    accept="image/*"
+                    enableEditor={true}
+                    enableBackgroundRemoval={true}
+                  />
+                </FormControl>
+                <TradFormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Genre */}
           <FormField
@@ -91,24 +160,24 @@ export function BasicInfoForm({
                 <FormLabel>{t_inputs('gender.label')}</FormLabel>
                 <FormControl>
                   <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value)}
                     className="flex flex-row space-x-4"
                   >
                     <FormItem className="flex items-center space-x-3 space-y-0">
                       <FormControl>
-                        <RadioGroupItem value="MALE" />
+                        <RadioGroupItem value="male" />
                       </FormControl>
                       <FormLabel className="font-normal">
-                        {t_inputs('gender.options.MALE')}
+                        {t_inputs('gender.options.male')}
                       </FormLabel>
                     </FormItem>
                     <FormItem className="flex items-center space-x-3 space-y-0">
                       <FormControl>
-                        <RadioGroupItem value="FEMALE" />
+                        <RadioGroupItem value="female" />
                       </FormControl>
                       <FormLabel className="font-normal">
-                        {t_inputs('gender.options.FEMALE')}
+                        {t_inputs('gender.options.female')}
                       </FormLabel>
                     </FormItem>
                   </RadioGroup>
@@ -173,6 +242,7 @@ export function BasicInfoForm({
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value ? new Date(field.value).toDateString() : ''}
                       type="date"
                       disabled={isLoading}
                       max={new Date().toISOString().split('T')[0]}
@@ -213,9 +283,30 @@ export function BasicInfoForm({
                     type="single"
                     selected={field.value as CountryCode}
                     onChange={field.onChange}
+                    disabled={isLoading}
                   />
                 </FormControl>
 
+                <TradFormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Nationalité */}
+          <FormField
+            control={form.control}
+            name="nationality"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t_inputs('nationality.label')}</FormLabel>
+                <FormControl>
+                  <CountrySelect
+                    type="single"
+                    selected={field.value as CountryCode}
+                    onChange={field.onChange}
+                    disabled={isLoading}
+                  />
+                </FormControl>
                 <TradFormMessage />
               </FormItem>
             )}
@@ -235,6 +326,7 @@ export function BasicInfoForm({
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                     className="flex flex-wrap items-center gap-4"
+                    disabled={isLoading}
                   >
                     {Object.values(NationalityAcquisition).map((acquisition) => (
                       <FormItem key={acquisition} className="flex items-center gap-2">
@@ -258,13 +350,14 @@ export function BasicInfoForm({
 
             <FormField
               control={form.control}
-              name="passportNumber"
+              name="passportInfos.number"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t_inputs('passport.number.label')}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value || ''}
                       placeholder={t_inputs('passport.number.placeholder')}
                       disabled={isLoading}
                     />
@@ -278,13 +371,14 @@ export function BasicInfoForm({
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="passportIssueDate"
+                name="passportInfos.issueDate"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t_inputs('passport.issueDate.label')}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value ? new Date(field.value).toISOString() : ''}
                         type="date"
                         max={new Date().toISOString().split('T')[0]}
                         placeholder={t_inputs('passport.issueDate.placeholder')}
@@ -298,13 +392,14 @@ export function BasicInfoForm({
 
               <FormField
                 control={form.control}
-                name="passportExpiryDate"
+                name="passportInfos.expiryDate"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t_inputs('passport.expiryDate.label')}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value ? new Date(field.value).toISOString() : ''}
                         type="date"
                         placeholder={t_inputs('passport.expiryDate.placeholder')}
                         disabled={isLoading}
@@ -320,13 +415,14 @@ export function BasicInfoForm({
             {/* Autorité émettrice */}
             <FormField
               control={form.control}
-              name="passportIssueAuthority"
+              name="passportInfos.issueAuthority"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t_inputs('passport.issueAuthority.label')}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value || ''}
                       placeholder={t_inputs('passport.issueAuthority.placeholder')}
                       disabled={isLoading}
                     />
@@ -342,7 +438,7 @@ export function BasicInfoForm({
             {/* NIP (optionnel) */}
             <FormField
               control={form.control}
-              name="cardPin"
+              name="nipCode"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t_inputs('nipNumber.label')}</FormLabel>

@@ -2,13 +2,14 @@ import { v } from 'convex/values';
 import { mutation, query } from '../_generated/server';
 import { CountryStatus } from '../lib/constants';
 import type { Doc } from '../_generated/dataModel';
+import { countryStatusValidator } from '../lib/validators';
 
 export const createCountry = mutation({
   args: {
     name: v.string(),
     code: v.string(),
     flag: v.optional(v.string()),
-    status: v.optional(v.string()),
+    status: v.optional(countryStatusValidator),
   },
   returns: v.id('countries'),
   handler: async (ctx, args) => {
@@ -34,7 +35,7 @@ export const createCountry = mutation({
 
 export const getAllCountries = query({
   args: {
-    status: v.optional(v.string()),
+    status: v.optional(countryStatusValidator),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {

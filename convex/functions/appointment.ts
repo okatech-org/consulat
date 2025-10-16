@@ -3,6 +3,13 @@ import { mutation, query } from '../_generated/server';
 import { AppointmentStatus, ParticipantRole, ParticipantStatus } from '../lib/constants';
 import type { AppointmentType } from '../lib/constants';
 import { Doc } from '../_generated/dataModel';
+import {
+  addressValidator,
+  appointmentStatusValidator,
+  appointmentTypeValidator,
+  participantRoleValidator,
+  participantStatusValidator,
+} from '../lib/validators';
 
 export const createAppointment = mutation({
   args: {
@@ -16,8 +23,8 @@ export const createAppointment = mutation({
     participants: v.array(
       v.object({
         userId: v.id('users'),
-        role: v.optional(v.string()),
-        status: v.optional(v.string()),
+        role: v.optional(participantRoleValidator),
+        status: v.optional(participantStatusValidator),
       }),
     ),
     location: v.optional(
@@ -100,7 +107,7 @@ export const getAllAppointments = query({
     organizationId: v.optional(v.id('organizations')),
     serviceId: v.optional(v.id('services')),
     requestId: v.optional(v.id('requests')),
-    status: v.optional(v.string()),
+    status: v.optional(appointmentStatusValidator),
     startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
     limit: v.optional(v.number()),
@@ -192,7 +199,7 @@ export const getAppointmentsByUser = query({
 });
 
 export const getAppointmentsByStatus = query({
-  args: { status: v.string() },
+  args: { status: appointmentStatusValidator },
   handler: async (ctx, args) => {
     return await ctx.db
       .query('appointments')
@@ -305,35 +312,20 @@ export const updateAppointment = mutation({
     startAt: v.optional(v.number()),
     endAt: v.optional(v.number()),
     timezone: v.optional(v.string()),
-    type: v.optional(v.string()),
-    status: v.optional(v.string()),
+    type: v.optional(appointmentTypeValidator),
+    status: v.optional(appointmentStatusValidator),
     serviceId: v.optional(v.id('services')),
     requestId: v.optional(v.id('requests')),
     participants: v.optional(
       v.array(
         v.object({
           userId: v.id('users'),
-          role: v.string(),
-          status: v.string(),
+          role: participantRoleValidator,
+          status: participantStatusValidator,
         }),
       ),
     ),
-    location: v.optional(
-      v.object({
-        state: v.optional(v.string()),
-        complement: v.optional(v.string()),
-        coordinates: v.optional(
-          v.object({
-            latitude: v.number(),
-            longitude: v.number(),
-          }),
-        ),
-        street: v.string(),
-        city: v.string(),
-        postalCode: v.string(),
-        country: v.string(),
-      }),
-    ),
+    location: v.optional(addressValidator),
   },
   returns: v.id('appointments'),
   handler: async (ctx, args) => {
@@ -360,7 +352,7 @@ export const updateAppointment = mutation({
       ...(args.endAt !== undefined && { endAt: args.endAt }),
       ...(args.timezone && { timezone: args.timezone }),
       ...(args.type && { type: args.type }),
-      ...(args.status && { status: args.status as AppointmentStatus }),
+      ...(args.status && { status: args.status }),
       ...(args.serviceId !== undefined && { serviceId: args.serviceId }),
       ...(args.requestId !== undefined && { requestId: args.requestId }),
       ...(args.participants && { participants: args.participants }),
@@ -447,7 +439,7 @@ export const addParticipantToAppointment = mutation({
   args: {
     appointmentId: v.id('appointments'),
     userId: v.id('users'),
-    role: v.optional(v.string()),
+    role: v.optional(participantRoleValidator),
   },
   returns: v.id('appointments'),
   handler: async (ctx, args) => {
@@ -466,7 +458,7 @@ export const addParticipantToAppointment = mutation({
 
     const newParticipant = {
       userId: args.userId,
-      role: args.role || 'attendee',
+      role: args.role || ParticipantRole.Attendee,
       status: ParticipantStatus.Tentative,
     };
 
@@ -570,7 +562,7 @@ export const rescheduleAppointment = mutation({
       startAt: args.newStartAt,
       endAt: args.newEndAt,
       timezone: args.newTimezone || appointment.timezone,
-      status: AppointmentStatus.Rescheduled,
+      status: AppointmentStatus.Scheduled,
       updatedAt: Date.now(),
     });
 

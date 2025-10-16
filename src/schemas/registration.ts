@@ -19,7 +19,7 @@ export const BasicInfoSchema = z.object({
   lastName: NameSchema,
   gender: z.enum(Object.values(Gender)),
   acquisitionMode: z.enum(Object.values(NationalityAcquisition)),
-  birthDate: DateSchema,
+  birthDate: DateSchema.optional(),
   birthPlace: z.string(),
   birthCountry: z.string(),
   nationality: z.string(),
@@ -30,8 +30,8 @@ export const BasicInfoSchema = z.object({
         .min(8)
         .max(9)
         .regex(/^[A-Z0-9]{8,9}$/),
-      issueDate: DateSchema,
-      expiryDate: DateSchema,
+      issueDate: DateSchema.optional(),
+      expiryDate: DateSchema.optional(),
       issueAuthority: z.string().min(2).max(100),
     })
     .optional(),

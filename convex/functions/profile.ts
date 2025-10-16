@@ -1,6 +1,14 @@
 import { v } from 'convex/values';
 import { mutation, query } from '../_generated/server';
-import { ProfileStatus, RequestStatus, ServiceCategory } from '../lib/constants';
+import {
+  ActivityType,
+  OwnerType,
+  ProfileStatus,
+  RequestPriority,
+  RequestStatus,
+  ServiceCategory,
+  ServiceStatus,
+} from '../lib/constants';
 import type { ProfileStatus as ProfileStatusType } from '../lib/constants';
 import type { Doc } from '../_generated/dataModel';
 import {
@@ -10,7 +18,6 @@ import {
   maritalStatusValidator,
   workStatusValidator,
   nationalityAcquisitionValidator,
-  profileCategoryValidator,
   profileStatusValidator,
 } from '../lib/validators';
 import { api } from '../_generated/api';
@@ -19,7 +26,6 @@ import { api } from '../_generated/api';
 export const createProfile = mutation({
   args: {
     userId: v.id('users'),
-    category: profileCategoryValidator,
     firstName: v.string(),
     lastName: v.string(),
     email: v.string(),
@@ -53,14 +59,6 @@ export const createProfile = mutation({
       personal: {
         firstName: args.firstName,
         lastName: args.lastName,
-        birthDate: undefined,
-        birthPlace: undefined,
-        birthCountry: undefined,
-        gender: undefined,
-        nationality: undefined,
-        acquisitionMode: undefined,
-        passportInfos: undefined,
-        nipCode: undefined,
       },
       family: {
         father: undefined,
@@ -360,7 +358,7 @@ export const getProfileByUser = query({
 
 export const getAllProfiles = query({
   args: {
-    status: v.optional(v.string()),
+    status: v.optional(profileStatusValidator),
     residenceCountry: v.optional(v.string()),
     limit: v.optional(v.number()),
   },
@@ -392,7 +390,7 @@ export const getAllProfiles = query({
 });
 
 export const getProfilesByStatus = query({
-  args: { status: v.string() },
+  args: { status: profileStatusValidator },
   handler: async (ctx, args) => {
     return await ctx.db
       .query('profiles')
@@ -422,7 +420,7 @@ export const getProfileWithDocuments = query({
     const documents = await ctx.db
       .query('documents')
       .withIndex('by_owner', (q) =>
-        q.eq('ownerId', profile._id).eq('ownerType', 'profile'),
+        q.eq('ownerId', profile._id).eq('ownerType', OwnerType.Profile),
       )
       .collect();
 
@@ -436,7 +434,7 @@ export const getProfileWithDocuments = query({
 export const searchProfiles = query({
   args: {
     searchTerm: v.string(),
-    status: v.optional(v.string()),
+    status: v.optional(profileStatusValidator),
   },
   handler: async (ctx, args) => {
     let profiles: Array<Doc<'profiles'>> = [];
@@ -482,7 +480,7 @@ export const getCurrentProfile = query({
     const documents = await ctx.db
       .query('documents')
       .withIndex('by_owner', (q) =>
-        q.eq('ownerId', profile._id).eq('ownerType', 'profile'),
+        q.eq('ownerId', profile._id).eq('ownerType', OwnerType.Profile),
       )
       .collect();
 
@@ -572,7 +570,9 @@ export const submitProfileForValidation = mutation({
     // Validate documents - Adult profiles require passport, birth certificate, and address proof
     const documents = await ctx.db
       .query('documents')
-      .withIndex('by_owner', (q) => q.eq('ownerId', profile._id).eq('ownerType', 'profile'))
+      .withIndex('by_owner', (q) =>
+        q.eq('ownerId', profile._id).eq('ownerType', OwnerType.Profile),
+      )
       .collect();
 
     const passport = documents.find((d) => d?.type === 'passport');
@@ -631,7 +631,7 @@ export const submitProfileForValidation = mutation({
       .filter((q) =>
         q.and(
           q.eq(q.field('category'), ServiceCategory.Registration),
-          q.eq(q.field('status'), 'active'),
+          q.eq(q.field('status'), ServiceStatus.Active),
         ),
       )
       .first();
@@ -660,7 +660,7 @@ export const submitProfileForValidation = mutation({
       profileId: args.profileId,
       requesterId: profile.userId!,
       status: RequestStatus.Submitted,
-      priority: 0,
+      priority: RequestPriority.Normal,
       documentIds: [],
       generatedDocuments: [],
       notes: [],
@@ -668,7 +668,7 @@ export const submitProfileForValidation = mutation({
         submittedAt: now,
         activities: [
           {
-            type: 'request_submitted',
+            type: ActivityType.RequestSubmitted,
             actorId: profile.userId!,
             timestamp: now,
             data: {
@@ -707,7 +707,7 @@ export const getOverviewProfile = query({
     const documentsRequest = ctx.db
       .query('documents')
       .withIndex('by_owner', (q) =>
-        q.eq('ownerId', profile._id).eq('ownerType', 'profile'),
+        q.eq('ownerId', profile._id).eq('ownerType', OwnerType.Profile),
       )
       .collect();
 

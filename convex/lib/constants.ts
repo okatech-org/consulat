@@ -34,9 +34,9 @@ export enum RequestStatus {
 }
 
 export enum RequestPriority {
-  Normal = 0,
-  Urgent = 1,
-  Critical = 2,
+  Normal = 'normal',
+  Urgent = 'urgent',
+  Critical = 'critical',
 }
 
 export enum UserStatus {
@@ -117,6 +117,7 @@ export enum OwnerType {
   Profile = 'profile',
   Organization = 'organization',
   Request = 'request',
+  ChildProfile = 'child_profile',
 }
 
 // Enums pour les documents
@@ -229,6 +230,14 @@ export enum DeliveryMode {
   ByProxy = 'by_proxy',
 }
 
+export enum DeliveryStatus {
+  Requested = 'requested',
+  Ready = 'ready',
+  Pending = 'pending',
+  Completed = 'completed',
+  Cancelled = 'cancelled',
+}
+
 export enum Gender {
   Male = 'male',
   Female = 'female',
@@ -250,6 +259,7 @@ export enum FamilyLink {
   LegalGuardian = 'legal_guardian',
   Child = 'child',
   Other = 'other',
+  BrotherSister = 'brother_sister',
 }
 
 export enum WorkStatus {
