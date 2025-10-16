@@ -1,10 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { type Profile } from '@prisma/client';
 import type { CountryIndicator } from '@/lib/autocomplete-datas';
 import { phoneCountries } from '@/lib/autocomplete-datas';
-import type { FullProfile, SessionUser } from '@/types';
-import type { DashboardProfile } from '@/types/profile';
 import type { UseFormReturn } from 'react-hook-form';
 import type { DateTimeFormatOptions } from 'next-intl';
 import { useLocale } from 'next-intl';
@@ -18,6 +15,8 @@ import type { OrganizationListingItem } from '@/types/organization';
 import { ROUTES } from '@/schemas/routes';
 import type { Doc } from 'convex/_generated/dataModel';
 import { UserRole } from 'convex/lib/constants';
+import type { FullProfile } from '@/types/convex-profile';
+import { MaritalStatus, WorkStatus } from '@/convex/lib/constants';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -212,123 +211,261 @@ export function useFormStorage() {
   };
 }
 
-export interface ProfileFieldStatus {
-  required: {
+interface ProfileCompletionResult {
+  overall: number;
+  sections: Array<{
+    name: string;
+    completion: number;
     total: number;
     completed: number;
-    fields: Array<{
-      key: keyof FullProfile;
-      completed: boolean;
-    }>;
-  };
-  optional: {
-    total: number;
-    completed: number;
-    fields: Array<{
-      key: keyof FullProfile;
-      completed: boolean;
-    }>;
-  };
+    missingFields: string[];
+  }>;
+  totalFields: number;
+  completedFields: number;
+  canSubmit: boolean;
 }
 
-const profileFields: Array<keyof FullProfile> = [
-  'firstName',
-  'lastName',
-  'birthDate',
-  'nationality',
-  'gender',
-  'identityPicture',
-  'passport',
-  'birthCertificate',
-  'phoneNumber',
-  'address',
-  'addressProof',
-  'residentContact',
-  'maritalStatus',
-  'workStatus',
-  'fatherFullName',
-  'motherFullName',
-] as const;
+export function calculateProfileCompletion(
+  profile: FullProfile,
+): ProfileCompletionResult {
+  let totalFields = 0;
+  let completedFields = 0;
+  const sections: Array<{
+    name: string;
+    completion: number;
+    total: number;
+    completed: number;
+    missingFields: string[];
+  }> = [];
 
-const childProfileFields = [
-  { key: 'firstName', name: 'first_name' },
-  { key: 'lastName', name: 'last_name' },
-  { key: 'birthDate', name: 'birth_date' },
-  { key: 'nationality', name: 'nationality' },
-  { key: 'gender', name: 'gender' },
-  { key: 'identityPicture', name: 'identity_photo' },
-  { key: 'birthCertificate', name: 'birth_certificate' },
-] as const;
-
-export function getProfileFieldsStatus(profile: FullProfile | null): ProfileFieldStatus {
   if (!profile) {
     return {
-      required: { total: 0, completed: 0, fields: [] },
-      optional: { total: 0, completed: 0, fields: [] },
+      overall: 0,
+      sections: [],
+      totalFields: 0,
+      completedFields: 0,
+      canSubmit: false,
     };
   }
 
-  const requiredFields = [...profileFields];
+  // Helper to check if a value is filled
+  const isFilled = (value: unknown): boolean => {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'string') return value.trim().length > 0;
+    if (typeof value === 'object') {
+      return Object.values(value).some((v) => isFilled(v));
+    }
+    return true;
+  };
 
-  if (profile.workStatus === 'EMPLOYEE') {
-    requiredFields.push('employer');
-    requiredFields.push('profession');
-    requiredFields.push('employerAddress');
+  // Personal Information - Required fields
+  const personalFields = [
+    { key: 'firstName', value: profile.personal.firstName },
+    { key: 'lastName', value: profile.personal.lastName },
+    { key: 'birthDate', value: profile.personal.birthDate },
+    { key: 'birthPlace', value: profile.personal.birthPlace },
+    { key: 'birthCountry', value: profile.personal.birthCountry },
+    { key: 'gender', value: profile.personal.gender },
+    { key: 'nationality', value: profile.personal.nationality },
+  ];
+
+  const personalCompleted = personalFields.filter((f) => isFilled(f.value)).length;
+  const personalMissing = personalFields
+    .filter((f) => !isFilled(f.value))
+    .map((f) => f.key);
+  totalFields += personalFields.length;
+  completedFields += personalCompleted;
+  sections.push({
+    name: 'Personal Information',
+    completion: Math.round((personalCompleted / personalFields.length) * 100),
+    total: personalFields.length,
+    completed: personalCompleted,
+    missingFields: personalMissing,
+  });
+
+  // Contact Information
+  const contactFields = [
+    { key: 'email', value: profile.contacts.email },
+    { key: 'phone', value: profile.contacts.phone },
+    { key: 'address', value: profile.contacts.address },
+  ];
+  const contactCompleted = contactFields.filter((f) => isFilled(f.value)).length;
+  const contactMissing = contactFields
+    .filter((f) => !isFilled(f.value))
+    .map((f) => f.key);
+  totalFields += contactFields.length;
+  completedFields += contactCompleted;
+  sections.push({
+    name: 'Contact Information',
+    completion: Math.round((contactCompleted / contactFields.length) * 100),
+    total: contactFields.length,
+    completed: contactCompleted,
+    missingFields: contactMissing,
+  });
+
+  // Family Information
+  const familyFields = [
+    { key: 'maritalStatus', value: profile.family.maritalStatus },
+    { key: 'father', value: profile.family.father },
+    { key: 'mother', value: profile.family.mother },
+  ];
+
+  // Add spouse if married
+  if (
+    profile.family.maritalStatus === MaritalStatus.Married ||
+    profile.family.maritalStatus === MaritalStatus.Cohabiting ||
+    profile.family.maritalStatus === MaritalStatus.CivilUnion
+  ) {
+    familyFields.push({ key: 'spouse', value: profile.family.spouse });
   }
 
-  if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
-    requiredFields.push('spouseFullName');
+  const familyCompleted = familyFields.filter((f) => isFilled(f.value)).length;
+  const familyMissing = familyFields.filter((f) => !isFilled(f.value)).map((f) => f.key);
+  totalFields += familyFields.length;
+  completedFields += familyCompleted;
+  sections.push({
+    name: 'Family Information',
+    completion: Math.round((familyCompleted / familyFields.length) * 100),
+    total: familyFields.length,
+    completed: familyCompleted,
+    missingFields: familyMissing,
+  });
+
+  // Professional Situation
+  const professionFields = [
+    { key: 'workStatus', value: profile.professionSituation.workStatus },
+  ];
+
+  // Add work-related fields if employed
+  if (
+    profile.professionSituation.workStatus === WorkStatus.Employee ||
+    profile.professionSituation.workStatus === WorkStatus.SelfEmployed ||
+    profile.professionSituation.workStatus === WorkStatus.Entrepreneur
+  ) {
+    professionFields.push(
+      { key: 'profession', value: profile.professionSituation.profession },
+      { key: 'employer', value: profile.professionSituation.employer },
+      { key: 'employerAddress', value: profile.professionSituation.employerAddress },
+    );
   }
 
-  const requiredStatus = requiredFields.map((field) => ({
-    key: field,
-    completed: !!profile[field],
-  }));
+  const professionCompleted = professionFields.filter((f) => isFilled(f.value)).length;
+  const professionMissing = professionFields
+    .filter((f) => !isFilled(f.value))
+    .map((f) => f.key);
+  totalFields += professionFields.length;
+  completedFields += professionCompleted;
+  sections.push({
+    name: 'Professional Situation',
+    completion: Math.round((professionCompleted / professionFields.length) * 100),
+    total: professionFields.length,
+    completed: professionCompleted,
+    missingFields: professionMissing,
+  });
+
+  // Emergency Contacts (at least one required)
+  const hasEmergencyContact =
+    profile.emergencyContacts && profile.emergencyContacts.length > 0;
+  totalFields += 1;
+  if (hasEmergencyContact) completedFields += 1;
+  sections.push({
+    name: 'Emergency Contacts',
+    completion: hasEmergencyContact ? 100 : 0,
+    total: 1,
+    completed: hasEmergencyContact ? 1 : 0,
+    missingFields: hasEmergencyContact ? [] : ['emergencyContact'],
+  });
+
+  // Residence Country
+  const hasResidenceCountry = isFilled(profile.residenceCountry);
+  totalFields += 1;
+  if (hasResidenceCountry) completedFields += 1;
+
+  const overall = totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
+  const canSubmit = overall === 100;
 
   return {
-    required: {
-      total: requiredFields.length,
-      completed: requiredStatus.filter((f) => f.completed).length,
-      fields: requiredStatus.sort((a, b) =>
-        a.completed === b.completed ? 0 : a.completed ? 1 : -1,
-      ),
-    },
-    optional: {
-      total: 0,
-      completed: 0,
-      fields: [],
-    },
+    overall,
+    sections,
+    totalFields,
+    completedFields,
+    canSubmit,
   };
 }
 
-export function getChildProfileFieldsStatus(profile: Profile | null): ProfileFieldStatus {
-  if (!profile) {
-    return {
-      required: { total: 0, completed: 0, fields: [] },
-      optional: { total: 0, completed: 0, fields: [] },
-    };
-  }
+export function calculateChildProfileCompletion(
+  profile: Doc<'childProfiles'>,
+): ProfileCompletionResult {
+  let totalFields = 0;
+  let completedFields = 0;
+  const sections: Array<{
+    name: string;
+    completion: number;
+    total: number;
+    completed: number;
+    missingFields: string[];
+  }> = [];
 
-  const requiredFields = [...childProfileFields];
+  // Helper to check if a value is filled
+  const isFilled = (value: unknown): boolean => {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'string') return value.trim().length > 0;
+    if (typeof value === 'object') {
+      return Object.values(value).some((v) => isFilled(v));
+    }
+    return true;
+  };
 
-  const requiredStatus = requiredFields.map((field) => ({
-    ...field,
-    completed: !!profile[field.key as keyof Profile],
-  }));
+  // Personal Information - Required fields for children
+  const personalFields = [
+    { key: 'firstName', value: profile.personal.firstName },
+    { key: 'lastName', value: profile.personal.lastName },
+    { key: 'birthDate', value: profile.personal.birthDate },
+    { key: 'birthPlace', value: profile.personal.birthPlace },
+    { key: 'birthCountry', value: profile.personal.birthCountry },
+    { key: 'gender', value: profile.personal.gender },
+    { key: 'nationality', value: profile.personal.nationality },
+  ];
+  const personalCompleted = personalFields.filter((f) => isFilled(f.value)).length;
+  const personalMissing = personalFields
+    .filter((f) => !isFilled(f.value))
+    .map((f) => f.key);
+  totalFields += personalFields.length;
+  completedFields += personalCompleted;
+  sections.push({
+    name: 'Personal Information',
+    completion: Math.round((personalCompleted / personalFields.length) * 100),
+    total: personalFields.length,
+    completed: personalCompleted,
+    missingFields: personalMissing,
+  });
+
+  // Parents (at least one required)
+  const hasParents = profile.parents && profile.parents.length > 0;
+  totalFields += 1;
+  if (hasParents) completedFields += 1;
+  sections.push({
+    name: 'Parental Information',
+    completion: hasParents ? 100 : 0,
+    total: 1,
+    completed: hasParents ? 1 : 0,
+    missingFields: hasParents ? [] : ['parent'],
+  });
+
+  // Residence Country
+  const hasResidenceCountry = isFilled(profile.residenceCountry);
+  totalFields += 1;
+  if (hasResidenceCountry) completedFields += 1;
+
+  const overall = totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
+  const canSubmit = overall >= 80; // Allow submission at 80% completion
 
   return {
-    required: {
-      total: requiredFields.length,
-      completed: requiredStatus.filter((f) => f.completed).length,
-      fields: requiredStatus.sort((a, b) =>
-        a.completed === b.completed ? 0 : a.completed ? 1 : -1,
-      ),
-    },
-    optional: {
-      total: 0,
-      completed: 0,
-      fields: [],
-    },
+    overall,
+    sections,
+    totalFields,
+    completedFields,
+    canSubmit,
   };
 }
 
@@ -370,87 +507,6 @@ export const extractNumber = (
     number: '',
   };
 };
-
-export function calculateProfileCompletion(profile: any | null): number {
-  if (!profile) return 0;
-
-  // Pour la compatibilité avec Convex, nous utilisons une approche simplifiée
-  // La logique complète est dans useProfileCompletion
-  const basicFields = ['firstName', 'lastName', 'gender', 'birthDate', 'nationality'];
-  const completedFields = basicFields.filter((field) => {
-    if (field === 'firstName' || field === 'lastName') {
-      return profile.personal?.[field] || profile[field];
-    }
-    return profile.personal?.[field] || profile[field];
-  });
-
-  return Math.round((completedFields.length / basicFields.length) * 100);
-}
-
-// Version optimisée pour le dashboard avec moins de données
-export function calculateDashboardProfileCompletion(
-  profile: DashboardProfile | null,
-): number {
-  if (!profile) return 0;
-
-  const requiredFields = [
-    'firstName',
-    'lastName',
-    'birthDate',
-    'birthPlace',
-    'nationality',
-    'gender',
-    'email',
-    'phoneNumber',
-    'maritalStatus',
-    'fatherFullName',
-    'motherFullName',
-  ];
-
-  // Ajouter les champs conditionnels
-  if (profile.workStatus === 'EMPLOYEE') {
-    requiredFields.push('employer', 'profession', 'employerAddress');
-  }
-
-  if (profile.maritalStatus === 'MARRIED' || profile.maritalStatus === 'COHABITING') {
-    requiredFields.push('spouseFullName');
-  }
-
-  // Ajouter les vérifications d'adresse et de documents
-  if (profile.address) {
-    requiredFields.push('address');
-  }
-
-  const completedRequired = requiredFields.filter((field) => {
-    if (field === 'address') {
-      return profile.address && profile.address.firstLine && profile.address.city;
-    }
-    return (
-      profile[field as keyof DashboardProfile] !== null &&
-      profile[field as keyof DashboardProfile] !== ''
-    );
-  }).length;
-
-  const totalWeight = requiredFields.length;
-  return Math.round((completedRequired / totalWeight) * 100);
-}
-
-export function calculateChildProfileCompletion(profile: Profile | null): number {
-  if (!profile) return 0;
-
-  const requiredFields = [...childProfileFields];
-
-  const completedRequired = requiredFields
-    .map((item) => item.key)
-    .filter(
-      (field) =>
-        profile[field as keyof Profile] !== null &&
-        profile[field as keyof Profile] !== '',
-    ).length;
-
-  const totalWeight = requiredFields.length;
-  return Math.round((completedRequired / totalWeight) * 100);
-}
 
 export function filterUneditedKeys<T extends Record<string, unknown>>(
   data: T,
@@ -1102,9 +1158,7 @@ export async function downloadFilesAsZip(
   }
 }
 
-export function getOrganizationIdFromUser(
-  currentUser: SessionUser | null,
-): string | undefined {
+export function getOrganizationIdFromUser(currentUser: any | null): string | undefined {
   if (!currentUser) {
     return undefined;
   }

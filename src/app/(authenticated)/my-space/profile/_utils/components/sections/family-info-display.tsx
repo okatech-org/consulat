@@ -11,6 +11,8 @@ interface FamilyInfoDisplayProps {
 }
 
 export function FamilyInfoDisplay({ profile }: FamilyInfoDisplayProps) {
+  if (!profile) return null;
+
   const t_profile = useTranslations('profile.fields');
   const t_inputs = useTranslations('inputs');
 

@@ -38,7 +38,7 @@ import { ArrowLeft, ArrowRight, Info } from 'lucide-react';
 import { CountrySelect } from '../ui/country-select';
 import { type CountryCode } from '@/lib/autocomplete-datas';
 import Link from 'next/link';
-import { CountryStatus } from '@/convex/lib/constants';
+import { CountryStatus, ProfileStatus } from '@/convex/lib/constants';
 import { ErrorCard } from '../ui/error-card';
 import { type FullProfile } from '@/types/convex-profile';
 import React from 'react';
@@ -269,7 +269,7 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
 
       // Handle final step logic
       if (currentStepIndex === totalSteps - 1) {
-        if (profile.status !== 'Draft') {
+        if (profile.status !== ProfileStatus.Draft) {
           toast({
             title: t('submission.success.title'),
             description: t('submission.success.description'),

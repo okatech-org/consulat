@@ -30,8 +30,7 @@ import {
   Pencil,
 } from 'lucide-react';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
-import { useProfileCompletion } from '../hooks/use-profile-completion';
+import { calculateProfileCompletion, cn } from '@/lib/utils';
 import type { FullProfile } from '@/types/convex-profile';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
@@ -52,57 +51,13 @@ const sectionIcons = {
 export function ProfileProgressBar({ profile, className }: ProfileProgressBarProps) {
   const t = useTranslations();
   const [isExpanded, setIsExpanded] = useState(false);
-  const completion = useProfileCompletion(profile);
+  const completion = calculateProfileCompletion(profile);
 
   if (!profile) {
     return null;
   }
 
-  const getFieldLabel = (field: string): string => {
-    const fieldLabels: Record<string, string> = {
-      // Basic info
-      firstName: t('profile.fields.firstName'),
-      lastName: t('profile.fields.lastName'),
-      gender: t('profile.fields.gender'),
-      birthDate: t('profile.fields.birthDate'),
-      birthPlace: t('profile.fields.birthPlace'),
-      birthCountry: t('profile.fields.birthCountry'),
-      nationality: t('profile.fields.nationality'),
-      acquisitionMode: t('profile.fields.acquisitionMode'),
-      passportNumber: t('profile.fields.passportNumber'),
-      passportIssueDate: t('profile.fields.passportIssueDate'),
-      passportExpiryDate: t('profile.fields.passportExpiryDate'),
-      passportIssueAuthority: t('profile.fields.passportIssueAuthority'),
-      identityPicture: t('profile.fields.identityPicture'),
-
-      // Contact info
-      email: t('profile.fields.email'),
-      phoneNumber: t('profile.fields.phoneNumber'),
-      address: t('profile.fields.address'),
-      residentContactName: t('profile.fields.residentContactName'),
-      residentContactPhone: t('profile.fields.residentContactPhone'),
-      residentContactRelation: t('profile.fields.residentContactRelation'),
-
-      // Family info
-      maritalStatus: t('profile.fields.maritalStatus'),
-      fatherFullName: t('profile.fields.fatherFullName'),
-      motherFullName: t('profile.fields.motherFullName'),
-      spouseFullName: t('profile.fields.spouseFullName'),
-
-      // Professional info
-      workStatus: t('profile.fields.workStatus'),
-      profession: t('profile.fields.profession'),
-      employer: t('profile.fields.employer'),
-      employerAddress: t('profile.fields.employerAddress'),
-
-      // Documents
-      passport: t('profile.fields.passport'),
-      birthCertificate: t('profile.fields.birthCertificate'),
-      addressProof: t('profile.fields.addressProof'),
-    };
-
-    return fieldLabels[field] || field;
-  };
+  console.log({ completion });
 
   return (
     <Card className={cn('shadow-sm', className)}>
@@ -183,7 +138,7 @@ export function ProfileProgressBar({ profile, className }: ProfileProgressBarPro
           <CollapsibleContent className="space-y-3 pt-2">
             {completion.sections.map((section) => {
               const Icon = sectionIcons[section.name as keyof typeof sectionIcons];
-              const isComplete = section.percentage === 100;
+              const isComplete = section.completion === 100;
 
               return (
                 <div key={section.name} className="space-y-2">
@@ -214,14 +169,14 @@ export function ProfileProgressBar({ profile, className }: ProfileProgressBarPro
                         variant={isComplete ? 'default' : 'secondary'}
                         className="text-xs"
                       >
-                        {section.percentage}%
+                        {section.completion}%
                       </Badge>
                     </div>
                   </div>
 
                   {/* Barre de progression de la section */}
                   <Progress
-                    value={section.percentage}
+                    value={section.completion}
                     className="h-1.5"
                     indicatorClassName={cn(isComplete && 'bg-green-600')}
                   />
@@ -233,9 +188,9 @@ export function ProfileProgressBar({ profile, className }: ProfileProgressBarPro
                         {t('profile.progress.missing_fields')}:
                       </p>
                       <ul className="text-xs space-y-0.5">
-                        {section.missingFields.slice(0, 3).map((field) => (
+                        {section.missingFields.slice(0, 3).map((field: string) => (
                           <li key={field} className="text-red-600">
-                            • {getFieldLabel(field)}
+                            • {t(`profile.tabs.${field}`)}
                           </li>
                         ))}
                         {section.missingFields.length > 3 && (

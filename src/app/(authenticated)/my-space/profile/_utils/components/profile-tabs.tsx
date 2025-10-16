@@ -3,21 +3,20 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { FullProfile } from '@/types/convex-profile';
 import { ContactInfoDisplay } from './sections/contact-info-display';
-import { DocumentsSection } from './sections/documents-section';
-import { FamilyInfoSection } from './sections/family-info-section';
-import { ProfessionalInfoSection } from './sections/professional-info-section';
+import { FamilyInfoDisplay } from './sections/family-info-display';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
 import { useTabs } from '@/hooks/use-tabs';
-import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { RequestsSection } from './sections/requests-section';
 import { MobileProfileNavigation } from './mobile-profile-navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import type { Doc } from '@/convex/_generated/dataModel';
 import { BasicInfoDisplay } from './sections/basic-info-display';
-
+import { ProfessionalInfoDisplay } from './sections/professional-info-display';
+import { DocumentType } from '@/convex/lib/constants';
+import { UserDocument } from '@/components/documents/user-document';
 type AdditionalTab = {
   id: string;
   title: string;
@@ -40,7 +39,7 @@ export function ProfileTabs({
   additionalTabs,
 }: ProfileTabsProps) {
   const t = useTranslations('profile');
-  const router = useRouter();
+  const t_common = useTranslations('common');
   const isMobile = useIsMobile();
 
   if (!profile) {
@@ -61,40 +60,41 @@ export function ProfileTabs({
     {
       id: 'family-info',
       title: t('sections.family_info'),
-      content: (
-        <FamilyInfoSection
-          profile={profile}
-          onSave={() => router.refresh()}
-          requestId={requestId}
-        />
-      ),
+      content: <FamilyInfoDisplay profile={profile} />,
     },
     {
       id: 'professional-info',
       title: t('sections.professional_info'),
-      content: (
-        <ProfessionalInfoSection
-          profile={profile}
-          onSave={() => router.refresh()}
-          requestId={requestId}
-        />
-      ),
+      content: <ProfessionalInfoDisplay profile={profile} />,
     },
     {
       id: 'documents',
       title: t('sections.documents'),
       content: (
-        <DocumentsSection
-          documents={{
-            passport: profile.passport,
-            birthCertificate: profile.birthCertificate,
-            residencePermit: profile.residencePermit,
-            addressProof: profile.addressProof,
-          }}
-          profileId={profile._id}
-          onSave={() => router.refresh()}
-          requestId={requestId}
-        />
+        <div className="grid gap-6 lg:grid-cols-2">
+          {[
+            profile.passport,
+            profile.birthCertificate,
+            profile.residencePermit,
+            profile.addressProof,
+          ]
+            .filter(Boolean)
+            .map((document) => (
+              <Fragment key={document?._id}>
+                <UserDocument
+                  label={t_common(`documents.types.${document?.type}`)}
+                  description={t_common(`documents.descriptions.${document?.type}`)}
+                  document={document}
+                  expectedType={document?.type}
+                  allowEdit={true}
+                  required
+                  noFormLabel={true}
+                  enableBackgroundRemoval={DocumentType.IdentityPhoto === document?.type}
+                  requestId={requestId}
+                />
+              </Fragment>
+            ))}
+        </div>
       ),
     },
   ];

@@ -6,6 +6,8 @@ import type { FullProfile } from '@/types/convex-profile';
 import { Mail, Phone, MapPin, Users } from 'lucide-react';
 import { DisplayAddress } from '@/components/ui/display-address';
 import { Separator } from '@/components/ui/separator';
+import { Fragment } from 'react';
+import { EmergencyContactType } from '@/convex/lib/constants';
 
 interface ContactInfoDisplayProps {
   profile: FullProfile;
@@ -49,123 +51,61 @@ export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
 
       {profile.emergencyContacts.length &&
         profile.emergencyContacts.map((contact) => (
-          <div key={contact._id}>
-            <h4 className="font-medium text-lg">{contact.name}</h4>
-          </div>
-        ))}
+          <Fragment key={contact.type}>
+            <Separator />
+            <div className="space-y-4">
+              <h4 className="font-medium text-lg">
+                {contact.type === EmergencyContactType.Resident
+                  ? "Contact d'urgence résident"
+                  : "Contact d'urgence pays d'origine"}
+              </h4>
 
-      {/* Contact résident */}
-      {profile.emergencyContacts && (
-        <>
-          <Separator />
-          <div className="space-y-4">
-            <h4 className="font-medium text-lg">Contact d&apos;urgence résident</h4>
-
-            <div className="grid gap-4 grid-cols-2">
-              <InfoField
-                label="Prénom"
-                value={profile.residentContact.firstName}
-                icon={<Users className="size-4" />}
-              />
-              <InfoField
-                label="Nom"
-                value={profile.residentContact.lastName}
-                icon={<Users className="size-4" />}
-              />
-            </div>
-
-            <div className="grid gap-4 grid-cols-2">
-              <InfoField
-                label="Email"
-                value={profile.residentContact.email}
-                icon={<Mail className="size-4" />}
-              />
-              <InfoField
-                label="Téléphone"
-                value={profile.residentContact.phoneNumber}
-                icon={<Phone className="size-4" />}
-              />
-              <InfoField
-                label="Relation"
-                value={
-                  profile.residentContact.relationship
-                    ? t_inputs(
-                        `familyLink.options.${profile.residentContact.relationship}`,
-                      )
-                    : undefined
-                }
-                icon={<Users className="size-4" />}
-              />
-              {profile.residentContact.address && (
-                <div className="col-span-2">
-                  <InfoField
-                    label="Adresse"
-                    value={<DisplayAddress address={profile.residentContact.address} />}
-                    icon={<MapPin className="size-4" />}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Contact au pays d'origine */}
-      {profile.homeLandContact && (
-        <>
-          <Separator />
-          <div className="space-y-4">
-            <h4 className="font-medium text-lg">Contact au pays d&apos;origine</h4>
-
-            <div className="grid gap-4 grid-cols-2">
-              <InfoField
-                label="Prénom"
-                value={profile.homeLandContact.firstName}
-                icon={<Users className="size-4" />}
-              />
-              <InfoField
-                label="Nom"
-                value={profile.homeLandContact.lastName}
-                icon={<Users className="size-4" />}
-              />
-            </div>
-
-            <div className="grid gap-4 grid-cols-2">
-              <InfoField
-                label="Téléphone"
-                value={profile.homeLandContact.phoneNumber}
-                icon={<Phone className="size-4" />}
-              />
-              <InfoField
-                label="Email"
-                value={profile.homeLandContact.email}
-                icon={<Mail className="size-4" />}
-              />
-              <InfoField
-                label="Relation"
-                value={
-                  profile.homeLandContact.relationship
-                    ? t_inputs(
-                        `familyLink.options.${profile.homeLandContact.relationship}`,
-                      )
-                    : undefined
-                }
-                icon={<Users className="size-4" />}
-              />
-            </div>
-
-            {profile.homeLandContact.address && (
-              <div className="col-span-2">
+              <div className="grid gap-4 grid-cols-2">
                 <InfoField
-                  label="Adresse"
-                  value={<DisplayAddress address={profile.homeLandContact.address} />}
-                  icon={<MapPin className="size-4" />}
+                  label="Prénom"
+                  value={contact.firstName}
+                  icon={<Users className="size-4" />}
+                />
+                <InfoField
+                  label="Nom"
+                  value={contact.lastName}
+                  icon={<Users className="size-4" />}
                 />
               </div>
-            )}
-          </div>
-        </>
-      )}
+
+              <div className="grid gap-4 grid-cols-2">
+                <InfoField
+                  label="Email"
+                  value={contact.email}
+                  icon={<Mail className="size-4" />}
+                />
+                <InfoField
+                  label="Téléphone"
+                  value={contact.phoneNumber}
+                  icon={<Phone className="size-4" />}
+                />
+                <InfoField
+                  label="Relation"
+                  value={
+                    contact.relationship
+                      ? t_inputs(`familyLink.options.${contact.relationship}`)
+                      : undefined
+                  }
+                  icon={<Users className="size-4" />}
+                />
+                {contact.address && (
+                  <div className="col-span-2">
+                    <InfoField
+                      label="Adresse"
+                      value={<DisplayAddress address={contact.address} />}
+                      icon={<MapPin className="size-4" />}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </Fragment>
+        ))}
     </div>
   );
 }

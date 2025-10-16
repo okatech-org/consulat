@@ -2,7 +2,6 @@
 
 import { PageContainer } from '@/components/layouts/page-container';
 import { NotesList } from '@/components/requests/review-notes';
-import { calculateProfileCompletion } from '@/lib/utils';
 import { ProfileHeader } from './_utils/components/profile-header';
 import { ProfileProgressBar } from './_utils/components/profile-progress-bar';
 import { ProfileTabs } from './_utils/components/profile-tabs';
@@ -13,15 +12,15 @@ import { buttonVariants } from '@/components/ui/button';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import type { FullProfile } from '@/types/convex-profile';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { calculateProfileCompletion } from '@/lib/utils';
 
 export default function ProfilePage() {
   const { user } = useCurrentUser();
   const profile = useQuery(
     api.functions.profile.getCurrentProfile,
     user ? { userId: user._id } : 'skip',
-  ) as FullProfile | null | undefined;
+  );
 
   // Gérer le chargement
   if (profile === undefined) {
@@ -55,13 +54,13 @@ export default function ProfilePage() {
       return false;
     }
 
-    // Convex: pas de validationRequestId sur le profil
+    const completion = calculateProfileCompletion(profile);
 
-    if (calculateProfileCompletion(profile) !== 100) {
-      return false;
+    if (completion.overall !== 100) {
+      return completion.canSubmit;
     }
 
-    return true;
+    return false;
   };
 
   return (
