@@ -52,14 +52,15 @@ export default {
     },
   },
   tabs: {
-    personal: 'Informations personnelles',
+    'basic-info': 'Informations personnelles',
     contact: 'Contact',
-    'basic-info': 'Informations de base',
     'contact-info': 'Contact',
     'family-info': 'Famille',
     'professional-info': 'Profession',
     documents: 'Documents',
     requests: 'Demandes',
+    personal: 'Informations personnelles',
+    'emergency-contacts': "Contacts d'urgence",
   },
   personal_info: {
     title: 'Informations personnelles',

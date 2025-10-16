@@ -17,18 +17,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  ChevronDown,
-  ChevronUp,
-  CheckCircle2,
-  AlertCircle,
-  FileText,
-  User,
-  Phone,
-  Users,
-  Briefcase,
-  Pencil,
-} from 'lucide-react';
+import { ChevronDown, ChevronUp, CheckCircle2, AlertCircle, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { calculateProfileCompletion, cn } from '@/lib/utils';
 import type { FullProfile } from '@/types/convex-profile';
@@ -39,14 +28,6 @@ interface ProfileProgressBarProps {
   profile: FullProfile | null;
   className?: string;
 }
-
-const sectionIcons = {
-  'basic-info': User,
-  'contact-info': Phone,
-  'family-info': Users,
-  'professional-info': Briefcase,
-  documents: FileText,
-};
 
 export function ProfileProgressBar({ profile, className }: ProfileProgressBarProps) {
   const t = useTranslations();
@@ -137,26 +118,12 @@ export function ProfileProgressBar({ profile, className }: ProfileProgressBarPro
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-3 pt-2">
             {completion.sections.map((section) => {
-              const Icon = sectionIcons[section.name as keyof typeof sectionIcons];
               const isComplete = section.completion === 100;
 
               return (
                 <div key={section.name} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div
-                        className={cn(
-                          'rounded-full p-1.5',
-                          isComplete ? 'bg-green-100' : 'bg-gray-100',
-                        )}
-                      >
-                        <Icon
-                          className={cn(
-                            'h-3.5 w-3.5',
-                            isComplete ? 'text-green-600' : 'text-gray-600',
-                          )}
-                        />
-                      </div>
                       <span className="text-sm font-medium">
                         {t(`profile.tabs.${section.name}`)}
                       </span>
@@ -178,7 +145,7 @@ export function ProfileProgressBar({ profile, className }: ProfileProgressBarPro
                   <Progress
                     value={section.completion}
                     className="h-1.5"
-                    indicatorClassName={cn(isComplete && 'bg-green-600')}
+                    indicatorClassName={cn(isComplete && 'bg-green-600/50')}
                   />
 
                   {/* Champs manquants */}

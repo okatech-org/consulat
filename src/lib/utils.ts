@@ -258,6 +258,26 @@ export function calculateProfileCompletion(
     return true;
   };
 
+  const documentFields = [
+    { key: 'identityPicture', value: profile.identityPicture },
+    { key: 'passport', value: profile.passport },
+    { key: 'birthCertificate', value: profile.birthCertificate },
+    { key: 'addressProof', value: profile.addressProof },
+  ];
+  const documentCompleted = documentFields.filter((f) => isFilled(f.value)).length;
+  const documentMissing = documentFields
+    .filter((f) => !isFilled(f.value))
+    .map((f) => f.key);
+  totalFields += documentFields.length;
+  completedFields += documentCompleted;
+  sections.push({
+    name: 'documents',
+    completion: Math.round((documentCompleted / documentFields.length) * 100),
+    total: documentFields.length,
+    completed: documentCompleted,
+    missingFields: documentMissing,
+  });
+
   // Personal Information - Required fields
   const personalFields = [
     { key: 'firstName', value: profile.personal.firstName },
@@ -276,7 +296,7 @@ export function calculateProfileCompletion(
   totalFields += personalFields.length;
   completedFields += personalCompleted;
   sections.push({
-    name: 'Personal Information',
+    name: 'basic-info',
     completion: Math.round((personalCompleted / personalFields.length) * 100),
     total: personalFields.length,
     completed: personalCompleted,
@@ -296,7 +316,7 @@ export function calculateProfileCompletion(
   totalFields += contactFields.length;
   completedFields += contactCompleted;
   sections.push({
-    name: 'Contact Information',
+    name: 'contact-info',
     completion: Math.round((contactCompleted / contactFields.length) * 100),
     total: contactFields.length,
     completed: contactCompleted,
@@ -324,7 +344,7 @@ export function calculateProfileCompletion(
   totalFields += familyFields.length;
   completedFields += familyCompleted;
   sections.push({
-    name: 'Family Information',
+    name: 'family-info',
     completion: Math.round((familyCompleted / familyFields.length) * 100),
     total: familyFields.length,
     completed: familyCompleted,
@@ -332,7 +352,7 @@ export function calculateProfileCompletion(
   });
 
   // Professional Situation
-  const professionFields = [
+  const professionFields: Array<{ key: string; value: unknown }> = [
     { key: 'workStatus', value: profile.professionSituation.workStatus },
   ];
 
@@ -356,7 +376,7 @@ export function calculateProfileCompletion(
   totalFields += professionFields.length;
   completedFields += professionCompleted;
   sections.push({
-    name: 'Professional Situation',
+    name: 'professional-info',
     completion: Math.round((professionCompleted / professionFields.length) * 100),
     total: professionFields.length,
     completed: professionCompleted,
@@ -369,7 +389,7 @@ export function calculateProfileCompletion(
   totalFields += 1;
   if (hasEmergencyContact) completedFields += 1;
   sections.push({
-    name: 'Emergency Contacts',
+    name: 'emergency-contacts',
     completion: hasEmergencyContact ? 100 : 0,
     total: 1,
     completed: hasEmergencyContact ? 1 : 0,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -9,43 +9,23 @@ import {
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { DocumentsSection } from './sections/documents-section';
-import { FamilyInfoSection } from './sections/family-info-section';
-import { ProfessionalInfoSection } from './sections/professional-info-section';
+import { calculateProfileCompletion, cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
 import { RequestsSection } from './sections/requests-section';
-import { useProfileCompletion } from '../hooks/use-profile-completion';
-import {
-  User,
-  Phone,
-  Users,
-  Briefcase,
-  FileText,
-  ClipboardList,
-  CheckCircle2,
-  Circle,
-  Save,
-} from 'lucide-react';
+import { CheckCircle2, Circle, Save } from 'lucide-react';
 import type { FullProfile } from '@/types/convex-profile';
 import type { Doc } from '@/convex/_generated/dataModel';
 import { BasicInfoDisplay } from './sections/basic-info-display';
 import { ContactInfoDisplay } from './sections/contact-info-display';
+import { UserDocument } from '@/components/documents/user-document';
+import { FamilyInfoDisplay } from './sections/family-info-display';
+import { ProfessionalInfoDisplay } from './sections/professional-info-display';
+import { DocumentType } from '@/convex/lib/constants';
 
 type MobileProfileNavigationProps = {
   profile: FullProfile;
   requestId?: string;
   requests?: Doc<'requests'>[];
-};
-
-const sectionIcons = {
-  'basic-info': User,
-  'contact-info': Phone,
-  'family-info': Users,
-  'professional-info': Briefcase,
-  documents: FileText,
-  requests: ClipboardList,
 };
 
 export function MobileProfileNavigation({
@@ -58,25 +38,16 @@ export function MobileProfileNavigation({
   }
 
   const t = useTranslations('profile');
-  const router = useRouter();
-  const completion = useProfileCompletion(profile);
+  const t_common = useTranslations('common');
+  const completion = calculateProfileCompletion(profile);
   const [openSections, setOpenSections] = useState<string[]>(['basic-info']);
   const [modifiedSections, setModifiedSections] = useState<Set<string>>(new Set());
-
-  const handleSectionSave = (sectionId: string) => {
-    router.refresh();
-    setModifiedSections((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(sectionId);
-      return newSet;
-    });
-  };
 
   const handleSectionModified = (sectionId: string) => {
     setModifiedSections((prev) => new Set(prev).add(sectionId));
   };
 
-  const profileSections = [
+  const profileTabs = [
     {
       id: 'basic-info',
       title: t('sections.basic_info'),
@@ -90,45 +61,47 @@ export function MobileProfileNavigation({
     {
       id: 'family-info',
       title: t('sections.family_info'),
-      content: (
-        <FamilyInfoSection
-          profile={profile}
-          onSave={() => handleSectionSave('family-info')}
-          requestId={requestId}
-        />
-      ),
+      content: <FamilyInfoDisplay profile={profile} />,
     },
     {
       id: 'professional-info',
       title: t('sections.professional_info'),
-      content: (
-        <ProfessionalInfoSection
-          profile={profile}
-          onSave={() => handleSectionSave('professional-info')}
-          requestId={requestId}
-        />
-      ),
+      content: <ProfessionalInfoDisplay profile={profile} />,
     },
     {
       id: 'documents',
       title: t('sections.documents'),
       content: (
-        <DocumentsSection
-          documents={{
-            passport: profile.passport,
-            birthCertificate: profile.birthCertificate,
-            residencePermit: profile.residencePermit,
-            addressProof: profile.addressProof,
-          }}
-          profileId={profile._id}
-          onSave={() => handleSectionSave('documents')}
-        />
+        <div className="grid gap-6 lg:grid-cols-2">
+          {[
+            profile.passport,
+            profile.birthCertificate,
+            profile.residencePermit,
+            profile.addressProof,
+          ]
+            .filter(Boolean)
+            .map((document) => (
+              <Fragment key={document?._id}>
+                <UserDocument
+                  label={t_common(`documents.types.${document?.type}`)}
+                  description={t_common(`documents.descriptions.${document?.type}`)}
+                  document={document}
+                  expectedType={document?.type}
+                  allowEdit={true}
+                  required
+                  noFormLabel={true}
+                  enableBackgroundRemoval={DocumentType.IdentityPhoto === document?.type}
+                  requestId={requestId}
+                />
+              </Fragment>
+            ))}
+        </div>
       ),
     },
   ];
 
   if (requests) {
-    profileSections.push({
+    profileTabs.push({
       id: 'requests',
       title: t('sections.requests'),
       content: <RequestsSection requests={requests} />,
@@ -139,8 +112,9 @@ export function MobileProfileNavigation({
     const section = completion.sections.find((s) => s.name === sectionId);
     if (!section) return null;
     return {
-      percentage: section.percentage,
-      isComplete: section.percentage === 100,
+      percentage: section.completion,
+      isComplete: section.completion === 100,
+      missingFields: section.missingFields,
     };
   };
 
@@ -152,9 +126,8 @@ export function MobileProfileNavigation({
         onValueChange={setOpenSections}
         className="space-y-2"
       >
-        {profileSections.map((section) => {
+        {profileTabs.map((section) => {
           const completionInfo = getSectionCompletionInfo(section.id);
-          const Icon = sectionIcons[section.id as keyof typeof sectionIcons];
           const isModified = modifiedSections.has(section.id);
 
           return (
@@ -170,23 +143,6 @@ export function MobileProfileNavigation({
               <AccordionTrigger className="hover:no-underline py-4">
                 <div className="flex items-center justify-between w-full mr-2">
                   <div className="flex items-center gap-3">
-                    <div
-                      className={cn(
-                        'rounded-full p-2',
-                        completionInfo?.isComplete ? 'bg-green-100' : 'bg-gray-100',
-                      )}
-                    >
-                      {Icon && (
-                        <Icon
-                          className={cn(
-                            'h-4 w-4',
-                            completionInfo?.isComplete
-                              ? 'text-green-600'
-                              : 'text-gray-600',
-                          )}
-                        />
-                      )}
-                    </div>
                     <span className="font-medium text-left">{section.title}</span>
                   </div>
                   <div className="flex items-center gap-2">
