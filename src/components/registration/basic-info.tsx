@@ -27,17 +27,23 @@ import type { FullProfile } from '@/types/convex-profile';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '../ui/button';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 type BasicInfoFormProps = {
   profile: FullProfile;
-  onSubmit: () => void;
+  onSave: () => void;
   banner?: React.ReactNode;
+  onNext: () => void;
+  onPrevious: () => void;
 };
 
 export function BasicInfoForm({
   profile,
-  onSubmit,
+  onSave,
   banner,
+  onNext,
+  onPrevious,
 }: Readonly<BasicInfoFormProps>) {
   if (!profile) return null;
   const t_inputs = useTranslations('inputs');
@@ -50,23 +56,31 @@ export function BasicInfoForm({
     resolver: zodResolver(BasicInfoSchema),
     defaultValues: {
       ...profile.personal,
+
       birthDate: profile.personal?.birthDate
-        ? new Date(profile.personal.birthDate)
+        ? new Date(profile.personal.birthDate).toISOString().split('T')[0]
         : undefined,
       passportInfos: profile.personal?.passportInfos
         ? {
             ...profile.personal.passportInfos,
             issueDate: profile.personal.passportInfos.issueDate
               ? new Date(profile.personal.passportInfos.issueDate)
+                  .toISOString()
+                  .split('T')[0]
               : undefined,
             expiryDate: profile.personal.passportInfos.expiryDate
               ? new Date(profile.personal.passportInfos.expiryDate)
+                  .toISOString()
+                  .split('T')[0]
               : undefined,
           }
         : undefined,
       nationality: profile.personal?.nationality,
       gender: profile.personal?.gender ?? Gender.Male,
       acquisitionMode: profile.personal?.acquisitionMode ?? NationalityAcquisition.Birth,
+      identityPicture: profile.identityPicture
+        ? { ...profile.identityPicture, id: profile.identityPicture._id }
+        : undefined,
     },
     reValidateMode: 'onBlur',
   });
@@ -98,7 +112,7 @@ export function BasicInfoForm({
         description: t_inputs('success.description'),
       });
 
-      onSubmit();
+      onSave();
     } catch (error) {
       toast({
         title: t_inputs('error.title'),
@@ -112,8 +126,9 @@ export function BasicInfoForm({
   };
 
   const onFormSubmit = async (data: BasicInfoFormData) => {
+    console.log('onFormSubmit', data);
     await handleSubmit(data);
-    onSubmit();
+    onSave();
   };
 
   return (
@@ -134,7 +149,6 @@ export function BasicInfoForm({
                     description={t_inputs('identityPicture.help')}
                     required={true}
                     disabled={isLoading}
-                    profileId={profile._id}
                     onUpload={(doc) => {
                       field.onChange(doc);
                     }}
@@ -242,7 +256,11 @@ export function BasicInfoForm({
                   <FormControl>
                     <Input
                       {...field}
-                      value={field.value ? new Date(field.value).toDateString() : ''}
+                      value={
+                        field.value
+                          ? new Date(field.value).toISOString().split('T')[0]
+                          : ''
+                      }
                       type="date"
                       disabled={isLoading}
                       max={new Date().toISOString().split('T')[0]}
@@ -378,7 +396,11 @@ export function BasicInfoForm({
                     <FormControl>
                       <Input
                         {...field}
-                        value={field.value ? new Date(field.value).toISOString() : ''}
+                        value={
+                          field.value
+                            ? new Date(field.value).toISOString().split('T')[0]
+                            : ''
+                        }
                         type="date"
                         max={new Date().toISOString().split('T')[0]}
                         placeholder={t_inputs('passport.issueDate.placeholder')}
@@ -399,7 +421,11 @@ export function BasicInfoForm({
                     <FormControl>
                       <Input
                         {...field}
-                        value={field.value ? new Date(field.value).toISOString() : ''}
+                        value={
+                          field.value
+                            ? new Date(field.value).toISOString().split('T')[0]
+                            : ''
+                        }
                         type="date"
                         placeholder={t_inputs('passport.expiryDate.placeholder')}
                         disabled={isLoading}
@@ -456,6 +482,20 @@ export function BasicInfoForm({
               )}
             />
           </>
+        </div>
+
+        <div className="flex flex-col md:flex-row justify-between gap-4">
+          <Button
+            onClick={onPrevious}
+            variant="outline"
+            leftIcon={<ArrowLeft className="size-icon" />}
+          >
+            Précédent
+          </Button>
+
+          <Button type="submit" rightIcon={<ArrowRight className="size-icon" />}>
+            Enregistrer et continuer
+          </Button>
         </div>
       </form>
     </Form>

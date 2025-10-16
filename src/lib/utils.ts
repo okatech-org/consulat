@@ -17,6 +17,7 @@ import type { Doc } from 'convex/_generated/dataModel';
 import { UserRole } from 'convex/lib/constants';
 import type { FullProfile } from '@/types/convex-profile';
 import { MaritalStatus, WorkStatus } from '@/convex/lib/constants';
+import type { RegistrationStep } from '@/components/registration/registration-form';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -231,7 +232,7 @@ export function calculateProfileCompletion(
   let totalFields = 0;
   let completedFields = 0;
   const sections: Array<{
-    name: string;
+    name: RegistrationStep;
     completion: number;
     total: number;
     completed: number;
@@ -381,19 +382,6 @@ export function calculateProfileCompletion(
     total: professionFields.length,
     completed: professionCompleted,
     missingFields: professionMissing,
-  });
-
-  // Emergency Contacts (at least one required)
-  const hasEmergencyContact =
-    profile.emergencyContacts && profile.emergencyContacts.length > 0;
-  totalFields += 1;
-  if (hasEmergencyContact) completedFields += 1;
-  sections.push({
-    name: 'emergency-contacts',
-    completion: hasEmergencyContact ? 100 : 0,
-    total: 1,
-    completed: hasEmergencyContact ? 1 : 0,
-    missingFields: hasEmergencyContact ? [] : ['emergencyContact'],
   });
 
   // Residence Country

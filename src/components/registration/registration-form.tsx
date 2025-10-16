@@ -1,6 +1,5 @@
 'use client';
 
-import { useRegistrationForm } from '@/hooks/use-registration-form';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
@@ -18,79 +17,61 @@ import { BasicInfoForm } from './basic-info';
 import { FamilyInfoForm } from './family-info';
 import { ContactInfoForm } from './contact-form';
 import { ProfessionalInfoForm } from './professional-info';
-import { ReviewForm } from './review';
 import { StepIndicator } from './step-indicator';
 import { MobileProgress } from './mobile-progress';
 import { handleFormError } from '@/lib/form/errors';
-import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import {
-  type ErrorMessageKey,
-  filterUneditedKeys,
-  getValuable,
-  tryCatch,
-} from '@/lib/utils';
+import { calculateProfileCompletion, getValuable, tryCatch } from '@/lib/utils';
 import CardContainer from '../layouts/card-container';
 import { ArrowLeft, ArrowRight, Info } from 'lucide-react';
 import { CountrySelect } from '../ui/country-select';
 import { type CountryCode } from '@/lib/autocomplete-datas';
 import Link from 'next/link';
-import { CountryStatus, ProfileStatus } from '@/convex/lib/constants';
-import { ErrorCard } from '../ui/error-card';
+import { CountryStatus } from '@/convex/lib/constants';
 import { type FullProfile } from '@/types/convex-profile';
 import React from 'react';
 import { useTabs } from '@/hooks/use-tabs';
 import { DocumentType } from '@/convex/lib/constants';
 import type { Doc } from '@/convex/_generated/dataModel';
+import { toast } from 'sonner';
+
+export type RegistrationStep =
+  | 'documents'
+  | 'basic-info'
+  | 'family-info'
+  | 'contact-info'
+  | 'professional-info';
 
 export function RegistrationForm({ profile }: { profile: FullProfile }) {
   if (!profile) return null;
 
-  const {
-    currentStep,
-    setCurrentStep,
-    isLoading,
-    setIsLoading,
-    setError,
-    error,
-    forms,
-    clearData,
-    saveToConvex,
-  } = useRegistrationForm({ profile });
   const submitProfileForValidation = useMutation(
     api.functions.profile.submitProfileForValidation,
   );
+  const completion = calculateProfileCompletion(profile);
   const router = useRouter();
   const t = useTranslations('registration');
   const tInputs = useTranslations('inputs');
-  const t_errors = useTranslations('messages.errors');
-  const t_base = useTranslations();
-  const [validationError, setValidationError] = useState<string | undefined>();
   const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
 
-  type Step = keyof typeof forms;
-
-  const orderedSteps: Step[] = [
+  const orderedSteps: RegistrationStep[] = [
     'documents',
-    'basicInfo',
-    'familyInfo',
-    'contactInfo',
-    'professionalInfo',
+    'basic-info',
+    'family-info',
+    'contact-info',
+    'professional-info',
   ];
 
-  const { currentTab, handleTabChange: setCurrentTab } = useTabs<Step>(
+  const { currentTab, handleTabChange: setCurrentTab } = useTabs<RegistrationStep>(
     'tab',
     'documents',
   );
 
   const currentStepIndex = orderedSteps.indexOf(currentTab);
-  const currentStepValidity = forms[currentTab as keyof typeof forms]?.formState.isValid;
-  const currentStepErrors = forms[currentTab as keyof typeof forms]?.formState.errors;
   const totalSteps = orderedSteps.length;
-  const currentStepDirty = forms[currentTab as keyof typeof forms]?.formState.isDirty;
 
   // Gestionnaire d'analyse des components
   const handleDocumentsAnalysis = async (data: {
@@ -99,9 +80,6 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
     familyInfo?: Partial<FamilyInfoFormData>;
     professionalInfo?: Partial<ProfessionalInfoFormData>;
   }) => {
-    setIsLoading(true);
-    setError(undefined);
-
     const cleanedData = getValuable(data);
 
     try {
@@ -214,71 +192,40 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
         setDisplayAnalysisWarning(true);
       }
     } catch (error) {
-      const { title, description } = handleFormError(error, t);
-      toast({ title, description, variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
+      console.error(error);
+      toast.error("Il y a eu un problème lors de l'analyse des documents", {});
     }
   };
 
   // Gestionnaire de navigation
 
   const handleNext = async () => {
-    setError(undefined);
-    setValidationError(undefined);
-    setIsLoading(true);
-
-    const stepForm = forms[currentTab as keyof typeof forms];
     const nextStep = orderedSteps[orderedSteps.indexOf(currentTab) + 1];
 
     try {
       // Validate the current step
-      const isStepValid = await stepForm?.trigger();
+      const isStepValid =
+        completion.sections.find((section) => section.name === currentTab)?.completion ===
+        100;
 
       if (!isStepValid) {
-        setValidationError(t_errors('invalid_step'));
-        setIsLoading(false);
+        toast.error('Champs invalides ou manquants', {
+          description:
+            'Veuillez corriger les champs invalides ou manquants avant de continuer',
+        });
         return;
-      }
-
-      // For document step, just navigate to next step
-      if (currentTab === 'documents' && nextStep) {
-        setCurrentTab(nextStep);
-        setIsLoading(false);
-        return;
-      }
-
-      // Get the form data and check for changes
-      const stepData = stepForm?.getValues();
-      const editedFields = filterUneditedKeys(stepData, stepForm.formState.dirtyFields);
-
-      // If there are changes, save them using Convex mutations
-      if (editedFields && Object.keys(editedFields).length > 0) {
-        try {
-          await saveToConvex(
-            currentTab as keyof typeof forms,
-            stepForm?.getValues() as Record<string, unknown>,
-          );
-        } catch (error) {
-          const { title, description } = handleFormError(error, t);
-          toast({ title, description, variant: 'destructive' });
-          setIsLoading(false);
-          return;
-        }
       }
 
       // Handle final step logic
       if (currentStepIndex === totalSteps - 1) {
-        if (profile.status !== ProfileStatus.Draft) {
-          toast({
-            title: t('submission.success.title'),
-            description: t('submission.success.description'),
+        if (!completion.canSubmit) {
+          toast.success('Inscription réussie', {
+            description: 'Vous pouvez maintenant accéder à votre tableau de bord',
           });
           router.push(ROUTES.user.dashboard);
         } else {
           await handleFinalSubmit();
         }
-        setIsLoading(false);
         return;
       }
 
@@ -289,10 +236,10 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
         router.push(ROUTES.user.dashboard);
       }
     } catch (err) {
-      const { title, description } = handleFormError(err, t);
-      toast({ title, description, variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
+      console.error(err);
+      toast.error('Erreur lors de la navigation', {
+        description: 'Veuillez réessayer plus tard',
+      });
     }
   };
 
@@ -371,50 +318,36 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
     },
   ] as const;
 
-  const stepsComponents: Record<keyof typeof forms | 'review', React.ReactNode> = {
+  const stepsComponents: Record<RegistrationStep | 'review', React.ReactNode> = {
     documents: (
       <DocumentUploadSection
         profileId={profile._id}
-        form={forms.documents}
+        form={undefined}
         onAnalysisComplete={handleDocumentsAnalysis}
         handleSubmitAction={() => handleNext()}
-        isLoading={isLoading}
+        isLoading={false}
         documents={requiredDocuments}
       />
     ),
-    basicInfo: <BasicInfoForm onSubmit={() => handleNext()} profile={profile} />,
-    familyInfo: (
-      <FamilyInfoForm
-        form={forms.familyInfo}
-        onSubmit={() => handleNext()}
-        isLoading={isLoading}
-      />
+    'basic-info': (
+      <BasicInfoForm onNext={handleNext} onPrevious={handlePrevious} profile={profile} />
     ),
-    contactInfo: (
+    'family-info': (
+      <FamilyInfoForm form={undefined} onSubmit={() => handleNext()} isLoading={false} />
+    ),
+    'contact-info': (
       <ContactInfoForm
-        form={forms.contactInfo}
+        form={undefined}
         onSubmitAction={() => handleNext()}
-        isLoading={isLoading}
+        isLoading={false}
         profile={profile}
       />
     ),
-    professionalInfo: (
+    'professional-info': (
       <ProfessionalInfoForm
-        form={forms.professionalInfo}
+        form={undefined}
         onSubmit={() => handleNext()}
-        isLoading={isLoading}
-      />
-    ),
-    review: (
-      <ReviewForm
-        data={{
-          documents: forms.documents.getValues(),
-          basicInfo: forms.basicInfo.getValues(),
-          familyInfo: forms.familyInfo.getValues(),
-          contactInfo: forms.contactInfo.getValues(),
-          professionalInfo: forms.professionalInfo.getValues(),
-        }}
-        onEditAction={setCurrentStep}
+        isLoading={false}
       />
     ),
   };
@@ -428,7 +361,7 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
     <div className="w-full overflow-x-hidden max-w-7xl mx-auto flex flex-col lg:pb-0">
       {/* Version mobile/tablette - Étapes horizontales en header */}
       <header className="w-full border-b border-border pb-6 lg:hidden">
-        <StepIndicator
+        <StepIndicator<RegistrationStep>
           variant="horizontal"
           steps={orderedSteps.map((step) => {
             const stepIndex = orderedSteps.indexOf(step);
@@ -438,12 +371,12 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
               title: t(`steps.${step}`),
               key: step,
               description: t(`steps.${step}_description`),
-              isOptional: step === 'professionalInfo',
+              isOptional: step === 'professional-info',
               isComplete: stepIndex < currentIndex,
             };
           })}
           currentStep={currentTab}
-          onChange={(step) => setCurrentTab(step as Step)}
+          onChange={(step) => setCurrentTab(step as RegistrationStep)}
         />
       </header>
 
@@ -453,7 +386,7 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
         <aside className="hidden lg:block lg:w-80 lg:flex-shrink-0 lg:sticky lg:self-start">
           <div className="bg-card border border-border rounded-lg p-6">
             <h2 className="text-lg font-semibold mb-6">{t('profile.title')}</h2>
-            <StepIndicator
+            <StepIndicator<RegistrationStep>
               variant="vertical"
               steps={orderedSteps.map((step) => {
                 const stepIndex = orderedSteps.indexOf(step);
@@ -463,12 +396,12 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
                   title: t(`steps.${step}`),
                   key: step,
                   description: t(`steps.${step}_description`),
-                  isOptional: step === 'professionalInfo',
+                  isOptional: step === 'professional-info',
                   isComplete: stepIndex < currentIndex,
                 };
               })}
               currentStep={currentTab}
-              onChange={(step) => setCurrentTab(step as Step)}
+              onChange={(step) => setCurrentTab(step as RegistrationStep)}
             />
           </div>
         </aside>
@@ -478,35 +411,16 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
           <div className="mx-auto w-full max-w-4xl">
             {/* Contenu principal */}
             <div className="flex flex-col md:pb-10 gap-4 justify-center">
-              {currentStep > 1 && displayAnalysisWarning && <AnalysisWarningBanner />}
+              {currentStepIndex > 1 && displayAnalysisWarning && (
+                <AnalysisWarningBanner />
+              )}
               <CardContainer>{renderCurrentStep()}</CardContainer>
-              {error && (
-                <ErrorCard
-                  description={
-                    <p className="flex items-center gap-2">
-                      <Info className="size-icon" />
-                      {t_errors('invalid_step')}
-                    </p>
-                  }
-                />
-              )}
-
-              {validationError && (
-                <ErrorCard
-                  description={
-                    <p className="flex items-center gap-2">
-                      <Info className="size-icon" />
-                      {validationError}
-                    </p>
-                  }
-                />
-              )}
 
               <div className="flex flex-col md:flex-row justify-between gap-4">
                 <Button
                   onClick={handlePrevious}
                   variant="outline"
-                  disabled={isLoading || currentStepIndex === 0}
+                  disabled={currentStepIndex === 0}
                   leftIcon={<ArrowLeft className="size-icon" />}
                 >
                   {t('navigation.previous')}
@@ -515,7 +429,6 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
                 <Button
                   type="submit"
                   onClick={() => handleNext()}
-                  loading={isLoading}
                   rightIcon={
                     currentStepIndex !== totalSteps - 1 ? (
                       <ArrowRight className="size-icon" />
@@ -524,28 +437,9 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
                 >
                   {currentStepIndex === totalSteps - 1
                     ? "Finaliser l'inscription"
-                    : `${currentStepDirty ? 'Enregistrer et continuer' : 'Continuer'} (${currentStepIndex + 1}/${totalSteps})`}
+                    : `Enregistrer et continuer (${currentStepIndex + 1}/${totalSteps})`}
                 </Button>
               </div>
-              {!currentStepValidity && (
-                <div className="errors flex flex-col gap-2">
-                  <p className="text-sm max-w-[90%] mx-auto items-center text-muted-foreground flex gap-2 w-full">
-                    <Info className="size-icon min-w-max text-blue-500" />
-                    <span>{t('navigation.validityWarning')}</span>
-                  </p>
-                  <ul className="flex flex-col items-center gap-2">
-                    {Object.entries(currentStepErrors).map(([error, value]) => (
-                      <li key={error} className="text-red-500 list-disc">
-                        <span className="font-medium text-sm">
-                          {tInputs(`${error}.label`)}
-                        </span>
-                        {': '}
-                        <span>{t_base(value.message as ErrorMessageKey)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
 
             {/* Progression mobile */}
@@ -553,7 +447,7 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
               currentStepIndex={currentStepIndex}
               totalSteps={orderedSteps.length}
               stepTitle={t(`steps.${currentTab}`)}
-              isOptional={currentTab === 'professionalInfo'}
+              isOptional={currentTab === 'professional-info'}
             />
           </div>
         </main>

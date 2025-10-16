@@ -3,36 +3,27 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 
-type StepKey =
-  | 'documents'
-  | 'basicInfo'
-  | 'familyInfo'
-  | 'contactInfo'
-  | 'professionalInfo'
-  | 'link'
-  | 'identity';
-
-interface Step {
-  key: StepKey;
+interface Step<T extends string> {
+  key: T;
   title: string;
   description: string;
   isComplete: boolean;
   isOptional?: boolean;
 }
 
-interface StepIndicatorProps {
-  steps: Step[];
-  currentStep: StepKey;
-  onChange: (step: StepKey) => void;
+interface StepIndicatorProps<T extends string> {
+  steps: Step<T>[];
+  currentStep: T;
+  onChange: (step: T) => void;
   variant?: 'horizontal' | 'vertical';
 }
 
-export function StepIndicator({
+export function StepIndicator<T extends string>({
   steps,
   currentStep,
   onChange,
   variant = 'horizontal',
-}: StepIndicatorProps) {
+}: StepIndicatorProps<T>) {
   const t = useTranslations('registration');
   const currentStepIndex = steps.findIndex((step) => step.key === currentStep) ?? 0;
 
