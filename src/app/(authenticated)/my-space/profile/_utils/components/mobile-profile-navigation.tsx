@@ -10,14 +10,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { BasicInfoSection } from './sections/basic-info-section';
-import { ContactInfoSection } from './sections/contact-info-section';
 import { DocumentsSection } from './sections/documents-section';
 import { FamilyInfoSection } from './sections/family-info-section';
 import { ProfessionalInfoSection } from './sections/professional-info-section';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import type { ServiceRequest } from '@prisma/client';
 import { RequestsSection } from './sections/requests-section';
 import { useProfileCompletion } from '../hooks/use-profile-completion';
 import {
@@ -33,6 +30,8 @@ import {
 } from 'lucide-react';
 import type { FullProfile } from '@/types/convex-profile';
 import type { Doc } from '@/convex/_generated/dataModel';
+import { BasicInfoDisplay } from './sections/basic-info-display';
+import { ContactInfoDisplay } from './sections/contact-info-display';
 
 type MobileProfileNavigationProps = {
   profile: FullProfile;
@@ -81,23 +80,12 @@ export function MobileProfileNavigation({
     {
       id: 'basic-info',
       title: t('sections.basic_info'),
-      content: (
-        <BasicInfoSection
-          profile={profile}
-          onSaveAction={() => handleSectionSave('basic-info')}
-        />
-      ),
+      content: <BasicInfoDisplay profile={profile} />,
     },
     {
       id: 'contact-info',
       title: t('sections.contact_info'),
-      content: (
-        <ContactInfoSection
-          profile={profile}
-          onSave={() => handleSectionSave('contact-info')}
-          requestId={requestId}
-        />
-      ),
+      content: <ContactInfoDisplay profile={profile} />,
     },
     {
       id: 'family-info',

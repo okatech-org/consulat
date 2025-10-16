@@ -12,6 +12,8 @@ interface ContactInfoDisplayProps {
 }
 
 export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
+  if (!profile) return null;
+
   const t_profile = useTranslations('profile.fields');
   const t_inputs = useTranslations('inputs');
 
@@ -39,26 +41,21 @@ export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {
         {/* Adresse actuelle */}
         <InfoField
           label={t_profile('address')}
-          value={
-            profile.personal?.address ? (
-              <DisplayAddress
-                address={{
-                  firstLine: profile.personal.address.street,
-                  secondLine: profile.personal.address.complement,
-                  city: profile.personal.address.city,
-                  zipCode: profile.personal.address.postalCode,
-                  country: profile.personal.address.country as any,
-                }}
-              />
-            ) : undefined
-          }
+          value={<DisplayAddress address={profile.contacts?.address} />}
           icon={<MapPin className="size-4" />}
           required
         />
       </div>
 
+      {profile.emergencyContacts.length &&
+        profile.emergencyContacts.map((contact) => (
+          <div key={contact._id}>
+            <h4 className="font-medium text-lg">{contact.name}</h4>
+          </div>
+        ))}
+
       {/* Contact résident */}
-      {profile.residentContact && (
+      {profile.emergencyContacts && (
         <>
           <Separator />
           <div className="space-y-4">

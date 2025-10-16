@@ -73,8 +73,6 @@ export const services = defineTable({
   // Workflow
   workflowId: v.optional(v.id('workflows')),
 
-  createdAt: v.number(),
-  updatedAt: v.number(),
   legacyId: v.optional(v.string()),
 })
   .index('by_code', ['code'])

@@ -1,40 +1,52 @@
 'use client';
 
-import { CountryCode } from '@/lib/autocomplete-datas';
-import { Address } from '@prisma/client';
+import { addressValidator } from '@/convex/lib/validators';
+import type { CountryCode } from '@/lib/autocomplete-datas';
+import type { ObjectType } from 'convex/values';
 import { MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { InfoField } from './info-field';
 
-export function DisplayAddress({ address, title }: { address: Address; title?: string }) {
+type Address = ObjectType<typeof addressValidator.fields>;
+
+export function DisplayAddress({
+  address,
+  title,
+}: {
+  address?: Address;
+  title?: string;
+}) {
   const t_countries = useTranslations('countries');
+  const t_inputs = useTranslations('inputs');
 
   if (!address) return null;
 
   return (
-    <section className="space-y-1">
+    <section className="space-y-2">
       {title && (
-        <header className="flex items-center gap-2">
+        <header className="flex items-center gap-2 mb-2">
           <MapPin className="size-4" />
           <span>{title}</span>
         </header>
       )}
-      <p className="text-sm" aria-label={'Address first line'}>
-        {address.firstLine && <>{address.firstLine}</>}
-      </p>
-      <p className="text-sm" aria-label={'Address city'}>
-        {address?.city}
-        {'zipCode' in address && address.zipCode && <>, {address.zipCode}</>}
-      </p>
-      {'country' in address && address.country && (
-        <p className="text-sm" aria-label={'Address country'}>
-          {t_countries(address.country as CountryCode)}
-        </p>
-      )}
-      {address.secondLine && (
-        <p className="text-sm" aria-label={'Address second line'}>
-          {address.secondLine}
-        </p>
-      )}
+      <div className="grid grid-cols-2 gap-4">
+        <InfoField label={t_inputs('address.street.label')} value={address.street} />
+        <InfoField label={t_inputs('address.city.label')} value={address.city} />
+        <InfoField
+          label={t_inputs('address.postalCode.label')}
+          value={address.postalCode}
+        />
+        <InfoField
+          label={t_inputs('address.country.label')}
+          value={t_countries(address.country as CountryCode)}
+        />
+        {address.complement && (
+          <InfoField
+            label={t_inputs('address.complement.label')}
+            value={address.complement}
+          />
+        )}
+      </div>
     </section>
   );
 }

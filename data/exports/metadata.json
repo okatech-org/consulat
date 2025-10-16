@@ -1,7 +1,7 @@
 {
-  "exportDate": "2025-10-14T18:03:35.780Z",
+  "exportDate": "2025-10-16T13:53:26.046Z",
   "totalFiles": 6,
-  "totalRecords": 2246,
+  "totalRecords": 62,
   "files": [
     {
       "entity": "countries",
@@ -25,12 +25,12 @@
     },
     {
       "entity": "users-data",
-      "count": 2026,
+      "count": 1,
       "file": "data/exports/users-data.json"
     },
     {
       "entity": "parental-authorities",
-      "count": 161,
+      "count": 2,
       "file": "data/exports/parental-authorities.json"
     }
   ],

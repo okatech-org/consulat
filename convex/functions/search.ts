@@ -1,3 +1,4 @@
+import { userRoleValidator } from '../lib/validators';
 import { v } from 'convex/values';
 import { query } from '../_generated/server';
 
@@ -166,7 +167,7 @@ export const globalSearch = query({
 export const searchUsers = query({
   args: {
     searchTerm: v.string(),
-    role: v.optional(v.string()),
+    role: v.optional(userRoleValidator),
     status: v.optional(v.string()),
     limit: v.optional(v.number()),
   },

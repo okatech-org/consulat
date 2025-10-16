@@ -7,20 +7,19 @@ import {
   ProcessingMode as PrismaProcessingMode,
   DeliveryMode as PrismaDeliveryMode,
   ParentalRole as PrismaParentalRole,
-  ServiceRequest,
-  Feedback,
-  Appointment,
-  UserDocument,
-  User,
-  Notification,
   RequestActionType,
   UserRole as PrismaUserRole,
   FamilyLink as PrismaFamilyLink,
   DocumentType as PrismaDocumentType,
   NoteType as PrismaNoteType,
   AppointmentStatus as PrismaAppointmentStatus,
+  Address,
+  EmergencyContact,
+  UserDocument,
+  ServiceRequest,
+  Appointment,
 } from '@prisma/client';
-import type { FullProfile } from '../../src/types/profile';
+import type { UserCentricDataExport } from '../../scripts/export-prisma-to-json';
 
 import {
   AppointmentStatus,
@@ -56,6 +55,7 @@ import {
   ParticipantStatus,
   NotificationChannel,
   UserPermission,
+  EmergencyContactType,
 } from '../lib/constants';
 import type { Id } from '../_generated/dataModel';
 import type { MutationCtx } from '../_generated/server';
@@ -448,7 +448,7 @@ export const importOrganizations = mutation({
             closures: (config.config.closures || []).map((c) => new Date(c).getTime()),
           })),
           legacyId: postgresOrg.id,
-          metadata: postgresOrg.metadata || {},
+          metadata: {},
         });
 
         importedOrgs.push(orgId);
@@ -604,8 +604,6 @@ export const importServices = mutation({
           price: service.price || undefined,
           currency: service.currency || 'EUR',
           workflowId: undefined,
-          createdAt: new Date(service.createdAt).getTime(),
-          updatedAt: new Date(service.updatedAt).getTime(),
           legacyId: service.id,
         });
 
@@ -631,49 +629,72 @@ export const importServices = mutation({
 
 export const importUserWithData = mutation({
   args: {
-    user: v.any(),
-    profile: v.optional(v.any()),
-    documents: v.optional(v.array(v.any())),
-    requests: v.optional(v.array(v.any())),
-    appointments: v.optional(v.array(v.any())),
-    notifications: v.optional(v.array(v.any())),
-    feedbacks: v.optional(v.array(v.any())),
+    userData: v.any(),
   },
   returns: v.object({
     userId: v.id('users'),
     recordsImported: v.number(),
   }),
   handler: async (ctx: MutationCtx, args) => {
-    const typedArgs = args as {
-      user: User;
-      profile: FullProfile;
-      documents: UserDocument[];
-      requests: Array<ServiceRequest & { notes: Note[]; actions: RequestAction[] }>;
-      appointments: Appointment[];
-      notifications: Notification[];
-      feedbacks: Feedback[];
-    };
-    const { user, profile, documents, requests, appointments, notifications, feedbacks } =
-      typedArgs;
+    const typedArgs = args.userData as unknown as UserCentricDataExport;
+    const {
+      id,
+      clerkId,
+      name,
+      email,
+      phoneNumber,
+      countryCode,
+      profile,
+      submittedRequests,
+      appointmentsToAttend,
+      notifications,
+      feedbacks,
+    } = typedArgs;
     let recordCount = 0;
 
-    const roles = user.roles?.map((role: PrismaUserRole) => roleMapping[role]) || [
-      UserRole.User,
-    ];
+    if (!clerkId) {
+      console.warn(`Utilisateur ${id} sans clerkId`);
+    }
+
+    console.log(`Importing user ${clerkId} with id ${id}`);
 
     // 1. Créer l'utilisateur
     const userId = await ctx.db.insert('users', {
-      userId: user.clerkId || `temp_${user.id}`,
-      legacyId: user.id,
-      firstName: user.name?.split(' ')[0] || '',
-      lastName: user.name?.split(' ').slice(1).join(' ') || '',
-      email: user.email || '',
-      phoneNumber: user.phoneNumber || '',
-      roles: roles,
+      userId: clerkId || `temp_${id}`,
+      legacyId: id,
+      firstName: profile?.firstName || name || '',
+      lastName: profile?.lastName || '',
+      email: email || '',
+      phoneNumber: phoneNumber || '',
+      roles: [UserRole.User],
       status: UserStatus.Active,
-      countryCode: user.countryCode || '',
+      countryCode: countryCode || '',
     });
     recordCount++;
+
+    // @ts-expect-error - address is not typed
+    const profileAddress = profile?.address as Address;
+
+    const emergencyContacts: Array<
+      EmergencyContact & { address: Address; type: EmergencyContactType }
+    > = [
+      // @ts-expect-error - residentContact and homeLandContact are not typed
+      profile?.residentContact
+        ? {
+            // @ts-expect-error - residentContact and homeLandContact are not typed
+            ...profile.residentContact,
+            type: EmergencyContactType.Resident,
+          }
+        : undefined,
+      // @ts-expect-error - residentContact and homeLandContact are not typed
+      profile?.homeLandContact
+        ? {
+            // @ts-expect-error - residentContact and homeLandContact are not typed
+            ...profile.homeLandContact,
+            type: EmergencyContactType.HomeLand,
+          }
+        : undefined,
+    ].filter((c): c is NonNullable<typeof c> => Boolean(c));
 
     // 2. Créer le profil si présent
     let profileId: Id<'profiles'> | undefined = undefined;
@@ -683,7 +704,7 @@ export const importUserWithData = mutation({
         status:
           profileStatusMapping[profile.status as PrismaRequestStatus] ||
           ProfileStatus.Pending,
-        residenceCountry: profile.residenceCountyCode || undefined,
+        residenceCountry: profile.residenceCountyCode || countryCode || undefined,
         consularCard: {
           cardNumber: profile.cardNumber || undefined,
           cardIssuedAt: profile.cardIssuedAt
@@ -696,14 +717,14 @@ export const importUserWithData = mutation({
         contacts: {
           email: profile.email || undefined,
           phone: profile.phoneNumber || undefined,
-          address: profile.address
+          address: profileAddress
             ? {
-                street: profile.address.firstLine || '',
-                complement: profile.address.secondLine || undefined,
-                city: profile.address.city || '',
-                postalCode: profile.address.zipCode || '',
+                street: profileAddress.firstLine || '',
+                complement: profileAddress.secondLine || undefined,
+                city: profileAddress.city || '',
+                postalCode: profileAddress.zipCode || '',
                 state: undefined,
-                country: profile.address.country || 'FR',
+                country: profileAddress.country || countryCode || 'FR',
                 coordinates: undefined,
               }
             : undefined,
@@ -762,34 +783,33 @@ export const importUserWithData = mutation({
                 }
               : undefined,
         },
-        emergencyContacts: [profile.residentContact, profile.homeLandContact]
-          .filter((c): c is NonNullable<typeof c> => Boolean(c))
-          .map((c) => ({
-            firstName: c.firstName || '',
-            lastName: c.lastName || '',
-            relationship: (familyLinkMapping[c.relationship as PrismaFamilyLink] ||
-              FamilyLink.Other) as
-              | FamilyLink.Father
-              | FamilyLink.Mother
-              | FamilyLink.Spouse
-              | FamilyLink.LegalGuardian
-              | FamilyLink.Child
-              | FamilyLink.Other,
-            phoneNumber: c.phoneNumber || '',
-            email: c.email || '',
-            address: c.address
-              ? {
-                  street: c.address.firstLine || '',
-                  complement: c.address.secondLine || undefined,
-                  city: c.address.city || '',
-                  postalCode: c.address.zipCode || '',
-                  state: undefined,
-                  country: c.address.country || 'FR',
-                  coordinates: undefined,
-                }
-              : undefined,
-            userId: undefined,
-          })),
+        emergencyContacts: emergencyContacts.map((c) => ({
+          type: c.type,
+          firstName: c.firstName || '',
+          lastName: c.lastName || '',
+          relationship: (familyLinkMapping[c.relationship as PrismaFamilyLink] ||
+            FamilyLink.Other) as
+            | FamilyLink.Father
+            | FamilyLink.Mother
+            | FamilyLink.Spouse
+            | FamilyLink.LegalGuardian
+            | FamilyLink.Child
+            | FamilyLink.Other,
+          phoneNumber: c.phoneNumber || '',
+          email: c.email || '',
+          address: c.address
+            ? {
+                street: c.address.firstLine || '',
+                complement: c.address.secondLine || undefined,
+                city: c.address.city || '',
+                postalCode: c.address.zipCode || '',
+                state: undefined,
+                country: c.address.country || 'FR',
+                coordinates: undefined,
+              }
+            : undefined,
+          profileId: undefined,
+        })),
         professionSituation: {
           workStatus: profile.workStatus
             ? workStatusMapping[profile.workStatus]
@@ -797,6 +817,7 @@ export const importUserWithData = mutation({
           profession: profile.profession || undefined,
           employer: profile.employer || undefined,
           employerAddress: profile.employerAddress || undefined,
+          activityInGabon: profile.activityInGabon || undefined,
           cv: undefined,
         },
       });
@@ -807,9 +828,22 @@ export const importUserWithData = mutation({
       await ctx.db.patch(userId, { profileId });
     }
 
+    const profileDocuments: UserDocument[] = [
+      // @ts-expect-error - identityPicture is not typed
+      profile?.identityPicture,
+      // @ts-expect-error - passport is not typed
+      profile?.passport,
+      // @ts-expect-error - birthCertificate is not typed
+      profile?.birthCertificate,
+      // @ts-expect-error - residencePermit is not typed
+      profile?.residencePermit,
+      // @ts-expect-error - addressProof is not typed
+      profile?.addressProof,
+    ].filter((d): d is NonNullable<typeof d> => Boolean(d));
+
     // 3. Importer les documents
-    if (documents && documents.length > 0) {
-      for (const doc of documents) {
+    if (profileDocuments && profileDocuments.length > 0) {
+      for (const doc of profileDocuments) {
         if (!doc) {
           continue;
         }
@@ -842,7 +876,7 @@ export const importUserWithData = mutation({
             validations: [],
             issuedAt: doc.issuedAt ? new Date(doc.issuedAt).getTime() : undefined,
             expiresAt: doc.expiresAt ? new Date(doc.expiresAt).getTime() : undefined,
-            metadata: doc.metadata as Record<string, any> | undefined,
+            metadata: doc.metadata ? (doc.metadata as Record<string, any>) : {},
           });
           recordCount++;
         } catch (error) {
@@ -851,9 +885,14 @@ export const importUserWithData = mutation({
       }
     }
 
+    // @ts-expect-error - submittedRequests is not typed
+    const requests: Array<ServiceRequest & { actions: RequestAction[]; notes: Note[] }> =
+      [...submittedRequests];
+
     // 4. Importer les demandes (requests)
     if (requests && requests.length > 0 && profile) {
       const filteredRequests = requests.filter((r) => r.requestedForId === profile.id);
+
       for (const req of filteredRequests) {
         try {
           const serviceId = await findConvexServiceByLegacyId(ctx, req.serviceId);
@@ -938,6 +977,8 @@ export const importUserWithData = mutation({
       }
     }
 
+    const appointments: Array<Appointment> = [...appointmentsToAttend];
+
     // 5. Importer les rendez-vous (appointments)
     if (appointments && appointments.length > 0) {
       for (const apt of appointments) {
@@ -946,11 +987,65 @@ export const importUserWithData = mutation({
             ctx,
             apt.organizationId,
           );
+          const serviceId = apt.serviceId
+            ? await findConvexServiceByLegacyId(ctx, apt.serviceId)
+            : undefined;
+          const requestId = apt.requestId
+            ? await findConvexRequestByLegacyId(ctx, apt.requestId)
+            : undefined;
+          const agentId = apt.agentId
+            ? await findConvexUserByLegacyId(ctx, apt.agentId)
+            : undefined;
+
+          const participants: Array<{
+            userId: Id<'users'>;
+            role: ParticipantRole;
+            status: ParticipantStatus;
+          }> = [
+            {
+              userId: userId,
+              role: ParticipantRole.Attendee,
+              status: ParticipantStatus.Confirmed,
+            },
+          ];
+
+          if (agentId) {
+            participants.push({
+              userId: agentId,
+              role: ParticipantRole.Agent,
+              status: ParticipantStatus.Confirmed,
+            });
+          }
+
+          const actions: Array<{
+            authorId: Id<'users'> | Id<'profiles'>;
+            type: 'cancel' | 'reschedule';
+            date: number;
+            reason: string | undefined;
+          }> = [];
+
+          if (apt.cancelledAt) {
+            actions.push({
+              authorId: userId,
+              type: 'cancel',
+              date: new Date(apt.cancelledAt).getTime(),
+              reason: apt.cancelReason || undefined,
+            });
+          }
+
+          if (apt.rescheduledFrom) {
+            actions.push({
+              authorId: userId,
+              type: 'reschedule',
+              date: new Date(apt.rescheduledFrom).getTime(),
+              reason: undefined,
+            });
+          }
 
           if (organizationId) {
             await ctx.db.insert('appointments', {
               startAt: new Date(apt.startTime || apt.date).getTime(),
-              endAt: new Date(apt.endTime || apt.date).getTime() + 60 * 60 * 1000,
+              endAt: new Date(apt.endTime || apt.date).getTime(),
               timezone: 'Europe/Paris',
               type: appointmentTypeMapping[apt.type] || AppointmentType.Other,
               status: (appointmentStatusMapping[apt.status] ||
@@ -961,24 +1056,10 @@ export const importUserWithData = mutation({
                 | AppointmentStatus.Completed
                 | AppointmentStatus.Cancelled,
               organizationId: organizationId,
-              serviceId: apt.serviceId
-                ? await findConvexServiceByLegacyId(ctx, apt.serviceId)
-                : undefined,
-              requestId: apt.requestId
-                ? await findConvexRequestByLegacyId(ctx, apt.requestId)
-                : undefined,
-              participants: [
-                {
-                  userId: userId,
-                  role: ParticipantRole.Attendee,
-                  status: ParticipantStatus.Confirmed,
-                },
-              ],
-              createdAt: new Date(apt.createdAt).getTime(),
-              updatedAt: new Date(apt.updatedAt).getTime(),
-              cancelledAt: apt.cancelledAt
-                ? new Date(apt.cancelledAt).getTime()
-                : undefined,
+              serviceId: serviceId,
+              requestId: requestId,
+              participants: participants,
+              actions: actions,
             });
             recordCount++;
           }

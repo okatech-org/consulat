@@ -21,6 +21,10 @@ import { v } from 'convex/values';
 import { Id } from './_generated/dataModel';
 import { action, httpAction, mutation, query } from './_generated/server';
 import { api } from './_generated/api';
+import {
+  documentTypeValidator,
+  ownerTypeValidator,
+} from './lib/validators';
 
 /**
  * UPLOAD DE FICHIERS
@@ -86,9 +90,9 @@ export const uploadAndCreateDocument = action({
     file: v.any(), // Blob du fichier
     fileName: v.string(),
     fileType: v.string(),
-    documentType: v.string(),
+    documentType: documentTypeValidator,
     ownerId: v.string(),
-    ownerType: v.string(),
+    ownerType: ownerTypeValidator,
     issuedAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
     metadata: v.optional(v.record(v.string(), v.any())),
@@ -119,8 +123,8 @@ export const uploadAndCreateDocument = action({
       fileUrl,
       fileType: args.fileType,
       fileName: args.fileName,
-      userId: args.ownerType === 'user' ? args.ownerId : undefined,
-      profileId: args.ownerType === 'profile' ? args.ownerId : undefined,
+      userId: args.ownerType === 'user' ? (args.ownerId as Id<'users'>) : undefined,
+      profileId: args.ownerType === 'profile' ? (args.ownerId as Id<'profiles'>) : undefined,
       issuedAt: args.issuedAt,
       expiresAt: args.expiresAt,
       metadata: args.metadata,

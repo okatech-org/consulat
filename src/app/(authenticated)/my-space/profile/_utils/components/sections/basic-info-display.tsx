@@ -128,31 +128,38 @@ export function BasicInfoDisplay({ profile }: BasicInfoDisplayProps) {
         </div>
       </div>
 
-      {profile.personal?.nipCode && (
-        <>
-          <Separator />
+      <div className="space-y-4 col-span-2">
+        <h4 className="font-medium text-lg">Passeport</h4>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InfoField
-            label="Code NIP"
-            value={profile.personal.nipCode}
+            label="Numéro de passeport"
+            value={profile.personal?.passportInfos?.number}
             icon={<CreditCard className="size-4" />}
           />
-        </>
-      )}
+          <InfoField
+            label="Date de délivrance"
+            value={profile.personal?.passportInfos?.issueDate}
+            icon={<Calendar className="size-4" />}
+          />
+          <InfoField
+            label="Date d'expiration"
+            value={profile.personal?.passportInfos?.expiryDate}
+            icon={<Calendar className="size-4" />}
+          />
+          <InfoField
+            label="Autorité de délivrance"
+            value={profile.personal?.passportInfos?.issueAuthority}
+            icon={<Globe className="size-4" />}
+          />
+        </div>
+      </div>
 
-      {profile.personal?.passportInfos && (
-        <>
-          {Object.entries(profile.personal.passportInfos).map(([key, value]) => (
-            <Fragment key={key}>
-              <Separator />
-              <InfoField
-                label={key}
-                value={value}
-                icon={<CreditCard className="size-4" />}
-              />
-            </Fragment>
-          ))}
-        </>
-      )}
+      <Separator />
+      <InfoField
+        label="Code NIP"
+        value={profile.personal.nipCode}
+        icon={<CreditCard className="size-4" />}
+      />
     </div>
   );
 }

@@ -579,11 +579,11 @@ export default {
   },
   address: {
     label: 'Adresse',
-    firstLine: {
+    street: {
       label: 'Adresse',
       placeholder: 'Ex: 123 Rue de la Paix',
     },
-    secondLine: {
+    complement: {
       label: "Complément d'adresse",
       placeholder: 'Ex: Appartement, Bâtiment, etc.',
     },
@@ -591,7 +591,7 @@ export default {
       label: 'Ville',
       placeholder: 'Ville',
     },
-    zipCode: {
+    postalCode: {
       label: 'Code postal',
       placeholder: 'Code postal',
     },

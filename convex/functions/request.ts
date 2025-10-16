@@ -4,14 +4,14 @@ import { validateRequest } from '../helpers/validation';
 import { ActivityType, RequestPriority, RequestStatus } from '../lib/constants';
 import { Doc } from '../_generated/dataModel';
 import { query } from '../_generated/server';
-import { requestStatusValidator } from '../lib/validators';
+import { requestStatusValidator, requestPriorityValidator } from '../lib/validators';
 
 export const createRequest = mutation({
   args: {
     serviceId: v.id('services'),
     requesterId: v.id('users'),
     profileId: v.optional(v.id('profiles')),
-    priority: v.optional(v.number()),
+    priority: v.optional(requestPriorityValidator),
     formData: v.optional(v.record(v.string(), v.any())),
     documentIds: v.optional(v.array(v.id('documents'))),
   },
@@ -128,7 +128,7 @@ export const getAllRequests = query({
     requesterId: v.optional(v.id('users')),
     assignedToId: v.optional(v.id('users')),
     serviceId: v.optional(v.id('services')),
-    priority: v.optional(v.number()),
+    priority: v.optional(requestPriorityValidator),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -197,7 +197,7 @@ export const getRequestsByAssignee = query({
 });
 
 export const getRequestsByStatus = query({
-  args: { status: v.string() },
+  args: { status: requestStatusValidator },
   handler: async (ctx, args) => {
     return await ctx.db
       .query('requests')
@@ -267,8 +267,8 @@ export const getUserRequests = query({
 export const updateRequest = mutation({
   args: {
     requestId: v.id('requests'),
-    status: v.optional(v.string()),
-    priority: v.optional(v.number()),
+    status: v.optional(requestStatusValidator),
+    priority: v.optional(requestPriorityValidator),
     formData: v.optional(v.record(v.string(), v.any())),
     documentIds: v.optional(v.array(v.id('documents'))),
     assignedToId: v.optional(v.id('users')),
@@ -296,9 +296,9 @@ export const updateRequest = mutation({
     }
 
     const updateData: Partial<Doc<'requests'>> & Record<string, unknown> = {
-      ...(args.status && { status: args.status as RequestStatus }),
+      ...(args.status && { status: args.status }),
       ...(args.priority !== undefined && {
-        priority: args.priority as RequestPriority,
+        priority: args.priority,
       }),
       ...(args.formData && { formData: args.formData }),
       ...(args.documentIds && { documentIds: args.documentIds }),

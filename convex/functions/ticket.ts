@@ -1,15 +1,18 @@
 import { v } from 'convex/values';
 import { mutation, query } from '../_generated/server';
 import { FeedbackStatus } from '../lib/constants';
-import type { FeedbackCategory } from '../lib/constants';
 import { Doc } from '../_generated/dataModel';
+import {
+  feedbackCategoryValidator,
+  feedbackStatusValidator,
+} from '../lib/validators';
 
 // Mutations
 export const createTicket = mutation({
   args: {
     subject: v.string(),
     message: v.string(),
-    category: v.string(),
+    category: feedbackCategoryValidator,
     rating: v.optional(v.number()),
     userId: v.optional(v.id('users')),
     email: v.optional(v.string()),
@@ -31,7 +34,7 @@ export const createTicket = mutation({
     const ticketId = await ctx.db.insert('tickets', {
       subject: args.subject,
       message: args.message,
-      category: args.category as FeedbackCategory,
+      category: args.category,
       rating: args.rating,
       status: FeedbackStatus.Pending,
       userId: args.userId,
@@ -55,9 +58,9 @@ export const updateTicket = mutation({
     ticketId: v.id('tickets'),
     subject: v.optional(v.string()),
     message: v.optional(v.string()),
-    category: v.optional(v.string()),
+    category: v.optional(feedbackCategoryValidator),
     rating: v.optional(v.number()),
-    status: v.optional(v.string()),
+    status: v.optional(feedbackStatusValidator),
     metadata: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
@@ -75,7 +78,7 @@ export const updateTicket = mutation({
       ...(args.message && { message: args.message }),
       ...(args.category && { category: args.category }),
       ...(args.rating !== undefined && { rating: args.rating }),
-      ...(args.status && { status: args.status as FeedbackStatus }),
+      ...(args.status && { status: args.status }),
       ...(args.metadata && {
         metadata: { ...existingTicket.metadata, ...args.metadata },
       }),
@@ -134,8 +137,8 @@ export const getTicket = query({
 
 export const getAllTickets = query({
   args: {
-    status: v.optional(v.string()),
-    category: v.optional(v.string()),
+    status: v.optional(feedbackStatusValidator),
+    category: v.optional(feedbackCategoryValidator),
     userId: v.optional(v.id('users')),
     organizationId: v.optional(v.id('organizations')),
     limit: v.optional(v.number()),
@@ -218,7 +221,7 @@ export const getTicketsByUser = query({
 });
 
 export const getTicketsByStatus = query({
-  args: { status: v.string() },
+  args: { status: feedbackStatusValidator },
   handler: async (ctx, args) => {
     return await ctx.db
       .query('tickets')
@@ -229,7 +232,7 @@ export const getTicketsByStatus = query({
 });
 
 export const getTicketsByCategory = query({
-  args: { category: v.string() },
+  args: { category: feedbackCategoryValidator },
   handler: async (ctx, args) => {
     return await ctx.db
       .query('tickets')
@@ -268,8 +271,8 @@ export const getRecentTickets = query({
 export const searchTickets = query({
   args: {
     searchTerm: v.string(),
-    status: v.optional(v.string()),
-    category: v.optional(v.string()),
+    status: v.optional(feedbackStatusValidator),
+    category: v.optional(feedbackCategoryValidator),
   },
   handler: async (ctx, args) => {
     let tickets: Array<Doc<'tickets'>> = [];

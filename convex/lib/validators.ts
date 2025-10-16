@@ -75,6 +75,9 @@ export const documentStatusValidator = v.union(
 
 // Validateurs pour les rendez-vous
 export const appointmentStatusValidator = v.union(
+  v.literal(constants.AppointmentStatus.Draft),
+  v.literal(constants.AppointmentStatus.Rescheduled),
+  v.literal(constants.AppointmentStatus.Missed),
   v.literal(constants.AppointmentStatus.Pending),
   v.literal(constants.AppointmentStatus.Scheduled),
   v.literal(constants.AppointmentStatus.Confirmed),
@@ -106,6 +109,11 @@ export const deliveryStatusValidator = v.union(
   v.literal(constants.DeliveryStatus.Pending),
   v.literal(constants.DeliveryStatus.Completed),
   v.literal(constants.DeliveryStatus.Cancelled),
+);
+
+export const emergencyContactTypeValidator = v.union(
+  v.literal(constants.EmergencyContactType.Resident),
+  v.literal(constants.EmergencyContactType.HomeLand),
 );
 
 export const pricingValidator = v.object({
@@ -435,13 +443,14 @@ export const addressValidator = v.object({
 
 // Validateur pour les contacts d'urgence
 export const emergencyContactValidator = v.object({
+  type: emergencyContactTypeValidator,
   firstName: v.string(),
   lastName: v.string(),
   email: v.optional(v.string()),
   relationship: familyLinkValidator,
   phoneNumber: v.optional(v.string()),
   address: v.optional(addressValidator),
-  userId: v.optional(v.id('users')),
+  profileId: v.optional(v.id('profiles')),
 });
 
 // Validateur pour les horaires d'un jour

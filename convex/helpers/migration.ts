@@ -1,25 +1,14 @@
 import {
   OrganizationStatus,
-  ProfileCategory,
-  ProfileStatus,
-  UserRole,
-  UserStatus,
+  OrganizationType,
+  ServiceCategory,
+  ServiceStatus,
+  ServiceStepType,
+  ProcessingMode,
+  DeliveryMode,
 } from '../lib/constants';
 import type { Doc, Id } from '../_generated/dataModel';
 import type { ActivityType } from '../lib/constants';
-
-// Interface pour les données legacy
-interface LegacyUser {
-  _id: string;
-  name: string;
-  email: string;
-  phoneNumber: string;
-  role: 'admin' | 'user';
-  userId: string; // ID Clerk
-  pushToken?: string;
-  createdAt: number;
-  updatedAt: number;
-}
 
 // Fonction pour créer une organisation par défaut
 export function createDefaultOrganization(): Omit<
@@ -29,7 +18,7 @@ export function createDefaultOrganization(): Omit<
   return {
     code: 'DEFAULT_ORG',
     name: 'Organisation par défaut',
-    type: 'consulate',
+    type: OrganizationType.Consulate,
     status: OrganizationStatus.Active,
     countryIds: ['FR'], // À adapter selon vos besoins
     memberIds: [],
@@ -39,7 +28,6 @@ export function createDefaultOrganization(): Omit<
     metadata: {
       isDefault: true,
     },
-    updatedAt: Date.now(),
   };
 }
 
@@ -52,8 +40,8 @@ export function createDefaultServices(
       code: 'PASSPORT_RENEWAL',
       name: 'Renouvellement de passeport',
       description: 'Service de renouvellement de passeport',
-      category: 'travel_document',
-      status: 'active',
+      category: ServiceCategory.TravelDocument,
+      status: ServiceStatus.Active,
       organizationId,
       config: {
         requiredDocuments: ['passport', 'photo', 'proof_of_address'],
@@ -62,25 +50,25 @@ export function createDefaultServices(
           {
             order: 1,
             name: 'Soumission de la demande',
-            type: 'form',
+            type: ServiceStepType.Form,
             required: true,
           },
           {
             order: 2,
             name: 'Vérification des documents',
-            type: 'review',
+            type: ServiceStepType.Review,
             required: true,
           },
           {
             order: 3,
             name: 'Paiement des frais',
-            type: 'payment',
+            type: ServiceStepType.Payment,
             required: true,
           },
           {
             order: 4,
             name: 'Fabrication du passeport',
-            type: 'processing',
+            type: ServiceStepType.Review,
             required: true,
           },
         ],
@@ -95,7 +83,7 @@ export function createDefaultServices(
           title: 'Soumission de la demande',
           description: 'Remplir le formulaire de demande',
           isRequired: true,
-          type: 'form',
+          type: ServiceStepType.Form,
           fields: {},
           validations: {},
         },
@@ -104,7 +92,7 @@ export function createDefaultServices(
           title: 'Vérification des documents',
           description: 'Vérifier les documents fournis',
           isRequired: true,
-          type: 'review',
+          type: ServiceStepType.Review,
           fields: {},
           validations: {},
         },
@@ -113,7 +101,7 @@ export function createDefaultServices(
           title: 'Paiement des frais',
           description: 'Effectuer le paiement',
           isRequired: true,
-          type: 'payment',
+          type: ServiceStepType.Payment,
           fields: {},
           validations: {},
         },
@@ -122,13 +110,13 @@ export function createDefaultServices(
           title: 'Fabrication du passeport',
           description: 'Fabrication du document',
           isRequired: true,
-          type: 'processing',
+          type: ServiceStepType.Review,
           fields: {},
           validations: {},
         },
       ],
-      processingMode: 'presence_required',
-      deliveryModes: ['in_person'],
+      processingMode: ProcessingMode.PresenceRequired,
+      deliveryModes: [DeliveryMode.InPerson],
       requiresAppointment: true,
       appointmentDuration: 30,
       appointmentInstructions: 'Apportez tous les documents requis',
@@ -138,15 +126,13 @@ export function createDefaultServices(
       isFree: false,
       price: 86,
       currency: 'EUR',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
     },
     {
       code: 'BIRTH_CERTIFICATE',
       name: 'Certificat de naissance',
       description: "Service d'obtention de certificat de naissance",
-      category: 'civil_status',
-      status: 'active',
+      category: ServiceCategory.CivilStatus,
+      status: ServiceStatus.Active,
       organizationId,
       config: {
         requiredDocuments: ['id_document', 'proof_of_birth'],
@@ -155,19 +141,19 @@ export function createDefaultServices(
           {
             order: 1,
             name: 'Soumission de la demande',
-            type: 'form',
+            type: ServiceStepType.Form,
             required: true,
           },
           {
             order: 2,
             name: 'Vérification des documents',
-            type: 'review',
+            type: ServiceStepType.Review,
             required: true,
           },
           {
             order: 3,
             name: 'Émission du certificat',
-            type: 'processing',
+            type: ServiceStepType.Review,
             required: true,
           },
         ],
@@ -182,7 +168,7 @@ export function createDefaultServices(
           title: 'Soumission de la demande',
           description: 'Remplir le formulaire de demande',
           isRequired: true,
-          type: 'form',
+          type: ServiceStepType.Form,
           fields: {},
           validations: {},
         },
@@ -191,7 +177,7 @@ export function createDefaultServices(
           title: 'Vérification des documents',
           description: 'Vérifier les documents fournis',
           isRequired: true,
-          type: 'review',
+          type: ServiceStepType.Review,
           fields: {},
           validations: {},
         },
@@ -200,13 +186,13 @@ export function createDefaultServices(
           title: 'Émission du certificat',
           description: 'Émission du certificat de naissance',
           isRequired: true,
-          type: 'processing',
+          type: ServiceStepType.Review,
           fields: {},
           validations: {},
         },
       ],
-      processingMode: 'presence_required',
-      deliveryModes: ['in_person'],
+      processingMode: ProcessingMode.PresenceRequired,
+      deliveryModes: [DeliveryMode.InPerson],
       requiresAppointment: true,
       appointmentDuration: 20,
       appointmentInstructions: 'Apportez tous les documents requis',
@@ -216,8 +202,6 @@ export function createDefaultServices(
       isFree: false,
       price: 15,
       currency: 'EUR',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
     },
   ];
 }

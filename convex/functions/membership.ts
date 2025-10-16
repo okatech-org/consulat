@@ -33,7 +33,6 @@ export const addMember = mutation({
     if (organization) {
       await ctx.db.patch(args.organizationId, {
         memberIds: [...organization.memberIds, args.userId],
-        updatedAt: Date.now(),
       });
     }
 
@@ -56,7 +55,6 @@ export const removeMember = mutation({
     if (organization) {
       await ctx.db.patch(args.organizationId, {
         memberIds: organization.memberIds.filter((id) => id !== args.userId),
-        updatedAt: Date.now(),
       });
     }
 

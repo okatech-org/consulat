@@ -86,9 +86,7 @@ export const createAppointment = mutation({
         status: participant.status || ParticipantStatus.Tentative,
       })),
       location: args.location,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      cancelledAt: undefined,
+      actions: [],
     });
 
     return appointmentId;
@@ -380,7 +378,6 @@ export const confirmAppointment = mutation({
 
     await ctx.db.patch(args.appointmentId, {
       status: AppointmentStatus.Confirmed,
-      updatedAt: Date.now(),
     });
 
     return args.appointmentId;
@@ -405,8 +402,6 @@ export const cancelAppointment = mutation({
 
     await ctx.db.patch(args.appointmentId, {
       status: AppointmentStatus.Cancelled,
-      cancelledAt: Date.now(),
-      updatedAt: Date.now(),
     });
 
     return args.appointmentId;
@@ -428,7 +423,6 @@ export const completeAppointment = mutation({
 
     await ctx.db.patch(args.appointmentId, {
       status: AppointmentStatus.Completed,
-      updatedAt: Date.now(),
     });
 
     return args.appointmentId;
@@ -464,7 +458,6 @@ export const addParticipantToAppointment = mutation({
 
     await ctx.db.patch(args.appointmentId, {
       participants: [...appointment.participants, newParticipant],
-      updatedAt: Date.now(),
     });
 
     return args.appointmentId;
@@ -500,7 +493,6 @@ export const updateParticipantStatus = mutation({
 
     await ctx.db.patch(args.appointmentId, {
       participants: updatedParticipants,
-      updatedAt: Date.now(),
     });
 
     return args.appointmentId;
@@ -529,7 +521,6 @@ export const removeParticipantFromAppointment = mutation({
 
     await ctx.db.patch(args.appointmentId, {
       participants: updatedParticipants,
-      updatedAt: Date.now(),
     });
 
     return args.appointmentId;
@@ -563,7 +554,6 @@ export const rescheduleAppointment = mutation({
       endAt: args.newEndAt,
       timezone: args.newTimezone || appointment.timezone,
       status: AppointmentStatus.Scheduled,
-      updatedAt: Date.now(),
     });
 
     return args.appointmentId;

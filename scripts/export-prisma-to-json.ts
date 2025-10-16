@@ -7,6 +7,8 @@ const prisma = new PrismaClient({
     'postgresql://neondb_owner:npg_iZ2rXwYGM1xh@ep-lingering-frost-a95p0p8l-pooler.gwc.azure.neon.tech/neondb?sslmode=require&channel_binding=require',
 });
 
+const userEmail: string | undefined = 'itoutouberny@gmail.com';
+
 interface ExportStats {
   entity: string;
   count: number;
@@ -262,7 +264,11 @@ const exportUserCentricDataInclude: Prisma.UserSelect = {
       },
       phoneNumber: true,
       email: true,
-      residentContact: true,
+      residentContact: {
+        include: {
+          address: true,
+        },
+      },
       homeLandContact: true,
       activityInGabon: true,
       fatherFullName: true,
@@ -312,6 +318,12 @@ async function exportUserCentricData() {
 
   const users = await prisma.user.findMany({
     select: exportUserCentricDataInclude,
+    where: {
+      ...(userEmail && { email: { equals: userEmail } }),
+      roles: {
+        hasSome: ['USER'],
+      },
+    },
     orderBy: { createdAt: 'asc' },
   });
 
@@ -362,7 +374,11 @@ const exportParentalAuthorityInclude: Prisma.ParentalAuthoritySelect = {
       },
       phoneNumber: true,
       email: true,
-      residentContact: true,
+      residentContact: {
+        include: {
+          address: true,
+        },
+      },
       homeLandContact: true,
       activityInGabon: true,
       fatherFullName: true,
@@ -384,6 +400,7 @@ const exportParentalAuthorityInclude: Prisma.ParentalAuthoritySelect = {
     },
   },
   parentUserId: true,
+  parentUser: true,
   role: true,
   isActive: true,
 };
@@ -405,6 +422,7 @@ async function exportUserParentalAuthorities() {
     select: exportParentalAuthorityInclude,
     orderBy: { createdAt: 'asc' },
     where: {
+      ...(userEmail && { parentUser: { email: { equals: userEmail } } }),
       profile: {
         status: {
           not: 'DRAFT',

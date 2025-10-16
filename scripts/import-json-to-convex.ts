@@ -364,72 +364,14 @@ async function importUserCentricData() {
   let totalFailed = 0;
 
   for (const userData of usersToImport) {
+    console.log(`Importing user ${userData.id} with email ${userData.email}`);
     try {
       console.log(
         `\n   📍 Import utilisateur : ${userData.email || userData.name || userData.id}`,
       );
 
-      const documents = userData.profile
-        ? [
-            // @ts-expect-error - its defined in the schema
-            userData.profile.passport,
-            // @ts-expect-error - its defined in the schema
-            userData.profile.birthCertificate,
-            // @ts-expect-error - its defined in the schema
-            userData.profile.residencePermit,
-            // @ts-expect-error - its defined in the schema
-            userData.profile.addressProof,
-            // @ts-expect-error - its defined in the schema
-            userData.profile.identityPicture,
-          ]
-        : [].filter(Boolean);
-
       const result = await convex.mutation(api.functions.migration.importUserWithData, {
-        user: {
-          id: userData.id,
-          clerkId: userData.clerkId,
-          name: userData.name,
-          email: userData.email,
-          phoneNumber: userData.phoneNumber,
-          roles: userData.roles,
-          image: userData.image,
-          countryCode: userData.countryCode,
-          createdAt: userData.createdAt,
-          updatedAt: userData.updatedAt,
-        },
-        profile: userData.profile
-          ? {
-              id: userData.profile.id,
-              userId: userData.id,
-              category: userData.profile.category,
-              status: userData.profile.status,
-              firstName: userData.profile.firstName,
-              lastName: userData.profile.lastName,
-              gender: userData.profile.gender,
-              birthDate: userData.profile.birthDate,
-              birthPlace: userData.profile.birthPlace,
-              birthCountry: userData.profile.birthCountry,
-              nationality: userData.profile.nationality,
-              maritalStatus: userData.profile.maritalStatus,
-              workStatus: userData.profile.workStatus,
-              acquisitionMode: userData.profile.acquisitionMode,
-              phoneNumber: userData.profile.phoneNumber,
-              email: userData.profile.email,
-              profession: userData.profile.profession,
-              employer: userData.profile.employer,
-              employerAddress: userData.profile.employerAddress,
-              fatherFullName: userData.profile.fatherFullName,
-              motherFullName: userData.profile.motherFullName,
-              spouseFullName: userData.profile.spouseFullName,
-              createdAt: userData.profile.createdAt,
-              updatedAt: userData.profile.updatedAt,
-            }
-          : undefined,
-        documents,
-        requests: userData.submittedRequests || [],
-        appointments: userData.appointmentsToAttend || [],
-        notifications: userData.notifications || [],
-        feedbacks: userData.feedbacks || [],
+        userData,
       });
 
       addMigratedId('users-data', userData.id);

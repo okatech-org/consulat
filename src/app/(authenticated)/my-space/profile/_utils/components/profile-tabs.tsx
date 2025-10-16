@@ -2,8 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { FullProfile } from '@/types/convex-profile';
-import { BasicInfoSection } from './sections/basic-info-section';
-import { ContactInfoSection } from './sections/contact-info-section';
+import { ContactInfoDisplay } from './sections/contact-info-display';
 import { DocumentsSection } from './sections/documents-section';
 import { FamilyInfoSection } from './sections/family-info-section';
 import { ProfessionalInfoSection } from './sections/professional-info-section';
@@ -17,6 +16,7 @@ import { MobileProfileNavigation } from './mobile-profile-navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useState } from 'react';
 import type { Doc } from '@/convex/_generated/dataModel';
+import { BasicInfoDisplay } from './sections/basic-info-display';
 
 type AdditionalTab = {
   id: string;
@@ -51,20 +51,12 @@ export function ProfileTabs({
     {
       id: 'basic-info',
       title: t('sections.basic_info'),
-      content: (
-        <BasicInfoSection profile={profile} onSaveAction={() => router.refresh()} />
-      ),
+      content: <BasicInfoDisplay profile={profile} />,
     },
     {
       id: 'contact-info',
       title: t('sections.contact_info'),
-      content: (
-        <ContactInfoSection
-          profile={profile}
-          onSave={() => router.refresh()}
-          requestId={requestId}
-        />
-      ),
+      content: <ContactInfoDisplay profile={profile} />,
     },
     {
       id: 'family-info',

@@ -34,9 +34,14 @@ export const appointments = defineTable({
   // Lieu
   location: v.optional(addressValidator),
 
-  createdAt: v.number(),
-  updatedAt: v.number(),
-  cancelledAt: v.optional(v.number()),
+  actions: v.array(
+    v.object({
+      authorId: v.union(v.id('users'), v.id('profiles')),
+      type: v.union(v.literal('cancel'), v.literal('reschedule')),
+      date: v.number(),
+      reason: v.optional(v.string()),
+    }),
+  ),
 })
   .index('by_time', ['startAt'])
   .index('by_organization', ['organizationId'])

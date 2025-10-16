@@ -3,11 +3,15 @@ import { mutation, query, action } from '../_generated/server';
 import { api } from '../_generated/api';
 import type { Doc, Id } from '../_generated/dataModel';
 import { validateUser } from '../helpers/validation';
-import { UserRole, UserStatus, ProfileCategory } from '../lib/constants';
+import { UserRole, UserStatus, ProfileCategory, OrganizationStatus, OwnerType } from '../lib/constants';
 import { countryCodeFromPhoneNumber } from '../lib/utils';
 import { getUserProfileHelper } from '../helpers/relationships';
 import { createClerkClient } from '@clerk/backend';
 import { internalMutation } from '../_generated/server';
+import {
+  userRoleValidator,
+  userStatusValidator,
+} from '../lib/validators';
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY!,
@@ -21,7 +25,7 @@ export const createUser = mutation({
     lastName: v.optional(v.string()),
     email: v.optional(v.string()),
     phoneNumber: v.optional(v.string()),
-    roles: v.optional(v.array(v.string())),
+    roles: v.optional(v.array(userRoleValidator)),
     countryCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -60,8 +64,8 @@ export const updateUser = mutation({
     lastName: v.optional(v.string()),
     email: v.optional(v.string()),
     phoneNumber: v.optional(v.string()),
-    roles: v.optional(v.array(v.string())),
-    status: v.optional(v.string()),
+    roles: v.optional(v.array(userRoleValidator)),
+    status: v.optional(userStatusValidator),
     countryCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -115,7 +119,7 @@ export const softDeleteUser = mutation({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.userId, {
-      status: 'inactive',
+      status: UserStatus.Inactive,
       deletedAt: Date.now(),
     });
     return args.userId;
@@ -136,7 +140,7 @@ export const deleteUser = mutation({
 
     if (user) {
       await ctx.db.patch(user._id, {
-        status: 'deleted',
+        status: UserStatus.Suspended,
         deletedAt: Date.now(),
       });
       return true;
@@ -176,8 +180,8 @@ export const updateOrCreateUser = mutation({
         lastName: clerkUser.last_name,
         email: clerkUser.email_addresses?.[0]?.email_address,
         phoneNumber: clerkUser.phone_numbers?.[0]?.phone_number,
-        roles: ['user'],
-        status: 'active',
+        roles: [UserRole.User],
+        status: UserStatus.Active,
         profileId: undefined,
         countryCode: undefined,
         lastActiveAt: Date.now(),
@@ -246,7 +250,6 @@ export const handleNewUser = action({
         api.functions.profile.createProfile,
         {
           userId: userId,
-          category: ProfileCategory.Adult,
           firstName: clerkUser.firstName || '',
           lastName: clerkUser.lastName || '',
           email: email || '',
@@ -310,7 +313,7 @@ export const getUserByEmail = query({
 
 export const getAllUsers = query({
   args: {
-    status: v.optional(v.string()),
+    status: v.optional(userStatusValidator),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -391,8 +394,8 @@ export const updateOrCreateUserInternal = internalMutation({
         lastName: clerkUser.last_name,
         email: email,
         phoneNumber: phoneNumber,
-        roles: ['user'],
-        status: 'active',
+        roles: [UserRole.User],
+        status: UserStatus.Active,
         profileId: undefined,
         countryCode: countryCodeData?.code,
         lastActiveAt: Date.now(),
@@ -418,7 +421,7 @@ export const deleteUserInternal = internalMutation({
     if (user) {
       // Marquer l'utilisateur comme supprimé (soft delete)
       await ctx.db.patch(user._id, {
-        status: 'deleted',
+        status: UserStatus.Suspended,
         deletedAt: Date.now(),
       });
       return true;
@@ -487,7 +490,7 @@ export const getUserDocuments = query({
     const documents = await ctx.db
       .query('documents')
       .withIndex('by_owner', (q) =>
-        q.eq('ownerId', profile._id).eq('ownerType', 'profile'),
+        q.eq('ownerId', profile._id).eq('ownerType', OwnerType.Profile),
       )
       .collect();
 
@@ -556,7 +559,7 @@ export const getUserOrganizationContact = query({
 
     // Prendre la première organisation active
     const primaryOrg =
-      userOrganizations.find((org) => org.status === 'active') || userOrganizations[0];
+      userOrganizations.find((org) => org.status === OrganizationStatus.Active) || userOrganizations[0];
 
     // Récupérer la configuration du pays depuis les settings de l'organisation
     const orgSettings = primaryOrg.settings?.find(

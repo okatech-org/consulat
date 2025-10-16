@@ -11,6 +11,11 @@ export enum ServiceCategory {
   Other = 'other',
 }
 
+export enum EmergencyContactType {
+  Resident = 'resident',
+  HomeLand = 'home_land',
+}
+
 export enum ServiceStatus {
   Active = 'active',
   Inactive = 'inactive',
@@ -72,6 +77,7 @@ export enum DocumentStatus {
 }
 
 export enum AppointmentStatus {
+  Draft = 'draft',
   Pending = 'pending',
   Scheduled = 'scheduled',
   Confirmed = 'confirmed',

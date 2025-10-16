@@ -1,10 +1,15 @@
-import { v } from "convex/values";
-import { mutation, query } from "../_generated/server";
-import { validateService } from "../helpers/validation";
-import { ServiceStatus } from "../lib/constants";
-import type { ServiceCategory } from "../lib/constants";
-import type { Doc } from "../_generated/dataModel";
-import { serviceStepTypeValidator } from "../lib/validators";
+import { v } from 'convex/values';
+import { mutation, query } from '../_generated/server';
+import { validateService } from '../helpers/validation';
+import { ServiceStatus } from '../lib/constants';
+import type { Doc } from '../_generated/dataModel';
+import {
+  serviceStepTypeValidator,
+  serviceCategoryValidator,
+  serviceStatusValidator,
+  processingModeValidator,
+  deliveryModeValidator,
+} from '../lib/validators';
 
 // Mutations
 export const createService = mutation({
@@ -12,9 +17,9 @@ export const createService = mutation({
     code: v.string(),
     name: v.string(),
     description: v.optional(v.string()),
-    category: v.string(),
-    status: v.optional(v.string()),
-    organizationId: v.id("organizations"),
+    category: serviceCategoryValidator,
+    status: v.optional(serviceStatusValidator),
+    organizationId: v.id('organizations'),
     config: v.object({
       requiredDocuments: v.array(v.string()),
       optionalDocuments: v.array(v.string()),
@@ -45,8 +50,8 @@ export const createService = mutation({
         validations: v.optional(v.record(v.string(), v.any())),
       }),
     ),
-    processingMode: v.string(),
-    deliveryModes: v.array(v.string()),
+    processingMode: processingModeValidator,
+    deliveryModes: v.array(deliveryModeValidator),
     requiresAppointment: v.boolean(),
     appointmentDuration: v.optional(v.number()),
     appointmentInstructions: v.optional(v.string()),
@@ -56,7 +61,7 @@ export const createService = mutation({
     isFree: v.boolean(),
     price: v.optional(v.number()),
     currency: v.optional(v.string()),
-    workflowId: v.optional(v.id("workflows")),
+    workflowId: v.optional(v.id('workflows')),
   },
   handler: async (ctx, args) => {
     const serviceData = {
@@ -68,15 +73,15 @@ export const createService = mutation({
     const validationErrors = validateService(serviceData);
     if (validationErrors.length > 0) {
       throw new Error(
-        `Validation failed: ${validationErrors.map((e) => e.message).join(", ")}`,
+        `Validation failed: ${validationErrors.map((e) => e.message).join(', ')}`,
       );
     }
 
-    const serviceId = await ctx.db.insert("services", {
+    const serviceId = await ctx.db.insert('services', {
       code: args.code,
       name: args.name,
       description: args.description,
-      category: args.category as ServiceCategory,
+      category: args.category,
       status: args.status ?? ServiceStatus.Active,
       organizationId: args.organizationId,
       config: args.config,
@@ -93,15 +98,12 @@ export const createService = mutation({
       price: args.price,
       currency: args.currency,
       workflowId: args.workflowId,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
     });
 
     const organization = await ctx.db.get(args.organizationId);
     if (organization) {
       await ctx.db.patch(args.organizationId, {
         serviceIds: [...organization.serviceIds, serviceId],
-        updatedAt: Date.now(),
       });
     }
 
@@ -111,12 +113,12 @@ export const createService = mutation({
 
 export const updateService = mutation({
   args: {
-    serviceId: v.id("services"),
+    serviceId: v.id('services'),
     code: v.optional(v.string()),
     name: v.optional(v.string()),
     description: v.optional(v.string()),
-    category: v.optional(v.string()),
-    status: v.optional(v.string()),
+    category: v.optional(serviceCategoryValidator),
+    status: v.optional(serviceStatusValidator),
     config: v.optional(
       v.object({
         requiredDocuments: v.array(v.string()),
@@ -151,8 +153,8 @@ export const updateService = mutation({
         }),
       ),
     ),
-    processingMode: v.optional(v.string()),
-    deliveryModes: v.optional(v.array(v.string())),
+    processingMode: v.optional(processingModeValidator),
+    deliveryModes: v.optional(v.array(deliveryModeValidator)),
     requiresAppointment: v.optional(v.boolean()),
     appointmentDuration: v.optional(v.number()),
     appointmentInstructions: v.optional(v.string()),
@@ -162,12 +164,12 @@ export const updateService = mutation({
     isFree: v.optional(v.boolean()),
     price: v.optional(v.number()),
     currency: v.optional(v.string()),
-    workflowId: v.optional(v.id("workflows")),
+    workflowId: v.optional(v.id('workflows')),
   },
   handler: async (ctx, args) => {
     const existingService = await ctx.db.get(args.serviceId);
     if (!existingService) {
-      throw new Error("Service not found");
+      throw new Error('Service not found');
     }
 
     if (args.name || args.code || args.price !== undefined) {
@@ -180,7 +182,7 @@ export const updateService = mutation({
       const validationErrors = validateService(serviceData);
       if (validationErrors.length > 0) {
         throw new Error(
-          `Validation failed: ${validationErrors.map((e) => e.message).join(", ")}`,
+          `Validation failed: ${validationErrors.map((e) => e.message).join(', ')}`,
         );
       }
     }
@@ -189,8 +191,8 @@ export const updateService = mutation({
       ...(args.code && { code: args.code }),
       ...(args.name && { name: args.name }),
       ...(args.description !== undefined && { description: args.description }),
-      ...(args.category && { category: args.category as ServiceCategory }),
-      ...(args.status && { status: args.status as ServiceStatus }),
+      ...(args.category && { category: args.category }),
+      ...(args.status && { status: args.status }),
       ...(args.config && { config: args.config }),
       ...(args.steps && { steps: args.steps }),
       ...(args.processingMode && { processingMode: args.processingMode }),
@@ -227,7 +229,7 @@ export const updateService = mutation({
 
 export const updateServiceSteps = mutation({
   args: {
-    serviceId: v.id("services"),
+    serviceId: v.id('services'),
     steps: v.array(
       v.object({
         order: v.number(),
@@ -243,7 +245,6 @@ export const updateServiceSteps = mutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.serviceId, {
       steps: args.steps,
-      updatedAt: Date.now(),
     });
     return args.serviceId;
   },
@@ -251,7 +252,7 @@ export const updateServiceSteps = mutation({
 
 export const updateServiceConfig = mutation({
   args: {
-    serviceId: v.id("services"),
+    serviceId: v.id('services'),
     config: v.object({
       requiredDocuments: v.array(v.string()),
       optionalDocuments: v.array(v.string()),
@@ -275,18 +276,17 @@ export const updateServiceConfig = mutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.serviceId, {
       config: args.config,
-      updatedAt: Date.now(),
     });
     return args.serviceId;
   },
 });
 
 export const toggleServiceStatus = mutation({
-  args: { serviceId: v.id("services") },
+  args: { serviceId: v.id('services') },
   handler: async (ctx, args) => {
     const service = await ctx.db.get(args.serviceId);
     if (!service) {
-      throw new Error("Service not found");
+      throw new Error('Service not found');
     }
 
     const newStatus =
@@ -296,7 +296,6 @@ export const toggleServiceStatus = mutation({
 
     await ctx.db.patch(args.serviceId, {
       status: newStatus,
-      updatedAt: Date.now(),
     });
 
     return { serviceId: args.serviceId, newStatus };
@@ -305,7 +304,7 @@ export const toggleServiceStatus = mutation({
 
 // Queries
 export const getService = query({
-  args: { serviceId: v.id("services") },
+  args: { serviceId: v.id('services') },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.serviceId);
   },
@@ -315,83 +314,75 @@ export const getServiceByCode = query({
   args: { code: v.string() },
   handler: async (ctx, args) => {
     return await ctx.db
-      .query("services")
-      .withIndex("by_code", (q) => q.eq("code", args.code))
+      .query('services')
+      .withIndex('by_code', (q) => q.eq('code', args.code))
       .first();
   },
 });
 
 export const getAllServices = query({
   args: {
-    status: v.optional(v.string()),
-    category: v.optional(v.string()),
-    organizationId: v.optional(v.id("organizations")),
+    status: v.optional(serviceStatusValidator),
+    category: v.optional(serviceCategoryValidator),
+    organizationId: v.optional(v.id('organizations')),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    let services: Array<Doc<"services">> = [];
+    let services: Array<Doc<'services'>> = [];
 
     if (args.organizationId && args.category && args.status) {
       services = await ctx.db
-        .query("services")
-        .withIndex("by_organization", (q) =>
-          q.eq("organizationId", args.organizationId!),
-        )
+        .query('services')
+        .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId!))
         .filter((q) =>
           q.and(
-            q.eq(q.field("category"), args.category!),
-            q.eq(q.field("status"), args.status!),
+            q.eq(q.field('category'), args.category!),
+            q.eq(q.field('status'), args.status!),
           ),
         )
-        .order("desc")
+        .order('desc')
         .collect();
     } else if (args.organizationId && args.category) {
       services = await ctx.db
-        .query("services")
-        .withIndex("by_organization", (q) =>
-          q.eq("organizationId", args.organizationId!),
-        )
-        .filter((q) => q.eq(q.field("category"), args.category!))
-        .order("desc")
+        .query('services')
+        .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId!))
+        .filter((q) => q.eq(q.field('category'), args.category!))
+        .order('desc')
         .collect();
     } else if (args.organizationId && args.status) {
       services = await ctx.db
-        .query("services")
-        .withIndex("by_organization", (q) =>
-          q.eq("organizationId", args.organizationId!),
-        )
-        .filter((q) => q.eq(q.field("status"), args.status!))
-        .order("desc")
+        .query('services')
+        .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId!))
+        .filter((q) => q.eq(q.field('status'), args.status!))
+        .order('desc')
         .collect();
     } else if (args.category && args.status) {
       services = await ctx.db
-        .query("services")
-        .withIndex("by_category", (q) => q.eq("category", args.category!))
-        .filter((q) => q.eq(q.field("status"), args.status!))
-        .order("desc")
+        .query('services')
+        .withIndex('by_category', (q) => q.eq('category', args.category!))
+        .filter((q) => q.eq(q.field('status'), args.status!))
+        .order('desc')
         .collect();
     } else if (args.organizationId) {
       services = await ctx.db
-        .query("services")
-        .withIndex("by_organization", (q) =>
-          q.eq("organizationId", args.organizationId!),
-        )
-        .order("desc")
+        .query('services')
+        .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId!))
+        .order('desc')
         .collect();
     } else if (args.category) {
       services = await ctx.db
-        .query("services")
-        .withIndex("by_category", (q) => q.eq("category", args.category!))
-        .order("desc")
+        .query('services')
+        .withIndex('by_category', (q) => q.eq('category', args.category!))
+        .order('desc')
         .collect();
     } else if (args.status) {
       services = await ctx.db
-        .query("services")
-        .withIndex("by_status", (q) => q.eq("status", args.status!))
-        .order("desc")
+        .query('services')
+        .withIndex('by_status', (q) => q.eq('status', args.status!))
+        .order('desc')
         .collect();
     } else {
-      services = await ctx.db.query("services").order("desc").collect();
+      services = await ctx.db.query('services').order('desc').collect();
     }
 
     return args.limit ? services.slice(0, args.limit) : services;
@@ -399,25 +390,23 @@ export const getAllServices = query({
 });
 
 export const getServicesByOrganization = query({
-  args: { organizationId: v.id("organizations") },
+  args: { organizationId: v.id('organizations') },
   handler: async (ctx, args) => {
     return await ctx.db
-      .query("services")
-      .withIndex("by_organization", (q) =>
-        q.eq("organizationId", args.organizationId),
-      )
-      .order("desc")
+      .query('services')
+      .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
+      .order('desc')
       .collect();
   },
 });
 
 export const getServicesByCategory = query({
-  args: { category: v.string() },
+  args: { category: serviceCategoryValidator },
   handler: async (ctx, args) => {
     return await ctx.db
-      .query("services")
-      .withIndex("by_category", (q) => q.eq("category", args.category))
-      .order("desc")
+      .query('services')
+      .withIndex('by_category', (q) => q.eq('category', args.category))
+      .order('desc')
       .collect();
   },
 });
@@ -425,34 +414,30 @@ export const getServicesByCategory = query({
 export const searchServices = query({
   args: {
     searchTerm: v.string(),
-    organizationId: v.optional(v.id("organizations")),
-    category: v.optional(v.string()),
+    organizationId: v.optional(v.id('organizations')),
+    category: v.optional(serviceCategoryValidator),
   },
   handler: async (ctx, args) => {
-    let services: Array<Doc<"services">> = [];
+    let services: Array<Doc<'services'>> = [];
 
     if (args.organizationId && args.category) {
       services = await ctx.db
-        .query("services")
-        .withIndex("by_organization", (q) =>
-          q.eq("organizationId", args.organizationId!),
-        )
-        .filter((q) => q.eq(q.field("category"), args.category!))
+        .query('services')
+        .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId!))
+        .filter((q) => q.eq(q.field('category'), args.category!))
         .collect();
     } else if (args.organizationId) {
       services = await ctx.db
-        .query("services")
-        .withIndex("by_organization", (q) =>
-          q.eq("organizationId", args.organizationId!),
-        )
+        .query('services')
+        .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId!))
         .collect();
     } else if (args.category) {
       services = await ctx.db
-        .query("services")
-        .withIndex("by_category", (q) => q.eq("category", args.category!))
+        .query('services')
+        .withIndex('by_category', (q) => q.eq('category', args.category!))
         .collect();
     } else {
-      services = await ctx.db.query("services").collect();
+      services = await ctx.db.query('services').collect();
     }
 
     return services.filter(
@@ -460,9 +445,7 @@ export const searchServices = query({
         service.name.toLowerCase().includes(args.searchTerm.toLowerCase()) ||
         service.code.toLowerCase().includes(args.searchTerm.toLowerCase()) ||
         (service.description &&
-          service.description
-            .toLowerCase()
-            .includes(args.searchTerm.toLowerCase())),
+          service.description.toLowerCase().includes(args.searchTerm.toLowerCase())),
     );
   },
 });
