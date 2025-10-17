@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { SendHorizonal } from 'lucide-react';
+import { Link, SendHorizonal } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,29 +17,20 @@ import { useRouter } from 'next/navigation';
 import { useMutation } from 'convex/react';
 import { toast } from '@/hooks/use-toast';
 import { api } from '@/convex/_generated/api';
-
-// Définir les items de la checklist de manière statique
-const CHECKLIST_ITEMS = [
-  'personal_info',
-  'documents',
-  'contact_info',
-  'emergency_contact',
-] as const;
+import type { FullProfile } from '@/types/convex-profile';
+import { calculateProfileCompletion } from '@/lib/utils';
+import { ROUTES } from '@/schemas/routes';
 
 interface SubmitProfileButtonProps {
-  profileId: string;
-  canSubmit: boolean;
-  isChild?: boolean;
+  profile: FullProfile;
 }
 
-export function SubmitProfileButton({
-  profileId,
-  canSubmit,
-  isChild = false,
-}: SubmitProfileButtonProps) {
+export function SubmitProfileButton({ profile }: SubmitProfileButtonProps) {
+  if (!profile) return null;
   const t = useTranslations('profile.submission');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const router = useRouter();
+  const completion = calculateProfileCompletion(profile);
 
   const submitProfileMutation = useMutation(
     api.functions.profile.submitProfileForValidation,
@@ -48,8 +39,7 @@ export function SubmitProfileButton({
   const handleSubmit = async () => {
     try {
       await submitProfileMutation({
-        profileId: profileId as any,
-        isChild,
+        profileId: profile._id,
       });
 
       toast({
@@ -77,7 +67,7 @@ export function SubmitProfileButton({
         onClick={() => setIsDialogOpen(true)}
         className="w-full md:w-max"
         variant="default"
-        disabled={!canSubmit}
+        disabled={!completion.canSubmit}
         size="default"
         rightIcon={<SendHorizonal className="size-4" />}
       >
@@ -91,45 +81,38 @@ export function SubmitProfileButton({
             <DialogDescription>{t('dialog.description')}</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="rounded-lg border p-4">
-              <h4 className="mb-2 font-medium">{t('dialog.checklist.title')}</h4>
-              <ul className="space-y-2 text-sm">
-                {CHECKLIST_ITEMS.map((item) => (
-                  <li key={item} className="flex items-center gap-2">
-                    <div className="size-1.5 rounded-full bg-primary" />
-                    {t(`dialog.checklist.items.${item}`)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDialogOpen(false)}
-              disabled={submitProfileMutation.isPending}
-            >
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               {t('dialog.cancel')}
             </Button>
-            <Button onClick={handleSubmit} disabled={submitProfileMutation.isPending}>
-              {submitProfileMutation.isPending ? 'Soumission...' : t('dialog.confirm')}
-            </Button>
+            <Button onClick={handleSubmit}>{t('dialog.confirm')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {canSubmit && (
+      {completion.canSubmit && (
         <p className="text-sm py-2 text-center text-muted-foreground">
           {t('dialog.description')}
         </p>
       )}
 
-      {!canSubmit && (
-        <p className="text-sm py-2 text-center text-muted-foreground">
-          {t('dialog.disabled')}
-        </p>
+      {!completion.canSubmit && (
+        <>
+          <p className="text-sm py-2 text-center text-muted-foreground">
+            {t('dialog.disabled')}
+          </p>
+          {profile.registrationRequest?._id && (
+            <Button variant="outline" asChild>
+              <Link
+                href={ROUTES.user.service_request_details(
+                  profile.registrationRequest._id,
+                )}
+              >
+                Voir ma demande
+              </Link>
+            </Button>
+          )}
+        </>
       )}
     </div>
   );

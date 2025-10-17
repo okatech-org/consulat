@@ -49,20 +49,6 @@ export default function ProfilePage() {
     );
   }
 
-  const canSubmit = () => {
-    if (profile.status !== 'draft') {
-      return false;
-    }
-
-    const completion = calculateProfileCompletion(profile);
-
-    if (completion.overall !== 100) {
-      return completion.canSubmit;
-    }
-
-    return false;
-  };
-
   return (
     <PageContainer>
       <div className="grid grid-cols-8 gap-4">
@@ -97,7 +83,7 @@ export default function ProfilePage() {
           })()}
           <ProfileProgressBar profile={profile} />
 
-          <SubmitProfileButton canSubmit={canSubmit()} profileId={profile._id} />
+          <SubmitProfileButton profile={profile} />
         </div>
       </div>
     </PageContainer>
