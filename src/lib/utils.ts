@@ -14,7 +14,7 @@ import type { Primitive } from 'type-fest';
 import type { OrganizationListingItem } from '@/types/organization';
 import { ROUTES } from '@/schemas/routes';
 import type { Doc } from 'convex/_generated/dataModel';
-import { UserRole } from 'convex/lib/constants';
+import { ProfileStatus, UserRole } from 'convex/lib/constants';
 import type { FullProfile } from '@/types/convex-profile';
 import { MaritalStatus, WorkStatus } from '@/convex/lib/constants';
 import type { RegistrationStep } from '@/components/registration/registration-form';
@@ -390,7 +390,7 @@ export function calculateProfileCompletion(
   if (hasResidenceCountry) completedFields += 1;
 
   const overall = totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
-  const canSubmit = overall === 100;
+  const canSubmit = overall === 100 && profile.status === ProfileStatus.Draft;
 
   return {
     overall,

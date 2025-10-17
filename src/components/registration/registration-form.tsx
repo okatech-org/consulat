@@ -31,13 +31,15 @@ import { useTabs } from '@/hooks/use-tabs';
 import { DocumentType } from '@/convex/lib/constants';
 import type { Doc } from '@/convex/_generated/dataModel';
 import { toast } from 'sonner';
+import { ReviewFields } from './review-fields';
 
 export type RegistrationStep =
   | 'documents'
   | 'basic-info'
   | 'family-info'
   | 'contact-info'
-  | 'professional-info';
+  | 'professional-info'
+  | 'review';
 
 export function RegistrationForm({ profile }: { profile: FullProfile }) {
   if (!profile) return null;
@@ -57,6 +59,7 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
     'family-info',
     'contact-info',
     'professional-info',
+    'review',
   ];
 
   const { currentTab, handleTabChange: setCurrentTab } = useTabs<RegistrationStep>(
@@ -216,35 +219,27 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
       />
     ),
     'basic-info': (
-      <BasicInfoForm
-        profile={profile}
-        onSave={() => handleNext()}
-        onPrevious={handlePrevious}
-      />
+      <BasicInfoForm profile={profile} onSave={handleNext} onPrevious={handlePrevious} />
     ),
     'family-info': (
-      <FamilyInfoForm
-        profile={profile}
-        onSave={() => {}}
-        onNext={handleNext}
-        onPrevious={handlePrevious}
-      />
+      <FamilyInfoForm profile={profile} onSave={handleNext} onPrevious={handlePrevious} />
     ),
     'contact-info': (
       <ContactInfoForm
         profile={profile}
-        onSave={() => {}}
-        onNext={handleNext}
+        onSave={handleNext}
         onPrevious={handlePrevious}
       />
     ),
     'professional-info': (
       <ProfessionalInfoForm
         profile={profile}
-        onSave={() => {}}
-        onNext={handleNext}
+        onSave={handleNext}
         onPrevious={handlePrevious}
       />
+    ),
+    review: (
+      <ReviewFields profile={profile} onNext={handleNext} onPrevious={handlePrevious} />
     ),
   };
 

@@ -279,8 +279,12 @@ export function FamilyInfoForm({
             </Button>
           )}
 
-          <Button type="submit" disabled={isLoading} rightIcon={<ArrowRight className="size-icon" />}>
-            Enregistrer et continuer
+          <Button
+            type="submit"
+            disabled={isLoading}
+            rightIcon={<ArrowRight className="size-icon" />}
+          >
+            {form.formState.isDirty ? 'Enregistrer et continuer' : 'Continuer'}
           </Button>
         </div>
       </form>

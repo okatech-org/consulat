@@ -528,6 +528,7 @@ export default {
     options: {
       employee: 'Salarié',
       entrepreneur: 'Entrepreneur',
+      self_employed: 'Auto-entrepreneur',
       unemployed: 'Sans emploi',
       retired: 'Retraité',
       student: 'Étudiant',
@@ -954,6 +955,10 @@ export default {
       },
       objectPosition: { label: 'Position image' },
     },
+  },
+  success: {
+    title: 'Succès',
+    description: "L'opération a été réalisée avec succès.",
   },
   actions: {
     save: 'Sauvegarder',
