@@ -3,12 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
-import type {
-  BasicInfoFormData,
-  ContactInfoFormData,
-  FamilyInfoFormData,
-  ProfessionalInfoFormData,
-} from '@/schemas/registration';
 import {
   type DocumentUploadItem,
   DocumentUploadSection,
@@ -74,12 +68,7 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
   const totalSteps = orderedSteps.length;
 
   // Gestionnaire d'analyse des documents
-  const handleDocumentsAnalysis = async (data: {
-    basicInfo?: Partial<BasicInfoFormData>;
-    contactInfo?: Partial<ContactInfoFormData>;
-    familyInfo?: Partial<FamilyInfoFormData>;
-    professionalInfo?: Partial<ProfessionalInfoFormData>;
-  }) => {
+  const handleDocumentsAnalysis = async () => {
     try {
       toast.success(t('profile.analysis.success.title'), {
         description: (
@@ -229,8 +218,7 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
     'basic-info': (
       <BasicInfoForm
         profile={profile}
-        onSave={() => {}}
-        onNext={handleNext}
+        onSave={() => handleNext()}
         onPrevious={handlePrevious}
       />
     ),

@@ -257,7 +257,11 @@ export function ProfessionalInfoForm({
             </Button>
           )}
 
-          <Button type="submit" disabled={isLoading} rightIcon={<ArrowRight className="size-icon" />}>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            rightIcon={<ArrowRight className="size-icon" />}
+          >
             Enregistrer et continuer
           </Button>
         </div>

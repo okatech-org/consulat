@@ -21,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { CountrySelect } from '@/components/ui/country-select';
 import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
-import { capitalize } from '@/lib/utils';
+import { capitalize, filterUneditedKeys } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { FullProfile } from '@/types/convex-profile';
 import { useMutation } from 'convex/react';
@@ -34,7 +34,6 @@ type BasicInfoFormProps = {
   profile: FullProfile;
   onSave: () => void;
   banner?: React.ReactNode;
-  onNext: () => void;
   onPrevious: () => void;
 };
 
@@ -42,7 +41,6 @@ export function BasicInfoForm({
   profile,
   onSave,
   banner,
-  onNext,
   onPrevious,
 }: Readonly<BasicInfoFormProps>) {
   if (!profile) return null;
@@ -79,13 +77,18 @@ export function BasicInfoForm({
       gender: profile.personal?.gender ?? Gender.Male,
       acquisitionMode: profile.personal?.acquisitionMode ?? NationalityAcquisition.Birth,
       identityPicture: profile.identityPicture
-        ? { ...profile.identityPicture, id: profile.identityPicture._id }
+        ? { ...profile.identityPicture }
         : undefined,
     },
     reValidateMode: 'onBlur',
   });
 
   const handleSubmit = async (data: BasicInfoFormData) => {
+    // Identity picture is handled separately in UserDocument component
+    delete data.identityPicture;
+
+    filterUneditedKeys(data, form.formState.dirtyFields);
+
     setIsLoading(true);
     try {
       await updatePersonalInfo({
@@ -494,7 +497,7 @@ export function BasicInfoForm({
           </Button>
 
           <Button type="submit" rightIcon={<ArrowRight className="size-icon" />}>
-            Enregistrer et continuer
+            {form.formState.isDirty ? 'Enregistrer et continuer' : 'Continuer'}
           </Button>
         </div>
       </form>
