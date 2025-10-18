@@ -23,30 +23,6 @@ type DocumentWithUrl = Omit<Doc<'documents'>, 'fileUrl'> & {
   fileUrl?: string | null;
 };
 
-const getDocumentTypeKey = (type: string): string => {
-  const mapping: Record<string, string> = {
-    [DocumentType.Passport]: 'passport',
-    [DocumentType.IdentityCard]: 'identity_card',
-    [DocumentType.BirthCertificate]: 'birth_certificate',
-    [DocumentType.ResidencePermit]: 'residence_permit',
-    [DocumentType.ProofOfAddress]: 'proof_of_address',
-    [DocumentType.MarriageCertificate]: 'marriage_certificate',
-    [DocumentType.DeathCertificate]: 'death_certificate',
-    [DocumentType.DivorceDecree]: 'divorce_decree',
-    [DocumentType.NationalityCertificate]: 'nationality_certificate',
-    [DocumentType.VisaPages]: 'visa_pages',
-    [DocumentType.EmploymentProof]: 'employment_proof',
-    [DocumentType.NaturalizationDecree]: 'naturalization_decree',
-    [DocumentType.IdentityPhoto]: 'identity_photo',
-    [DocumentType.ConsularCard]: 'consular_card',
-    [DocumentType.DriverLicense]: 'driver_license',
-    [DocumentType.Photo]: 'photo',
-    [DocumentType.FamilyBook]: 'family_book',
-    [DocumentType.Other]: 'other',
-  };
-  return mapping[type] || 'other';
-};
-
 const getDocumentIcon = (type: string, fileType: string) => {
   if (fileType.startsWith('image/')) {
     return <Image className="h-4 w-4" />;
@@ -129,7 +105,7 @@ export function DocumentsListClient() {
               <SelectItem value="all">Tous les documents</SelectItem>
               {Object.values(DocumentType).map((type) => (
                 <SelectItem key={type} value={type}>
-                  {t(getDocumentTypeKey(type) as any)}
+                  {t(type as any)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -178,9 +154,7 @@ export function DocumentsListClient() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       {getDocumentIcon(doc.type, doc.fileType)}
-                      <span className="font-medium text-sm">
-                        {t(getDocumentTypeKey(doc.type) as any)}
-                      </span>
+                      <span className="font-medium text-sm">{t(doc.type as any)}</span>
                     </div>
                     <Badge variant={getStatusColor(doc.status)}>
                       {doc.status === DocumentStatus.Validated
