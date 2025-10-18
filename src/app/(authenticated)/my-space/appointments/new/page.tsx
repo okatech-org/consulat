@@ -1,61 +1,68 @@
-import { getCurrentUser } from '@/lib/auth/utils';
-import { getOrganizationByCountry } from '@/actions/organizations';
+'use client';
+
 import { ROUTES } from '@/schemas/routes';
-import { redirect } from 'next/navigation';
 import { NewAppointmentForm } from '@/components/appointments/new-appointment-form';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { getServiceRequest, getServiceRequestsByUser } from '@/actions/service-requests';
-import type { FullServiceRequest } from '@/types/service-request';
 import { PageContainer } from '@/components/layouts/page-container';
-import { getTranslations } from 'next-intl/server';
-import { AppointmentType } from '@prisma/client';
+import { useTranslations } from 'next-intl';
+import { AppointmentType } from '@/convex/lib/constants';
+import { useQuery } from 'convex/react';
+import { api } from 'convex/_generated/api';
+import { useSearchParams } from 'next/navigation';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import type { Id } from 'convex/_generated/dataModel';
 
-interface NewAppointmentPageProps {
-  searchParams: {
-    serviceRequestId?: string;
-    type?: AppointmentType;
-    serviceId?: string;
-  };
-}
+export default function NewAppointmentPage() {
+  const searchParams = useSearchParams();
+  const requestId = searchParams.get('serviceRequestId') as Id<'requests'> | null;
+  const appointmentType = searchParams.get('type') as AppointmentType | null;
 
-export default async function NewAppointmentPage({
-  searchParams,
-}: NewAppointmentPageProps) {
-  const awaitedSearchParams = await searchParams;
-  const user = await getCurrentUser();
-  const t = await getTranslations('appointments');
+  const { user } = useCurrentUser();
+  const t = useTranslations('appointments');
 
-  if (!user) {
-    redirect(ROUTES.auth.login);
+  // Get user requests
+  const userRequests = useQuery(
+    api.functions.request.getAllRequests,
+    user?._id ? { requesterId: user._id } : 'skip',
+  );
+
+  // Get specific request if provided
+  const specificRequest = useQuery(
+    api.functions.request.getRequest,
+    requestId ? { requestId } : 'skip',
+  );
+
+  // Get organization by country
+  const organizations = useQuery(
+    api.functions.organization.getAllOrganizations,
+    user?.countryCode ? { status: 'active' } : 'skip',
+  );
+
+  const organization = organizations?.find((org) =>
+    org.countryIds?.includes(user?.countryCode || ''),
+  );
+
+  const isLoading = userRequests === undefined || (requestId && specificRequest === undefined) || organizations === undefined;
+
+  if (isLoading) {
+    return (
+      <PageContainer
+        title={t('new.title')}
+        description={t('new.description')}
+      >
+        <LoadingSkeleton variant="form" />
+      </PageContainer>
+    );
   }
 
-  // Récupérer les informations pré-remplies si disponibles
-  let preselectedData:
-    | {
-        request?: FullServiceRequest;
-        type?: AppointmentType;
-        duration?: number;
+  const preselectedData = specificRequest
+    ? {
+        request: specificRequest,
+        type: appointmentType || AppointmentType.DocumentSubmission,
       }
-    | undefined;
-
-  // Support both serviceRequestId and requestId parameters
-  const requestId = awaitedSearchParams.serviceRequestId;
-
-  if (requestId) {
-    const request = await getServiceRequest(requestId);
-    if (request) {
-      preselectedData = {
-        request,
-        type: awaitedSearchParams.type || AppointmentType.DOCUMENT_SUBMISSION,
-      };
-    }
-  }
-
-  const [serviceRequests, organization] = await Promise.all([
-    getServiceRequestsByUser(user.id) as Promise<FullServiceRequest[]>,
-    getOrganizationByCountry(user.countryCode ?? ''),
-  ]);
+    : undefined;
 
   return (
     <PageContainer
@@ -78,12 +85,12 @@ export default async function NewAppointmentPage({
         </h1>
       )}
 
-      {organization && (
+      {organization && user && (
         <NewAppointmentForm
-          serviceRequests={serviceRequests}
-          countryCode={user.countryCode ?? ''}
-          organizationId={organization.id}
-          attendeeId={user.id}
+          serviceRequests={userRequests || []}
+          countryCode={user.countryCode || ''}
+          organizationId={organization._id}
+          attendeeId={user._id}
           preselectedData={preselectedData}
         />
       )}

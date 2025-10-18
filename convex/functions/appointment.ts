@@ -279,10 +279,21 @@ export const getAppointmentAvailability = query({
 
     const workingHours = { start: 9, end: 17 };
     const availableSlots = [];
+    const now = Date.now();
+
+    // Check if the selected date is today
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const isToday = startOfDay.getTime() === todayStart.getTime();
 
     for (let hour = workingHours.start; hour < workingHours.end; hour += 0.5) {
       const slotStart = startOfDay.getTime() + hour * 60 * 60 * 1000;
       const slotEnd = slotStart + args.duration * 60 * 1000;
+
+      // Skip slots in the past ONLY if this is today
+      if (isToday && slotStart <= now) {
+        continue;
+      }
 
       const hasConflict = existingAppointments.some(
         (apt) =>
@@ -532,7 +543,7 @@ export const rescheduleAppointment = mutation({
     appointmentId: v.id('appointments'),
     newStartAt: v.number(),
     newEndAt: v.number(),
-    newTimezone: v.optional(v.string()),
+    timezone: v.optional(v.string()),
   },
   returns: v.id('appointments'),
   handler: async (ctx, args) => {
@@ -552,7 +563,7 @@ export const rescheduleAppointment = mutation({
     await ctx.db.patch(args.appointmentId, {
       startAt: args.newStartAt,
       endAt: args.newEndAt,
-      timezone: args.newTimezone || appointment.timezone,
+      timezone: args.timezone || appointment.timezone,
       status: AppointmentStatus.Scheduled,
     });
 

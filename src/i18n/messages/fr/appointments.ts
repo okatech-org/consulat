@@ -73,12 +73,12 @@ export default {
     label: 'Type de rendez-vous',
     placeholder: 'Sélectionnez un type',
     options: {
-      DOCUMENT_SUBMISSION: 'Dépôt de documents',
-      DOCUMENT_COLLECTION: 'Retrait de documents',
-      INTERVIEW: 'Entretien',
-      MARRIAGE_CEREMONY: 'Cérémonie de mariage',
-      EMERGENCY: 'Urgence',
-      OTHER: 'Autre',
+      document_submission: 'Dépôt de documents',
+      document_collection: 'Retrait de documents',
+      interview: 'Entretien',
+      marriage_ceremony: 'Cérémonie de mariage',
+      emergency: 'Urgence',
+      other: 'Autre',
     },
   },
   datetime: {

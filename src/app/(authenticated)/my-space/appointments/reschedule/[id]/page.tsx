@@ -8,14 +8,23 @@ import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
 import { RescheduleAppointmentForm } from '@/components/appointments/reschedule-appointment-form';
 import { ErrorCard } from '@/components/ui/error-card';
-import { useAppointment } from '@/hooks/use-appointments';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { useQuery } from 'convex/react';
+import { api } from 'convex/_generated/api';
+import type { Id } from 'convex/_generated/dataModel';
 
 export default function RescheduleAppointmentPage() {
   const params = useParams<{ id: string }>();
   const t = useTranslations('appointments');
 
-  const { appointment, isLoading, error } = useAppointment(params.id);
+  const appointmentId = params.id as Id<'appointments'>;
+
+  const appointment = useQuery(
+    api.functions.appointment.getAppointment,
+    appointmentId ? { appointmentId } : 'skip',
+  );
+
+  const isLoading = appointment === undefined;
 
   return (
     <PageContainer
@@ -32,13 +41,12 @@ export default function RescheduleAppointmentPage() {
       }
     >
       {isLoading && <LoadingSkeleton variant="grid" />}
-      {(!appointment && !isLoading) ||
-        (error && (
-          <ErrorCard
-            title={t('reschedule.error.not_found')}
-            description={t('reschedule.error.not_found_description')}
-          />
-        ))}
+      {!appointment && !isLoading && (
+        <ErrorCard
+          title={t('reschedule.error.not_found')}
+          description={t('reschedule.error.not_found_description')}
+        />
+      )}
       {appointment && !isLoading && (
         <RescheduleAppointmentForm appointment={appointment} />
       )}

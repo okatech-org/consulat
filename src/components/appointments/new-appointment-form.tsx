@@ -3,7 +3,7 @@
 import { useLayoutEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AppointmentType, AppointmentStatus } from '@prisma/client';
+import { AppointmentType } from '@/convex/lib/constants';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,16 +14,37 @@ import {
   FormLabel,
   TradFormMessage,
 } from '@/components/ui/form';
-import { AppointmentSchema, type AppointmentInput } from '@/schemas/appointment';
 import { cn, useDateLocale } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
 import { DatePicker } from '../ui/date-picker';
-import type { FullServiceRequest } from '@/types/service-request';
 import CardContainer from '../layouts/card-container';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { useAppointments, useAvailableTimeSlots } from '@/hooks/use-appointments';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from 'convex/_generated/api';
+import type { Doc, Id } from 'convex/_generated/dataModel';
+import { z } from 'zod';
+import { toast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { ROUTES } from '@/schemas/routes';
+
+// Convex-based appointment schema
+const AppointmentSchema = z.object({
+  date: z.date(),
+  startTime: z.date(),
+  endTime: z.date(),
+  duration: z.number(),
+  type: z.string(),
+  organizationId: z.string(),
+  serviceId: z.string().optional(),
+  attendeeId: z.string(),
+  agentId: z.string().optional(),
+  countryCode: z.string(),
+  requestId: z.string().optional(),
+});
+
+type AppointmentInput = z.infer<typeof AppointmentSchema>;
 
 // Type pour les créneaux avec agents disponibles
 interface TimeSlotWithAgent {
@@ -34,11 +55,11 @@ interface TimeSlotWithAgent {
 }
 
 interface NewAppointmentFormProps {
-  serviceRequests?: FullServiceRequest[];
+  serviceRequests?: Doc<'requests'>[];
   countryCode: string;
-  organizationId: string;
-  attendeeId: string;
-  preselectedData?: { type?: AppointmentType; request?: FullServiceRequest };
+  organizationId: Id<'organizations'>;
+  attendeeId: Id<'users'>;
+  preselectedData?: { type?: AppointmentType; request?: Doc<'requests'> };
 }
 
 type Step = 'request' | 'slot' | 'confirmation';
@@ -61,95 +82,141 @@ export function NewAppointmentForm({
   const t = useTranslations('appointments');
   const t_inputs = useTranslations('inputs');
   const { formatDate } = useDateLocale();
+  const router = useRouter();
 
   const [currentTab, setCurrentTab] = useState<Step>(
-    preselectedData?.type && preselectedData.request?.id ? 'slot' : 'request',
+    preselectedData?.type && preselectedData.request?._id ? 'slot' : 'request',
   );
 
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlotWithAgent>();
-  const [selectedRequest, setSelectedRequest] = useState<FullServiceRequest>();
+  const [selectedRequest, setSelectedRequest] = useState<Doc<'requests'>>();
+  const [selectedServiceDetails, setSelectedServiceDetails] = useState<Doc<'services'>>();
   const [availableTypes, setAvailableTypes] = useState<AppointmentType[]>([]);
 
   const form = useForm<AppointmentInput>({
     resolver: zodResolver(AppointmentSchema),
     defaultValues: {
       countryCode,
-      organizationId,
+      organizationId: organizationId as string,
       date: new Date(),
-      attendeeId,
-      duration: 30, // Valeur par défaut
+      attendeeId: attendeeId as string,
+      duration: 30,
     },
   });
 
   const selectedDate = form.watch('date');
 
-  // Hooks tRPC
-  const { createAppointment } = useAppointments();
+  // Get service details for selected request
+  const serviceDetails = useQuery(
+    api.functions.service.getService,
+    selectedRequest?.serviceId ? { serviceId: selectedRequest.serviceId } : 'skip',
+  );
 
-  // Récupérer les créneaux disponibles
-  const { timeSlots: availableTimeSlots, isLoading: timeSlotsLoading } =
-    useAvailableTimeSlots({
-      serviceId: selectedRequest?.service.id || '',
-      organizationId,
-      countryCode,
-      startDate: selectedDate || new Date(),
-      endDate: selectedDate || new Date(),
-      duration: selectedRequest?.service.appointmentDuration || 30,
-      agentId: selectedRequest?.assignedTo?.id,
-    });
+  // Get available time slots
+  const availableSlots = useQuery(
+    api.functions.appointment.getAppointmentAvailability,
+    selectedServiceDetails && selectedDate
+      ? {
+          organizationId,
+          date: selectedDate.getTime(),
+          duration: selectedServiceDetails.appointmentDuration || 30,
+        }
+      : 'skip',
+  );
+
+  // Create appointment mutation
+  const createAppointment = useMutation(api.functions.appointment.createAppointment);
+
+  // Update service details when they load
+  useLayoutEffect(() => {
+    if (serviceDetails) {
+      setSelectedServiceDetails(serviceDetails);
+    }
+  }, [serviceDetails]);
 
   useLayoutEffect(() => {
     if (preselectedData?.request) {
-      form.setValue('requestId', preselectedData.request.id);
-      form.setValue('serviceId', preselectedData.request.service.id);
+      form.setValue('requestId', preselectedData.request._id as string);
+      form.setValue('serviceId', preselectedData.request.serviceId as string);
       setSelectedRequest(preselectedData.request);
-
-      if (preselectedData.request.assignedToId) {
-        form.setValue('agentId', preselectedData.request.assignedToId);
-      }
 
       if (preselectedData.type) {
         form.setValue('type', preselectedData.type);
         setAvailableTypes([preselectedData.type]);
-      } else {
+      } else if (serviceDetails) {
         const types: AppointmentType[] = [];
 
-        if (preselectedData.request.service.requiresAppointment) {
-          types.push('DOCUMENT_COLLECTION');
+        if (serviceDetails.requiresAppointment) {
+          types.push(AppointmentType.DocumentCollection);
         }
 
-        if (preselectedData.request.service.deliveryAppointment) {
-          types.push('DOCUMENT_SUBMISSION');
+        if (serviceDetails.deliveryAppointment) {
+          types.push(AppointmentType.DocumentSubmission);
         }
 
         setAvailableTypes(types);
       }
     }
-  }, [form, preselectedData]);
+  }, [form, preselectedData, serviceDetails]);
 
   const onSubmit = async (data: AppointmentInput) => {
     if (!selectedTimeSlot) return;
 
-    const appointment = {
-      ...data,
-      startTime: selectedTimeSlot.start,
-      endTime: selectedTimeSlot.end,
-      duration: selectedTimeSlot.duration,
-      status: AppointmentStatus.CONFIRMED,
-    };
+    const startTimestamp = selectedTimeSlot.start.getTime();
+    const endTimestamp = selectedTimeSlot.end.getTime();
+    const now = Date.now();
 
-    createAppointment.mutate(appointment);
+    console.log('Submitting appointment:', {
+      startTimestamp,
+      endTimestamp,
+      now,
+      startDate: new Date(startTimestamp),
+      endDate: new Date(endTimestamp),
+      isPast: startTimestamp <= now,
+    });
+
+    try {
+      await createAppointment({
+        startAt: startTimestamp,
+        endAt: endTimestamp,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        type: data.type,
+        organizationId: organizationId,
+        serviceId: data.serviceId as Id<'services'> | undefined,
+        requestId: data.requestId as Id<'requests'> | undefined,
+        participants: [
+          {
+            userId: attendeeId,
+            role: 'attendee',
+            status: 'confirmed',
+          },
+        ],
+      });
+
+      toast({
+        title: t('messages.success.create'),
+        description: t('messages.success.create_description'),
+        variant: 'success',
+      });
+
+      router.push(ROUTES.user.appointments);
+    } catch (error) {
+      toast({
+        title: t('messages.errors.create'),
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleTabChange = (value: string) => {
     const tab = value as Step;
     const currentValue = form.getValues();
 
-    // Validation before allowing tab switch
     switch (tab) {
       case 'slot':
         if (!currentValue.requestId || !currentValue.type) {
-          return; // Don't allow switching if request is not selected
+          return;
         }
         break;
       case 'confirmation':
@@ -159,7 +226,7 @@ export function NewAppointmentForm({
           !currentValue.date ||
           !currentValue.startTime
         ) {
-          return; // Don't allow switching if required fields are missing
+          return;
         }
         break;
     }
@@ -172,7 +239,7 @@ export function NewAppointmentForm({
 
     switch (tab) {
       case 'request':
-        return true; // Always accessible
+        return true;
       case 'slot':
         return !!(currentValue.requestId && currentValue.type);
       case 'confirmation':
@@ -196,32 +263,32 @@ export function NewAppointmentForm({
       case 'slot':
         return !!(currentValue.date && currentValue.startTime);
       case 'confirmation':
-        return false; // Never completed until form submission
+        return false;
       default:
         return false;
     }
   };
 
   const renderServiceInfo = () => {
-    if (!selectedRequest) return null;
+    if (!selectedServiceDetails) return null;
 
     return (
       <div className="mt-6 mx-auto rounded-lg border p-4">
-        <h3 className="font-medium">{selectedRequest.service.name}</h3>
-        {selectedRequest.service.description && (
+        <h3 className="font-medium">{selectedServiceDetails.name}</h3>
+        {selectedServiceDetails.description && (
           <p className="mt-2 text-sm text-muted-foreground">
-            {selectedRequest.service.description}
+            {selectedServiceDetails.description}
           </p>
         )}
         <div className="mt-4 flex items-center gap-2">
           <Clock className="size-4" />
           <span className="text-sm">
-            Durée : {selectedRequest.service.appointmentDuration} minutes
+            Durée : {selectedServiceDetails.appointmentDuration} minutes
           </span>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <Badge variant="outline">
-            {t_inputs(`serviceCategory.options.${selectedRequest.service.category}`)}
+            {t_inputs(`serviceCategory.options.${selectedServiceDetails.category}`)}
           </Badge>
         </div>
       </div>
@@ -229,7 +296,15 @@ export function NewAppointmentForm({
   };
 
   const renderTimeSlotPicker = () => {
-    if (!selectedRequest || !selectedDate) return null;
+    if (!selectedServiceDetails || !selectedDate) return null;
+
+    const timeSlots: TimeSlotWithAgent[] =
+      availableSlots?.map((slot) => ({
+        start: new Date(slot.startAt),
+        end: new Date(slot.endAt),
+        duration: (slot.endAt - slot.startAt) / (1000 * 60),
+        availableAgents: ['agent'],
+      })) || [];
 
     return (
       <div className="mt-6 space-y-4">
@@ -237,13 +312,13 @@ export function NewAppointmentForm({
           <h3 className="text-lg font-medium">Sélectionnez un créneau</h3>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="size-4" />
-            <span>{selectedRequest.service.appointmentDuration} min</span>
+            <span>{selectedServiceDetails.appointmentDuration} min</span>
           </div>
         </div>
 
         <div className="grid grid-cols-3 lg:grid-cols-4 gap-3">
-          {availableTimeSlots?.map((slot) => {
-            const isSelected = selectedTimeSlot?.start === slot.start;
+          {timeSlots.map((slot) => {
+            const isSelected = selectedTimeSlot?.start.getTime() === slot.start.getTime();
 
             return (
               <Button
@@ -253,15 +328,11 @@ export function NewAppointmentForm({
                 disabled={!slot.availableAgents[0]}
                 className="h-auto py-4"
                 onClick={() => {
-                  const { start, end, duration, availableAgents } = slot;
-                  const agentId = availableAgents[0];
-
-                  if (!agentId) return;
+                  const { start, end, duration } = slot;
 
                   form.setValue('startTime', start);
                   form.setValue('endTime', end);
                   form.setValue('duration', duration);
-                  form.setValue('agentId', agentId);
                   setSelectedTimeSlot(slot);
                 }}
               >
@@ -269,13 +340,12 @@ export function NewAppointmentForm({
               </Button>
             );
           })}
-          {(!availableTimeSlots || availableTimeSlots.length === 0) &&
-            !timeSlotsLoading && (
-              <div className="col-span-full text-center text-muted-foreground">
-                {t('new.no_slots_available')}
-              </div>
-            )}
-          {timeSlotsLoading && (
+          {timeSlots.length === 0 && !availableSlots && (
+            <div className="col-span-full text-center text-muted-foreground">
+              {t('new.no_slots_available')}
+            </div>
+          )}
+          {availableSlots === undefined && (
             <div className="col-span-full text-center text-muted-foreground">
               {t('new.loading')}
             </div>
@@ -289,18 +359,17 @@ export function NewAppointmentForm({
     if (!requestId) {
       setSelectedRequest(undefined);
       setAvailableTypes([]);
+      setSelectedServiceDetails(undefined);
       form.setValue('agentId', '', { shouldDirty: true });
       form.setValue('serviceId', '', { shouldDirty: true });
-
       return;
     }
 
-    // Only show eligible requests: not completed/cancelled and no appointment
-    const eligibleRequests: FullServiceRequest[] = serviceRequests.filter(
-      (req) => !['COMPLETED', 'CANCELLED'].includes(req.status),
+    const eligibleRequests = serviceRequests.filter(
+      (req) => !['completed', 'cancelled'].includes(req.status),
     );
 
-    const request = eligibleRequests.find((r) => r.id === requestId);
+    const request = eligibleRequests.find((r) => r._id === requestId);
 
     if (!request) {
       setSelectedRequest(undefined);
@@ -309,32 +378,30 @@ export function NewAppointmentForm({
     }
 
     setSelectedRequest(request);
-
-    form.setValue('serviceId', request.service.id, { shouldDirty: true });
-
-    if (request.assignedToId) {
-      form.setValue('agentId', request.assignedToId, { shouldDirty: true });
-    }
-
-    const types: AppointmentType[] = [];
-
-    if (request.service.requiresAppointment) {
-      types.push('DOCUMENT_COLLECTION');
-    }
-
-    if (request.service.deliveryAppointment) {
-      types.push('DOCUMENT_SUBMISSION');
-    }
-
-    setAvailableTypes(types);
+    form.setValue('serviceId', request.serviceId as string, { shouldDirty: true });
   }
 
-  // Only show eligible requests: not completed/cancelled and no appointment
-  const eligibleRequests: FullServiceRequest[] = serviceRequests.filter(
-    (req) => !['COMPLETED', 'CANCELLED'].includes(req.status),
+  // Update available types when service details load
+  useLayoutEffect(() => {
+    if (selectedServiceDetails && selectedRequest) {
+      const types: AppointmentType[] = [];
+
+      if (selectedServiceDetails.requiresAppointment) {
+        types.push(AppointmentType.DocumentCollection);
+      }
+
+      if (selectedServiceDetails.deliveryAppointment) {
+        types.push(AppointmentType.DocumentSubmission);
+      }
+
+      setAvailableTypes(types);
+    }
+  }, [selectedServiceDetails, selectedRequest]);
+
+  const eligibleRequests = serviceRequests.filter(
+    (req) => !['completed', 'cancelled'].includes(req.status),
   );
 
-  // Sequential navigation functions
   const handleNext = () => {
     const currentIndex = steps.indexOf(currentTab);
     const nextIndex = currentIndex + 1;
@@ -355,7 +422,6 @@ export function NewAppointmentForm({
     }
   };
 
-  // Check if next button should be enabled
   const canGoNext = (): boolean => {
     const currentValue = form.getValues();
 
@@ -365,18 +431,16 @@ export function NewAppointmentForm({
       case 'slot':
         return !!(currentValue.date && currentValue.startTime);
       case 'confirmation':
-        return false; // Last step, no next
+        return false;
       default:
         return false;
     }
   };
 
-  // Check if previous button should be shown
   const canGoPrevious = (): boolean => {
     return currentTab !== 'request';
   };
 
-  // Check if we're on the last step
   const isLastStep = (): boolean => {
     return currentTab === 'confirmation';
   };
@@ -397,20 +461,20 @@ export function NewAppointmentForm({
     );
   }
 
-  function handleTypeChange(type: AppointmentType) {
+  function handleTypeChange(type: string) {
     if (
-      type === 'DOCUMENT_COLLECTION' &&
-      selectedRequest?.service.deliveryAppointmentDuration
+      type === AppointmentType.DocumentCollection &&
+      selectedServiceDetails?.deliveryAppointmentDuration
     ) {
-      form.setValue('duration', selectedRequest.service.deliveryAppointmentDuration);
+      form.setValue('duration', selectedServiceDetails.deliveryAppointmentDuration);
       return;
     }
 
     if (
-      type === 'DOCUMENT_SUBMISSION' &&
-      selectedRequest?.service.deliveryAppointmentDuration
+      type === AppointmentType.DocumentSubmission &&
+      selectedServiceDetails?.deliveryAppointmentDuration
     ) {
-      form.setValue('duration', selectedRequest.service.deliveryAppointmentDuration);
+      form.setValue('duration', selectedServiceDetails.deliveryAppointmentDuration);
       return;
     }
 
@@ -455,7 +519,7 @@ export function NewAppointmentForm({
                   <Button
                     type="button"
                     onClick={handleNext}
-                    disabled={createAppointment.isLoading || !canGoNext()}
+                    disabled={!canGoNext()}
                     rightIcon={<ArrowRight className="h-4 w-4" />}
                   >
                     {t('actions.next')}
@@ -473,8 +537,8 @@ export function NewAppointmentForm({
                       <FormControl>
                         <MultiSelect<string>
                           options={eligibleRequests.map((request) => ({
-                            value: request.id,
-                            label: request.service.name,
+                            value: request._id as string,
+                            label: `Request ${request.number}`,
                           }))}
                           selected={field.value}
                           onChange={(value) => {
@@ -491,7 +555,7 @@ export function NewAppointmentForm({
                 />
                 {renderServiceInfo()}
 
-                {selectedRequest && (
+                {selectedRequest && selectedServiceDetails && (
                   <FormField
                     control={form.control}
                     name="type"
@@ -499,7 +563,7 @@ export function NewAppointmentForm({
                       <FormItem className="w-max">
                         <FormLabel>{t('type.label')}</FormLabel>
                         <FormControl>
-                          <MultiSelect<AppointmentType>
+                          <MultiSelect<string>
                             options={availableTypes.map((type) => ({
                               value: type,
                               label: t(`type.options.${type}`),
@@ -532,7 +596,6 @@ export function NewAppointmentForm({
                       type="button"
                       variant="outline"
                       onClick={handlePrevious}
-                      disabled={createAppointment.isLoading}
                       leftIcon={<ArrowLeft className="size-icon" />}
                     >
                       {t('actions.back')}
@@ -543,7 +606,7 @@ export function NewAppointmentForm({
                     <Button
                       type="button"
                       onClick={handleNext}
-                      disabled={createAppointment.isLoading || !canGoNext()}
+                      disabled={!canGoNext()}
                       className={!canGoPrevious() ? 'ml-auto' : ''}
                       rightIcon={<ArrowRight className="size-icon" />}
                     >
@@ -587,32 +650,25 @@ export function NewAppointmentForm({
                       type="button"
                       variant="outline"
                       onClick={handlePrevious}
-                      disabled={createAppointment.isLoading}
                       leftIcon={<ArrowLeft className="size-icon" />}
                     >
                       {t('actions.back')}
                     </Button>
                   )}
 
-                  <Button
-                    type="submit"
-                    disabled={createAppointment.isLoading}
-                    className={!canGoPrevious() ? 'ml-auto' : ''}
-                  >
-                    {createAppointment.isLoading
-                      ? t('actions.submitting')
-                      : t('actions.confirm')}
+                  <Button type="submit" className={!canGoPrevious() ? 'ml-auto' : ''}>
+                    {t('actions.confirm')}
                   </Button>
                 </div>
               }
             >
               <div className="space-y-4">
-                {selectedRequest && form.watch('date') && (
+                {selectedServiceDetails && form.watch('date') && (
                   <div className="rounded-lg border p-4">
                     <dl className="divide-y">
                       <div className="grid grid-cols-2 gap-4 py-3">
                         <dt className="font-medium">{t('confirmation.service')}</dt>
-                        <dd>{selectedRequest.service.name}</dd>
+                        <dd>{selectedServiceDetails.name}</dd>
                       </div>
                       <div className="grid grid-cols-2 gap-4 py-3">
                         <dt className="font-medium">{t('confirmation.type')}</dt>
