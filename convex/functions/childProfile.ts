@@ -309,7 +309,7 @@ export const submitChildProfileForValidation = mutation({
         activities: [
           {
             type: ActivityType.RequestSubmitted,
-            actorId: profile.authorUserId,
+            actorId: 'system',
             timestamp: now,
             data: {
               profileType: 'child',

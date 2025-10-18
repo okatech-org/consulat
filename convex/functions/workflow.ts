@@ -41,12 +41,12 @@ export const executeWorkflowStep = mutation({
   handler: async (ctx, args) => {
     const request = await ctx.db.get(args.requestId);
     if (!request) {
-      throw new Error('Request not found');
+      throw new Error('request_not_found');
     }
 
     const workflowActivity = {
       type: ActivityType.StatusChanged,
-      actorId: args.executedBy,
+      actorId: 'system' as const,
       data: {
         stepId: args.stepId,
         stepData: args.data,

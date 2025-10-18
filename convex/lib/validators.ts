@@ -423,7 +423,7 @@ export const participantValidator = v.object({
 
 export const activityValidator = v.object({
   type: activityTypeValidator,
-  actorId: v.optional(v.id('users')),
+  actorId: v.optional(v.union(v.literal('system'), v.id('memberships'))),
   data: v.optional(v.any()),
   timestamp: v.number(),
 });
@@ -431,12 +431,12 @@ export const activityValidator = v.object({
 // Validateur pour une note (aligné sur Prisma: id, type, authorId, content, serviceRequestId, createdAt)
 export const noteValidator = v.object({
   type: noteTypeValidator,
-  authorId: v.optional(v.id('users')),
+  authorId: v.optional(v.id('memberships')),
   content: v.string(),
 });
 
 export const validationValidator = v.object({
-  validatorId: v.id('users'),
+  validatorId: v.id('memberships'),
   status: validationStatusValidator,
   comments: v.optional(v.string()),
   timestamp: v.number(),

@@ -464,7 +464,17 @@ export const searchProfiles = query({
 // Nouvelle fonction pour obtenir le profil courant avec toutes les données nécessaires
 export const getCurrentProfile = query({
   handler: async (ctx) => {
-    const user = await ctx.auth.getUserIdentity();
+    const userIdentity = await ctx.auth.getUserIdentity();
+
+    if (!userIdentity) {
+      throw new Error('user_not_found');
+    }
+
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_userId', (q) => q.eq('userId', userIdentity.subject))
+      .first();
+
     if (!user) {
       throw new Error('user_not_found');
     }
@@ -472,7 +482,7 @@ export const getCurrentProfile = query({
     // Obtenir le profil par userId
     const profile = await ctx.db
       .query('profiles')
-      .withIndex('by_user', (q) => q.eq('userId', user.subject as Id<'users'>))
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
       .first();
 
     if (!profile) {
@@ -664,7 +674,7 @@ export const submitProfileForValidation = mutation({
         activities: [
           {
             type: ActivityType.RequestSubmitted,
-            actorId: profile.userId!,
+            actorId: 'system',
             timestamp: now,
             data: {
               profileType: 'adult',

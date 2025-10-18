@@ -28,7 +28,6 @@ import type * as functions_sms from "../functions/sms.js";
 import type * as functions_ticket from "../functions/ticket.js";
 import type * as functions_user from "../functions/user.js";
 import type * as functions_workflow from "../functions/workflow.js";
-import type * as helpers_migration from "../helpers/migration.js";
 import type * as helpers_relationships from "../helpers/relationships.js";
 import type * as helpers_validation from "../helpers/validation.js";
 import type * as http from "../http.js";
@@ -87,7 +86,6 @@ declare const fullApi: ApiFromModules<{
   "functions/ticket": typeof functions_ticket;
   "functions/user": typeof functions_user;
   "functions/workflow": typeof functions_workflow;
-  "helpers/migration": typeof helpers_migration;
   "helpers/relationships": typeof helpers_relationships;
   "helpers/validation": typeof helpers_validation;
   http: typeof http;

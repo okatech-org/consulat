@@ -12,15 +12,9 @@ import { buttonVariants } from '@/components/ui/button';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { calculateProfileCompletion } from '@/lib/utils';
 
 export default function ProfilePage() {
-  const { user } = useCurrentUser();
-  const profile = useQuery(
-    api.functions.profile.getCurrentProfile,
-    user ? { userId: user._id } : 'skip',
-  );
+  const profile = useQuery(api.functions.profile.getCurrentProfile);
 
   // Gérer le chargement
   if (profile === undefined) {

@@ -32,4 +32,5 @@ export const memberships = defineTable({
   .index('by_organization', ['organizationId'])
   .index('by_user_organization', ['userId', 'organizationId'])
   .index('by_status', ['status'])
-  .index('by_role', ['role']);
+  .index('by_role', ['role'])
+  .index('by_role_and_organization', ['role', 'organizationId']);

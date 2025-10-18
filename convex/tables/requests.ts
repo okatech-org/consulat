@@ -28,7 +28,7 @@ export const requests = defineTable({
   documentIds: v.array(v.id('documents')),
 
   // Assignation
-  assignedToId: v.optional(v.id('users')),
+  assignedAgentId: v.optional(v.id('memberships')),
 
   config: v.optional(
     v.object({
@@ -71,7 +71,7 @@ export const requests = defineTable({
   .index('by_requester', ['requesterId'])
   .index('by_status', ['status'])
   .index('by_priority_status', ['priority', 'status'])
-  .index('by_assigned', ['assignedToId'])
+  .index('by_assigned', ['assignedAgentId'])
   .index('by_requester_status', ['requesterId', 'status'])
   .index('by_service_status', ['serviceId', 'status'])
-  .index('by_assigned_status', ['assignedToId', 'status']);
+  .index('by_assigned_status', ['assignedAgentId', 'status']);

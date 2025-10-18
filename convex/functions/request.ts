@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { mutation } from '../_generated/server';
 import { validateRequest } from '../helpers/validation';
-import { ActivityType, RequestPriority, RequestStatus } from '../lib/constants';
+import { ActivityType, RequestPriority, RequestStatus, UserRole } from '../lib/constants';
 import { Doc } from '../_generated/dataModel';
 import { query } from '../_generated/server';
 import { requestStatusValidator, requestPriorityValidator } from '../lib/validators';
@@ -42,7 +42,7 @@ export const createRequest = mutation({
       priority: args.priority || RequestPriority.Normal,
       formData: args.formData,
       documentIds: args.documentIds || [],
-      assignedToId: undefined,
+      assignedAgentId: undefined,
       notes: [],
       metadata: {
         submittedAt: undefined,
@@ -126,7 +126,7 @@ export const getAllRequests = query({
   args: {
     status: v.optional(requestStatusValidator),
     requesterId: v.optional(v.id('users')),
-    assignedToId: v.optional(v.id('users')),
+    assignedAgentId: v.optional(v.id('memberships')),
     serviceId: v.optional(v.id('services')),
     priority: v.optional(requestPriorityValidator),
     limit: v.optional(v.number()),
@@ -140,10 +140,10 @@ export const getAllRequests = query({
         .withIndex('by_requester', (q) => q.eq('requesterId', args.requesterId!))
         .order('desc')
         .collect();
-    } else if (args.assignedToId) {
+    } else if (args.assignedAgentId) {
       requests = await ctx.db
         .query('requests')
-        .withIndex('by_assigned', (q) => q.eq('assignedToId', args.assignedToId))
+        .withIndex('by_assigned', (q) => q.eq('assignedAgentId', args.assignedAgentId!))
         .order('desc')
         .collect();
     } else if (args.serviceId) {
@@ -186,11 +186,11 @@ export const getRequestsByRequester = query({
 });
 
 export const getRequestsByAssignee = query({
-  args: { assignedToId: v.id('users') },
+  args: { assignedAgentId: v.id('memberships') },
   handler: async (ctx, args) => {
     return await ctx.db
       .query('requests')
-      .withIndex('by_assigned', (q) => q.eq('assignedToId', args.assignedToId))
+      .withIndex('by_assigned', (q) => q.eq('assignedAgentId', args.assignedAgentId))
       .order('desc')
       .collect();
   },
@@ -271,7 +271,7 @@ export const updateRequest = mutation({
     priority: v.optional(requestPriorityValidator),
     formData: v.optional(v.record(v.string(), v.any())),
     documentIds: v.optional(v.array(v.id('documents'))),
-    assignedToId: v.optional(v.id('users')),
+    assignedAgentId: v.optional(v.id('memberships')),
   },
   handler: async (ctx, args) => {
     const existingRequest = await ctx.db.get(args.requestId);
@@ -302,14 +302,14 @@ export const updateRequest = mutation({
       }),
       ...(args.formData && { formData: args.formData }),
       ...(args.documentIds && { documentIds: args.documentIds }),
-      ...(args.assignedToId && { assignedToId: args.assignedToId }),
+      ...(args.assignedAgentId && { assignedAgentId: args.assignedAgentId }),
     };
 
     const now = Date.now();
     let metadataChanged = false;
     const newMetadata = { ...existingRequest.metadata };
 
-    if (args.assignedToId) {
+    if (args.assignedAgentId) {
       newMetadata.assignedAt = now;
       metadataChanged = true;
     }
@@ -320,7 +320,7 @@ export const updateRequest = mutation({
         ...existingRequest.metadata.activities,
         {
           type: ActivityType.StatusChanged,
-          actorId: args.assignedToId || existingRequest.requesterId,
+          actorId: args.assignedAgentId || existingRequest.assignedAgentId,
           data: {
             from: existingRequest.status,
             to: args.status,
@@ -360,7 +360,7 @@ export const submitRequest = mutation({
           ...request.metadata.activities,
           {
             type: ActivityType.RequestSubmitted,
-            actorId: request.requesterId,
+            actorId: request.assignedAgentId,
             data: {},
             timestamp: Date.now(),
           },
@@ -375,8 +375,8 @@ export const submitRequest = mutation({
 export const assignRequest = mutation({
   args: {
     requestId: v.id('requests'),
-    assignedToId: v.id('users'),
-    assignedById: v.id('users'),
+    assignedAgentId: v.id('memberships'),
+    assignedById: v.id('memberships'),
   },
   handler: async (ctx, args) => {
     const request = await ctx.db.get(args.requestId);
@@ -385,7 +385,7 @@ export const assignRequest = mutation({
     }
 
     await ctx.db.patch(args.requestId, {
-      assignedToId: args.assignedToId,
+      assignedAgentId: args.assignedAgentId,
       metadata: {
         ...request.metadata,
         assignedAt: Date.now(),
@@ -394,7 +394,7 @@ export const assignRequest = mutation({
           {
             type: ActivityType.RequestAssigned,
             actorId: args.assignedById,
-            data: { assignedToId: args.assignedToId },
+            data: { assignedAgentId: args.assignedAgentId },
             timestamp: Date.now(),
           },
         ],
@@ -405,10 +405,66 @@ export const assignRequest = mutation({
   },
 });
 
+export const autoAssignRequestToAgent = mutation({
+  args: {
+    requestId: v.id('requests'),
+    serviceId: v.id('services'),
+    organizationId: v.id('organizations'),
+    countryCode: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const request = await ctx.db.get(args.requestId);
+
+    if (!request) {
+      throw new Error('Request not found');
+    }
+
+    const agents = await ctx.db
+      .query('memberships')
+      .withIndex('by_role_and_organization', (q) =>
+        q.eq('role', UserRole.Agent).eq('organizationId', args.organizationId),
+      )
+      .filter((q) => q.eq(q.field('assignedServices'), [args.serviceId]))
+      .collect();
+
+    if (agents.length === 0) {
+      console.error(
+        'Could not find any agents for organization to auto-assign request',
+        args.requestId,
+      );
+      return;
+    }
+
+    const agentWithActiveRequestsCount = await Promise.all(
+      agents.map(async (agent) => {
+        const activeRequestsCount = await ctx.db
+          .query('requests')
+          .withIndex('by_assigned', (q) => q.eq('assignedAgentId', agent._id))
+          .filter((q) => q.not(q.eq(q.field('status'), RequestStatus.Completed)))
+          .filter((q) => q.not(q.eq(q.field('status'), RequestStatus.Rejected)))
+          .filter((q) => q.not(q.eq(q.field('status'), RequestStatus.Cancelled)))
+          .collect();
+        return {
+          ...agent,
+          activeRequestsCount: activeRequestsCount.length,
+        };
+      }),
+    );
+
+    const bestAgent = agentWithActiveRequestsCount.sort((a, b) => {
+      return b.activeRequestsCount - a.activeRequestsCount;
+    })[0];
+
+    await ctx.db.patch(args.requestId, {
+      assignedAgentId: bestAgent._id,
+    });
+  },
+});
+
 export const completeRequest = mutation({
   args: {
     requestId: v.id('requests'),
-    completedById: v.id('users'),
+    completedById: v.id('memberships'),
   },
   handler: async (ctx, args) => {
     const request = await ctx.db.get(args.requestId);
@@ -441,7 +497,7 @@ export const addRequestDocument = mutation({
   args: {
     requestId: v.id('requests'),
     documentId: v.id('documents'),
-    addedById: v.id('users'),
+    addedById: v.id('memberships'),
   },
   handler: async (ctx, args) => {
     const request = await ctx.db.get(args.requestId);
@@ -480,7 +536,7 @@ export const addRequestNote = mutation({
       type: v.union(v.literal('internal'), v.literal('feedback')),
       content: v.string(),
     }),
-    addedById: v.id('users'),
+    addedById: v.id('memberships'),
   },
   handler: async (ctx, args) => {
     const request = await ctx.db.get(args.requestId);

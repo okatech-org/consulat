@@ -895,20 +895,20 @@ export const importUserWithData = mutation({
       for (const req of filteredRequests) {
         try {
           const serviceId = await findConvexServiceByLegacyId(ctx, req.serviceId);
-          const assignedToId = await findConvexUserByLegacyId(
+          const assignedAgentId = await findConvexMembershipByLegacyId(
             ctx,
             req.assignedToId ?? '',
           );
           const activities = await Promise.all(
             req.actions
               .map(async (a: RequestAction) => {
-                const actorId = await findConvexUserByLegacyId(ctx, a.userId);
+                const actorId = await findConvexMembershipByLegacyId(ctx, a.userId);
                 if (!actorId) {
                   console.warn(`Utilisateur ${a.userId} introuvable`);
                   return undefined;
                 }
                 return {
-                  actorId: actorId ?? ('' as Id<'users'>),
+                  actorId: actorId ?? 'system',
                   data: a.data,
                   type: mapRequestActionType[a.type] || ActivityType.StatusChanged,
                   timestamp: new Date(a.createdAt).getTime(),
@@ -942,7 +942,7 @@ export const importUserWithData = mutation({
                 content: n.content || '',
                 serviceRequestId: undefined,
               })),
-              assignedToId: assignedToId ?? undefined,
+              assignedAgentId: assignedAgentId ?? undefined,
               metadata: {
                 submittedAt: req.submittedAt
                   ? new Date(req.submittedAt).getTime()
@@ -1313,7 +1313,10 @@ export const importParentalAuthority = mutation({
     ) {
       const serviceId = await findConvexServiceByLegacyId(ctx, args.request.serviceId);
       const requesterId = await findConvexUserByLegacyId(ctx, args.request.submittedById);
-      const assignedToId = await findConvexUserByLegacyId(ctx, args.request.assignedToId);
+      const assignedAgentId = await findConvexMembershipByLegacyId(
+        ctx,
+        args.request.assignedToId,
+      );
 
       if (args.request && serviceId && requesterId) {
         const activities = await Promise.all(
@@ -1352,7 +1355,7 @@ export const importParentalAuthority = mutation({
             content: n.content || '',
             serviceRequestId: undefined,
           })),
-          assignedToId: assignedToId ?? undefined,
+          assignedAgentId: assignedAgentId ?? undefined,
           metadata: {
             submittedAt: args.request.submittedAt
               ? new Date(args.request.submittedAt).getTime()
@@ -1609,6 +1612,23 @@ async function findConvexUserByLegacyId(
     .filter((q) => q.eq(q.field('legacyId'), legacyId))
     .first();
   return user?._id;
+}
+
+async function findConvexMembershipByLegacyId(
+  ctx: MutationCtx,
+  legacyId: string,
+): Promise<Id<'memberships'> | undefined> {
+  const userId = await findConvexUserByLegacyId(ctx, legacyId);
+  if (!userId) {
+    return undefined;
+  }
+
+  const membership = await ctx.db
+    .query('memberships')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .first();
+
+  return membership?._id;
 }
 
 async function getUserByLegacyId(ctx: MutationCtx, legacyId: string) {

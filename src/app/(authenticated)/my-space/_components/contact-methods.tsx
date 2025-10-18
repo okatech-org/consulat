@@ -10,7 +10,6 @@ import { ChatToggle } from '@/components/chat/chat-toggle';
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useCurrentUser } from '@/hooks/use-current-user';
 
 type WeekDay =
   | 'monday'
@@ -23,13 +22,13 @@ type WeekDay =
 
 export function ContactMethods() {
   const t = useTranslations('dashboard.contact');
-  const { user } = useCurrentUser();
-  const contactData = useQuery(
-    api.functions.organization.getOrganizationByCode,
-    user?.countryCode ? { code: user.countryCode } : 'skip',
+  const profile = useQuery(api.functions.profile.getCurrentProfile);
+  const organization = useQuery(
+    api.functions.organization.getOrganizationsByCountry,
+    profile?.residenceCountry ? { countryCode: profile.residenceCountry } : 'skip',
   );
 
-  if (contactData === null) {
+  if (organization === null) {
     return (
       <div className="space-y-6">
         <CardContainer
@@ -84,7 +83,7 @@ export function ContactMethods() {
     );
   }
 
-  if (contactData === undefined) {
+  if (organization === undefined) {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
@@ -93,6 +92,10 @@ export function ContactMethods() {
       </div>
     );
   }
+
+  const contactData = organization?.[0]?.settings.find(
+    (setting) => setting.countryCode === profile?.residenceCountry,
+  );
 
   // Formatage des horaires
   const formatSchedule = () => {
@@ -108,7 +111,7 @@ export function ContactMethods() {
       'sunday',
     ];
     const openDays = days.filter((day) => {
-      const daySchedule = contactData.schedule[day];
+      const daySchedule = contactData.schedule?.[day];
       return daySchedule?.isOpen;
     });
 
@@ -141,7 +144,7 @@ export function ContactMethods() {
       .map((group) => {
         const firstDay = group[0];
         const lastDay = group[group.length - 1];
-        const daySchedule = contactData.schedule[firstDay!];
+        const daySchedule = contactData.schedule?.[firstDay!];
 
         if (!daySchedule || !firstDay || !lastDay) return '';
 
@@ -198,8 +201,8 @@ export function ContactMethods() {
   const formatAddress = () => {
     if (!contactData?.contact?.address) return t('info.address_unavailable');
 
-    const { firstLine, city, zipCode, country } = contactData.contact.address;
-    return `${firstLine}\n${zipCode} ${city}, ${country}`;
+    const { street, city, postalCode, country } = contactData.contact.address;
+    return `${street}\n${postalCode} ${city}, ${country}`;
   };
 
   return (
