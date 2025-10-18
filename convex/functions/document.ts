@@ -599,10 +599,6 @@ export const getUserDocuments = query({
 
 export const getUserDocumentsPaginated = query({
   args: {
-    paginationOpts: v.object({
-      numItems: v.number(),
-      cursor: v.union(v.string(), v.null()),
-    }),
     type: v.optional(documentTypeValidator),
     status: v.optional(documentStatusValidator),
   },
@@ -612,16 +608,16 @@ export const getUserDocumentsPaginated = query({
       throw new Error('Unauthorized');
     }
 
-    const query = ctx.db
+    // Récupérer tous les documents de l'utilisateur actuel
+    const documents = await ctx.db
       .query('documents')
       .withIndex('by_owner', (q) =>
         q.eq('ownerId', identity.subject as Id<'users'>).eq('ownerType', OwnerType.User),
       )
-      .order('desc');
+      .order('desc')
+      .collect();
 
-    const results = await query.paginate(args.paginationOpts);
-
-    let filteredDocuments = results.page;
+    let filteredDocuments = documents;
 
     // Filtrer par type et statut si spécifié
     if (args.type) {
@@ -640,11 +636,7 @@ export const getUserDocumentsPaginated = query({
       })),
     );
 
-    return {
-      page: documentsWithUrls,
-      continueCursor: results.continueCursor,
-      isDone: results.isDone,
-    };
+    return documentsWithUrls;
   },
 });
 

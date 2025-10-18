@@ -12,8 +12,8 @@ import {
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
-import { Eye, Download, FileText, Image, File, Loader2 } from 'lucide-react';
-import { usePaginatedQuery } from 'convex/react';
+import { Eye, Download, FileText, Image, File } from 'lucide-react';
+import { useQuery } from 'convex/react';
 import { api } from 'convex/_generated/api';
 import { DocumentType, DocumentStatus } from '../../../convex/lib/constants';
 import type { Doc } from '../../../convex/_generated/dataModel';
@@ -49,20 +49,14 @@ export function DocumentsListClient() {
   const tStatus = useTranslations('documents.status');
   const [selectedType, setSelectedType] = useState<string | 'all'>('all');
 
-  // Requête paginée avec Convex
-  const { results, status, loadMore } = usePaginatedQuery(
-    api.functions.document.getUserDocumentsPaginated,
-    {
-      type: selectedType !== 'all' ? (selectedType as any) : undefined,
-      status: undefined,
-    },
-    { initialNumItems: 20 },
-  );
+  // Requête avec Convex
+  const documents = useQuery(api.functions.document.getUserDocumentsPaginated, {
+    type: selectedType !== 'all' ? (selectedType as any) : undefined,
+    status: undefined,
+  });
 
-  // Utiliser directement les résultats de Convex
-  const documents = results;
-  const totalCount = documents.length;
-  const isLoading = status === 'LoadingFirstPage';
+  const isLoading = documents === undefined;
+  const totalCount = documents?.length ?? 0;
 
   const handleDownload = async (url: string, filename: string) => {
     try {
@@ -117,7 +111,7 @@ export function DocumentsListClient() {
       </div>
 
       {/* Liste des documents */}
-      {documents.length === 0 ? (
+      {!documents || documents.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
@@ -208,21 +202,6 @@ export function DocumentsListClient() {
               </Card>
             );
           })}
-        </div>
-      )}
-
-      {/* Bouton charger plus */}
-      {status === 'CanLoadMore' && (
-        <div className="flex justify-center">
-          <Button onClick={() => loadMore(20)} variant="outline">
-            Charger plus
-          </Button>
-        </div>
-      )}
-      {status === 'LoadingMore' && (
-        <div className="flex justify-center">
-          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          <span>Chargement...</span>
         </div>
       )}
     </div>

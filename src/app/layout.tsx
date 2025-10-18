@@ -24,7 +24,6 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import { ConvexProvider } from './convex-provider';
-import { auth } from '@clerk/nextjs/server';
 
 const localizations = {
   fr: frFR,
@@ -145,10 +144,9 @@ const geist = Geist({
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [messages, locale, authData, serverTheme, cookieStore] = await Promise.all([
+  const [messages, locale, serverTheme, cookieStore] = await Promise.all([
     getMessages(),
     getLocale(),
-    auth(),
     getServerTheme(),
     cookies(),
   ]);
@@ -161,7 +159,7 @@ export default async function RootLayout({
             <body suppressHydrationWarning>
               <ErrorBoundary>
                 <TRPCReactProvider>
-                  <AuthProvider userId={authData.userId}>
+                  <AuthProvider>
                     <SidebarProvider
                       defaultOpen={
                         cookieStore?.get('sidebar_state')?.value

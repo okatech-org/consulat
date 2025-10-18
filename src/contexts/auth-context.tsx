@@ -4,6 +4,7 @@ import { api } from 'convex/_generated/api';
 import type { Doc } from 'convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import { createContext, useContext } from 'react';
+import { useAuth as useClerkAuth } from '@clerk/nextjs';
 
 interface AuthContextValue {
   user: Doc<'users'> | undefined;
@@ -14,10 +15,10 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 interface AuthProviderProps {
   children: React.ReactNode;
-  userId: string | null;
 }
 
-export function AuthProvider({ children, userId }: AuthProviderProps) {
+export function AuthProvider({ children }: AuthProviderProps) {
+  const { userId } = useClerkAuth();
   const userData = useQuery(
     api.functions.user.getUserByClerkId,
     userId ? { clerkUserId: userId } : 'skip',
