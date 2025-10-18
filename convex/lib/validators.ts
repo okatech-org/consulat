@@ -303,13 +303,30 @@ export const parentalRoleValidator = v.union(
   v.literal(constants.ParentalRole.LegalGuardian),
 );
 
+// Validateur d'adresse classique
+export const addressValidator = v.object({
+  street: v.string(),
+  city: v.string(),
+  state: v.optional(v.string()),
+  postalCode: v.string(),
+  country: v.string(),
+  complement: v.optional(v.string()),
+  coordinates: v.optional(
+    v.object({
+      latitude: v.number(),
+      longitude: v.number(),
+    }),
+  ),
+});
+
 export const parentalAuthorityValidator = v.object({
-  userId: v.optional(v.id('users')),
+  profileId: v.optional(v.id('profiles')),
   role: parentalRoleValidator,
   firstName: v.string(),
   lastName: v.string(),
   email: v.optional(v.string()),
   phoneNumber: v.optional(v.string()),
+  address: v.optional(addressValidator),
 });
 
 export const intelligenceNoteTypeValidator = v.union(
@@ -423,22 +440,6 @@ export const validationValidator = v.object({
   status: validationStatusValidator,
   comments: v.optional(v.string()),
   timestamp: v.number(),
-});
-
-// Validateur d'adresse classique
-export const addressValidator = v.object({
-  street: v.string(),
-  city: v.string(),
-  state: v.optional(v.string()),
-  postalCode: v.string(),
-  country: v.string(),
-  complement: v.optional(v.string()),
-  coordinates: v.optional(
-    v.object({
-      latitude: v.number(),
-      longitude: v.number(),
-    }),
-  ),
 });
 
 // Validateur pour les contacts d'urgence

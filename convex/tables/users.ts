@@ -14,7 +14,6 @@ export const users = defineTable({
   status: userStatusValidator,
 
   profileId: v.optional(v.id('profiles')),
-  countryCode: v.optional(v.string()),
 
   deletedAt: v.optional(v.number()),
   lastActiveAt: v.optional(v.number()),

@@ -21,10 +21,7 @@ import { v } from 'convex/values';
 import { Id } from './_generated/dataModel';
 import { action, httpAction, mutation, query } from './_generated/server';
 import { api } from './_generated/api';
-import {
-  documentTypeValidator,
-  ownerTypeValidator,
-} from './lib/validators';
+import { documentTypeValidator, ownerTypeValidator } from './lib/validators';
 
 /**
  * UPLOAD DE FICHIERS
@@ -102,7 +99,14 @@ export const uploadAndCreateDocument = action({
     documentId: v.id('documents'),
     fileUrl: v.string(),
   }),
-  handler: async (ctx, args): Promise<{ storageId: Id<'_storage'>; documentId: Id<'documents'>; fileUrl: string }> => {
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{
+    storageId: Id<'_storage'>;
+    documentId: Id<'documents'>;
+    fileUrl: string;
+  }> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       throw new Error('Unauthorized');
@@ -118,17 +122,21 @@ export const uploadAndCreateDocument = action({
     }
 
     // Étape 3: Créer le document
-    const documentId: Id<'documents'> = await ctx.runMutation(api.functions.document.createUserDocument, {
-      type: args.documentType,
-      fileUrl,
-      fileType: args.fileType,
-      fileName: args.fileName,
-      userId: args.ownerType === 'user' ? (args.ownerId as Id<'users'>) : undefined,
-      profileId: args.ownerType === 'profile' ? (args.ownerId as Id<'profiles'>) : undefined,
-      issuedAt: args.issuedAt,
-      expiresAt: args.expiresAt,
-      metadata: args.metadata,
-    });
+    const documentId: Id<'documents'> = await ctx.runMutation(
+      api.functions.document.createUserDocument,
+      {
+        type: args.documentType,
+        fileUrl,
+        fileType: args.fileType,
+        fileName: args.fileName,
+        userId: args.ownerType === 'user' ? (args.ownerId as Id<'users'>) : undefined,
+        profileId:
+          args.ownerType === 'profile' ? (args.ownerId as Id<'profiles'>) : undefined,
+        issuedAt: args.issuedAt,
+        expiresAt: args.expiresAt,
+        metadata: args.metadata,
+      },
+    );
 
     return {
       storageId,
@@ -373,6 +381,7 @@ export const validateFileAccess = query({
         errors,
       };
     } catch (error) {
+      console.error('Error validating file access:', error);
       return {
         exists: false,
         accessible,

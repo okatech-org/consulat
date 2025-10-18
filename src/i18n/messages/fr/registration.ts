@@ -26,6 +26,10 @@ export default {
     child_link_description: "Lien avec l'enfant",
     child_family_info: 'Informations enfant',
     child_family_info_description: 'Situation familiale enfant',
+    child_parents: 'Parents',
+    child_parents_description: 'Informations sur les parents',
+    basicInfo: 'Informations personnelles',
+    basicInfo_description: 'Informations de base',
   },
   navigation: {
     previous: 'Précédent',
@@ -424,6 +428,55 @@ export default {
     other_information: 'Informations complémentaires',
     documents: 'Documents',
     basic_info: 'Informations de base',
+  },
+  child: {
+    profile: {
+      title: 'Inscription enfant',
+    },
+    parents: {
+      title: 'Informations sur les parents',
+      description:
+        "Ajoutez les informations sur les parents ou tuteurs légaux de l'enfant.",
+    },
+    review: {
+      title: 'Vérification des informations',
+      description:
+        'Veuillez vérifier toutes les informations avant de soumettre la demande.',
+      incomplete_message:
+        'Veuillez compléter toutes les informations obligatoires avant de soumettre.',
+    },
+  },
+  parents: {
+    current_parents: 'Parents déclarés',
+    no_parents_added: 'Aucun parent ajouté',
+    role: 'Rôle',
+    roles: {
+      father: 'Père',
+      mother: 'Mère',
+      legal_guardian: 'Tuteur légal',
+    },
+    search_user: 'Rechercher un utilisateur existant',
+    search_user_description:
+      'Recherchez par email ou téléphone pour ajouter un parent déjà inscrit.',
+    search_placeholder: 'Rechercher par email ou téléphone...',
+    search_min_chars: 'Tapez au moins 3 caractères',
+    no_results: 'Aucun résultat trouvé',
+    add_as_father: 'Ajouter comme père',
+    add_as_mother: 'Ajouter comme mère',
+    add_as_guardian: 'Ajouter comme tuteur',
+    add_manual: 'Ajouter un parent manuellement',
+    add_parent: 'Ajouter',
+    add_success: 'Parent ajouté',
+    add_success_description: 'Le parent a été ajouté avec succès.',
+    added_as_parent: 'a été ajouté(e) comme parent.',
+    already_added: 'Parent déjà ajouté',
+    already_added_description: 'Cette personne est déjà dans la liste des parents.',
+    remove_success: 'Parent supprimé',
+    remove_success_description: 'Le parent a été retiré de la liste.',
+    error: {
+      no_parents: 'Aucun parent',
+      no_parents_description: 'Vous devez ajouter au moins un parent avant de continuer.',
+    },
   },
   children: {
     form: {

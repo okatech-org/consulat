@@ -5,7 +5,6 @@ import {
   ServiceCategory,
   RequestStatus,
   OwnerType,
-  ServiceStatus,
   RequestPriority,
   ActivityType,
   DocumentType,
@@ -196,25 +195,18 @@ export const submitChildProfileForValidation = mutation({
   },
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.childProfileId);
+
     if (!profile) {
-      throw new Error('Child profile not found');
+      throw new Error('profile_not_found');
+    }
+
+    if (profile.residenceCountry === undefined) {
+      throw new Error('profile_not_found');
     }
 
     if (profile.status !== ProfileStatus.Draft) {
-      throw new Error('Only draft profiles can be submitted');
+      throw new Error('profile_not_draft');
     }
-
-    // Get the author user
-    const user = await ctx.db.get(profile.authorUserId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const userCountryCode = user.countryCode;
-    if (!userCountryCode) {
-      throw new Error('User country code not found');
-    }
-
     // Check if there's already a registration request
     if (profile.registrationRequest) {
       throw new Error('profile_already_has_validation_request');
@@ -278,28 +270,23 @@ export const submitChildProfileForValidation = mutation({
       throw new Error(`missing_basic_info:${missingBasicInfo.join(',')}`);
     }
 
-    // Get the registration service for the user's country
-    const service = await ctx.db
-      .query('services')
-      .filter((q) =>
-        q.and(
-          q.eq(q.field('category'), ServiceCategory.Registration),
-          q.eq(q.field('status'), ServiceStatus.Active),
-        ),
-      )
+    // Get the organization's registration service
+    const organization = await ctx.db
+      .query('organizations')
+      .withIndex('by_country', (q) => q.eq('countryIds', [profile.residenceCountry!]))
       .first();
-
-    if (!service) {
-      throw new Error('service_not_found');
-    }
-
-    // Get the organization for this service
-    const organization = service.organizationId
-      ? await ctx.db.get(service.organizationId)
-      : null;
 
     if (!organization) {
       throw new Error('organization_not_found');
+    }
+
+    const registrationService = await ctx.db
+      .query('services')
+      .withIndex('by_category', (q) => q.eq('category', ServiceCategory.Registration))
+      .first();
+
+    if (!registrationService) {
+      throw new Error('registration_service_not_found');
     }
 
     // Generate unique request number
@@ -309,7 +296,7 @@ export const submitChildProfileForValidation = mutation({
     // Create the service request
     const requestId = await ctx.db.insert('requests', {
       number: requestNumber,
-      serviceId: service._id,
+      serviceId: registrationService._id,
       profileId: args.childProfileId,
       requesterId: profile.authorUserId,
       status: RequestStatus.Submitted,

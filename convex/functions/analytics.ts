@@ -199,14 +199,6 @@ export const getUserAnalytics = query({
       });
     });
 
-    const countryAnalytics: Record<string, number> = {};
-    users.forEach((user) => {
-      if (user.countryCode) {
-        countryAnalytics[user.countryCode] =
-          (countryAnalytics[user.countryCode] || 0) + 1;
-      }
-    });
-
     return {
       totalUsers: users.length,
       usersInPeriod: usersInPeriod.length,
@@ -216,7 +208,6 @@ export const getUserAnalytics = query({
         suspended: users.filter((u) => u.status === 'suspended').length,
       },
       byRole: roleAnalytics,
-      byCountry: countryAnalytics,
       newUsersTrend: calculateNewUsersTrend(
         usersInPeriod.map((u) => ({ createdAt: u._creationTime })),
         startDate,

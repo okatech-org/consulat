@@ -7,10 +7,9 @@ import {
   RequestPriority,
   RequestStatus,
   ServiceCategory,
-  ServiceStatus,
 } from '../lib/constants';
 import type { ProfileStatus as ProfileStatusType } from '../lib/constants';
-import type { Doc } from '../_generated/dataModel';
+import type { Doc, Id } from '../_generated/dataModel';
 import {
   addressValidator,
   emergencyContactValidator,
@@ -464,12 +463,16 @@ export const searchProfiles = query({
 
 // Nouvelle fonction pour obtenir le profil courant avec toutes les données nécessaires
 export const getCurrentProfile = query({
-  args: { userId: v.id('users') },
-  handler: async (ctx, args) => {
+  handler: async (ctx) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) {
+      throw new Error('user_not_found');
+    }
+
     // Obtenir le profil par userId
     const profile = await ctx.db
       .query('profiles')
-      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .withIndex('by_user', (q) => q.eq('userId', user.subject as Id<'users'>))
       .first();
 
     if (!profile) {
@@ -516,23 +519,20 @@ export const submitProfileForValidation = mutation({
   },
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.profileId);
+
     if (!profile) {
-      throw new Error('Profile not found');
+      throw new Error('profile_not_found');
     }
 
     if (profile.status !== ProfileStatus.Draft) {
-      throw new Error('Only draft profiles can be submitted');
+      throw new Error('profile_not_draft');
     }
 
-    // Get the user who owns this profile
-    const user = profile.userId ? await ctx.db.get(profile.userId) : null;
-    if (!user) {
-      throw new Error('User not found');
-    }
+    // Get the author user
+    const user = await ctx.db.get(profile.userId);
 
-    const userCountryCode = user.countryCode;
-    if (!userCountryCode) {
-      throw new Error('User country code not found');
+    if (user) {
+      throw new Error('user_not_found');
     }
 
     // Check if there's already a registration request
@@ -625,28 +625,23 @@ export const submitProfileForValidation = mutation({
       throw new Error('missing_contact_info:emergencyContacts');
     }
 
-    // Get the registration service for the user's country
-    const service = await ctx.db
-      .query('services')
-      .filter((q) =>
-        q.and(
-          q.eq(q.field('category'), ServiceCategory.Registration),
-          q.eq(q.field('status'), ServiceStatus.Active),
-        ),
-      )
+    // Get the organization's registration service
+    const organization = await ctx.db
+      .query('organizations')
+      .withIndex('by_country', (q) => q.eq('countryIds', [profile.residenceCountry!]))
       .first();
-
-    if (!service) {
-      throw new Error('service_not_found');
-    }
-
-    // Get the organization for this service
-    const organization = service.organizationId
-      ? await ctx.db.get(service.organizationId)
-      : null;
 
     if (!organization) {
       throw new Error('organization_not_found');
+    }
+
+    const registrationService = await ctx.db
+      .query('services')
+      .withIndex('by_category', (q) => q.eq('category', ServiceCategory.Registration))
+      .first();
+
+    if (!registrationService) {
+      throw new Error('registration_service_not_found');
     }
 
     // Generate unique request number
@@ -656,7 +651,7 @@ export const submitProfileForValidation = mutation({
     // Create the service request
     const requestId = await ctx.db.insert('requests', {
       number: requestNumber,
-      serviceId: service._id,
+      serviceId: registrationService._id,
       profileId: args.profileId,
       requesterId: profile.userId!,
       status: RequestStatus.Submitted,

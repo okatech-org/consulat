@@ -668,7 +668,6 @@ export const importUserWithData = mutation({
       phoneNumber: phoneNumber || '',
       roles: [UserRole.User],
       status: UserStatus.Active,
-      countryCode: countryCode || '',
     });
     recordCount++;
 
@@ -1172,30 +1171,38 @@ export const importParentalAuthority = mutation({
   }),
   handler: async (ctx: MutationCtx, args) => {
     let importedCount = 0;
+    let authorUserId: Id<'users'> | undefined;
 
     const parentUsers = await Promise.all(
-      args.parentalAuthority.parents.map(async (parent) => {
-        const user = await getUserByLegacyId(ctx, parent.userId);
+      args.parentalAuthority.parents.map(async (parent, index) => {
+        const result = await getProfileByLegacyUserId(ctx, parent.userId);
 
-        if (!user) {
+        if (!result) {
           console.warn(`Utilisateur ${parent.userId} introuvable`);
           return undefined;
         }
 
+        const { profile, user } = result;
+
+        if (index === 0) {
+          authorUserId = user?._id;
+        }
+
         return {
-          userId: user._id,
+          profileId: profile?._id,
           role:
             parentalRoleMapping[parent.role as PrismaParentalRole] ||
             ParentalRole.LegalGuardian,
-          firstName: user.firstName || '',
-          lastName: user.lastName || '',
-          email: user.email || '',
-          phoneNumber: user.phoneNumber || '',
+          firstName: profile?.personal.firstName || '',
+          lastName: profile?.personal.lastName || '',
+          email: profile?.contacts.email || '',
+          phoneNumber: profile?.contacts.phone || '',
+          address: profile?.contacts.address || undefined,
         };
       }),
     );
 
-    if (!parentUsers.some((parent) => parent?.userId)) {
+    if (!parentUsers.some((parent) => parent?.profileId)) {
       console.warn(
         `❌ Utilisateur ${args.parentalAuthority.parents.map((parent) => parent.userId).join(', ')} introuvable`,
       );
@@ -1205,7 +1212,7 @@ export const importParentalAuthority = mutation({
     }
 
     const childProfileId = await ctx.db.insert('childProfiles', {
-      authorUserId: parentUsers[0]?.userId as Id<'users'>,
+      authorUserId: authorUserId as Id<'users'>,
       parents: parentUsers.filter((parent) => parent !== undefined),
       status:
         profileStatusMapping[
@@ -1461,7 +1468,6 @@ export const importNonUsersAccounts = mutation({
           phoneNumber: account.phoneNumber || '',
           roles: mappedRoles.length > 0 ? mappedRoles : [UserRole.Admin],
           status: UserStatus.Active,
-          countryCode: undefined,
         });
 
         importedUserIds.push(userId);
@@ -1624,4 +1630,18 @@ async function findConvexRequestByLegacyId(
     .filter((q) => q.eq(q.field('number'), number))
     .first();
   return request?._id;
+}
+
+async function getProfileByLegacyUserId(ctx: MutationCtx, userId: string) {
+  const user = await getUserByLegacyId(ctx, userId);
+  if (!user) {
+    return undefined;
+  }
+
+  const profile = await ctx.db
+    .query('profiles')
+    .withIndex('by_user', (q) => q.eq('userId', user._id))
+    .first();
+
+  return { profile, user };
 }

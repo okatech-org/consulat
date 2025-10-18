@@ -3,15 +3,12 @@ import { mutation, query, action } from '../_generated/server';
 import { api } from '../_generated/api';
 import type { Doc, Id } from '../_generated/dataModel';
 import { validateUser } from '../helpers/validation';
-import { UserRole, UserStatus, ProfileCategory, OrganizationStatus, OwnerType } from '../lib/constants';
+import { UserRole, UserStatus, OrganizationStatus, OwnerType } from '../lib/constants';
 import { countryCodeFromPhoneNumber } from '../lib/utils';
 import { getUserProfileHelper } from '../helpers/relationships';
 import { createClerkClient } from '@clerk/backend';
 import { internalMutation } from '../_generated/server';
-import {
-  userRoleValidator,
-  userStatusValidator,
-} from '../lib/validators';
+import { userRoleValidator, userStatusValidator } from '../lib/validators';
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY!,
@@ -26,7 +23,6 @@ export const createUser = mutation({
     email: v.optional(v.string()),
     phoneNumber: v.optional(v.string()),
     roles: v.optional(v.array(userRoleValidator)),
-    countryCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userData = {
@@ -50,7 +46,6 @@ export const createUser = mutation({
       phoneNumber: args.phoneNumber,
       roles: args.roles || [UserRole.User],
       status: UserStatus.Active,
-      countryCode: args.countryCode,
     });
 
     return userId;
@@ -183,7 +178,6 @@ export const updateOrCreateUser = mutation({
         roles: [UserRole.User],
         status: UserStatus.Active,
         profileId: undefined,
-        countryCode: undefined,
         lastActiveAt: Date.now(),
       });
       return newUserId;
@@ -243,7 +237,6 @@ export const handleNewUser = action({
         firstName: clerkUser.firstName || '',
         lastName: clerkUser.lastName || '',
         roles: [UserRole.User],
-        countryCode: country.code,
       });
 
       const profileId: Id<'profiles'> = await ctx.runMutation(
@@ -373,7 +366,6 @@ export const updateOrCreateUserInternal = internalMutation({
 
     const email = clerkUser.email_addresses?.[0]?.email_address;
     const phoneNumber = clerkUser.phone_numbers?.[0]?.phone_number;
-    const countryCodeData = countryCodeFromPhoneNumber(phoneNumber || '');
 
     if (existingUser) {
       // Mettre à jour l'utilisateur existant
@@ -397,7 +389,6 @@ export const updateOrCreateUserInternal = internalMutation({
         roles: [UserRole.User],
         status: UserStatus.Active,
         profileId: undefined,
-        countryCode: countryCodeData?.code,
         lastActiveAt: Date.now(),
       });
       return newUserId;
@@ -544,26 +535,27 @@ export const getUserNotifications = query({
 });
 
 export const getUserOrganizationContact = query({
-  args: { userId: v.id('users') },
+  args: { profileId: v.id('profiles') },
   handler: async (ctx, args) => {
-    const user = await ctx.db.get(args.userId);
-    if (!user?.countryCode) return null;
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) return null;
 
     // Récupérer les organisations du pays de l'utilisateur
     const organizations = await ctx.db.query('organizations').collect();
     const userOrganizations = organizations.filter((org) =>
-      org.countryIds.includes(user.countryCode!),
+      org.countryIds.includes(profile.residenceCountry!),
     );
 
     if (userOrganizations.length === 0) return null;
 
     // Prendre la première organisation active
     const primaryOrg =
-      userOrganizations.find((org) => org.status === OrganizationStatus.Active) || userOrganizations[0];
+      userOrganizations.find((org) => org.status === OrganizationStatus.Active) ||
+      userOrganizations[0];
 
     // Récupérer la configuration du pays depuis les settings de l'organisation
     const orgSettings = primaryOrg.settings?.find(
-      (s) => s.countryCode === user.countryCode,
+      (s) => s.countryCode === profile.residenceCountry,
     );
 
     return {
@@ -572,5 +564,48 @@ export const getUserOrganizationContact = query({
       schedule: orgSettings?.schedule,
       website: orgSettings?.contact?.website,
     };
+  },
+});
+
+export const searchUsersByEmailOrPhone = query({
+  args: {
+    searchTerm: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const searchTerm = args.searchTerm.toLowerCase().trim();
+
+    if (searchTerm.length < 3) {
+      return [];
+    }
+
+    // Search by email first
+    const users = await ctx.db.query('users').collect();
+
+    const filteredUsers = users.filter((user) => {
+      const email = user.email?.toLowerCase() || '';
+      const phone = user.phoneNumber?.toLowerCase() || '';
+
+      return email.includes(searchTerm) || phone.includes(searchTerm);
+    });
+
+    const limitedUsers = args.limit ? filteredUsers.slice(0, args.limit) : filteredUsers;
+
+    // Get profiles for these users
+    const usersWithProfiles = await Promise.all(
+      limitedUsers.map(async (user) => {
+        const profile = await ctx.db
+          .query('profiles')
+          .withIndex('by_user', (q) => q.eq('userId', user._id))
+          .first();
+
+        return {
+          ...user,
+          profile,
+        };
+      }),
+    );
+
+    return usersWithProfiles;
   },
 });
