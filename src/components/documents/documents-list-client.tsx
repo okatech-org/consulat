@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -9,75 +8,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
-import { Eye, Download, FileText, Image, File } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { useQuery } from 'convex/react';
 import { api } from 'convex/_generated/api';
-import { DocumentType, DocumentStatus } from '../../../convex/lib/constants';
-import type { Doc } from '../../../convex/_generated/dataModel';
+import { DocumentType } from '../../../convex/lib/constants';
 import { useTranslations } from 'next-intl';
-
-type DocumentWithUrl = Omit<Doc<'documents'>, 'fileUrl'> & {
-  fileUrl?: string | null;
-};
-
-const getDocumentIcon = (type: string, fileType: string) => {
-  if (fileType.startsWith('image/')) {
-    return <Image className="h-4 w-4" />;
-  }
-  if (fileType === 'application/pdf') {
-    return <FileText className="h-4 w-4" />;
-  }
-  return <File className="h-4 w-4" />;
-};
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case DocumentStatus.Validated:
-      return 'default';
-    case DocumentStatus.Rejected:
-      return 'destructive';
-    default:
-      return 'secondary';
-  }
-};
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { UserDocument } from './user-document';
+import type { Doc } from '@/convex/_generated/dataModel';
+import CardContainer from '../layouts/card-container';
 
 export function DocumentsListClient() {
+  const { user } = useCurrentUser();
   const t = useTranslations('services.documents');
-  const tStatus = useTranslations('documents.status');
+  const t_input = useTranslations('inputs.userDocument');
   const [selectedType, setSelectedType] = useState<string | 'all'>('all');
 
   // Requête avec Convex
-  const documents = useQuery(api.functions.document.getUserDocumentsPaginated, {
-    type: selectedType !== 'all' ? (selectedType as any) : undefined,
-    status: undefined,
-  });
+  const documents = useQuery(
+    api.functions.document.getUserDocuments,
+    user?.profileId ? { profileId: user.profileId } : 'skip',
+  );
 
   const isLoading = documents === undefined;
   const totalCount = documents?.length ?? 0;
-
-  const handleDownload = async (url: string, filename: string) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const downloadUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      console.error('Erreur lors du téléchargement:', error);
-    }
-  };
-
-  const handlePreview = (url: string) => {
-    window.open(url, '_blank');
-  };
 
   if (isLoading) {
     return <LoadingSkeleton variant="grid" />;
@@ -124,84 +80,15 @@ export function DocumentsListClient() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {documents.map((doc: DocumentWithUrl) => {
-            const fileName =
-              doc.metadata &&
-              typeof doc.metadata === 'object' &&
-              'name' in doc.metadata &&
-              typeof doc.metadata.name === 'string'
-                ? doc.metadata.name
-                : doc.fileName || `Document ${doc.type}`;
-            const fileSize = doc.fileSize
-              ? `${Math.round(doc.fileSize / 1024)} KB`
-              : doc.metadata &&
-                  typeof doc.metadata === 'object' &&
-                  'size' in doc.metadata &&
-                  typeof doc.metadata.size === 'number'
-                ? `${Math.round(doc.metadata.size / 1024)} KB`
-                : null;
-
-            return (
-              <Card key={doc._id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      {getDocumentIcon(doc.type, doc.fileType)}
-                      <span className="font-medium text-sm">{t(doc.type as any)}</span>
-                    </div>
-                    <Badge variant={getStatusColor(doc.status)}>
-                      {doc.status === DocumentStatus.Validated
-                        ? tStatus('validated')
-                        : doc.status === DocumentStatus.Rejected
-                          ? tStatus('rejected')
-                          : tStatus('pending')}
-                    </Badge>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="py-2">
-                  <p className="text-sm font-medium truncate" title={fileName}>
-                    {fileName}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                    <span>{new Date(doc._creationTime).toLocaleDateString('fr-FR')}</span>
-                    {fileSize && (
-                      <>
-                        <span>•</span>
-                        <span>{fileSize}</span>
-                      </>
-                    )}
-                  </div>
-                </CardContent>
-
-                <CardFooter className="pt-2">
-                  <div className="flex gap-2 w-full">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => doc.fileUrl && handlePreview(doc.fileUrl)}
-                      disabled={!doc.fileUrl}
-                    >
-                      <Eye className="h-3 w-3 mr-1" />
-                      Voir
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => doc.fileUrl && handleDownload(doc.fileUrl, fileName)}
-                      disabled={!doc.fileUrl}
-                    >
-                      <Download className="h-3 w-3 mr-1" />
-                      Télécharger
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            );
-          })}
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+          {documents.map((document) => (
+            <UserDocument
+              key={document._id}
+              document={document as Doc<'documents'>}
+              label={t_input(`options.${document.type}`)}
+              expectedType={document.type}
+            />
+          ))}
         </div>
       )}
     </div>
