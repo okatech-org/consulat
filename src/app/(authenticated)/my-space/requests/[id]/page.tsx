@@ -2,8 +2,6 @@
 
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
-import { getServiceRequestDetails } from '@/actions/services';
 import {
   ArrowLeft,
   CheckCircle,
@@ -16,82 +14,71 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import type { FullServiceRequest } from '@/types/service-request';
-import { RequestStatus } from '@prisma/client';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ROUTES } from '@/schemas/routes';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import CardContainer from '@/components/layouts/card-container';
 import { PageContainer } from '@/components/layouts/page-container';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Id } from '@/convex/_generated/dataModel';
 
 // Status config for display
-const getStatusInfo = (status: RequestStatus) => {
+const getStatusInfo = (status: string) => {
   const statusMap: Record<
     string,
     { label: string; color: string; icon: React.ReactElement; progress: number }
   > = {
-    DRAFT: {
+    draft: {
       label: 'Brouillon',
       color: 'bg-slate-400',
       icon: <FileText className="h-5 w-5" />,
       progress: 0,
     },
-    SUBMITTED: {
+    submitted: {
       label: 'Envoyé',
       color: 'bg-blue-400',
       icon: <FileText className="h-5 w-5" />,
       progress: 20,
     },
-    EDITED: {
-      label: 'Modifiée',
-      color: 'bg-gray-400',
-      icon: <FileText className="h-5 w-5" />,
-      progress: 10,
-    },
-    PENDING: {
-      label: 'En traitement',
+    under_review: {
+      label: 'En cours de révision',
       color: 'bg-amber-400',
       icon: <Clock className="h-5 w-5" />,
-      progress: 60,
-    },
-    PENDING_COMPLETION: {
-      label: "En attente d'information",
-      color: 'bg-purple-400',
-      icon: <AlertTriangle className="h-5 w-5" />,
       progress: 40,
     },
-    VALIDATED: {
+    validated: {
       label: 'Validée',
       color: 'bg-green-400',
       icon: <CheckCircle className="h-5 w-5" />,
       progress: 80,
     },
-    REJECTED: {
+    rejected: {
       label: 'Rejetée',
       color: 'bg-red-400',
       icon: <AlertTriangle className="h-5 w-5" />,
       progress: 0,
     },
-    CARD_IN_PRODUCTION: {
+    in_production: {
       label: 'En production',
       color: 'bg-cyan-400',
       icon: <Clock className="h-5 w-5" />,
       progress: 90,
     },
-    READY_FOR_PICKUP: {
+    ready_for_pickup: {
       label: 'Prête au retrait',
       color: 'bg-emerald-400',
       icon: <CheckCircle className="h-5 w-5" />,
       progress: 95,
     },
-    APPOINTMENT_SCHEDULED: {
+    appointment_scheduled: {
       label: 'RDV programmé',
       color: 'bg-violet-400',
       icon: <Calendar className="h-5 w-5" />,
       progress: 85,
     },
-    COMPLETED: {
+    completed: {
       label: 'Terminée',
       color: 'bg-green-600',
       icon: <CheckCircle className="h-5 w-5" />,
@@ -112,28 +99,16 @@ const getStatusInfo = (status: RequestStatus) => {
 export default function ServiceRequestDetailsPage() {
   const { id } = useParams() as { id: string };
   const t = useTranslations('requests.details');
-  const [requestDetails, setRequestDetails] = useState<FullServiceRequest | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchRequestDetails = async () => {
-      try {
-        setLoading(true);
-        const details = await getServiceRequestDetails(id);
-        setRequestDetails(details);
-      } catch (err) {
-        console.error('Error fetching request details:', err);
-        setError('Failed to load request details');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const request = useQuery(api.functions.request.getRequest, {
+    requestId: id as Id<'requests'>,
+  });
+  const service = useQuery(
+    api.functions.service.getService,
+    request?.serviceId ? { serviceId: request.serviceId } : 'skip',
+  );
 
-    fetchRequestDetails();
-  }, [id]);
-
-  if (loading) {
+  if (request === undefined || (request?.serviceId && service === undefined)) {
     return (
       <div className="container mx-auto py-6 space-y-6">
         <LoadingSkeleton variant="grid" aspectRatio="4/3" />
@@ -141,7 +116,7 @@ export default function ServiceRequestDetailsPage() {
     );
   }
 
-  if (error || !requestDetails) {
+  if (!request || !service) {
     return (
       <div className="container mx-auto py-6">
         <Link href={ROUTES.user.services}>
@@ -151,18 +126,18 @@ export default function ServiceRequestDetailsPage() {
           </Button>
         </Link>
         <CardContainer title={t('error_title')} className="text-center">
-          <p className="text-destructive mb-4">{error || t('error_loading')}</p>
+          <p className="text-destructive mb-4">{t('error_loading')}</p>
           <Button onClick={() => window.location.reload()}>{t('retry')}</Button>
         </CardContainer>
       </div>
     );
   }
 
-  const statusInfo = getStatusInfo(requestDetails.status as RequestStatus);
+  const statusInfo = getStatusInfo(request.status);
 
   return (
     <PageContainer
-      title={requestDetails.service.name}
+      title={service.name}
       description={t('subtitle')}
       action={
         <Link href={ROUTES.user.services}>
@@ -221,22 +196,18 @@ export default function ServiceRequestDetailsPage() {
       </CardContainer>
       <CardContainer>
         <div className="space-y-6">
-          {/* Progress Section */}
-
           {/* Information Details */}
           <div>
             <h3 className="font-semibold text-lg mb-4">{t('info.title')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex justify-between items-start p-3 bg-muted/50 rounded">
                 <span className="font-medium">{t('info.request_number')}</span>
-                <span className="text-muted-foreground">
-                  #{requestDetails.id.slice(-8).toUpperCase()}
-                </span>
+                <span className="text-muted-foreground">{request.number}</span>
               </div>
               <div className="flex justify-between items-start p-3 bg-muted/50 rounded">
                 <span className="font-medium">{t('info.submission_date')}</span>
                 <span className="text-muted-foreground">
-                  {format(new Date(requestDetails.createdAt), 'dd/MM/yyyy')}
+                  {format(new Date(request._creationTime), 'dd/MM/yyyy')}
                 </span>
               </div>
               <div className="flex justify-between items-start p-3 bg-muted/50 rounded">
@@ -244,8 +215,7 @@ export default function ServiceRequestDetailsPage() {
                 <span className="text-muted-foreground">
                   {t('info.days_ago', {
                     count: Math.floor(
-                      (new Date().getTime() -
-                        new Date(requestDetails.updatedAt).getTime()) /
+                      (new Date().getTime() - request._creationTime) /
                         (1000 * 60 * 60 * 24),
                     ),
                   })}
@@ -257,7 +227,11 @@ export default function ServiceRequestDetailsPage() {
               </div>
               <div className="flex justify-between items-start p-3 bg-muted/50 rounded">
                 <span className="font-medium">{t('info.fees')}</span>
-                <span className="text-muted-foreground">{t('info.free')}</span>
+                <span className="text-muted-foreground">
+                  {service.isFree
+                    ? t('info.free')
+                    : `${service.price} ${service.currency}`}
+                </span>
               </div>
             </div>
           </div>

@@ -597,6 +597,57 @@ export const getUserDocuments = query({
   },
 });
 
+export const getUserDocumentsPaginated = query({
+  args: {
+    paginationOpts: v.object({
+      numItems: v.number(),
+      cursor: v.union(v.string(), v.null()),
+    }),
+    type: v.optional(documentTypeValidator),
+    status: v.optional(documentStatusValidator),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error('Unauthorized');
+    }
+
+    const query = ctx.db
+      .query('documents')
+      .withIndex('by_owner', (q) =>
+        q.eq('ownerId', identity.subject as Id<'users'>).eq('ownerType', OwnerType.User),
+      )
+      .order('desc');
+
+    const results = await query.paginate(args.paginationOpts);
+
+    let filteredDocuments = results.page;
+
+    // Filtrer par type et statut si spécifié
+    if (args.type) {
+      filteredDocuments = filteredDocuments.filter((doc) => doc.type === args.type);
+    }
+
+    if (args.status) {
+      filteredDocuments = filteredDocuments.filter((doc) => doc.status === args.status);
+    }
+
+    // Enrichir avec les URLs des fichiers
+    const documentsWithUrls = await Promise.all(
+      filteredDocuments.map(async (doc) => ({
+        ...doc,
+        fileUrl: doc.storageId ? await ctx.storage.getUrl(doc.storageId) : doc.fileUrl,
+      })),
+    );
+
+    return {
+      page: documentsWithUrls,
+      continueCursor: results.continueCursor,
+      isDone: results.isDone,
+    };
+  },
+});
+
 export const validateUserDocument = mutation({
   args: {
     documentId: v.id('documents'),

@@ -9,24 +9,38 @@ import Link from 'next/link';
 import { AppointmentCard } from '@/components/appointments/appointment-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CardContainer from '@/components/layouts/card-container';
-import type { AppointmentListItem } from '@/server/api/routers/appointments/misc';
-import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { useMemo } from 'react';
 
 export const dynamic = 'force-dynamic';
 
 export default function UserAppointmentsPage() {
   const { user } = useCurrentUser();
-  const { data: appointments, isLoading } = api.appointments.getList.useQuery({
-    userId: user?.id,
-  });
+  const appointments = useQuery(
+    api.functions.user.getUserAppointments,
+    user?._id ? { userId: user._id } : 'skip',
+  );
   const t = useTranslations('appointments');
 
-  const renderAppointments = (
-    items: AppointmentListItem[] = [],
-    emptyMessage: string,
-  ) => {
+  const categorizedAppointments = useMemo(() => {
+    if (!appointments) return { upcoming: [], past: [], cancelled: [] };
+
+    const now = Date.now();
+    return {
+      upcoming: appointments.filter(
+        (apt) => apt.startAt > now && apt.status !== 'cancelled',
+      ),
+      past: appointments.filter(
+        (apt) => apt.startAt <= now && apt.status !== 'cancelled',
+      ),
+      cancelled: appointments.filter((apt) => apt.status === 'cancelled'),
+    };
+  }, [appointments]);
+
+  const renderAppointments = (items: typeof appointments = [], emptyMessage: string) => {
     if (!items || items.length === 0) {
       return (
         <div className="flex h-40 items-center justify-center rounded-lg border-2 border-dashed">
@@ -38,13 +52,13 @@ export default function UserAppointmentsPage() {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((appointment) => (
-          <AppointmentCard key={appointment.id} appointment={appointment} />
+          <AppointmentCard key={appointment._id} appointment={appointment} />
         ))}
       </div>
     );
   };
 
-  if (isLoading) {
+  if (appointments === undefined) {
     return (
       <PageContainer title={t('title')} description={t('description')}>
         <LoadingSkeleton variant="grid" className="!w-full" />
@@ -70,9 +84,9 @@ export default function UserAppointmentsPage() {
         <TabsList>
           <TabsTrigger value="upcoming">
             À venir
-            {appointments?.upcoming && appointments.upcoming.length > 0 && (
+            {categorizedAppointments.upcoming.length > 0 && (
               <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                {appointments.upcoming.length}
+                {categorizedAppointments.upcoming.length}
               </span>
             )}
           </TabsTrigger>
@@ -82,19 +96,25 @@ export default function UserAppointmentsPage() {
 
         <TabsContent value="upcoming" className="space-y-4">
           <CardContainer title={t('tabs.upcoming.title')}>
-            {renderAppointments(appointments?.upcoming, t('tabs.upcoming.empty'))}
+            {renderAppointments(
+              categorizedAppointments.upcoming,
+              t('tabs.upcoming.empty'),
+            )}
           </CardContainer>
         </TabsContent>
 
         <TabsContent value="past" className="space-y-4">
           <CardContainer title={t('tabs.past.title')}>
-            {renderAppointments(appointments?.past, t('tabs.past.empty'))}
+            {renderAppointments(categorizedAppointments.past, t('tabs.past.empty'))}
           </CardContainer>
         </TabsContent>
 
         <TabsContent value="cancelled" className="space-y-4">
           <CardContainer title={t('tabs.cancelled.title')}>
-            {renderAppointments(appointments?.cancelled, t('tabs.cancelled.empty'))}
+            {renderAppointments(
+              categorizedAppointments.cancelled,
+              t('tabs.cancelled.empty'),
+            )}
           </CardContainer>
         </TabsContent>
       </Tabs>

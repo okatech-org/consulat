@@ -452,3 +452,21 @@ export const getCurrentChildProfile = query({
     };
   },
 });
+
+export const deleteChildProfile = mutation({
+  args: { childProfileId: v.id('childProfiles') },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.childProfileId);
+
+    if (!profile) {
+      throw new Error('profile_not_found');
+    }
+
+    if (profile.status !== ProfileStatus.Draft) {
+      throw new Error('profile_not_draft');
+    }
+
+    await ctx.db.delete(args.childProfileId);
+    return args.childProfileId;
+  },
+});

@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl';
 import { Plus, Search, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ServiceCategory } from '@prisma/client';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { Input } from '@/components/ui/input';
@@ -16,114 +15,72 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PageContainer } from '@/components/layouts/page-container';
-import { useTableSearchParams, type Sorting } from '@/hooks/use-table-search-params';
-import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
-import { useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import CardContainer from '@/components/layouts/card-container';
-
-// Types pour les filtres des services
-type ServiceFilters = {
-  search?: string;
-  category?: ServiceCategory;
-  isActive?: boolean;
-  organizationId?: string;
-};
-
-// Type pour le tri
-type ServiceSorting = Sorting<{
-  name: string;
-  createdAt: Date;
-  category: ServiceCategory;
-  isActive: boolean;
-}>;
-
-// Adapter les paramètres URL pour les filtres
-function adaptSearchParams(searchParams: URLSearchParams): ServiceFilters {
-  return {
-    search: searchParams.get('search') || undefined,
-    category: (searchParams.get('category') as ServiceCategory) || undefined,
-    isActive: searchParams.get('isActive')
-      ? searchParams.get('isActive') === 'true'
-      : undefined,
-    organizationId: searchParams.get('organizationId') || undefined,
-  };
-}
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { ServiceCategory, ServiceStatus } from '@/convex/lib/constants';
 
 export default function AvailableServicesPage() {
   const t = useTranslations('services');
   const tInputs = useTranslations('inputs');
 
-  // Hook pour gérer les paramètres URL et la pagination
-  const {
-    params: filters,
-    pagination,
-    handleParamsChange,
-  } = useTableSearchParams<ServiceSorting, ServiceFilters>(adaptSearchParams);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedOrganization, setSelectedOrganization] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('active');
 
-  // Query tRPC pour récupérer les services avec pagination et filtres
-  const {
-    data: servicesData,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    refetch,
-  } = api.services.getAvailableServicesDashboard.useInfiniteQuery(
-    {
-      limit: pagination.limit,
-      search: filters.search,
-      category: filters.category,
-      isActive: filters.isActive,
-      organizationId: filters.organizationId,
-    },
-    { getNextPageParam: (lastPage) => lastPage.nextCursor },
-  );
+  // Récupérer tous les services et organisations
+  const allServices = useQuery(api.functions.service.getAllServices, {});
+  const organizations = useQuery(api.functions.organization.getAllOrganizations, {});
 
-  // Query pour récupérer les organisations pour le filtre
-  const { data: organizations } = api.organizations.getList.useQuery({
-    limit: 100,
-  });
+  // Filtrer les services selon les critères
+  const filteredServices = useMemo(() => {
+    if (!allServices) return [];
 
-  // Flatten les services de toutes les pages
-  const allServices = servicesData?.pages.flatMap((page) => page.services) ?? [];
-  const totalCount = servicesData?.pages[0]?.totalCount ?? 0;
+    return allServices.filter((service) => {
+      // Filtre de recherche
+      if (searchTerm) {
+        const search = searchTerm.toLowerCase();
+        const matchesSearch =
+          service.name.toLowerCase().includes(search) ||
+          service.code.toLowerCase().includes(search) ||
+          service.description?.toLowerCase().includes(search);
+        if (!matchesSearch) return false;
+      }
 
-  // Gérer le changement de recherche
-  const handleSearchChange = (value: string) => {
-    handleParamsChange('search', value || undefined);
-  };
+      // Filtre de catégorie
+      if (selectedCategory !== 'all' && service.category !== selectedCategory) {
+        return false;
+      }
 
-  // Gérer le changement de catégorie
-  const handleCategoryChange = (value: string) => {
-    handleParamsChange(
-      'category',
-      value === 'all' ? undefined : (value as ServiceCategory),
-    );
-  };
+      // Filtre d'organisation
+      if (
+        selectedOrganization !== 'all' &&
+        service.organizationId !== selectedOrganization
+      ) {
+        return false;
+      }
 
-  // Gérer le changement d'organisation
-  const handleOrganizationChange = (value: string) => {
-    handleParamsChange('organizationId', value === 'all' ? undefined : value);
-  };
+      // Filtre de statut
+      if (selectedStatus === 'active' && service.status !== ServiceStatus.Active) {
+        return false;
+      }
+      if (selectedStatus === 'inactive' && service.status !== ServiceStatus.Inactive) {
+        return false;
+      }
 
-  // Gérer le changement de statut actif
-  const handleActiveStatusChange = (value: string) => {
-    handleParamsChange('isActive', value === 'all' ? undefined : value === 'true');
-  };
+      return true;
+    });
+  }, [allServices, searchTerm, selectedCategory, selectedOrganization, selectedStatus]);
 
-  // Réinitialiser tous les filtres
   const resetFilters = () => {
-    handleParamsChange('search', undefined);
-    handleParamsChange('category', undefined);
-    handleParamsChange('organizationId', undefined);
-    handleParamsChange('isActive', undefined);
+    setSearchTerm('');
+    setSelectedCategory('all');
+    setSelectedOrganization('all');
+    setSelectedStatus('active');
   };
-
-  // Auto-refetch when filters change
-  useEffect(() => {
-    refetch();
-  }, [filters, refetch]);
 
   return (
     <PageContainer
@@ -147,11 +104,11 @@ export default function AvailableServicesPage() {
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <Input
           placeholder={t('new_request.search_placeholder')}
-          value={filters.search || ''}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
         />
-        <Select value={filters.category || 'all'} onValueChange={handleCategoryChange}>
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder={t('new_request.filters.all_categories')} />
           </SelectTrigger>
@@ -164,10 +121,7 @@ export default function AvailableServicesPage() {
             ))}
           </SelectContent>
         </Select>
-        <Select
-          value={filters.organizationId || 'all'}
-          onValueChange={handleOrganizationChange}
-        >
+        <Select value={selectedOrganization} onValueChange={setSelectedOrganization}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder={t('new_request.filters.all_organizations')} />
           </SelectTrigger>
@@ -175,111 +129,97 @@ export default function AvailableServicesPage() {
             <SelectItem value="all">
               {t('new_request.filters.all_organizations')}
             </SelectItem>
-            {organizations?.items?.map((org) => (
-              <SelectItem key={org.id} value={org.id}>
+            {organizations?.map((org) => (
+              <SelectItem key={org._id} value={org._id}>
                 {org.name}
               </SelectItem>
             ))}
-            <SelectItem value="consulat">{t('new_request.consulat_services')}</SelectItem>
           </SelectContent>
         </Select>
-        <Select
-          value={filters.isActive === undefined ? 'all' : filters.isActive.toString()}
-          onValueChange={handleActiveStatusChange}
-        >
+        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
           <SelectTrigger className="w-[150px]">
             <SelectValue placeholder="Statut" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous les statuts</SelectItem>
-            <SelectItem value="true">{t('new_request.status.active')}</SelectItem>
-            <SelectItem value="false">{t('new_request.status.coming_soon')}</SelectItem>
+            <SelectItem value="active">{t('new_request.status.active')}</SelectItem>
+            <SelectItem value="inactive">
+              {t('new_request.status.coming_soon')}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Services Grid */}
-      {isLoading ? (
+      {!allServices ? (
         <div className="space-y-6">
           <LoadingSkeleton variant="grid" aspectRatio="4/3" />
         </div>
-      ) : allServices.length > 0 ? (
+      ) : filteredServices.length > 0 ? (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <p className="text-sm text-muted-foreground">
-              {totalCount} service{totalCount > 1 ? 's' : ''} trouvé
-              {totalCount > 1 ? 's' : ''}
+              {filteredServices.length} service{filteredServices.length > 1 ? 's' : ''}{' '}
+              trouvé
+              {filteredServices.length > 1 ? 's' : ''}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {allServices.map((service) => (
-              <CardContainer
-                key={service.id}
-                title={service.name}
-                subtitle={
-                  service.organization?.name || t('new_request.consulat_services')
-                }
-                action={
-                  <Badge
-                    className="w-fit"
-                    variant={service.isActive ? 'default' : 'secondary'}
-                  >
-                    {service.isActive
-                      ? t('new_request.status.active')
-                      : t('new_request.status.coming_soon')}
-                  </Badge>
-                }
-                className="cursor-pointer hover:border-primary transition-all hover:shadow-lg hover:-translate-y-1"
-                headerClass="bg-muted/50 pb-4!"
-                footerContent={
-                  <div className="w-full space-y-2">
-                    <Button
-                      className={`w-full ${!service.isActive ? 'opacity-60 cursor-not-allowed' : ''}`}
-                      asChild={service.isActive}
-                      disabled={!service.isActive}
-                    >
-                      {service.isActive ? (
-                        <Link href={ROUTES.user.service_submit(service.id)}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          {t('new_request.start_request')}
-                        </Link>
-                      ) : (
-                        <>
-                          <Plus className="h-4 w-4 mr-2" />
-                          {t('new_request.start_request')}
-                        </>
-                      )}
-                    </Button>
-                    {!service.isActive && (
-                      <p className="text-xs text-center text-muted-foreground">
-                        {t('new_request.available_from')}
-                      </p>
-                    )}
-                  </div>
-                }
-              >
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {service.description || t('new_request.no_description')}
-                </p>
-              </CardContainer>
-            ))}
-          </div>
+            {filteredServices.map((service) => {
+              const organization = organizations?.find(
+                (org) => org._id === service.organizationId,
+              );
+              const isActive = service.status === ServiceStatus.Active;
 
-          {/* Load More Button */}
-          {hasNextPage && (
-            <div className="flex justify-center">
-              <Button
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                variant="outline"
-              >
-                {isFetchingNextPage
-                  ? t('new_request.loading')
-                  : t('new_request.load_more')}
-              </Button>
-            </div>
-          )}
+              return (
+                <CardContainer
+                  key={service._id}
+                  title={service.name}
+                  subtitle={organization?.name || t('new_request.consulat_services')}
+                  action={
+                    <Badge className="w-fit" variant={isActive ? 'default' : 'secondary'}>
+                      {isActive
+                        ? t('new_request.status.active')
+                        : t('new_request.status.coming_soon')}
+                    </Badge>
+                  }
+                  className="cursor-pointer hover:border-primary transition-all hover:shadow-lg hover:-translate-y-1"
+                  headerClass="bg-muted/50 pb-4!"
+                  footerContent={
+                    <div className="w-full space-y-2">
+                      <Button
+                        className={`w-full ${!isActive ? 'opacity-60 cursor-not-allowed' : ''}`}
+                        asChild={isActive}
+                        disabled={!isActive}
+                      >
+                        {isActive ? (
+                          <Link href={ROUTES.user.service_submit(service._id)}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            {t('new_request.start_request')}
+                          </Link>
+                        ) : (
+                          <>
+                            <Plus className="h-4 w-4 mr-2" />
+                            {t('new_request.start_request')}
+                          </>
+                        )}
+                      </Button>
+                      {!isActive && (
+                        <p className="text-xs text-center text-muted-foreground">
+                          {t('new_request.available_from')}
+                        </p>
+                      )}
+                    </div>
+                  }
+                >
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {service.description || t('new_request.no_description')}
+                  </p>
+                </CardContainer>
+              );
+            })}
+          </div>
         </div>
       ) : (
         <div className="text-center py-16 bg-muted/30 rounded-lg border-2 border-dashed border-muted">

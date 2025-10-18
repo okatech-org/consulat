@@ -18,16 +18,13 @@ import { ROUTES } from '@/schemas/routes';
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useDateLocale } from '@/lib/utils';
-import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import type { Doc } from '@/convex/_generated/dataModel';
 
-export function RequestsHistory() {
-  const { data: requestsData, isLoading } = api.requests.getList.useQuery({});
-  const requests = requestsData?.items || [];
+export function RequestsHistory({ requests }: { requests?: Doc<'requests'>[] }) {
   const { formatDate } = useDateLocale();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [serviceFilter, setServiceFilter] = useState<string>('all');
   const t = useTranslations('dashboard.history');
 
   // Filtrer les demandes
@@ -36,22 +33,13 @@ export function RequestsHistory() {
 
     return requests.filter((request) => {
       const matchesSearch =
-        request.service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.id.toLowerCase().includes(searchTerm.toLowerCase());
+        request.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request._id.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'all' || request.status === statusFilter;
-      const matchesService =
-        serviceFilter === 'all' || request.service.name === serviceFilter;
 
-      return matchesSearch && matchesStatus && matchesService;
+      return matchesSearch && matchesStatus;
     });
-  }, [requests, searchTerm, statusFilter, serviceFilter]);
-
-  // Options pour les filtres
-  const uniqueServices = useMemo(() => {
-    if (!requests) return [];
-    const services = [...new Set(requests.map((r) => r.service.name))];
-    return services.map((service) => ({ value: service, label: service }));
-  }, [requests]);
+  }, [requests, searchTerm, statusFilter]);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -87,7 +75,7 @@ export function RequestsHistory() {
     return progressMap[status as keyof typeof progressMap] || 0;
   };
 
-  if (isLoading) {
+  if (!requests) {
     return <LoadingSkeleton variant="grid" rows={3} className="!w-full" />;
   }
 
@@ -107,23 +95,10 @@ export function RequestsHistory() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t('statuses.all')}</SelectItem>
-            <SelectItem value="PROCESSING">{t('statuses.processing')}</SelectItem>
-            <SelectItem value="COMPLETED">{t('statuses.completed')}</SelectItem>
-            <SelectItem value="SUBMITTED">{t('statuses.submitted')}</SelectItem>
-            <SelectItem value="PENDING">{t('statuses.pending')}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={serviceFilter} onValueChange={setServiceFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Tous les services" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les services</SelectItem>
-            {uniqueServices.map((service) => (
-              <SelectItem key={service.value} value={service.value}>
-                {service.label}
-              </SelectItem>
-            ))}
+            <SelectItem value="submitted">{t('statuses.submitted')}</SelectItem>
+            <SelectItem value="under_review">{t('statuses.processing')}</SelectItem>
+            <SelectItem value="validated">{t('statuses.completed')}</SelectItem>
+            <SelectItem value="rejected">{t('statuses.pending')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -136,14 +111,14 @@ export function RequestsHistory() {
             const progress = getProgress(request.status);
 
             return (
-              <Card key={request.id} className="hover:border-primary transition-colors">
+              <Card key={request._id} className="hover:border-primary transition-colors">
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>
-                      <h3 className="font-semibold">{request.service.name}</h3>
+                      <h3 className="font-semibold">Demande #{request.number}</h3>
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-1">
-                        <span>Soumise le {formatDate(request.createdAt)}</span>
-                        <span>ID: #{request.id.slice(-8).toUpperCase()}</span>
+                        <span>Soumise le {formatDate(new Date(request._creationTime))}</span>
+                        <span>ID: {request.number}</span>
                       </div>
                     </div>
                     <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
@@ -153,15 +128,12 @@ export function RequestsHistory() {
                   </div>
                   <div className="flex flex-wrap gap-3">
                     <Button size="sm" asChild>
-                      <Link href={ROUTES.user.service_request_details(request.id)}>
+                      <Link href={ROUTES.user.service_request_details(request._id)}>
                         <Eye className="mr-2 h-4 w-4" />
                         Voir les détails
                       </Link>
                     </Button>
-                    {/**
-                     * TODO: Add download button when the request is completed
-                     */}
-                    {request.status === 'COMPLETED' && (
+                    {request.status === 'completed' && (
                       <Button variant="outline" size="sm" disabled>
                         <Download className="mr-2 h-4 w-4" />
                         Télécharger
@@ -181,22 +153,21 @@ export function RequestsHistory() {
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-semibold text-foreground">
-                {searchTerm || statusFilter !== 'all' || serviceFilter !== 'all'
+                {searchTerm || statusFilter !== 'all'
                   ? 'Aucune demande trouvée'
                   : 'Aucune demande'}
               </h3>
               <p className="text-muted-foreground">
-                {searchTerm || statusFilter !== 'all' || serviceFilter !== 'all'
+                {searchTerm || statusFilter !== 'all'
                   ? 'Aucune demande ne correspond à vos critères de recherche. Essayez de modifier vos filtres.'
                   : 'Vous n&apos;avez pas encore fait de demande de service consulaire.'}
               </p>
             </div>
-            {searchTerm || statusFilter !== 'all' || serviceFilter !== 'all' ? (
+            {searchTerm || statusFilter !== 'all' ? (
               <Button
                 onClick={() => {
                   setSearchTerm('');
                   setStatusFilter('all');
-                  setServiceFilter('all');
                 }}
                 className="bg-primary hover:bg-primary/90"
               >

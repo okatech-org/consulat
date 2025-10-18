@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { MessageCircle, Mail, MapPin, AlertTriangle, Globe } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { ROUTES } from '@/schemas/routes';
-import { useCurrentProfileOrganizationContactData } from '@/hooks/use-profile';
 import { ChatToggle } from '@/components/chat/chat-toggle';
 import Link from 'next/link';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 type WeekDay =
   | 'monday'
@@ -21,10 +23,13 @@ type WeekDay =
 
 export function ContactMethods() {
   const t = useTranslations('dashboard.contact');
-  const { data: contactData, isLoading } = useCurrentProfileOrganizationContactData();
+  const { user } = useCurrentUser();
+  const contactData = useQuery(
+    api.functions.organization.getOrganizationByCode,
+    user?.countryCode ? { code: user.countryCode } : 'skip',
+  );
 
-  // Si pas de données de contact, l'utilisateur n'est pas associé à un organisme
-  if (!isLoading && !contactData) {
+  if (contactData === null) {
     return (
       <div className="space-y-6">
         <CardContainer
@@ -79,7 +84,7 @@ export function ContactMethods() {
     );
   }
 
-  if (isLoading) {
+  if (contactData === undefined) {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">

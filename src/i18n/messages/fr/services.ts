@@ -315,6 +315,9 @@ export default {
     consular_card: 'Carte consulaire',
     naturalization_decree: 'Décret de naturalisation',
     employment_proof: "Justificatif d'emploi",
+    driver_license: 'Permis de conduire',
+    photo: 'Photo',
+    family_book: 'Livret de famille',
   },
   table: {
     name: 'Nom',

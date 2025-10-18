@@ -2,7 +2,6 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useUnreadCount } from '@/hooks/use-notifications';
 import { SheetTrigger, SheetContent, SheetHeader, SheetTitle, Sheet } from '../ui/sheet';
 import { NotificationsListing } from './notifications-listing';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -22,7 +21,6 @@ export function NotificationBell({
 }: NotificationBellProps) {
   const isMobile = useIsMobile();
 
-  const { count: unreadCount, isLoading } = useUnreadCount();
   return (
     <div className={cn('relative inline-block', className)}>
       <Sheet>
@@ -36,15 +34,13 @@ export function NotificationBell({
             className="rounded-full relative aspect-square hover:bg-muted transition-colors"
           >
             <BellRingIcon
-              className={`${bellClassName} size-5 ${isLoading ? 'animate-[bell-ring_0.5s_ease-in-out]' : ''}`}
+              className={`${bellClassName} size-5 animate-[bell-ring_0.5s_ease-in-out]`}
             />
 
             <AnimatePresence>
-              {unreadCount > 0 && (
-                <div className="absolute aspect-square size-2 bg-red-500 rounded-full top-[-100%] translate-x-[1rem] translate-y-[1rem]">
-                  <span className="sr-only">{unreadCount}</span>
-                </div>
-              )}
+              <div className="absolute aspect-square size-2 bg-red-500 rounded-full top-[-100%] translate-x-[1rem] translate-y-[1rem]">
+                <span className="sr-only">{0}</span>
+              </div>
             </AnimatePresence>
           </motion.div>
         </SheetTrigger>

@@ -1,16 +1,34 @@
+'use client';
+
 import { PageContainer } from '@/components/layouts/page-container';
 import { RequestsHistory } from '../_components/requests-history';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
-
-export const metadata = {
-  title: 'Historique des demandes - Mon Espace Consulaire',
-  description: "Consultez l'historique complet de vos demandes consulaires",
-};
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 
 export default function HistoryPage() {
+  const { user } = useCurrentUser();
+  const requests = useQuery(
+    api.functions.request.getAllRequests,
+    user?._id ? { requesterId: user._id } : 'skip',
+  );
+
+  if (requests === undefined) {
+    return (
+      <PageContainer
+        title="Historique des demandes"
+        description="Retrouvez toutes vos demandes passées et en cours"
+      >
+        <LoadingSkeleton variant="list" count={5} />
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer
       title="Historique des demandes"
@@ -24,7 +42,7 @@ export default function HistoryPage() {
         </Button>
       }
     >
-      <RequestsHistory />
+      <RequestsHistory requests={requests} />
     </PageContainer>
   );
 }

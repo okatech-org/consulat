@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { DocumentType } from '@prisma/client';
-import { useDocumentsDashboard } from '@/hooks/use-documents';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -15,27 +13,41 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { Eye, Download, FileText, Image, File, Loader2 } from 'lucide-react';
-import { api } from '@/trpc/react';
+import { usePaginatedQuery } from 'convex/react';
+import { api } from 'convex/_generated/api';
+import { DocumentType, DocumentStatus } from '../../../convex/lib/constants';
+import type { Doc } from '../../../convex/_generated/dataModel';
+import { useTranslations } from 'next-intl';
 
-const DocumentTypeLabels: Record<DocumentType, string> = {
-  PASSPORT: 'Passeport',
-  IDENTITY_CARD: "Carte d'identité",
-  BIRTH_CERTIFICATE: 'Acte de naissance',
-  RESIDENCE_PERMIT: 'Titre de séjour',
-  PROOF_OF_ADDRESS: 'Justificatif de domicile',
-  MARRIAGE_CERTIFICATE: 'Acte de mariage',
-  DEATH_CERTIFICATE: 'Acte de décès',
-  DIVORCE_DECREE: 'Acte de divorce',
-  NATIONALITY_CERTIFICATE: 'Certificat de nationalité',
-  VISA_PAGES: 'Pages de visa',
-  EMPLOYMENT_PROOF: "Justificatif d'emploi",
-  NATURALIZATION_DECREE: 'Décret de naturalisation',
-  IDENTITY_PHOTO: "Photo d'identité",
-  CONSULAR_CARD: 'Carte consulaire',
-  OTHER: 'Autre',
+type DocumentWithUrl = Omit<Doc<'documents'>, 'fileUrl'> & {
+  fileUrl?: string | null;
 };
 
-const getDocumentIcon = (type: DocumentType, fileType: string) => {
+const getDocumentTypeKey = (type: string): string => {
+  const mapping: Record<string, string> = {
+    [DocumentType.Passport]: 'passport',
+    [DocumentType.IdentityCard]: 'identity_card',
+    [DocumentType.BirthCertificate]: 'birth_certificate',
+    [DocumentType.ResidencePermit]: 'residence_permit',
+    [DocumentType.ProofOfAddress]: 'proof_of_address',
+    [DocumentType.MarriageCertificate]: 'marriage_certificate',
+    [DocumentType.DeathCertificate]: 'death_certificate',
+    [DocumentType.DivorceDecree]: 'divorce_decree',
+    [DocumentType.NationalityCertificate]: 'nationality_certificate',
+    [DocumentType.VisaPages]: 'visa_pages',
+    [DocumentType.EmploymentProof]: 'employment_proof',
+    [DocumentType.NaturalizationDecree]: 'naturalization_decree',
+    [DocumentType.IdentityPhoto]: 'identity_photo',
+    [DocumentType.ConsularCard]: 'consular_card',
+    [DocumentType.DriverLicense]: 'driver_license',
+    [DocumentType.Photo]: 'photo',
+    [DocumentType.FamilyBook]: 'family_book',
+    [DocumentType.Other]: 'other',
+  };
+  return mapping[type] || 'other';
+};
+
+const getDocumentIcon = (type: string, fileType: string) => {
   if (fileType.startsWith('image/')) {
     return <Image className="h-4 w-4" />;
   }
@@ -45,11 +57,11 @@ const getDocumentIcon = (type: DocumentType, fileType: string) => {
   return <File className="h-4 w-4" />;
 };
 
-const getStatusColor = (status: 'PENDING' | 'VALIDATED' | 'REJECTED') => {
+const getStatusColor = (status: string) => {
   switch (status) {
-    case 'VALIDATED':
+    case DocumentStatus.Validated:
       return 'default';
-    case 'REJECTED':
+    case DocumentStatus.Rejected:
       return 'destructive';
     default:
       return 'secondary';
@@ -57,26 +69,24 @@ const getStatusColor = (status: 'PENDING' | 'VALIDATED' | 'REJECTED') => {
 };
 
 export function DocumentsListClient() {
-  const [selectedType, setSelectedType] = useState<DocumentType | 'all'>('all');
+  const t = useTranslations('services.documents');
+  const tStatus = useTranslations('documents.status');
+  const [selectedType, setSelectedType] = useState<string | 'all'>('all');
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useDocumentsDashboard({
-      limit: 20,
-      type: selectedType !== 'all' ? selectedType : undefined,
-    });
+  // Requête paginée avec Convex
+  const { results, status, loadMore } = usePaginatedQuery(
+    api.functions.document.getUserDocumentsPaginated,
+    {
+      type: selectedType !== 'all' ? (selectedType as any) : undefined,
+      status: undefined,
+    },
+    { initialNumItems: 20 },
+  );
 
-  // Fallback pour les données initiales si pas de pagination
-  const { data: fallbackDocuments } = api.documents.getUserDocuments.useQuery();
-
-  // Utiliser les données paginées ou les données de fallback
-  const documents = useMemo(() => {
-    if (data?.pages) {
-      return data.pages.flatMap((page) => page.documents);
-    }
-    return fallbackDocuments || [];
-  }, [data?.pages, fallbackDocuments]);
-
-  const totalCount = data?.pages?.[0]?.totalCount ?? fallbackDocuments?.length ?? 0;
+  // Utiliser directement les résultats de Convex
+  const documents = results;
+  const totalCount = documents.length;
+  const isLoading = status === 'LoadingFirstPage';
 
   const handleDownload = async (url: string, filename: string) => {
     try {
@@ -117,9 +127,9 @@ export function DocumentsListClient() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les documents</SelectItem>
-              {Object.entries(DocumentTypeLabels).map(([type, label]) => (
+              {Object.values(DocumentType).map((type) => (
                 <SelectItem key={type} value={type}>
-                  {label}
+                  {t(getDocumentTypeKey(type) as any)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -145,38 +155,39 @@ export function DocumentsListClient() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {documents.map((doc) => {
+          {documents.map((doc: DocumentWithUrl) => {
             const fileName =
               doc.metadata &&
               typeof doc.metadata === 'object' &&
               'name' in doc.metadata &&
               typeof doc.metadata.name === 'string'
                 ? doc.metadata.name
-                : `Document ${doc.type}`;
-            const fileSize =
-              doc.metadata &&
-              typeof doc.metadata === 'object' &&
-              'size' in doc.metadata &&
-              typeof doc.metadata.size === 'number'
+                : doc.fileName || `Document ${doc.type}`;
+            const fileSize = doc.fileSize
+              ? `${Math.round(doc.fileSize / 1024)} KB`
+              : doc.metadata &&
+                  typeof doc.metadata === 'object' &&
+                  'size' in doc.metadata &&
+                  typeof doc.metadata.size === 'number'
                 ? `${Math.round(doc.metadata.size / 1024)} KB`
                 : null;
 
             return (
-              <Card key={doc.id} className="hover:shadow-md transition-shadow">
+              <Card key={doc._id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       {getDocumentIcon(doc.type, doc.fileType)}
                       <span className="font-medium text-sm">
-                        {DocumentTypeLabels[doc.type]}
+                        {t(getDocumentTypeKey(doc.type) as any)}
                       </span>
                     </div>
                     <Badge variant={getStatusColor(doc.status)}>
-                      {doc.status === 'VALIDATED'
-                        ? 'Validé'
-                        : doc.status === 'REJECTED'
-                          ? 'Rejeté'
-                          : 'En attente'}
+                      {doc.status === DocumentStatus.Validated
+                        ? tStatus('validated')
+                        : doc.status === DocumentStatus.Rejected
+                          ? tStatus('rejected')
+                          : tStatus('pending')}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -186,7 +197,7 @@ export function DocumentsListClient() {
                     {fileName}
                   </p>
                   <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                    <span>{new Date(doc.createdAt).toLocaleDateString('fr-FR')}</span>
+                    <span>{new Date(doc._creationTime).toLocaleDateString('fr-FR')}</span>
                     {fileSize && (
                       <>
                         <span>•</span>
@@ -202,7 +213,8 @@ export function DocumentsListClient() {
                       size="sm"
                       variant="outline"
                       className="flex-1"
-                      onClick={() => handlePreview(doc.fileUrl)}
+                      onClick={() => doc.fileUrl && handlePreview(doc.fileUrl)}
+                      disabled={!doc.fileUrl}
                     >
                       <Eye className="h-3 w-3 mr-1" />
                       Voir
@@ -211,7 +223,8 @@ export function DocumentsListClient() {
                       size="sm"
                       variant="outline"
                       className="flex-1"
-                      onClick={() => handleDownload(doc.fileUrl, fileName)}
+                      onClick={() => doc.fileUrl && handleDownload(doc.fileUrl, fileName)}
+                      disabled={!doc.fileUrl}
                     >
                       <Download className="h-3 w-3 mr-1" />
                       Télécharger
@@ -225,22 +238,17 @@ export function DocumentsListClient() {
       )}
 
       {/* Bouton charger plus */}
-      {hasNextPage && (
+      {status === 'CanLoadMore' && (
         <div className="flex justify-center">
-          <Button
-            onClick={() => fetchNextPage()}
-            disabled={isFetchingNextPage}
-            variant="outline"
-          >
-            {isFetchingNextPage ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Chargement...
-              </>
-            ) : (
-              'Charger plus'
-            )}
+          <Button onClick={() => loadMore(20)} variant="outline">
+            Charger plus
           </Button>
+        </div>
+      )}
+      {status === 'LoadingMore' && (
+        <div className="flex justify-center">
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          <span>Chargement...</span>
         </div>
       )}
     </div>

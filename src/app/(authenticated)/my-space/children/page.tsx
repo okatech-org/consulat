@@ -9,15 +9,20 @@ import { ChildrenList } from './_components/children-list';
 import { NoChildrenMessage } from './_components/no-children-message';
 import CardContainer from '@/components/layouts/card-container';
 import { ROUTES } from '@/schemas/routes';
-import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 export default function ChildrenPage() {
   const t = useTranslations('user.children');
-  const { data: profile, isLoading } = api.profile.getCurrent.useQuery();
-  const children = profile?.parentAuthorities || [];
+  const { user } = useCurrentUser();
+  const childProfiles = useQuery(
+    api.functions.childProfile.getChildProfilesByAuthor,
+    user?._id ? { authorUserId: user._id } : 'skip',
+  );
 
-  if (isLoading) {
+  if (childProfiles === undefined) {
     return (
       <PageContainer title={t('title')} description={t('subtitle')}>
         <LoadingSkeleton variant="card" className="!w-full h-48" />
@@ -39,8 +44,8 @@ export default function ChildrenPage() {
       }
     >
       <CardContainer>
-        {children && children.length > 0 ? (
-          <ChildrenList authorities={children} />
+        {childProfiles && childProfiles.length > 0 ? (
+          <ChildrenList authorities={childProfiles} />
         ) : (
           <NoChildrenMessage />
         )}
