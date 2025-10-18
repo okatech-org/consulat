@@ -138,6 +138,8 @@ export default {
   },
   reschedule: {
     title: 'Reporter le rendez-vous',
+    current_appointment: 'Rendez-vous actuel',
+
     description:
       'Sélectionnez une nouvelle date et un nouveau créneau pour votre rendez-vous',
     success: {
