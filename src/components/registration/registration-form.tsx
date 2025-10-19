@@ -42,8 +42,6 @@ export type RegistrationStep =
   | 'review';
 
 export function RegistrationForm({ profile }: { profile: FullProfile }) {
-  if (!profile) return null;
-
   const submitProfileForValidation = useMutation(
     api.functions.profile.submitProfileForValidation,
   );
@@ -69,6 +67,8 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
 
   const currentStepIndex = orderedSteps.indexOf(currentTab);
   const totalSteps = orderedSteps.length;
+
+  if (!profile) return null;
 
   // Gestionnaire d'analyse des documents
   const handleDocumentsAnalysis = async () => {
@@ -211,7 +211,9 @@ export function RegistrationForm({ profile }: { profile: FullProfile }) {
     documents: (
       <DocumentUploadSection
         profile={profile}
-        onSave={() => {}}
+        onSave={() => {
+          router.refresh();
+        }}
         onNext={handleNext}
         onPrevious={handlePrevious}
         onAnalysisComplete={handleDocumentsAnalysis}

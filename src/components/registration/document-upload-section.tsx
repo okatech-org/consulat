@@ -113,11 +113,9 @@ export function DocumentUploadSection({
     }
   };
 
-  const handleSubmit = async (data: DocumentsFormData) => {
+  const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      // Les documents sont déjà uploadés via UserDocument
-      // On peut maintenant passer à l'étape suivante
       onSave();
       if (onNext) onNext();
     } catch (error) {
