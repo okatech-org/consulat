@@ -1,18 +1,21 @@
-import { getTranslations } from 'next-intl/server';
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { ServicesTable } from '@/components/organization/services-table';
 import { PageContainer } from '@/components/layouts/page-container';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
-import { api } from '@/trpc/server';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { OrganizationStatus } from '@/convex/lib/constants';
 
-export default async function ServicesPage() {
-  const organizations = await api.organizations.getList();
-
-  console.log('organizations', organizations);
-
-  const t = await getTranslations('services');
+export default function ServicesPage() {
+  const t = useTranslations('services');
+  const organizations = useQuery(api.functions.organization.getAllOrganizations, {
+    status: OrganizationStatus.Active,
+  });
 
   return (
     <PageContainer
@@ -26,7 +29,7 @@ export default async function ServicesPage() {
         </Button>
       }
     >
-      <ServicesTable organizations={organizations?.items ?? []} />
+      <ServicesTable organizations={organizations ?? []} />
     </PageContainer>
   );
 }

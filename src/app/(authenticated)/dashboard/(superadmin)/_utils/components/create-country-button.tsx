@@ -13,34 +13,37 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { CountryForm } from './country-form';
-import { createCountry } from '@/actions/countries';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
-import { tryCatch } from '@/lib/utils';
-import { CountrySchemaInput } from '@/schemas/country';
+import type { CountrySchemaInput } from '@/schemas/country';
+import { useCountries } from '@/hooks/use-countries';
 
 export function CreateCountryButton() {
   const t = useTranslations('sa.countries');
   const t_messages = useTranslations('messages');
   const { toast } = useToast();
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { createCountry } = useCountries();
 
   const handleSubmit = async (data: CountrySchemaInput) => {
     setIsLoading(true);
-    const result = await tryCatch(createCountry(data));
-
-    if (result.error) {
+    try {
+      await createCountry({
+        name: data.name,
+        code: data.code,
+        flag: data.flag,
+        status: data.status,
+      });
+      setIsOpen(false);
+    } catch (error) {
       toast({
         title: t_messages('errors.create'),
         variant: 'destructive',
-        description: `${result.error}`,
+        description: `${(error as Error).message}`,
       });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsOpen(false);
-    router.refresh();
   };
 
   return (

@@ -4,13 +4,12 @@ import { useTranslations } from 'next-intl';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CountryForm } from './country-form';
 import { useToast } from '@/hooks/use-toast';
-import { Country } from '@/types/country';
-import { updateCountry } from '@/actions/countries';
-import { CountrySchemaInput } from '@/schemas/country';
-import { tryCatch } from '@/lib/utils';
+import type { CountrySchemaInput } from '@/schemas/country';
+import { useCountries } from '@/hooks/use-countries';
+import type { EnrichedCountry } from '@/convex/lib/types';
 
 interface EditCountryDialogProps {
-  country: Country;
+  country: EnrichedCountry;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -22,24 +21,28 @@ export function EditCountryDialog({
 }: EditCountryDialogProps) {
   const t = useTranslations('sa.countries');
   const { toast } = useToast();
+  const { updateCountry } = useCountries();
 
   const handleSubmit = async (data: CountrySchemaInput) => {
-    if (!data.id) return;
+    try {
+      await updateCountry({
+        countryId: country._id,
+        name: data.name,
+        code: data.code,
+        flag: data.flag,
+        status: data.status,
+      });
 
-    const result = await tryCatch(updateCountry(data));
-
-    if (result.error) {
+      toast({
+        title: t('messages.updateSuccess'),
+      });
+      onOpenChange(false);
+    } catch (error) {
       toast({
         title: t('messages.error.update'),
         variant: 'destructive',
       });
-      return;
     }
-
-    toast({
-      title: t('messages.updateSuccess'),
-    });
-    onOpenChange(false);
   };
 
   return (

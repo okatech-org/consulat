@@ -15,6 +15,7 @@ import type * as functions_childProfile from "../functions/childProfile.js";
 import type * as functions_country from "../functions/country.js";
 import type * as functions_document from "../functions/document.js";
 import type * as functions_email from "../functions/email.js";
+import type * as functions_feedback from "../functions/feedback.js";
 import type * as functions_file from "../functions/file.js";
 import type * as functions_membership from "../functions/membership.js";
 import type * as functions_migration from "../functions/migration.js";
@@ -74,6 +75,7 @@ declare const fullApi: ApiFromModules<{
   "functions/country": typeof functions_country;
   "functions/document": typeof functions_document;
   "functions/email": typeof functions_email;
+  "functions/feedback": typeof functions_feedback;
   "functions/file": typeof functions_file;
   "functions/membership": typeof functions_membership;
   "functions/migration": typeof functions_migration;

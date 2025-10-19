@@ -1,265 +1,176 @@
 'use client';
 
-import { api } from '@/trpc/react';
-import { useToast } from '@/hooks/use-toast';
-import { useEffect, useState } from 'react';
-import type { Country } from '@/types/country';
-import { getActiveCountries } from '@/actions/countries';
-import { tryCatch } from '@/lib/utils';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { toast } from 'sonner';
+import type { Id } from '@/convex/_generated/dataModel';
+import { useMemo } from 'react';
+import { CountryStatus } from '@/convex/lib/constants';
 
 /**
- * Hook principal pour la gestion des pays avec optimistic updates
+ * Hook principal pour la gestion des pays avec Convex
  */
 export function useCountries(options?: {
   search?: string;
-  status?: Array<'ACTIVE' | 'INACTIVE'>;
+  status?: Array<CountryStatus>;
   page?: number;
   limit?: number;
 }) {
-  const { toast } = useToast();
-  const utils = api.useUtils();
+  // Fetch all countries with counts
+  const allCountries = useQuery(api.functions.country.getEnrichedCountries, {});
 
-  // Query pour récupérer la liste des pays
-  const countriesQuery = api.countries.getList.useQuery(options);
+  // Mutations
+  const createCountryMutation = useMutation(api.functions.country.createCountry);
+  const updateCountryMutation = useMutation(api.functions.country.updateCountry);
+  const deleteCountryMutation = useMutation(api.functions.country.deleteCountry);
 
-  // Mutation pour créer un pays
-  const createCountryMutation = api.countries.create.useMutation({
-    onMutate: async (newCountry) => {
-      // Annuler les requêtes en cours
-      await utils.countries.getList.cancel();
+  // Client-side filtering
+  const filteredCountries = useMemo(() => {
+    if (!allCountries) return undefined;
 
-      // Snapshot des données précédentes
-      const previousData = utils.countries.getList.getData(options);
+    let result = allCountries;
 
-      // Optimistically update
-      if (previousData) {
-        const optimisticCountry = {
-          id: `temp-${Date.now()}`,
-          name: newCountry.name,
-          code: newCountry.code.toUpperCase(),
-          status: newCountry.status || 'ACTIVE',
-          flag: newCountry.flag ?? null,
-          metadata: newCountry.metadata ? JSON.stringify(newCountry.metadata) : null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          _count: {
-            organizations: 0,
-            users: 0,
-          },
-        };
+    // Filter by status
+    if (options?.status && options.status.length > 0) {
+      result = result.filter((country) => options.status?.includes(country.status));
+    }
 
-        utils.countries.getList.setData(options, {
-          ...previousData,
-          items: [optimisticCountry, ...previousData.items],
-          total: previousData.total + 1,
-        });
-      }
+    // Search by name or code
+    if (options?.search) {
+      const search = options.search.toLowerCase();
+      result = result.filter(
+        (country) =>
+          country.name.toLowerCase().includes(search) ||
+          country.code.toLowerCase().includes(search),
+      );
+    }
 
-      return { previousData };
-    },
-    onError: (error, newCountry, context) => {
-      // Rollback en cas d'erreur
-      if (context?.previousData) {
-        utils.countries.getList.setData(options, context.previousData);
-      }
+    return result;
+  }, [allCountries, options?.status, options?.search]);
 
-      toast({
-        title: 'Erreur lors de la création',
-        description:
-          error.message || 'Une erreur est survenue lors de la création du pays.',
-        variant: 'destructive',
-      });
-    },
-    onSuccess: (data) => {
-      toast({
-        title: 'Pays créé avec succès',
-        description: `Le pays ${data.name} a été créé.`,
-      });
-    },
-    onSettled: () => {
-      // Invalider et refetch
-      utils.countries.getList.invalidate();
-      utils.countries.getStats.invalidate();
-    },
-  });
+  // Client-side pagination
+  const paginatedCountries = useMemo(() => {
+    if (!filteredCountries) return undefined;
 
-  // Mutation pour mettre à jour un pays
-  const updateCountryMutation = api.countries.update.useMutation({
-    onMutate: async ({ id, ...updateData }) => {
-      await utils.countries.getList.cancel();
-      await utils.countries.getById.cancel({ id });
+    const page = options?.page || 1;
+    const limit = options?.limit || 10;
+    const start = (page - 1) * limit;
 
-      const previousListData = utils.countries.getList.getData(options);
-      const previousCountryData = utils.countries.getById.getData({ id });
+    return filteredCountries.slice(start, start + limit);
+  }, [filteredCountries, options?.page, options?.limit]);
 
-      // Update dans la liste
-      if (previousListData) {
-        const updatedItems = previousListData.items.map((item) =>
-          item.id === id ? { ...item, ...updateData } : item,
-        );
+  const total = filteredCountries?.length || 0;
+  const limit = options?.limit || 10;
+  const pages = Math.ceil(total / limit);
 
-        utils.countries.getList.setData(options, {
-          ...previousListData,
-          items: updatedItems,
-        });
-      }
+  // Wrapper functions with toast notifications
+  const createCountry = async (data: {
+    name: string;
+    code: string;
+    flag?: string;
+    status?: CountryStatus;
+  }) => {
+    try {
+      await createCountryMutation(data);
+      toast.success(`Le pays ${data.name} a été créé.`);
+    } catch (error) {
+      toast.error(
+        (error as Error).message ||
+          'Une erreur est survenue lors de la création du pays.',
+      );
+      throw error;
+    }
+  };
 
-      // Update dans le détail
-      if (previousCountryData) {
-        utils.countries.getById.setData(
-          { id },
-          {
-            ...previousCountryData,
-            ...updateData,
-          },
-        );
-      }
+  const updateCountry = async (data: {
+    countryId: Id<'countries'>;
+    name?: string;
+    code?: string;
+    flag?: string;
+    status?: string;
+  }) => {
+    try {
+      await updateCountryMutation(data);
+      toast.success(`Le pays a été mis à jour avec succès.`);
+    } catch (error) {
+      toast.error(
+        (error as Error).message ||
+          'Une erreur est survenue lors de la mise à jour du pays.',
+      );
+      throw error;
+    }
+  };
 
-      return { previousListData, previousCountryData };
-    },
-    onError: (error, { id }, context) => {
-      // Rollback
-      if (context?.previousListData) {
-        utils.countries.getList.setData(options, context.previousListData);
-      }
-      if (context?.previousCountryData) {
-        utils.countries.getById.setData({ id }, context.previousCountryData);
-      }
-
-      toast({
-        title: 'Erreur lors de la mise à jour',
-        description:
-          error.message || 'Une erreur est survenue lors de la mise à jour du pays.',
-        variant: 'destructive',
-      });
-    },
-    onSuccess: (data) => {
-      toast({
-        title: 'Pays mis à jour',
-        description: `Le pays ${data.name} a été mis à jour avec succès.`,
-      });
-    },
-    onSettled: () => {
-      utils.countries.getList.invalidate();
-      utils.countries.getStats.invalidate();
-    },
-  });
-
-  // Mutation pour supprimer un pays
-  const deleteCountryMutation = api.countries.delete.useMutation({
-    onMutate: async ({ id }) => {
-      await utils.countries.getList.cancel();
-
-      const previousData = utils.countries.getList.getData(options);
-
-      // Retirer optimistiquement de la liste
-      if (previousData) {
-        const filteredItems = previousData.items.filter((item) => item.id !== id);
-        utils.countries.getList.setData(options, {
-          ...previousData,
-          items: filteredItems,
-          total: previousData.total - 1,
-        });
-      }
-
-      return { previousData };
-    },
-    onError: (error, { id }, context) => {
-      // Rollback
-      if (context?.previousData) {
-        utils.countries.getList.setData(options, context.previousData);
-      }
-
-      toast({
-        title: 'Erreur lors de la suppression',
-        description:
-          error.message || 'Une erreur est survenue lors de la suppression du pays.',
-        variant: 'destructive',
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: 'Pays supprimé',
-        description: 'Le pays a été supprimé avec succès.',
-      });
-    },
-    onSettled: () => {
-      utils.countries.getList.invalidate();
-      utils.countries.getStats.invalidate();
-    },
-  });
+  const deleteCountry = async (countryId: Id<'countries'>) => {
+    try {
+      await deleteCountryMutation({ countryId });
+      toast.success('Le pays a été supprimé avec succès.');
+    } catch (error) {
+      toast.error(
+        (error as Error).message ||
+          'Une erreur est survenue lors de la suppression du pays.',
+      );
+      throw error;
+    }
+  };
 
   return {
     // Data
-    countries: countriesQuery.data?.items ?? [],
-    total: countriesQuery.data?.total ?? 0,
-    pages: countriesQuery.data?.pages ?? 0,
-    currentPage: countriesQuery.data?.currentPage ?? 1,
+    countries: paginatedCountries ?? [],
+    total,
+    pages,
+    currentPage: options?.page || 1,
 
     // Loading states
-    isLoading: countriesQuery.isLoading,
-    isError: countriesQuery.isError,
-    error: countriesQuery.error,
+    isLoading: allCountries === undefined,
+    isError: false,
+    error: null,
 
     // Mutations
-    createCountry: createCountryMutation.mutate,
-    updateCountry: updateCountryMutation.mutate,
-    deleteCountry: deleteCountryMutation.mutate,
+    createCountry,
+    updateCountry,
+    deleteCountry,
 
-    // Mutation states
-    isCreating: createCountryMutation.isPending,
-    isUpdating: updateCountryMutation.isPending,
-    isDeleting: deleteCountryMutation.isPending,
+    // Mutation states (Convex doesn't expose loading states the same way)
+    isCreating: false,
+    isUpdating: false,
+    isDeleting: false,
 
     // Utils
-    refetch: countriesQuery.refetch,
-    invalidate: () => utils.countries.getList.invalidate(),
+    refetch: () => {}, // Convex auto-refetches
+    invalidate: () => {}, // Convex auto-invalidates
   };
 }
 
 /**
  * Hook pour récupérer les pays actifs (pour les formulaires)
  */
-export function useActiveCountries(organizationId?: string) {
-  const activeCountriesQuery = api.countries.getActive.useQuery(
-    organizationId ? { organizationId } : undefined,
-  );
+export function useActiveCountries() {
+  const countries = useQuery(api.functions.country.getAllCountries, {
+    status: CountryStatus.Active,
+  });
 
   return {
-    countries: activeCountriesQuery.data ?? [],
-    isLoading: activeCountriesQuery.isLoading,
-    isError: activeCountriesQuery.isError,
-    error: activeCountriesQuery.error,
-    refetch: activeCountriesQuery.refetch,
+    countries: countries ?? [],
+    isLoading: countries === undefined,
+    isError: false,
+    error: null,
+    refetch: () => {}, // Convex auto-refetches
   };
 }
 
+/**
+ * Hook simple pour la liste des pays (alternative)
+ */
 export function useCountriesList() {
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    setIsLoading(true);
-    const fetchCountries = async () => {
-      const countries = await tryCatch(getActiveCountries());
-
-      if (countries.error) {
-        setIsError(true);
-        setError(countries.error);
-      } else {
-        setCountries(countries.data as Country[]);
-      }
-      setIsLoading(false);
-    };
-    fetchCountries();
-  }, []);
+  const countries = useQuery(api.functions.country.getAllCountries, {
+    status: CountryStatus.Active,
+  });
 
   return {
-    countries,
-    isLoading,
-    isError,
-    error,
+    countries: countries ?? [],
+    isLoading: countries === undefined,
+    isError: false,
+    error: null,
   };
 }

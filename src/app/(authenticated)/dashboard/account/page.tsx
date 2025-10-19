@@ -14,54 +14,54 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { updateUserData } from '@/actions/user';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { PageContainer } from '@/components/layouts/page-container';
-import type { UserSettings } from '@/schemas/user';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { hasRole } from '@/lib/permissions/utils';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { UserRole } from '@/convex/lib/constants';
 
 export default function AdminAccountPage() {
   const t_messages = useTranslations('messages');
   const t_actions = useTranslations('common.actions');
   const t = useTranslations('account');
   const { user } = useCurrentUser();
-  const router = useRouter();
+  const updateUser = useMutation(api.functions.user.updateUser);
   const [isLoading, setIsLoading] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [autoAssignment, setAutoAssignment] = useState(false);
 
   if (!user) return null;
 
-  const isManager = hasRole(user, 'MANAGER');
-  const isAgent = hasRole(user, 'AGENT');
-  const isAdmin = hasRole(user, 'ADMIN');
-  const isSuperAdmin = hasRole(user, 'SUPER_ADMIN');
+  const isManager = hasRole(user, UserRole.Manager);
+  const isAgent = hasRole(user, UserRole.Agent);
+  const isAdmin = hasRole(user, UserRole.Admin);
+  const isSuperAdmin = hasRole(user, UserRole.SuperAdmin);
 
   const handleUpdateProfile = async (formData: FormData) => {
     setIsLoading(true);
     try {
       const firstName = formData.get('firstName') as string;
       const lastName = formData.get('lastName') as string;
-      const name = `${firstName} ${lastName}`.trim();
 
-      const updateData: Partial<UserSettings> = {
-        name: name,
-        image: user.image ?? undefined,
-      };
+      if (!user._id) {
+        throw new Error('User ID not found');
+      }
 
-      await updateUserData(user.id, updateData as UserSettings);
+      await updateUser({
+        userId: user._id,
+        firstName,
+        lastName,
+      });
 
       toast({
         title: t('profile_updated'),
         variant: 'success',
       });
-
-      router.refresh();
     } catch (error) {
       console.error(error);
       toast({
@@ -97,8 +97,11 @@ export default function AdminAccountPage() {
               <form action={handleUpdateProfile} className="space-y-4">
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage src={user.image ?? undefined} alt={user.name || ''} />
-                    <AvatarFallback>{user.name?.[0]}</AvatarFallback>
+                    <AvatarImage
+                      src={undefined}
+                      alt={`${user.firstName || ''} ${user.lastName || ''}`}
+                    />
+                    <AvatarFallback>{user.firstName?.[0]}</AvatarFallback>
                   </Avatar>
                   <div className="space-y-2">
                     <Button variant="outline" type="button">
@@ -120,7 +123,7 @@ export default function AdminAccountPage() {
                     <Input
                       id="firstName"
                       name="firstName"
-                      defaultValue={user.name?.split(' ')[0] || ''}
+                      defaultValue={user.firstName || ''}
                       disabled={isLoading}
                     />
                   </div>
@@ -129,7 +132,7 @@ export default function AdminAccountPage() {
                     <Input
                       id="lastName"
                       name="lastName"
-                      defaultValue={user.name?.split(' ').slice(1).join(' ') || ''}
+                      defaultValue={user.lastName || ''}
                       disabled={isLoading}
                     />
                   </div>

@@ -9,19 +9,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { Pencil, Trash, Edit } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo } from 'react';
-import { deleteCountry } from '@/actions/countries';
 import { EditCountryDialog } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/components/edit-country-dialog';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { tryCatch } from '@/lib/utils';
 import { useCountries } from '@/hooks/use-countries';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
-import type { CountryListItem } from '@/server/api/routers/countries/types';
-import type { Country, CountryMetadata } from '@/types/country';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import {
   Dialog,
   DialogClose,
@@ -50,7 +47,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import { updateCountry } from '@/actions/countries';
 import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
 import {
   Sheet,
@@ -62,37 +58,20 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
-
-// Fonction pour convertir CountryListItem en Country
-function countryListItemToCountry(item: CountryListItem): Country {
-  return {
-    id: item.id,
-    name: item.name,
-    code: item.code,
-    status: item.status,
-    flag: null,
-    metadata: item.metadata
-      ? ((typeof item.metadata === 'string'
-          ? JSON.parse(item.metadata)
-          : item.metadata) as CountryMetadata)
-      : null,
-    _count: item._count,
-    createdAt: item.createdAt,
-    updatedAt: item.updatedAt,
-  };
-}
+import { CountryStatus } from '@/convex/lib/constants';
+import type { EnrichedCountry } from '@/convex/lib/types';
 
 // Types pour les filtres de pays
 interface CountryFilters {
   search?: string;
-  status?: Array<'ACTIVE' | 'INACTIVE'>;
+  status?: Array<CountryStatus>;
 }
 
 // Function to adapt search parameters for countries
 function adaptSearchParams(searchParams: URLSearchParams): CountryFilters {
   return {
     status: searchParams.get('status')?.split(',').filter(Boolean) as
-      | Array<'ACTIVE' | 'INACTIVE'>
+      | Array<CountryStatus>
       | undefined,
     search: searchParams.get('search') || undefined,
   };
@@ -106,39 +85,26 @@ export function CountriesList() {
     handleParamsChange,
     handleSortingChange,
     handlePaginationChange,
-  } = useTableSearchParams<CountryListItem, CountryFilters>(adaptSearchParams);
+  } = useTableSearchParams<EnrichedCountry, CountryFilters>(adaptSearchParams);
 
   const t = useTranslations('sa.countries');
   const t_common = useTranslations('common');
-  const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [country, setCountry] = useState<CountryListItem | null>(null);
+  const [country, setCountry] = useState<EnrichedCountry | null>(null);
 
-  const { countries, total, isLoading, refetch } = useCountries({
+  const { countries, total, isLoading, deleteCountry } = useCountries({
     ...params,
     page: pagination.page,
     limit: pagination.limit,
   });
 
-  const handleDelete = async (country: CountryListItem) => {
-    const result = await tryCatch(deleteCountry(country.id));
-
-    if (result.error) {
-      toast({
-        title: t('messages.error.delete'),
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: t('messages.deleteSuccess'),
-      });
-      setShowDeleteDialog(false);
-      refetch();
-    }
+  const handleDelete = async (country: EnrichedCountry) => {
+    await deleteCountry(country._id);
+    setShowDeleteDialog(false);
   };
 
-  const columns = useMemo<ColumnDef<CountryListItem>[]>(
+  const columns = useMemo<ColumnDef<EnrichedCountry>[]>(
     () => [
       {
         id: 'select',
@@ -172,7 +138,7 @@ export function CountriesList() {
             title={t('table.code')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'code' as keyof CountryListItem,
+                field: 'code' as keyof EnrichedCountry,
                 order: direction,
               })
             }
@@ -192,7 +158,7 @@ export function CountriesList() {
             title={t('table.name')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'name' as keyof CountryListItem,
+                field: 'name' as keyof EnrichedCountry,
                 order: direction,
               })
             }
@@ -227,7 +193,7 @@ export function CountriesList() {
             title={t('table.status')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'status' as keyof CountryListItem,
+                field: 'status' as keyof EnrichedCountry,
                 order: direction,
               })
             }
@@ -262,7 +228,7 @@ export function CountriesList() {
             title={t('table.organizationsCount')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: '_count' as keyof CountryListItem,
+                field: '_count' as keyof EnrichedCountry,
                 order: direction,
               })
             }
@@ -277,7 +243,7 @@ export function CountriesList() {
             title={t('table.usersCount')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: '_count' as keyof CountryListItem,
+                field: '_count' as keyof EnrichedCountry,
                 order: direction,
               })
             }
@@ -297,7 +263,7 @@ export function CountriesList() {
                       .getFilteredSelectedRowModel()
                       .flatRows.map((row) => row.original)}
                     onSuccess={() => {
-                      refetch();
+                      // refetch();
                     }}
                   />
                 ),
@@ -315,7 +281,7 @@ export function CountriesList() {
                     ' aspect-square p-0'
                   }
                   onClick={(e) => e.stopPropagation()}
-                  href={ROUTES.sa.edit_country(row.original.id)}
+                  href={ROUTES.sa.edit_country(row.original._id)}
                 >
                   <Pencil className="size-icon" />
                   <span className="sr-only">{t_common('actions.edit')}</span>
@@ -345,7 +311,7 @@ export function CountriesList() {
                 <DialogHeader>
                   <DialogTitle>Modification rapide</DialogTitle>
                 </DialogHeader>
-                <QuickEditForm country={row.original} onSuccess={() => refetch()} />
+                <QuickEditForm country={row.original} onSuccess={() => {}} />
               </DialogContent>
             </Dialog>
 
@@ -376,7 +342,7 @@ export function CountriesList() {
   );
 
   // Définition des filtres
-  const filters = useMemo<FilterOption<CountryListItem>[]>(
+  const filters = useMemo<FilterOption<EnrichedCountry>[]>(
     () => [
       {
         type: 'search',
@@ -396,7 +362,7 @@ export function CountriesList() {
         defaultValue: params.status || ['ACTIVE'],
         onChange: (value: string[]) => {
           if (Array.isArray(value)) {
-            handleParamsChange('status', value as Array<'ACTIVE' | 'INACTIVE'>);
+            handleParamsChange('status', value as Array<CountryStatus>);
           }
         },
       },
@@ -407,10 +373,10 @@ export function CountriesList() {
   // Calcul des statistiques
   const stats = useMemo(() => {
     const activeCountries = countries.filter(
-      (country) => country.status === 'ACTIVE',
+      (country) => country.status === CountryStatus.Active,
     ).length;
     const inactiveCountries = countries.filter(
-      (country) => country.status === 'INACTIVE',
+      (country) => country.status === CountryStatus.Inactive,
     ).length;
 
     return {
@@ -438,14 +404,14 @@ export function CountriesList() {
         pageSize={pagination.limit}
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
         onLimitChange={(limit) => handlePaginationChange('limit', limit)}
-        onRefresh={refetch}
+        onRefresh={() => {}}
         activeSorting={[sorting.field, sorting.order]}
       />
 
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        onConfirm={() => handleDelete(country as CountryListItem)}
+        onConfirm={() => handleDelete(country as EnrichedCountry)}
         title={t('dialogs.delete.title')}
         description={t('dialogs.delete.description')}
         variant={'destructive'}
@@ -453,7 +419,7 @@ export function CountriesList() {
 
       {country && (
         <EditCountryDialog
-          country={countryListItemToCountry(country)}
+          country={country}
           open={showEditDialog}
           onOpenChange={setShowEditDialog}
         />
@@ -475,7 +441,7 @@ const quickEditSchema = z.object({
 type QuickEditFormData = z.infer<typeof quickEditSchema>;
 
 type QuickEditFormProps = {
-  country: CountryListItem;
+  country: EnrichedCountry;
   onSuccess: () => void;
 };
 
@@ -483,33 +449,26 @@ function QuickEditForm({ country, onSuccess }: QuickEditFormProps) {
   const t = useTranslations('sa.countries');
   const t_common = useTranslations('common');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const updateCountry = useMutation(api.functions.country.updateCountry);
 
   const form = useForm<QuickEditFormData>({
     resolver: zodResolver(quickEditSchema),
     defaultValues: {
       name: country.name || '',
       code: country.code || '',
-      status: country.status,
+      status: country.status as 'ACTIVE' | 'INACTIVE',
     },
   });
 
   const onSubmit = async (data: QuickEditFormData) => {
     setIsSubmitting(true);
     try {
-      const result = await tryCatch(
-        updateCountry({
-          id: country.id,
-          name: data.name || country.name,
-          code: data.code || country.code,
-          status: data.status,
-        }),
-      );
-
-      if (result.error) {
-        toast.error(t('messages.error.update'));
-        console.error(result.error);
-        return;
-      }
+      await updateCountry({
+        countryId: country._id,
+        name: data.name || country.name,
+        code: data.code || country.code,
+        status: data.status,
+      });
 
       toast.success(t('messages.updateSuccess'));
       onSuccess();
@@ -608,7 +567,7 @@ const statusChangeSchema = z.object({
 type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
 
 type StatusChangeFormProps = {
-  selectedRows: CountryListItem[];
+  selectedRows: EnrichedCountry[];
   onSuccess: () => void;
 };
 
@@ -617,6 +576,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
   const t_common = useTranslations('common');
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const updateCountry = useMutation(api.functions.country.updateCountry);
 
   const form = useForm<StatusChangeFormData>({
     resolver: zodResolver(statusChangeSchema),
@@ -628,14 +588,12 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
       if (!selectedRows.length) return;
 
       const updatePromises = selectedRows.map(async (row) => {
-        return tryCatch(
-          updateCountry({
-            id: row.id,
-            name: row.name,
-            code: row.code,
-            status: data.status,
-          }),
-        );
+        return updateCountry({
+          countryId: row._id,
+          name: row.name,
+          code: row.code,
+          status: data.status,
+        });
       });
 
       await Promise.all(updatePromises);

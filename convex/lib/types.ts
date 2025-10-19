@@ -110,62 +110,11 @@ export type FieldOption = Infer<typeof fieldOptionValidator>;
 
 export type ServiceStep = Infer<typeof serviceStepValidator>;
 
-// ============================================================================
-// Service Configuration Types
-// ============================================================================
+export type AllOrganizations = FunctionReturnType<
+  typeof api.functions.organization.getAllOrganizations
+>;
 
-// ============================================================================
-// Helper Type Guards
-// ============================================================================
-
-export function isTextField(field: ServiceField): field is TextField {
-  return field.type === 'text';
-}
-
-export function isNumberField(field: ServiceField): field is NumberField {
-  return field.type === 'number';
-}
-
-export function isEmailField(field: ServiceField): field is EmailField {
-  return field.type === 'email';
-}
-
-export function isPhoneField(field: ServiceField): field is PhoneField {
-  return field.type === 'phone';
-}
-
-export function isDateField(field: ServiceField): field is DateField {
-  return field.type === 'date';
-}
-
-export function isSelectField(field: ServiceField): field is SelectField {
-  return field.type === 'select';
-}
-
-export function isAddressField(field: ServiceField): field is AddressField {
-  return field.type === 'address';
-}
-
-export function isFileField(field: ServiceField): field is FileField {
-  return field.type === 'file';
-}
-
-export function isCheckboxField(field: ServiceField): field is CheckboxField {
-  return field.type === 'checkbox';
-}
-
-export function isRadioField(field: ServiceField): field is RadioField {
-  return field.type === 'radio';
-}
-
-export function isTextareaField(field: ServiceField): field is TextareaField {
-  return field.type === 'textarea';
-}
-
-export function isDocumentField(field: ServiceField): field is DocumentField {
-  return field.type === 'document';
-}
-
-export function isPhotoField(field: ServiceField): field is PhotoField {
-  return field.type === 'photo';
-}
+// Type pour un pays enrichi avec compteurs
+export type EnrichedCountry = FunctionReturnType<
+  typeof api.functions.country.getEnrichedCountries
+>;

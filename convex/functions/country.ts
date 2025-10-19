@@ -136,3 +136,60 @@ export const searchCountries = query({
     );
   },
 });
+
+// Query enrichie avec compteurs pour l'interface admin
+export const getEnrichedCountries = query({
+  args: {
+    status: v.optional(countryStatusValidator),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    let countries: Array<Doc<'countries'>>;
+
+    if (args.status) {
+      countries = await ctx.db
+        .query('countries')
+        .withIndex('by_status', (q) => q.eq('status', args.status!))
+        .order('asc')
+        .collect();
+    } else {
+      countries = await ctx.db.query('countries').order('asc').collect();
+    }
+
+    if (args.limit) {
+      countries = countries.slice(0, args.limit);
+    }
+
+    // Enrichir avec les compteurs
+    const enrichedCountries = await Promise.all(
+      countries.map(async (country) => {
+        // Compter les organisations liées à ce pays
+        const allOrganizations = await ctx.db.query('organizations').collect();
+        const organizationsCount = allOrganizations.filter((org) =>
+          org.countryIds.includes(country.code),
+        ).length;
+
+        // Compter les utilisateurs de ce pays
+        const usersCount = await ctx.db
+          .query('users')
+          .collect()
+          .then((users) => users.length);
+
+        return {
+          _id: country._id,
+          _creationTime: country._creationTime,
+          name: country.name,
+          code: country.code,
+          flag: country.flag,
+          status: country.status,
+          _count: {
+            organizations: organizationsCount,
+            users: usersCount,
+          },
+        };
+      }),
+    );
+
+    return enrichedCountries;
+  },
+});

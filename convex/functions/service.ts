@@ -371,3 +371,11 @@ export const searchServices = query({
     );
   },
 });
+
+export const deleteService = mutation({
+  args: { serviceId: v.id('services') },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.serviceId);
+    return args.serviceId;
+  },
+});

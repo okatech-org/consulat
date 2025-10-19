@@ -10,10 +10,9 @@ import {
 } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import type { OrganizationListingItem } from '@/types/organization';
-import { ServiceCategory, UserRole } from '@prisma/client';
+import { OrganizationStatus, ServiceCategory, UserRole } from '@/convex/lib/constants';
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { getOrganizationFromId, getOrganizationIdFromUser, tryCatch } from '@/lib/utils';
+import { getOrganizationIdFromUser, tryCatch } from '@/lib/utils';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { ROUTES } from '@/schemas/routes';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -22,7 +21,6 @@ import { Badge } from '@/components/ui/badge';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { DataTable } from '@/components/data-table/data-table';
 import type { ConsularServiceListingItem } from '@/types/consular-service';
-import type { SessionUser } from '@/types';
 import { useTranslations } from 'next-intl';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -32,9 +30,10 @@ import {
 } from '@/components/data-table/data-table-row-actions';
 import { Ban, CheckCircle, Copy, Pencil, Trash } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import type { AllOrganizations } from '@/convex/lib/types';
 
 type ServicesTablesProps = {
-  organizations: OrganizationListingItem[];
+  organizations: AllOrganizations;
 };
 
 interface SearchParams {
@@ -47,15 +46,16 @@ interface SearchParams {
 export function ServicesTable({ organizations }: ServicesTablesProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { user: currentUser } = useCurrentUser();
-  const organizationId = getOrganizationIdFromUser(currentUser as SessionUser);
-  const isSuperAdmin = currentUser?.roles.includes(UserRole.SUPER_ADMIN);
+  const organizationId = getOrganizationIdFromUser(currentUser);
+  const isSuperAdmin = currentUser?.roles.includes(UserRole.SuperAdmin);
 
   const t_inputs = useTranslations('inputs');
   const t = useTranslations('services');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages');
-  const [selectedService, setSelectedService] =
-    useState<ConsularServiceListingItem | null>(null);
+  const [selectedService, setSelectedService] = useState<AllOrganizations[number] | null>(
+    null,
+  );
   const { toast } = useToast();
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -186,10 +186,10 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
   );
 
   // Colonnes du tableau
-  const columns = useMemo<ColumnDef<ConsularServiceListingItem>[]>(() => {
+  const columns = useMemo<ColumnDef<AllOrganizations[number]>[]>(() => {
     function getActions(
-      row: Row<ConsularServiceListingItem>,
-    ): RowAction<ConsularServiceListingItem>[] {
+      row: Row<AllOrganizations[number]>,
+    ): RowAction<AllOrganizations[number]>[] {
       const actions = [
         {
           label: (
@@ -198,7 +198,7 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
             </>
           ),
           onClick: () => {
-            router.push(ROUTES.dashboard.edit_service(row.original.id));
+            router.push(ROUTES.dashboard.edit_service(row.original._id));
           },
         },
         {
@@ -209,13 +209,13 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
             </>
           ),
           onClick: () => {
-            handleDuplicateService(row.original.id);
+            handleDuplicateService(row.original._id);
           },
         },
         {
           label: (
             <>
-              {row.original.isActive ? (
+              {row.original.status === OrganizationStatus.Active ? (
                 <>
                   <Ban className="mr-1 size-4" />
                   {t_common('actions.deactivate')}
@@ -229,7 +229,10 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
             </>
           ),
           onClick: () => {
-            handleStatusChange(row.original.id, !row.original.isActive);
+            handleStatusChange(
+              row.original._id,
+              row.original.status !== OrganizationStatus.Active,
+            );
           },
         },
         {
@@ -291,7 +294,7 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
         ),
         cell: ({ row }) => (
           <Badge variant="outline">
-            {t_inputs(`serviceCategory.options.${row.original.category}`)}
+            {t_inputs(`serviceCategory.options.${row.original.type}`)}
           </Badge>
         ),
         filterFn: 'arrIncludesSome',
@@ -303,14 +306,13 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
               header: ({
                 column,
               }: {
-                column: Column<ConsularServiceListingItem, unknown>;
+                column: Column<AllOrganizations[number], unknown>;
               }) => (
                 <DataTableColumnHeader column={column} title={t('table.organization')} />
               ),
-              cell: ({ row }: { row: Row<ConsularServiceListingItem> }) =>
-                getOrganizationFromId(organizations, row.original.organizationId)
-                  ?.name || (
-                  <Badge variant="default">{t_common('status.NOT_ASSIGNED')}</Badge>
+              cell: ({ row }: { row: Row<AllOrganizations[number]> }) =>
+                organizations.find((org) => org._id === row.original.parentId)?.name || (
+                  <Badge variant="default">{t_common('status.not_assigned')}</Badge>
                 ),
             },
           ]
@@ -321,8 +323,14 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
           <DataTableColumnHeader column={column} title={t('table.status')} />
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.isActive ? 'default' : 'outline'}>
-            {t_common(`status.${row.original.isActive ? 'ACTIVE' : 'INACTIVE'}`)}
+          <Badge
+            variant={
+              row.original.status === OrganizationStatus.Active ? 'default' : 'outline'
+            }
+          >
+            {t_common(
+              `status.${row.original.status === OrganizationStatus.Active ? 'ACTIVE' : 'INACTIVE'}`,
+            )}
           </Badge>
         ),
         enableSorting: true,
@@ -376,8 +384,8 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
               property: 'organizationId',
               label: t('table.organization'),
               options: organizations.map((org) => ({
-                value: org.id,
-                label: org.name || org.id,
+                value: org._id,
+                label: org.name || org._id,
               })),
               defaultValue: params.organizationId as string[],
               onChange: (value: string[]) => handleParamsChange('organizationId', value),
@@ -389,8 +397,8 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
         property: 'isActive',
         label: t('table.status'),
         options: [
-          { value: 'true', label: t_common('status.ACTIVE') },
-          { value: 'false', label: t_common('status.INACTIVE') },
+          { value: 'true', label: t_common('status.active') },
+          { value: 'false', label: t_common('status.inactive') },
         ],
         defaultValue: (params.isActive || []).map(String) as string[],
         onChange: (value: string[]) =>
@@ -419,7 +427,7 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
           sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined
         }
         onRowClick={(row) => {
-          router.push(ROUTES.dashboard.edit_service(row.original.id));
+          router.push(ROUTES.dashboard.edit_service(row.original._id));
         }}
       />
 
@@ -427,7 +435,7 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
         <ConfirmDialog
           open={showDeleteDialog}
           onOpenChange={setShowDeleteDialog}
-          onConfirm={() => handleDelete(selectedService?.id)}
+          onConfirm={() => handleDelete(selectedService?._id)}
           title={t_common('actions.delete')}
           description={t('actions.delete_confirm')}
           variant={'destructive'}
