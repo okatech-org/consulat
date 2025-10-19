@@ -1,10 +1,12 @@
 import { useTranslations } from 'next-intl';
 import { Baby } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { ROUTES } from '@/schemas/routes';
 
-export function NoChildrenMessage() {
+type NoChildrenMessageProps = {
+  onAddChild: () => void;
+};
+
+export function NoChildrenMessage({ onAddChild }: NoChildrenMessageProps) {
   const t = useTranslations('user.children');
 
   return (
@@ -14,9 +16,7 @@ export function NoChildrenMessage() {
       <p className="text-muted-foreground mt-2 mb-6 max-w-sm">
         {t('no_children_message')}
       </p>
-      <Button asChild>
-        <Link href={ROUTES.user.new_child}>{t('add_child')}</Link>
-      </Button>
+      <Button onClick={onAddChild}>{t('add_child')}</Button>
     </div>
   );
 }

@@ -35,6 +35,7 @@ import type * as lib_constants from "../lib/constants.js";
 import type * as lib_countries from "../lib/countries.js";
 import type * as lib_fileTypes from "../lib/fileTypes.js";
 import type * as lib_twilio from "../lib/twilio.js";
+import type * as lib_types from "../lib/types.js";
 import type * as lib_utils from "../lib/utils.js";
 import type * as lib_validators from "../lib/validators.js";
 import type * as storage from "../storage.js";
@@ -93,6 +94,7 @@ declare const fullApi: ApiFromModules<{
   "lib/countries": typeof lib_countries;
   "lib/fileTypes": typeof lib_fileTypes;
   "lib/twilio": typeof lib_twilio;
+  "lib/types": typeof lib_types;
   "lib/utils": typeof lib_utils;
   "lib/validators": typeof lib_validators;
   storage: typeof storage;

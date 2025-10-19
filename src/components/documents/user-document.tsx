@@ -2,8 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { CheckCircle2, Info, UploadIcon } from 'lucide-react';
-import { tryCatch } from '@/lib/utils';
+import { CheckCircle2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,7 +25,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MetadataForm } from '@/components/documents/metadata-form';
 import { FileInput } from '../ui/file-input';
 import { FileDisplay } from '../ui/file-display';
-import { type FileUploadResponse, uploadFileFromClient } from '../ui/uploadthing';
 import { ImageCropper } from '../ui/image-cropper';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { DocumentValidationDialog } from '@/components/profile/document-validation-dialog';
@@ -35,7 +33,13 @@ import { Separator } from '@/components/ui/separator';
 import { hasAnyRole } from '@/lib/permissions/utils';
 import { toast } from 'sonner';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
-import { DocumentStatus, DocumentType, UserRole } from '@/convex/lib/constants';
+import {
+  DocumentStatus,
+  DocumentType,
+  OwnerType,
+  UserRole,
+} from '@/convex/lib/constants';
+import { useFile } from '@/hooks/use-file';
 
 interface UserDocumentProps {
   document?: Doc<'documents'>;
@@ -52,6 +56,8 @@ interface UserDocumentProps {
   enableEditor?: boolean;
   enableBackgroundRemoval?: boolean;
   requestId?: string;
+  profileId?: Id<'profiles'> | Id<'childProfiles'>;
+  ownerType?: OwnerType;
 }
 
 const updateDocumentSchema = z.object({
@@ -102,10 +108,11 @@ export function UserDocument({
   disabled = false,
   allowEdit = true,
   accept = 'image/*,application/pdf',
-  onUpload,
   enableEditor = false,
   enableBackgroundRemoval = false,
   requestId,
+  profileId,
+  ownerType,
 }: UserDocumentProps) {
   const { user } = useCurrentUser();
   const t_errors = useTranslations('messages.errors');
@@ -117,18 +124,16 @@ export function UserDocument({
   const [cropperOpen, setCropperOpen] = React.useState(false);
   const [tempImageUrl, setTempImageUrl] = React.useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [isReplacing, setIsReplacing] = React.useState(false);
-  const [replaceFile, setReplaceFile] = React.useState<File | null>(null);
   const [processedImageUrl, setProcessedImageUrl] = React.useState<string | null>(null);
   const [processedFile, setProcessedFile] = React.useState<File | null>(null);
   const [showProcessedImageDialog, setShowProcessedImageDialog] = React.useState(false);
   const router = useRouter();
+  const { handleFileUpload } = useFile();
 
   if (!user) {
     return null;
   }
 
-  // Convex mutations and queries
   const updateDocumentMutation = useMutation(api.functions.document.updateUserDocument);
   const createUserDocumentMutation = useMutation(
     api.functions.document.createUserDocument,
@@ -155,7 +160,6 @@ export function UserDocument({
     setIsLoading(true);
 
     try {
-      // Mettre à jour les dates et métadonnées
       await updateDocumentMutation({
         documentId,
         issuedAt: data.issuedAt ? new Date(data.issuedAt).getTime() : undefined,
@@ -164,9 +168,6 @@ export function UserDocument({
       });
 
       toast.success(t_messages('success.update_title'));
-      if (onUpload) {
-        onUpload({ _id: documentId, ...data } as any);
-      }
       router.refresh();
     } catch (error) {
       toast.error(
@@ -192,17 +193,41 @@ export function UserDocument({
     },
   });
 
-  const handleFileChange = async (fileData: FileUploadResponse) => {
+  const handleFileSelection = async (file: File) => {
+    if (!enableEditor || !file.type.startsWith('image/')) {
+      await handleUploadAndCreateDocument(file);
+      return;
+    }
+
+    setTempImageUrl(URL.createObjectURL(file));
+    setCropperOpen(true);
+  };
+
+  const handleUploadAndCreateDocument = async (file: File) => {
     setIsLoading(true);
 
     try {
-      // Use the fileUrl from uploadthing
-      const documentId = await createUserDocumentMutation({
+      const uploadResult = await handleFileUpload(file);
+
+      if (!uploadResult) {
+        throw new Error('Upload failed');
+      }
+
+      const targetOwnerId = document?.ownerId ?? profileId ?? user.profileId;
+      const targetOwnerType =
+        ownerType ?? (profileId ? OwnerType.ChildProfile : OwnerType.Profile);
+
+      if (!targetOwnerId) {
+        throw new Error('Owner ID not found');
+      }
+
+      await createUserDocumentMutation({
         type: expectedType,
-        fileUrl: fileData.url,
-        fileType: fileData.type,
-        fileName: fileData.name,
-        ownerId: document?.ownerId ?? user.profileId,
+        storageId: uploadResult.storageId,
+        fileType: uploadResult.type,
+        fileName: uploadResult.name,
+        ownerId: targetOwnerId,
+        ownerType: targetOwnerType,
         issuedAt: undefined,
         expiresAt: undefined,
         metadata: {
@@ -210,50 +235,14 @@ export function UserDocument({
         },
       });
 
-      if (documentId) {
-        if (onUpload) {
-          onUpload({ _id: documentId, ...fileData } as any);
-        } else {
-          toast.success(t_messages('success.update_title'));
-        }
-
-        router.refresh();
-      }
+      toast.success(t_messages('success.update_title'));
+      router.refresh();
     } catch (error) {
       toast.error(
         t_errors(error instanceof Error ? error.message : "Erreur lors de l'upload"),
       );
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleFileSelection = async (file: File) => {
-    // If image editor is not enabled, proceed with direct upload
-    if (!enableEditor || !file.type.startsWith('image/')) {
-      await handleFileUpload(file);
-      return;
-    }
-
-    // For images when editor is enabled, prepare for cropping
-    setTempImageUrl(URL.createObjectURL(file));
-    setCropperOpen(true);
-  };
-
-  const handleFileUpload = async (file: File) => {
-    setIsLoading(true);
-
-    const uploadResult = await tryCatch(uploadFileFromClient(file));
-
-    if (uploadResult.error) {
-      toast.error(t_errors(uploadResult.error.message));
-      console.error(uploadResult.error);
-      setIsLoading(false);
-      return;
-    }
-
-    if (uploadResult.data) {
-      await handleFileChange(uploadResult.data[0] as FileUploadResponse);
     }
   };
 
@@ -267,7 +256,7 @@ export function UserDocument({
       await handleReplaceFile(croppedFile);
       setReplaceFile(null);
     } else {
-      await handleFileUpload(croppedFile);
+      await handleUploadAndCreateDocument(croppedFile);
     }
   };
 
@@ -313,32 +302,21 @@ export function UserDocument({
         throw new Error('Document not found');
       }
 
-      // Upload file using uploadthing
-      const uploadResult = await tryCatch(uploadFileFromClient(file));
+      const uploadResult = await handleFileUpload(file);
 
-      if (uploadResult.error) {
-        toast.error(t_errors(uploadResult.error.message));
-        console.error(uploadResult.error);
-        setIsLoading(false);
-        setIsReplacing(false);
-        return;
+      if (!uploadResult) {
+        throw new Error('Upload failed');
       }
 
-      if (uploadResult.data) {
-        const fileData = uploadResult.data[0] as FileUploadResponse;
+      await replaceUserDocumentFileMutation({
+        documentId: document._id,
+        storageId: uploadResult.storageId,
+        fileType: uploadResult.type,
+        fileName: uploadResult.name,
+      });
 
-        // Remplacer le fichier du document
-        await replaceUserDocumentFileMutation({
-          documentId: document._id,
-          fileUrl: fileData.url,
-          fileType: fileData.type,
-          fileName: fileData.name,
-        });
-
-        toast.success(t_messages('success.update_title'));
-        onUpload?.({ _id: document._id, fileUrl: fileData.url } as any);
-        router.refresh();
-      }
+      toast.success(t_messages('success.update_title'));
+      router.refresh();
     } catch (error) {
       toast.error(
         t_errors(error instanceof Error ? error.message : 'Erreur lors du remplacement'),
@@ -346,19 +324,7 @@ export function UserDocument({
       console.error(error);
     } finally {
       setIsLoading(false);
-      setIsReplacing(false);
     }
-  };
-
-  // Refactored: handle file selection for replace (reupload)
-  const handleReplaceFileSelection = async (file: File) => {
-    if (!enableEditor || !file.type.startsWith('image/')) {
-      await handleReplaceFile(file);
-      return;
-    }
-    setReplaceFile(file);
-    setTempImageUrl(URL.createObjectURL(file));
-    setCropperOpen(true);
   };
 
   // Gérer la validation de l'image traitée
@@ -368,16 +334,13 @@ export function UserDocument({
     try {
       setIsLoading(true);
       if (document?._id) {
-        // Si le document existe déjà, le remplacer
         await handleReplaceFile(processedFile);
         toast.success("L'arrière-plan a été supprimé et le document mis à jour.");
       } else {
-        // Si pas de document existant, créer un nouveau document
-        await handleFileUpload(processedFile);
+        await handleUploadAndCreateDocument(processedFile);
         toast.success("L'image avec arrière-plan supprimé a été sauvegardée.");
       }
 
-      // Fermer la modale et nettoyer
       setShowProcessedImageDialog(false);
       setProcessedImageUrl(null);
       setProcessedFile(null);
@@ -440,12 +403,13 @@ export function UserDocument({
       </div>
 
       <div className={'relative w-full'}>
-        {document?.storageId && (
+        {document?.fileUrl && (
           <div className="mb-4">
             <FileDisplay
-              storageId={document.storageId as Id<'_storage'>}
+              fileUrl={document.fileUrl}
               fileName={document.fileName}
               fileType={document.fileType}
+              status={document.status}
               variant="card"
               showActions={allowEdit}
               onDelete={
@@ -460,52 +424,41 @@ export function UserDocument({
           </div>
         )}
 
-        <FileInput
-          onChangeAction={handleFileSelection}
-          accept={accept}
-          disabled={isLoading}
-          loading={isLoading}
-          fileUrl={document?.fileUrl}
-          fileType={document?.fileType}
-          showPreview={!document?.storageId} // Ne pas montrer l'aperçu si on a déjà un fichier
-          enableBackgroundRemoval={enableBackgroundRemoval}
-          onProcessedImageChange={async (processedUrl) => {
-            if (processedUrl) {
-              try {
-                // Convertir l'URL data en File
-                const response = await fetch(processedUrl);
-                const blob = await response.blob();
-                const file = new File([blob], `${label}-bg-removed.png`, {
-                  type: 'image/png',
-                });
+        {!document?.fileUrl && (
+          <FileInput
+            onChangeAction={handleFileSelection}
+            accept={accept}
+            disabled={isLoading}
+            loading={isLoading}
+            fileUrl={document?.fileUrl}
+            fileType={document?.fileType}
+            showPreview={!document?.storageId} // Ne pas montrer l'aperçu si on a déjà un fichier
+            enableBackgroundRemoval={enableBackgroundRemoval}
+            onProcessedImageChange={async (processedUrl) => {
+              if (processedUrl) {
+                try {
+                  // Convertir l'URL data en File
+                  const response = await fetch(processedUrl);
+                  const blob = await response.blob();
+                  const file = new File([blob], `${label}-bg-removed.png`, {
+                    type: 'image/png',
+                  });
 
-                // Stocker l'image et le fichier pour la modale de confirmation
-                setProcessedImageUrl(processedUrl);
-                setProcessedFile(file);
-                setShowProcessedImageDialog(true);
-              } catch (error) {
-                console.error("Erreur lors du traitement de l'image:", error);
-                toast.error("Impossible de traiter l'image.");
+                  // Stocker l'image et le fichier pour la modale de confirmation
+                  setProcessedImageUrl(processedUrl);
+                  setProcessedFile(file);
+                  setShowProcessedImageDialog(true);
+                } catch (error) {
+                  console.error("Erreur lors du traitement de l'image:", error);
+                  toast.error("Impossible de traiter l'image.");
+                }
               }
-            }
-          }}
-        />
+            }}
+          />
+        )}
 
         {document && (
           <div className="absolute right-0 bottom-0 translate-y-[120%] flex items-center gap-1">
-            {allowEdit && (
-              <Button
-                variant="link"
-                size="sm"
-                className="ml-2"
-                onClick={() => setIsReplacing(true)}
-                disabled={isLoading || disabled}
-                leftIcon={<UploadIcon className="size-icon" />}
-              >
-                {t_common('upload.actions.reupload')}
-              </Button>
-            )}
-
             {hasAdminRole && (
               <div className="flex gap-2">
                 <Button
@@ -619,37 +572,6 @@ export function UserDocument({
             router.refresh();
           }}
         />
-      )}
-
-      {/* FileInput pour le remplacement (dialog simple) */}
-      {isReplacing && (
-        <Dialog open={isReplacing} onOpenChange={setIsReplacing}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t_common('upload.actions.reupload')}</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <FileInput
-                onChangeAction={handleReplaceFileSelection}
-                accept={accept}
-                disabled={isLoading}
-                loading={isLoading}
-                fileUrl={undefined}
-                fileType={undefined}
-                showPreview={false}
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsReplacing(false)}
-              >
-                {t('actions.cancel')}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       )}
 
       {/* Modale de confirmation pour l'image traitée */}

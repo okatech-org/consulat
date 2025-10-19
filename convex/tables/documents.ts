@@ -12,7 +12,7 @@ export const documents = defineTable({
   type: documentTypeValidator,
   status: documentStatusValidator,
 
-  storageId: v.optional(v.string()),
+  storageId: v.optional(v.id('_storage')),
   fileUrl: v.optional(v.string()),
   fileName: v.string(),
   fileType: v.string(),

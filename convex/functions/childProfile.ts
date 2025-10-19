@@ -8,6 +8,8 @@ import {
   RequestPriority,
   ActivityType,
   DocumentType,
+  ParentalRole,
+  Gender,
 } from '../lib/constants';
 import type { ProfileStatus as ProfileStatusType } from '../lib/constants';
 import type { Doc } from '../_generated/dataModel';
@@ -15,7 +17,6 @@ import {
   genderValidator,
   nationalityAcquisitionValidator,
   parentalAuthorityValidator,
-  parentalRoleValidator,
   profileStatusValidator,
 } from '../lib/validators';
 
@@ -26,9 +27,17 @@ export const createChildProfile = mutation({
     residenceCountry: v.string(),
     firstName: v.string(),
     lastName: v.string(),
-    parents: v.array(parentalAuthorityValidator),
   },
   handler: async (ctx, args) => {
+    const currentUserProfile = await ctx.db
+      .query('profiles')
+      .withIndex('by_user', (q) => q.eq('userId', args.authorUserId))
+      .first();
+
+    if (!currentUserProfile) {
+      throw new Error('user_profile_not_found');
+    }
+
     const childProfileId = await ctx.db.insert('childProfiles', {
       authorUserId: args.authorUserId,
       status: ProfileStatus.Draft,
@@ -50,7 +59,20 @@ export const createChildProfile = mutation({
         passportInfos: undefined,
         nipCode: undefined,
       },
-      parents: args.parents,
+      parents: [
+        {
+          profileId: currentUserProfile._id,
+          role:
+            currentUserProfile.personal?.gender === Gender.Male
+              ? ParentalRole.Father
+              : ParentalRole.Mother,
+          firstName: currentUserProfile.personal?.firstName || '',
+          lastName: currentUserProfile.personal?.lastName || '',
+          email: currentUserProfile.contacts?.email,
+          phoneNumber: currentUserProfile.contacts?.phone,
+          address: currentUserProfile.contacts?.address,
+        },
+      ],
       registrationRequest: undefined,
     });
 
@@ -94,19 +116,7 @@ export const updateChildProfile = mutation({
         nipCode: v.optional(v.string()),
       }),
     ),
-
-    parents: v.optional(
-      v.array(
-        v.object({
-          userId: v.optional(v.id('users')),
-          role: parentalRoleValidator,
-          firstName: v.string(),
-          lastName: v.string(),
-          email: v.optional(v.string()),
-          phoneNumber: v.optional(v.string()),
-        }),
-      ),
-    ),
+    parents: v.optional(v.array(parentalAuthorityValidator)),
   },
   handler: async (ctx, args) => {
     const existingProfile = await ctx.db.get(args.childProfileId);
@@ -127,10 +137,6 @@ export const updateChildProfile = mutation({
       updateData.personal = { ...existingProfile.personal, ...args.personal };
     }
 
-    if (args.parents !== undefined) {
-      updateData.parents = args.parents;
-    }
-
     if (args.residenceCountry !== undefined) {
       updateData.residenceCountry = args.residenceCountry;
     }
@@ -145,6 +151,10 @@ export const updateChildProfile = mutation({
 
     if (args.registrationRequest !== undefined) {
       updateData.registrationRequest = args.registrationRequest;
+    }
+
+    if (args.parents !== undefined) {
+      updateData.parents = args.parents;
     }
 
     await ctx.db.patch(args.childProfileId, updateData);
@@ -402,6 +412,7 @@ export const getCurrentChildProfile = query({
   args: { childProfileId: v.id('childProfiles') },
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.childProfileId);
+
     if (!profile) {
       return null;
     }
@@ -426,7 +437,7 @@ export const getCurrentChildProfile = query({
 
     const registrationRequest = profile.registrationRequest
       ? await ctx.db.get(profile.registrationRequest)
-      : null;
+      : undefined;
 
     return {
       ...profile,
@@ -454,6 +465,88 @@ export const deleteChildProfile = mutation({
     }
 
     await ctx.db.delete(args.childProfileId);
+    return args.childProfileId;
+  },
+});
+
+export const addParentToChildProfile = mutation({
+  args: {
+    childProfileId: v.id('childProfiles'),
+    parent: parentalAuthorityValidator,
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.childProfileId);
+
+    if (!profile) {
+      throw new Error('profile_not_found');
+    }
+
+    const existingParent = profile.parents.find(
+      (p) => p.profileId === args.parent.profileId,
+    );
+
+    if (existingParent) {
+      throw new Error('parent_already_exists');
+    }
+
+    await ctx.db.patch(args.childProfileId, {
+      parents: [...profile.parents, args.parent],
+    });
+
+    return args.childProfileId;
+  },
+});
+
+export const removeParentFromChildProfile = mutation({
+  args: {
+    childProfileId: v.id('childProfiles'),
+    parentId: v.id('profiles'),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.childProfileId);
+    if (!profile) {
+      throw new Error('profile_not_found');
+    }
+
+    const existingParent = profile.parents.find((p) => p.profileId === args.parentId);
+
+    if (!existingParent) {
+      throw new Error('parent_not_found');
+    }
+
+    await ctx.db.patch(args.childProfileId, {
+      parents: profile.parents.filter((p) => p.profileId !== args.parentId),
+    });
+
+    return args.childProfileId;
+  },
+});
+
+export const updateParentInChildProfile = mutation({
+  args: {
+    childProfileId: v.id('childProfiles'),
+    parent: parentalAuthorityValidator,
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.childProfileId);
+    if (!profile) {
+      throw new Error('profile_not_found');
+    }
+
+    const existingParent = profile.parents.find(
+      (p) => p.profileId === args.parent.profileId,
+    );
+
+    if (!existingParent) {
+      throw new Error('parent_not_found');
+    }
+
+    await ctx.db.patch(args.childProfileId, {
+      parents: profile.parents.map((p) =>
+        p.profileId === args.parent.profileId ? { ...args.parent } : p,
+      ),
+    });
+
     return args.childProfileId;
   },
 });

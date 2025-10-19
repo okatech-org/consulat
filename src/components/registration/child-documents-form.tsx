@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,15 @@ import {
 } from '@/components/ui/form';
 import { analyzeDocuments } from '@/actions/documents';
 import { useToast } from '@/hooks/use-toast';
-import { DocumentType } from '@/convex/lib/constants';
+import { DocumentType, OwnerType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
-import type { Id } from '@/convex/_generated/dataModel';
+import type { Doc } from '@/convex/_generated/dataModel';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { UserDocumentSchema } from '@/schemas/inputs';
 import type { ChildBasicInfoFormData } from '@/schemas/child-registration';
+import type { CompleteChildProfile } from '@/convex/lib/types';
 
 const ChildDocumentsSchema = z.object({
   birthCertificate: UserDocumentSchema,
@@ -41,7 +42,7 @@ export type ChildDocumentUploadItem = {
 };
 
 type ChildDocumentsFormProps = {
-  childProfileId: Id<'childProfiles'>;
+  profile: CompleteChildProfile;
   documents?: ChildDocumentUploadItem[];
   onSave: () => void;
   onPrevious: () => void;
@@ -49,7 +50,7 @@ type ChildDocumentsFormProps = {
 };
 
 export function ChildDocumentsForm({
-  childProfileId,
+  profile,
   documents = [],
   onSave,
   onPrevious,
@@ -66,8 +67,8 @@ export function ChildDocumentsForm({
   const form = useForm<ChildDocumentsFormData>({
     resolver: zodResolver(ChildDocumentsSchema),
     defaultValues: {
-      birthCertificate: undefined,
-      passport: undefined,
+      birthCertificate: profile.birthCertificate,
+      passport: profile.passport,
     },
     reValidateMode: 'onBlur',
   });
@@ -113,7 +114,7 @@ export function ChildDocumentsForm({
     }
   };
 
-  const handleSubmit = async (data: ChildDocumentsFormData) => {
+  const handleSubmit = async () => {
     setIsLoading(true);
     try {
       onSave();
@@ -148,17 +149,14 @@ export function ChildDocumentsForm({
                     <FormItem>
                       <FormControl>
                         <UserDocument
-                          document={field.value}
+                          document={field.value as Doc<'documents'>}
                           expectedType={doc.expectedType}
                           label={doc.label}
                           description={doc.description}
                           required={doc.required}
                           disabled={isLoading}
-                          profileId={childProfileId}
-                          onUpload={field.onChange}
-                          onDelete={() => {
-                            field.onChange(null);
-                          }}
+                          profileId={profile._id}
+                          ownerType={OwnerType.ChildProfile}
                         />
                       </FormControl>
                       <TradFormMessage />

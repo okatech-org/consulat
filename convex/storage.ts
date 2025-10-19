@@ -20,8 +20,6 @@
 import { v } from 'convex/values';
 import { Id } from './_generated/dataModel';
 import { action, httpAction, mutation, query } from './_generated/server';
-import { api } from './_generated/api';
-import { documentTypeValidator, ownerTypeValidator } from './lib/validators';
 
 /**
  * UPLOAD DE FICHIERS
@@ -79,71 +77,6 @@ export const uploadFileViaHttp = httpAction(async (ctx, request) => {
     console.error('Error uploading file:', error);
     return new Response('Internal server error', { status: 500 });
   }
-});
-
-// 3. Upload et création de document en une étape
-export const uploadAndCreateDocument = action({
-  args: {
-    file: v.any(), // Blob du fichier
-    fileName: v.string(),
-    fileType: v.string(),
-    documentType: documentTypeValidator,
-    ownerId: v.string(),
-    ownerType: ownerTypeValidator,
-    issuedAt: v.optional(v.number()),
-    expiresAt: v.optional(v.number()),
-    metadata: v.optional(v.record(v.string(), v.any())),
-  },
-  returns: v.object({
-    storageId: v.id('_storage'),
-    documentId: v.id('documents'),
-    fileUrl: v.string(),
-  }),
-  handler: async (
-    ctx,
-    args,
-  ): Promise<{
-    storageId: Id<'_storage'>;
-    documentId: Id<'documents'>;
-    fileUrl: string;
-  }> => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error('Unauthorized');
-    }
-
-    // Étape 1: Stocker le fichier
-    const storageId = await ctx.storage.store(args.file);
-
-    // Étape 2: Générer l'URL du fichier
-    const fileUrl = await ctx.storage.getUrl(storageId);
-    if (!fileUrl) {
-      throw new Error('Failed to generate file URL');
-    }
-
-    // Étape 3: Créer le document
-    const documentId: Id<'documents'> = await ctx.runMutation(
-      api.functions.document.createUserDocument,
-      {
-        type: args.documentType,
-        fileUrl,
-        fileType: args.fileType,
-        fileName: args.fileName,
-        userId: args.ownerType === 'user' ? (args.ownerId as Id<'users'>) : undefined,
-        profileId:
-          args.ownerType === 'profile' ? (args.ownerId as Id<'profiles'>) : undefined,
-        issuedAt: args.issuedAt,
-        expiresAt: args.expiresAt,
-        metadata: args.metadata,
-      },
-    );
-
-    return {
-      storageId,
-      documentId,
-      fileUrl,
-    };
-  },
 });
 
 /**

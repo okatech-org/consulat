@@ -107,7 +107,6 @@ export const ROUTES = {
     settings: '/my-space/settings' as Route<string>,
     notifications: '/my-space/notifications' as Route<string>,
     children: '/my-space/children' as Route<string>,
-    new_child: '/my-space/children/new' as Route<string>,
     child_profile: (id: string) => `/my-space/children/${id}` as Route<string>,
     account: '/my-space/account' as Route<string>,
     feedback: '/my-space/feedback' as Route<string>,

@@ -445,6 +445,11 @@ export default {
       incomplete_message:
         'Veuillez compléter toutes les informations obligatoires avant de soumettre.',
     },
+    quick_create: {
+      title: 'Créer un profil enfant',
+      description:
+        "Commencez par entrer le nom et prénom de l'enfant. Vous pourrez compléter les informations ensuite.",
+    },
   },
   parents: {
     current_parents: 'Parents déclarés',

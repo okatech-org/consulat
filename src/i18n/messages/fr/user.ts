@@ -103,6 +103,9 @@ export default {
       success: 'Profil enfant créé avec succès',
       error: 'Une erreur est survenue lors de la création du profil',
     },
+    edit_form: {
+      title: 'Compléter le profil enfant',
+    },
     form: {
       family_info: {
         title: 'Informations familiales',

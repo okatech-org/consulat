@@ -1,19 +1,52 @@
 'use client';
 
 import { deleteFile } from '@/actions/utils';
-import { uploadFileFromClient } from '@/components/ui/uploadthing';
+import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
 import { tryCatch } from '@/lib/utils';
+import { useMutation } from 'convex/react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function useFile() {
+  const t_errors = useTranslations('messages.errors');
   const [isLoading, setIsLoading] = useState(false);
+  const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
 
   async function handleFileUpload(file: File) {
     setIsLoading(true);
-    const uploadResult = await tryCatch(uploadFileFromClient(file));
-    if (uploadResult.data[0]) {
+
+    try {
+      const uploadUrl = await generateUploadUrl();
+
+      const result = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+
+      if (!result.ok) {
+        throw new Error(`Upload failed: ${result.statusText}`);
+      }
+
+      const { storageId } = (await result.json()) as { storageId: string };
+
+      return {
+        storageId: storageId as Id<'_storage'>,
+        url: uploadUrl,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      };
+    } catch (error) {
+      toast.error(
+        t_errors(error instanceof Error ? error.message : "Erreur lors de l'upload"),
+      );
+      console.error(error);
+      return null;
+    } finally {
       setIsLoading(false);
-      return uploadResult.data[0].ufsUrl;
     }
   }
 

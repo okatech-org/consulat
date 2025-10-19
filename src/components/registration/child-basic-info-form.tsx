@@ -15,7 +15,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useTranslations } from 'next-intl';
 import type { CountryCode } from '@/lib/autocomplete-datas';
 import { Gender, NationalityAcquisition } from '@/convex/lib/constants';
-import { ChildBasicInfoSchema, type ChildBasicInfoFormData } from '@/schemas/child-registration';
+import {
+  ChildBasicInfoSchema,
+  type ChildBasicInfoFormData,
+} from '@/schemas/child-registration';
 import { CountrySelect } from '@/components/ui/country-select';
 import { capitalize } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,19 +27,17 @@ import { api } from '@/convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import type { Id } from '@/convex/_generated/dataModel';
+import type { CompleteChildProfile } from '@/convex/lib/types';
 
 type ChildBasicInfoFormProps = {
-  childProfileId: Id<'childProfiles'>;
-  personalData?: Partial<ChildBasicInfoFormData>;
+  profile: CompleteChildProfile;
   onSave: () => void;
   banner?: React.ReactNode;
   onPrevious: () => void;
 };
 
 export function ChildBasicInfoForm({
-  childProfileId,
-  personalData,
+  profile,
   onSave,
   banner,
   onPrevious,
@@ -45,33 +46,39 @@ export function ChildBasicInfoForm({
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  const updateChildPersonalInfo = useMutation(api.functions.childProfile.updateChildPersonalInfo);
+  const updateChildPersonalInfo = useMutation(
+    api.functions.childProfile.updateChildPersonalInfo,
+  );
 
   const form = useForm<ChildBasicInfoFormData>({
     resolver: zodResolver(ChildBasicInfoSchema),
     defaultValues: {
-      firstName: personalData?.firstName || '',
-      lastName: personalData?.lastName || '',
-      birthDate: personalData?.birthDate
-        ? new Date(personalData.birthDate).toISOString().split('T')[0]
+      firstName: profile.personal?.firstName || '',
+      lastName: profile.personal?.lastName || '',
+      birthDate: profile.personal?.birthDate
+        ? new Date(profile.personal.birthDate).toISOString().split('T')[0]
         : undefined,
-      birthPlace: personalData?.birthPlace || '',
-      birthCountry: personalData?.birthCountry || '',
-      gender: personalData?.gender || Gender.Male,
-      nationality: personalData?.nationality || '',
-      acquisitionMode: personalData?.acquisitionMode || NationalityAcquisition.Birth,
-      passportInfos: personalData?.passportInfos
+      birthPlace: profile.personal?.birthPlace || '',
+      birthCountry: profile.personal?.birthCountry || '',
+      gender: profile.personal?.gender || Gender.Male,
+      nationality: profile.personal?.nationality || '',
+      acquisitionMode: profile.personal?.acquisitionMode || NationalityAcquisition.Birth,
+      passportInfos: profile.personal?.passportInfos
         ? {
-            ...personalData.passportInfos,
-            issueDate: personalData.passportInfos.issueDate
-              ? new Date(personalData.passportInfos.issueDate).toISOString().split('T')[0]
+            ...profile.personal.passportInfos,
+            issueDate: profile.personal.passportInfos.issueDate
+              ? new Date(profile.personal.passportInfos.issueDate)
+                  .toISOString()
+                  .split('T')[0]
               : undefined,
-            expiryDate: personalData.passportInfos.expiryDate
-              ? new Date(personalData.passportInfos.expiryDate).toISOString().split('T')[0]
+            expiryDate: profile.personal.passportInfos.expiryDate
+              ? new Date(profile.personal.passportInfos.expiryDate)
+                  .toISOString()
+                  .split('T')[0]
               : undefined,
           }
         : undefined,
-      nipCode: personalData?.nipCode || '',
+      nipCode: profile.personal?.nipCode || '',
     },
     reValidateMode: 'onBlur',
   });
@@ -80,7 +87,7 @@ export function ChildBasicInfoForm({
     setIsLoading(true);
     try {
       await updateChildPersonalInfo({
-        childProfileId,
+        childProfileId: profile._id,
         personal: {
           firstName: data.firstName,
           lastName: data.lastName,

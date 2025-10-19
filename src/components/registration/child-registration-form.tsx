@@ -17,36 +17,33 @@ import React from 'react';
 import { useTabs } from '@/hooks/use-tabs';
 import { DocumentType } from '@/convex/lib/constants';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/auth-context';
 import { ParentsForm } from './parents-form';
 import { ChildDocumentsForm, type ChildDocumentUploadItem } from './child-documents-form';
 import { ChildBasicInfoForm } from './child-basic-info-form';
 import { ChildReviewForm } from './child-review-form';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Spinner } from '../ui/spinner';
+import type { CompleteChildProfile } from '@/convex/lib/types';
 
 export type ChildRegistrationStep = 'parents' | 'documents' | 'basic-info' | 'review';
 
-export function ChildRegistrationForm() {
-  const currentProfile = useQuery(api.functions.profile.getCurrentProfile);
+type ChildRegistrationFormProps = {
+  childProfileId?: Id<'childProfiles'>;
+};
+
+export function ChildRegistrationForm({ childProfileId }: ChildRegistrationFormProps) {
+  const childProfile = useQuery(
+    api.functions.childProfile.getCurrentChildProfile,
+    childProfileId ? { childProfileId } : 'skip',
+  );
   const submitChildProfileForValidation = useMutation(
     api.functions.childProfile.submitChildProfileForValidation,
   );
-  const createChildProfile = useMutation(api.functions.childProfile.createChildProfile);
 
   const router = useRouter();
   const t = useTranslations('registration');
   const tInputs = useTranslations('inputs');
-  const { user } = useAuth();
   const [displayAnalysisWarning, setDisplayAnalysisWarning] = useState(false);
-  const [childProfileId, setChildProfileId] = useState<Id<'childProfiles'> | undefined>(
-    undefined,
-  );
-  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
-
-  if (!user || !currentProfile?.residenceCountry) {
-    return null;
-  }
 
   const orderedSteps: ChildRegistrationStep[] = [
     'parents',
@@ -54,7 +51,6 @@ export function ChildRegistrationForm() {
     'basic-info',
     'review',
   ];
-
   const { currentTab, handleTabChange: setCurrentTab } = useTabs<ChildRegistrationStep>(
     'tab',
     'parents',
@@ -114,42 +110,6 @@ export function ChildRegistrationForm() {
     }
   };
 
-  const handleParentsSave = async () => {
-    if (childProfileId) {
-      handleNext();
-      return;
-    }
-
-    setIsCreatingProfile(true);
-    try {
-      const result = await tryCatch(
-        createChildProfile({
-          authorUserId: user._id,
-          residenceCountry: currentProfile.residenceCountry!,
-          firstName: '',
-          lastName: '',
-          parents: [],
-        }),
-      );
-
-      if (result.error) {
-        const { title, description } = handleFormError(result.error, t);
-        toast.error(title, { description });
-        return;
-      }
-
-      if (result.data) {
-        setChildProfileId(result.data);
-        handleNext();
-      }
-    } catch (error) {
-      toast.error('Erreur lors de la création du profil enfant');
-      console.error(error);
-    } finally {
-      setIsCreatingProfile(false);
-    }
-  };
-
   const handleFinalSubmit = async () => {
     if (!childProfileId) {
       toast.error('Erreur', {
@@ -200,32 +160,16 @@ export function ChildRegistrationForm() {
   ] as const;
 
   const stepsComponents: Record<ChildRegistrationStep, React.ReactNode> = {
-    parents: childProfileId ? (
+    parents: (
       <ParentsForm
-        childProfileId={childProfileId}
-        currentUser={user}
+        childProfile={childProfile as CompleteChildProfile}
         onSave={handleNext}
         onPrevious={handlePrevious}
       />
-    ) : (
-      <div className="space-y-6">
-        <div className="space-y-4">
-          <h2 className="text-lg font-medium">{t('child.parents.title')}</h2>
-          <p className="text-sm text-muted-foreground">
-            {t('child.parents.description')}
-          </p>
-        </div>
-        <div className="flex justify-between">
-          <div />
-          <Button onClick={handleParentsSave} loading={isCreatingProfile}>
-            Commencer
-          </Button>
-        </div>
-      </div>
     ),
-    documents: childProfileId ? (
+    documents: childProfile ? (
       <ChildDocumentsForm
-        childProfileId={childProfileId}
+        profile={childProfile as CompleteChildProfile}
         documents={requiredDocuments}
         onSave={handleNext}
         onPrevious={handlePrevious}
@@ -234,9 +178,9 @@ export function ChildRegistrationForm() {
     ) : (
       <Spinner />
     ),
-    'basic-info': childProfileId ? (
+    'basic-info': childProfile ? (
       <ChildBasicInfoForm
-        childProfileId={childProfileId}
+        profile={childProfile as CompleteChildProfile}
         onSave={handleNext}
         onPrevious={handlePrevious}
         banner={
@@ -256,9 +200,9 @@ export function ChildRegistrationForm() {
     ) : (
       <Spinner />
     ),
-    review: childProfileId ? (
+    review: childProfile ? (
       <ChildReviewForm
-        childProfileId={childProfileId}
+        childProfileId={childProfile._id}
         onNext={handleNext}
         onPrevious={handlePrevious}
       />

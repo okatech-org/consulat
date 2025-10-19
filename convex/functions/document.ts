@@ -17,7 +17,7 @@ export const createDocument = mutation({
     fileType: v.string(),
     fileSize: v.optional(v.number()),
     checksum: v.optional(v.string()),
-    storageId: v.optional(v.id('storage')),
+    storageId: v.id('_storage'),
     fileUrl: v.optional(v.string()),
     ownerId: ownerIdValidator,
     ownerType: ownerTypeValidator,
@@ -57,7 +57,7 @@ export const updateDocument = mutation({
     fileType: v.optional(v.string()),
     fileSize: v.optional(v.number()),
     checksum: v.optional(v.string()),
-    storageId: v.optional(v.string()),
+    storageId: v.optional(v.id('_storage')),
     fileUrl: v.optional(v.string()),
     issuedAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
@@ -131,7 +131,7 @@ export const createDocumentVersion = mutation({
     fileType: v.string(),
     fileSize: v.optional(v.number()),
     checksum: v.optional(v.string()),
-    storageId: v.optional(v.string()),
+    storageId: v.optional(v.id('_storage')),
     fileUrl: v.optional(v.string()),
     metadata: v.optional(v.record(v.string(), v.any())),
   },
@@ -377,39 +377,40 @@ export const getDocumentVersions = query({
 export const createUserDocument = mutation({
   args: {
     type: documentTypeValidator,
-    fileUrl: v.string(),
+    fileUrl: v.optional(v.string()),
+    storageId: v.optional(v.id('_storage')),
     fileType: v.string(),
     fileName: v.optional(v.string()),
-    userId: v.optional(v.id('users')),
-    profileId: v.optional(v.id('profiles')),
-    requestId: v.optional(v.id('requests')),
+    ownerId: ownerIdValidator,
+    ownerType: ownerTypeValidator,
     issuedAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
     metadata: v.optional(v.record(v.string(), v.any())),
   },
   returns: v.id('documents'),
   handler: async (ctx, args) => {
-    // Récupérer l'utilisateur actuel depuis le contexte d'authentification
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
-      throw new Error('Unauthorized');
+      throw new Error('unauthorized');
     }
 
-    const ownerId = args.profileId || args.userId || (identity.subject as Id<'users'>);
-    const ownerType = args.profileId ? OwnerType.Profile : OwnerType.User;
-
-    // Générer un nom de fichier si non fourni
     const fileName =
       args.fileName || `document-${Date.now()}.${args.fileType.split('/')[1]}`;
+
+    let fileUrl = args.fileUrl;
+    if (!fileUrl && args.storageId) {
+      fileUrl = (await ctx.storage.getUrl(args.storageId as Id<'_storage'>)) || undefined;
+    }
 
     const documentId = await ctx.db.insert('documents', {
       type: args.type,
       status: DocumentStatus.Pending,
-      fileUrl: args.fileUrl,
+      storageId: args.storageId,
+      fileUrl,
       fileName,
       fileType: args.fileType,
-      ownerId,
-      ownerType: ownerType,
+      ownerId: args.ownerId,
+      ownerType: args.ownerType,
       issuedAt: args.issuedAt,
       expiresAt: args.expiresAt,
       validations: [],
@@ -424,7 +425,8 @@ export const createUserDocument = mutation({
 export const replaceUserDocumentFile = mutation({
   args: {
     documentId: v.id('documents'),
-    fileUrl: v.string(),
+    fileUrl: v.optional(v.string()),
+    storageId: v.optional(v.id('_storage')),
     fileType: v.string(),
     fileName: v.optional(v.string()),
   },
@@ -440,16 +442,21 @@ export const replaceUserDocumentFile = mutation({
       throw new Error('Document not found');
     }
 
-    // Vérifier que l'utilisateur peut modifier ce document
     const ownerId = document.ownerId;
     if (ownerId !== identity.subject && document.ownerType !== 'user') {
       throw new Error('Unauthorized to modify this document');
     }
 
+    let fileUrl = args.fileUrl;
+    if (!fileUrl && args.storageId) {
+      fileUrl = (await ctx.storage.getUrl(args.storageId as Id<'_storage'>)) || undefined;
+    }
+
     const updateData: any = {
-      fileUrl: args.fileUrl,
+      fileUrl,
+      storageId: args.storageId,
       fileType: args.fileType,
-      status: DocumentStatus.Pending, // Remettre en attente après remplacement
+      status: DocumentStatus.Pending,
     };
 
     if (args.fileName) {
@@ -509,18 +516,12 @@ export const deleteUserDocument = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
-      throw new Error('Unauthorized');
+      throw new Error('unauthorized');
     }
 
     const document = await ctx.db.get(args.documentId);
     if (!document) {
-      throw new Error('Document not found');
-    }
-
-    // Vérifier que l'utilisateur peut supprimer ce document
-    const ownerId = document.ownerId;
-    if (ownerId !== identity.subject && document.ownerType !== 'user') {
-      throw new Error('Unauthorized to delete this document');
+      throw new Error('document_not_found');
     }
 
     // Supprimer le fichier du stockage si présent

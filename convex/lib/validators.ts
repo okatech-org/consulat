@@ -182,6 +182,9 @@ export const documentTypeValidator = v.union(
   v.literal(constants.DocumentType.IdentityPhoto),
   v.literal(constants.DocumentType.ConsularCard),
   v.literal(constants.DocumentType.DeathCertificate),
+  v.literal(constants.DocumentType.DriverLicense),
+  v.literal(constants.DocumentType.Photo),
+  v.literal(constants.DocumentType.FamilyBook),
 );
 export const appointmentTypeValidator = v.union(
   v.literal(constants.AppointmentType.DocumentSubmission),

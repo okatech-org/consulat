@@ -57,6 +57,11 @@ const nextConfig: NextConfig = {
         hostname: 'www.youtube.com',
         pathname: '/embed/**',
       },
+      {
+        protocol: 'https',
+        hostname: '*.convex.cloud',
+        pathname: '/api/storage/**',
+      },
     ],
   },
   async headers() {
@@ -89,7 +94,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://*.uploadthing.com https://*.ufs.sh",
               "img-src 'self' data: https: blob: https://*.uploadthing.com https://*.ufs.sh",
               "font-src 'self' data:",
-              "connect-src 'self' https://clerk.accounts.dev https://*.clerk.accounts.dev https://clerk.consulat.ga https://*.clerk.consulat.ga https://api.clerk.dev https://*.api.clerk.dev https://clerk-telemetry.com https://va.vercel-scripts.com https://*.uploadthing.com https://*.ufs.sh wss:",
+              "connect-src 'self' https://clerk.accounts.dev https://*.clerk.accounts.dev https://clerk.consulat.ga https://*.clerk.consulat.ga https://api.clerk.dev https://*.api.clerk.dev https://clerk-telemetry.com https://va.vercel-scripts.com https://*.uploadthing.com https://*.ufs.sh https://*.convex.cloud wss:",
               "frame-src 'self' https://challenges.cloudflare.com https://clerk.accounts.dev https://*.clerk.accounts.dev https://clerk.consulat.ga https://*.clerk.consulat.ga https://*.ufs.sh",
               "worker-src 'self' blob:",
               "object-src 'none'",

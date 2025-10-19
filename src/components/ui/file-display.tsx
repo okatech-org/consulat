@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
+import type { Id } from '@/convex/_generated/dataModel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -21,24 +21,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Download,
-  Eye,
   FileText,
   Image as ImageIcon,
   MoreVertical,
   Trash2,
   ExternalLink,
-  AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatFileSize, getDocumentIcon } from '@/lib/documents';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import type { DocumentStatus } from '@/convex/lib/constants';
 
 interface FileDisplayProps {
-  storageId: Id<'_storage'>;
+  fileUrl?: string;
   fileName?: string;
   fileType?: string;
-  fileSize?: number;
+  status?: DocumentStatus;
   showActions?: boolean;
   showPreview?: boolean;
   className?: string;
@@ -47,10 +45,10 @@ interface FileDisplayProps {
 }
 
 export function FileDisplay({
-  storageId,
+  fileUrl,
   fileName,
   fileType,
-  fileSize,
+  status,
   showActions = true,
   showPreview = true,
   className = '',
@@ -58,10 +56,6 @@ export function FileDisplay({
   variant = 'card',
 }: FileDisplayProps) {
   const t = useTranslations('common.files');
-
-  // Récupérer les informations du fichier
-  const fileInfo = useQuery(api.storage.getFileMetadata, { storageId });
-  const fileUrl = useQuery(api.storage.getFileUrl, { storageId });
 
   // Déterminer le type de fichier pour l'affichage
   const getFileTypeInfo = () => {
@@ -76,8 +70,7 @@ export function FileDisplay({
   };
 
   const fileTypeInfo = getFileTypeInfo();
-  const displayName = fileName || `File ${storageId.slice(0, 8)}`;
-  const displaySize = fileSize ? formatFileSize(fileSize) : '';
+  const displayName = fileName || `File ${fileUrl?.split('/').pop()?.slice(0, 8)}`;
 
   // Gestionnaire de téléchargement
   const handleDownload = async () => {
@@ -87,7 +80,7 @@ export function FileDisplay({
     }
 
     try {
-      const response = await fetch(fileUrl);
+      const response = await fetch(fileUrl!);
       if (!response.ok) throw new Error('Download failed');
 
       const blob = await response.blob();
@@ -102,7 +95,9 @@ export function FileDisplay({
 
       toast.success(t('success.downloaded'));
     } catch (error) {
-      toast.error(t('errors.download_failed'));
+      toast.error(t('errors.download_failed'), {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   };
 
@@ -114,7 +109,9 @@ export function FileDisplay({
       onDelete();
       toast.success(t('success.deleted'));
     } catch (error) {
-      toast.error(t('errors.delete_failed'));
+      toast.error(t('errors.delete_failed'), {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   };
 
@@ -123,7 +120,7 @@ export function FileDisplay({
     if (!fileUrl || fileTypeInfo.type !== 'image') return null;
 
     return (
-      <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
+      <div className="relative w-full h-32 bg-muted rounded-lg overflow-hidden">
         <Image
           src={fileUrl}
           alt={displayName}
@@ -140,11 +137,10 @@ export function FileDisplay({
     if (!fileUrl || fileTypeInfo.type !== 'pdf') return null;
 
     return (
-      <div className="flex items-center justify-center w-full h-32 bg-red-50 border-2 border-red-200 rounded-lg">
+      <div className="flex items-center justify-center w-full h-32 bg-muted border border-border rounded-lg">
         <div className="text-center">
-          <FileText className="w-8 h-8 text-red-500 mx-auto mb-2" />
-          <p className="text-sm text-red-600 font-medium">PDF Document</p>
-          <p className="text-xs text-red-500">{displaySize}</p>
+          <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground font-medium">PDF Document</p>
         </div>
       </div>
     );
@@ -155,13 +151,12 @@ export function FileDisplay({
     if (fileTypeInfo.type === 'image' || fileTypeInfo.type === 'pdf') return null;
 
     return (
-      <div className="flex items-center justify-center w-full h-32 bg-gray-50 border-2 border-gray-200 rounded-lg">
+      <div className="flex items-center justify-center w-full h-32 bg-muted border border-border rounded-lg">
         <div className="text-center">
-          <FileText className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-          <p className="text-sm text-gray-600 font-medium">
+          <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground font-medium">
             {fileTypeInfo.type.toUpperCase()} File
           </p>
-          <p className="text-xs text-gray-500">{displaySize}</p>
         </div>
       </div>
     );
@@ -204,18 +199,9 @@ export function FileDisplay({
 
   // Composant de statut
   const FileStatus = () => {
-    if (!fileInfo) {
-      return (
-        <Badge variant="secondary" className="ml-2">
-          <AlertCircle className="w-3 h-3 mr-1" />
-          Loading...
-        </Badge>
-      );
-    }
-
     return (
       <Badge variant="outline" className="ml-2">
-        {fileTypeInfo.type}
+        {t(`status.${status}`)}
       </Badge>
     );
   };
@@ -223,13 +209,16 @@ export function FileDisplay({
   // Rendu selon le variant
   if (variant === 'compact') {
     return (
-      <div className={`flex items-center space-x-2 p-2 rounded-lg border ${className}`}>
+      <div
+        className={`flex items-center space-x-2 p-2 rounded-lg border bg-card ${className}`}
+      >
         <div className="flex-shrink-0">
-          <fileTypeInfo.icon className="w-4 h-4 text-gray-500" />
+          <fileTypeInfo.icon className="w-4 h-4 text-muted-foreground" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
-          {displaySize && <p className="text-xs text-gray-500">{displaySize}</p>}
+          <p className="text-sm font-medium text-card-foreground truncate">
+            {displayName}
+          </p>
         </div>
         <FileStatus />
         <FileActions />
@@ -239,14 +228,17 @@ export function FileDisplay({
 
   if (variant === 'list') {
     return (
-      <div className={`flex items-center space-x-4 p-4 rounded-lg border ${className}`}>
+      <div
+        className={`flex items-center space-x-4 p-4 rounded-lg border bg-card ${className}`}
+      >
         <div className="flex-shrink-0">
-          <fileTypeInfo.icon className="w-8 h-8 text-gray-500" />
+          <fileTypeInfo.icon className="w-8 h-8 text-muted-foreground" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
+          <p className="text-sm font-medium text-card-foreground truncate">
+            {displayName}
+          </p>
           <div className="flex items-center space-x-2 mt-1">
-            <p className="text-xs text-gray-500">{displaySize}</p>
             <FileStatus />
           </div>
         </div>
@@ -257,7 +249,7 @@ export function FileDisplay({
 
   // Variant par défaut : card
   return (
-    <div className={`bg-white rounded-lg border shadow-sm ${className}`}>
+    <div className={`bg-card text-card-foreground rounded-lg border shadow ${className}`}>
       {/* Aperçu du fichier */}
       <div className="p-4">
         {showPreview && (
@@ -272,8 +264,9 @@ export function FileDisplay({
         <div className="space-y-2">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
-              {displaySize && <p className="text-xs text-gray-500">{displaySize}</p>}
+              <p className="text-sm font-medium text-card-foreground truncate">
+                {displayName}
+              </p>
             </div>
             <FileActions />
           </div>
@@ -288,46 +281,6 @@ export function FileDisplay({
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-// Composant pour afficher une liste de fichiers
-interface FileListProps {
-  storageIds: Id<'_storage'>[];
-  showActions?: boolean;
-  variant?: 'card' | 'list' | 'compact';
-  className?: string;
-  onDeleteFile?: (storageId: Id<'_storage'>) => void;
-}
-
-export function FileList({
-  storageIds,
-  showActions = true,
-  variant = 'list',
-  className = '',
-  onDeleteFile,
-}: FileListProps) {
-  if (storageIds.length === 0) {
-    return (
-      <div className={`text-center py-8 text-gray-500 ${className}`}>
-        <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-        <p>No files to display</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`space-y-2 ${className}`}>
-      {storageIds.map((storageId) => (
-        <FileDisplay
-          key={storageId}
-          storageId={storageId}
-          variant={variant}
-          showActions={showActions}
-          onDelete={onDeleteFile ? () => onDeleteFile(storageId) : undefined}
-        />
-      ))}
     </div>
   );
 }
@@ -389,10 +342,10 @@ export function FilePreview({
           )}
 
           {(!fileUrl || fileTypeInfo.type === 'file') && (
-            <div className="flex items-center justify-center h-96 bg-gray-50 border rounded-lg">
+            <div className="flex items-center justify-center h-96 bg-muted border border-border rounded-lg">
               <div className="text-center">
-                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">
+                <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">
                   {fileUrl ? t('preview.unsupported') : t('preview.loading')}
                 </p>
               </div>
@@ -402,17 +355,4 @@ export function FilePreview({
       </DialogContent>
     </Dialog>
   );
-}
-
-// Hook personnalisé pour gérer les fichiers
-export function useFileOperations() {
-  const generateUploadUrl = useQuery(api.storage.generateUploadUrl);
-  const uploadFile = useQuery(api.storage.uploadAndCreateDocument);
-  const deleteFile = useQuery(api.storage.deleteFile);
-
-  return {
-    generateUploadUrl,
-    uploadFile,
-    deleteFile,
-  };
 }

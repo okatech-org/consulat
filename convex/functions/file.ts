@@ -106,7 +106,7 @@ export const createDocumentWithFile = mutation({
       status: args.status,
       ownerId: args.ownerId,
       ownerType: args.ownerType,
-      storageId: args.storageId as string,
+      storageId: args.storageId,
       fileName: args.fileName,
       fileSize: args.fileSize,
       fileType: args.fileType,
