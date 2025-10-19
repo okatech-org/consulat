@@ -19,6 +19,7 @@ import {
   parentalAuthorityValidator,
   profileStatusValidator,
 } from '../lib/validators';
+import { api } from '../_generated/api';
 
 // Mutations
 export const createChildProfile = mutation({
@@ -334,6 +335,13 @@ export const submitChildProfileForValidation = mutation({
     await ctx.db.patch(args.childProfileId, {
       status: ProfileStatus.Pending,
       registrationRequest: requestId,
+    });
+
+    await ctx.scheduler.runAfter(0, api.functions.request.autoAssignRequestToAgent, {
+      countryCode: profile.residenceCountry!,
+      organizationId: organization._id,
+      serviceId: registrationService._id,
+      requestId: requestId,
     });
 
     return args.childProfileId;

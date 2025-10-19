@@ -691,6 +691,13 @@ export const submitProfileForValidation = mutation({
       registrationRequest: requestId,
     });
 
+    await ctx.scheduler.runAfter(0, api.functions.request.autoAssignRequestToAgent, {
+      countryCode: profile.residenceCountry!,
+      organizationId: organization._id,
+      serviceId: registrationService._id,
+      requestId: requestId,
+    });
+
     return args.profileId;
   },
 });
