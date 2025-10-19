@@ -146,16 +146,21 @@ export function FileDisplay({
         <FilePreview
           fileUrl={fileUrl}
           trigger={
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full h-full flex flex-col justify-center items-center gap-2 p-0 absolute top-0 right-0"
-            >
-              <FileText className="w-8 h-8 text-muted-foreground mr-2" />
-              <span className="text-sm text-muted-foreground font-medium">
-                Document PDF
-              </span>
-            </Button>
+            <div className="relative w-full h-full">
+              <iframe
+                src={fileUrl + '#toolbar=0'}
+                className="w-full h-full min-h-full border rounded-lg"
+                title={fileName || 'Document PDF'}
+                style={{ aspectRatio: '300/400' }}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full h-full flex flex-col justify-center items-center gap-2 p-0 absolute top-0 right-0"
+              >
+                <FileText className="w-8 h-8 text-muted-foreground mr-2" />
+              </Button>
+            </div>
           }
           fileName={displayName}
           fileType={fileType}

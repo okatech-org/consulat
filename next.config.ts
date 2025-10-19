@@ -95,7 +95,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: https: blob: https://*.uploadthing.com https://*.ufs.sh",
               "font-src 'self' data:",
               "connect-src 'self' https://clerk.accounts.dev https://*.clerk.accounts.dev https://clerk.consulat.ga https://*.clerk.consulat.ga https://api.clerk.dev https://*.api.clerk.dev https://clerk-telemetry.com https://va.vercel-scripts.com https://*.uploadthing.com https://*.ufs.sh https://*.convex.cloud wss:",
-              "frame-src 'self' https://challenges.cloudflare.com https://clerk.accounts.dev https://*.clerk.accounts.dev https://clerk.consulat.ga https://*.clerk.consulat.ga https://*.ufs.sh",
+              "frame-src 'self' https://challenges.cloudflare.com https://clerk.accounts.dev https://*.clerk.accounts.dev https://clerk.consulat.ga https://*.clerk.consulat.ga https://*.ufs.sh https://*.convex.cloud",
               "worker-src 'self' blob:",
               "object-src 'none'",
               "base-uri 'self'",

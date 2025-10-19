@@ -8,7 +8,6 @@ import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { CountryStatus } from '@/convex/lib/constants';
 
 export default function ProfileFormPage() {
   const tInputs = useTranslations('inputs');
@@ -16,7 +15,7 @@ export default function ProfileFormPage() {
 
   const profile = useQuery(
     api.functions.profile.getCurrentProfile,
-    user ? { userId: user._id } : 'skip',
+    user ? { profileId: user.profileId } : 'skip',
   );
 
   if (profile === undefined) {

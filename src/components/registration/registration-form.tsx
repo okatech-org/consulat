@@ -276,7 +276,7 @@ export function RegistrationForm({ profile }: { profile: CompleteProfile }) {
       {/* Version desktop - Layout avec sidebar */}
       <div className="w-full flex flex-col lg:flex-row lg:gap-4">
         {/* Sidebar verticale pour desktop */}
-        <aside className="hidden lg:block lg:w-80 lg:flex-shrink-0 lg:sticky lg:self-start">
+        <aside className="hidden lg:block min-w-max lg:flex-shrink-0 lg:sticky lg:self-start">
           <div className="bg-card border border-border rounded-lg p-6">
             <h2 className="text-lg font-semibold mb-6">{t('profile.title')}</h2>
             <StepIndicator<RegistrationStep>

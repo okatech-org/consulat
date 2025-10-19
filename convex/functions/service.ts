@@ -306,9 +306,9 @@ export const getAllServices = query({
 
     return args.limit
       ? services
-          .filter((service) => service.category === ServiceCategory.Registration)
+          .filter((service) => service.category !== ServiceCategory.Registration)
           .slice(0, args.limit)
-      : services;
+      : services.filter((service) => service.category !== ServiceCategory.Registration);
   },
 });
 

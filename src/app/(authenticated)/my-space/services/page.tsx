@@ -21,65 +21,58 @@ import CardContainer from '@/components/layouts/card-container';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { ServiceCategory, ServiceStatus } from '@/convex/lib/constants';
+import type { Id } from '@/convex/_generated/dataModel';
 
 export default function AvailableServicesPage() {
   const t = useTranslations('services');
   const tInputs = useTranslations('inputs');
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedOrganization, setSelectedOrganization] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('active');
+  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | undefined>(
+    undefined,
+  );
+  const [selectedOrganization, setSelectedOrganization] = useState<
+    Id<'organizations'> | undefined
+  >(undefined);
+  const [selectedStatus, setSelectedStatus] = useState<ServiceStatus | undefined>(
+    undefined,
+  );
 
   // Récupérer tous les services et organisations
-  const allServices = useQuery(api.functions.service.getAllServices, {});
+  const allServices = useQuery(api.functions.service.getAllServices, {
+    category: selectedCategory,
+    organizationId: selectedOrganization,
+    status: selectedStatus,
+  });
+
   const organizations = useQuery(api.functions.organization.getAllOrganizations, {});
 
   // Filtrer les services selon les critères
   const filteredServices = useMemo(() => {
     if (!allServices) return [];
 
-    return allServices.filter((service) => {
-      // Filtre de recherche
-      if (searchTerm) {
-        const search = searchTerm.toLowerCase();
-        const matchesSearch =
-          service.name.toLowerCase().includes(search) ||
-          service.code.toLowerCase().includes(search) ||
-          service.description?.toLowerCase().includes(search);
-        if (!matchesSearch) return false;
-      }
+    return allServices
+      .filter((service) => {
+        // Filtre de recherche
+        if (searchTerm) {
+          const search = searchTerm.toLowerCase();
+          const matchesSearch =
+            service.name.toLowerCase().includes(search) ||
+            service.code.toLowerCase().includes(search) ||
+            service.description?.toLowerCase().includes(search);
+          if (!matchesSearch) return false;
+        }
 
-      // Filtre de catégorie
-      if (selectedCategory !== 'all' && service.category !== selectedCategory) {
-        return false;
-      }
-
-      // Filtre d'organisation
-      if (
-        selectedOrganization !== 'all' &&
-        service.organizationId !== selectedOrganization
-      ) {
-        return false;
-      }
-
-      // Filtre de statut
-      if (selectedStatus === 'active' && service.status !== ServiceStatus.Active) {
-        return false;
-      }
-      if (selectedStatus === 'inactive' && service.status !== ServiceStatus.Inactive) {
-        return false;
-      }
-
-      return true;
-    });
+        return true;
+      })
+      .sort((a, b) => a.status.localeCompare(b.status));
   }, [allServices, searchTerm, selectedCategory, selectedOrganization, selectedStatus]);
 
   const resetFilters = () => {
     setSearchTerm('');
-    setSelectedCategory('all');
-    setSelectedOrganization('all');
-    setSelectedStatus('active');
+    setSelectedCategory(undefined);
+    setSelectedOrganization(undefined);
+    setSelectedStatus(undefined);
   };
 
   return (
@@ -108,7 +101,10 @@ export default function AvailableServicesPage() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1"
         />
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+        <Select
+          value={selectedCategory}
+          onValueChange={(value) => setSelectedCategory(value as ServiceCategory)}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder={t('new_request.filters.all_categories')} />
           </SelectTrigger>
@@ -121,7 +117,10 @@ export default function AvailableServicesPage() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={selectedOrganization} onValueChange={setSelectedOrganization}>
+        <Select
+          value={selectedOrganization}
+          onValueChange={(value) => setSelectedOrganization(value as Id<'organizations'>)}
+        >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder={t('new_request.filters.all_organizations')} />
           </SelectTrigger>
@@ -136,7 +135,10 @@ export default function AvailableServicesPage() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+        <Select
+          value={selectedStatus}
+          onValueChange={(value) => setSelectedStatus(value as ServiceStatus)}
+        >
           <SelectTrigger className="w-[150px]">
             <SelectValue placeholder="Statut" />
           </SelectTrigger>
