@@ -20,6 +20,7 @@ import { UserDocument } from '../documents/user-document';
 import type { FullProfile } from '@/types/convex-profile';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { Doc } from '@/convex/_generated/dataModel';
 
 export type DocumentUploadItem = {
   id: 'birthCertificate' | 'passport' | 'residencePermit' | 'addressProof';
@@ -135,7 +136,7 @@ export function DocumentUploadSection({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         {banner}
-        <div className="grid gap-4 pt-4 sm:grid-cols-2 md:grid-cols-2">
+        <div className="grid gap-4 pt-4 grid-cols-2 lg:grid-cols-4">
           <AnimatePresence mode="sync">
             {documents.map((doc, index) => (
               <motion.div
@@ -151,7 +152,7 @@ export function DocumentUploadSection({
                     <FormItem>
                       <FormControl>
                         <UserDocument
-                          document={field.value}
+                          document={field.value as Doc<'documents'>}
                           expectedType={doc.expectedType}
                           label={doc.label}
                           description={doc.description}

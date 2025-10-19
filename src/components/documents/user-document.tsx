@@ -383,18 +383,18 @@ export function UserDocument({
   };
 
   return (
-    <div className="relative w-full h-auto space-y-2 mb-12">
+    <div className="relative w-full h-auto space-y-2">
       <div>
         <div className="font-medium">
           <span>
             {label}
-            {required && <span className="text-sm">{' (Obligatoire)'}</span>}
+            {required && <span className="text-xs">{' (Obligatoire)'}</span>}
           </span>
           {document?.status &&
             hasAnyRole(user, [UserRole.Admin, UserRole.Agent, UserRole.SuperAdmin]) &&
             getStatusBadge(document.status)}
         </div>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
 
       <div className={'relative w-full'}>
@@ -406,6 +406,11 @@ export function UserDocument({
               fileType={document.fileType}
               status={document.status}
               variant="card"
+              className={
+                document.type === DocumentType.IdentityPhoto
+                  ? 'aspect-square w-full max-w-[250px]'
+                  : 'aspect-document w-full max-w-[250px]'
+              }
               showActions={allowEdit}
               onDelete={
                 allowEdit

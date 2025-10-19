@@ -271,6 +271,7 @@ export default {
       },
     },
     actions: {
+      open: 'Ouvrir',
       upload: 'Téléverser',
       uploading: 'Téléversement...',
       reupload: 'Remplacer',
@@ -401,6 +402,7 @@ export default {
     consult: 'Consulter',
     next: 'Suivant',
     bulk_actions: 'Actions en masse',
+    open: 'Ouvrir',
   },
   no_country_found: 'Aucun pays trouvé',
   request_types: {

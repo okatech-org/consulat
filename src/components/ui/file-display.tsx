@@ -1,18 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import type { Id } from '@/convex/_generated/dataModel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +32,7 @@ interface FileDisplayProps {
   showPreview?: boolean;
   className?: string;
   onDelete?: () => void;
-  variant?: 'card' | 'list' | 'compact';
+  variant?: 'card' | 'list' | 'compact' | 'document';
 }
 
 export function FileDisplay({
@@ -55,7 +46,8 @@ export function FileDisplay({
   onDelete,
   variant = 'card',
 }: FileDisplayProps) {
-  const t = useTranslations('common.files');
+  const t = useTranslations('inputs.documentStatus');
+  const t_common = useTranslations('common');
 
   // Déterminer le type de fichier pour l'affichage
   const getFileTypeInfo = () => {
@@ -120,13 +112,26 @@ export function FileDisplay({
     if (!fileUrl || fileTypeInfo.type !== 'image') return null;
 
     return (
-      <div className="relative w-full h-32 bg-muted rounded-lg overflow-hidden">
-        <Image
-          src={fileUrl}
-          alt={displayName}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      <div className="relative w-full h-full bg-muted rounded-lg overflow-hidden">
+        <FilePreview
+          fileUrl={fileUrl}
+          trigger={
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full h-full flex flex-col justify-center items-center gap-2 p-0 absolute top-0 right-0"
+            >
+              <Image
+                src={fileUrl}
+                alt={displayName}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+            </Button>
+          }
+          fileName={displayName}
+          fileType={fileType}
         />
       </div>
     );
@@ -137,11 +142,24 @@ export function FileDisplay({
     if (!fileUrl || fileTypeInfo.type !== 'pdf') return null;
 
     return (
-      <div className="flex items-center justify-center w-full h-32 bg-muted border border-border rounded-lg">
-        <div className="text-center">
-          <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground font-medium">PDF Document</p>
-        </div>
+      <div className="flex items-center relative justify-center w-full h-full bg-muted border border-border rounded-lg">
+        <FilePreview
+          fileUrl={fileUrl}
+          trigger={
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full h-full flex flex-col justify-center items-center gap-2 p-0 absolute top-0 right-0"
+            >
+              <FileText className="w-8 h-8 text-muted-foreground mr-2" />
+              <span className="text-sm text-muted-foreground font-medium">
+                Document PDF
+              </span>
+            </Button>
+          }
+          fileName={displayName}
+          fileType={fileType}
+        />
       </div>
     );
   };
@@ -178,18 +196,18 @@ export function FileDisplay({
             <>
               <DropdownMenuItem onClick={() => window.open(fileUrl, '_blank')}>
                 <ExternalLink className="mr-2 h-4 w-4" />
-                {t('actions.open')}
+                {t_common('actions.open')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleDownload}>
                 <Download className="mr-2 h-4 w-4" />
-                {t('actions.download')}
+                {t_common('actions.download')}
               </DropdownMenuItem>
             </>
           )}
           {onDelete && (
             <DropdownMenuItem onClick={handleDelete} className="text-red-600">
               <Trash2 className="mr-2 h-4 w-4" />
-              {t('actions.delete')}
+              {t_common('actions.delete')}
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
@@ -199,11 +217,7 @@ export function FileDisplay({
 
   // Composant de statut
   const FileStatus = () => {
-    return (
-      <Badge variant="outline" className="ml-2">
-        {t(`status.${status}`)}
-      </Badge>
-    );
+    return <Badge variant="outline">{t(`options.${status}`)}</Badge>;
   };
 
   // Rendu selon le variant
@@ -216,7 +230,7 @@ export function FileDisplay({
           <fileTypeInfo.icon className="w-4 h-4 text-muted-foreground" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-card-foreground truncate">
+          <p className="text-sm font-medium text-card-foreground truncate max-w-[150px]">
             {displayName}
           </p>
         </div>
@@ -235,7 +249,7 @@ export function FileDisplay({
           <fileTypeInfo.icon className="w-8 h-8 text-muted-foreground" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-card-foreground truncate">
+          <p className="text-sm font-medium text-card-foreground truncate max-w-[150px]">
             {displayName}
           </p>
           <div className="flex items-center space-x-2 mt-1">
@@ -249,11 +263,13 @@ export function FileDisplay({
 
   // Variant par défaut : card
   return (
-    <div className={`bg-card text-card-foreground rounded-lg border shadow ${className}`}>
+    <div
+      className={`bg-card text-card-foreground rounded-lg border shadow h-full ${className}`}
+    >
       {/* Aperçu du fichier */}
-      <div className="p-4">
+      <div className="p-2 sm:p-4 h-full flex flex-col justify-between">
         {showPreview && (
-          <div className="mb-4">
+          <div className="h-full mb-4">
             <ImagePreview />
             <PdfPreview />
             <GenericPreview />
@@ -263,21 +279,8 @@ export function FileDisplay({
         {/* Informations du fichier */}
         <div className="space-y-2">
           <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-card-foreground truncate">
-                {displayName}
-              </p>
-            </div>
-            <FileActions />
-          </div>
-
-          <div className="flex items-center justify-between">
             <FileStatus />
-            {fileType && (
-              <Badge variant="outline" className="text-xs">
-                {fileType}
-              </Badge>
-            )}
+            <FileActions />
           </div>
         </div>
       </div>
@@ -287,20 +290,14 @@ export function FileDisplay({
 
 // Composant pour prévisualiser un fichier dans un modal
 interface FilePreviewProps {
-  storageId: Id<'_storage'>;
+  fileUrl: string;
   trigger: React.ReactNode;
   fileName?: string;
   fileType?: string;
 }
 
-export function FilePreview({
-  storageId,
-  trigger,
-  fileName,
-  fileType,
-}: FilePreviewProps) {
+export function FilePreview({ fileUrl, trigger, fileName, fileType }: FilePreviewProps) {
   const t = useTranslations('common.files');
-  const fileUrl = useQuery(api.storage.getFileUrl, { storageId });
 
   const getFileTypeInfo = () => {
     if (fileType) {
@@ -315,14 +312,10 @@ export function FilePreview({
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle>{fileName || t('preview.title')}</DialogTitle>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-auto">
+      <DialogContent className="max-w-4xl h-full max-h-[90vh]">
+        <div className="flex-1 overflow-auto h-full">
           {fileUrl && fileTypeInfo.type === 'image' && (
-            <div className="relative w-full h-96">
+            <div className="relative w-full h-full">
               <Image
                 src={fileUrl}
                 alt={fileName || 'File preview'}
@@ -336,8 +329,8 @@ export function FilePreview({
           {fileUrl && fileTypeInfo.type === 'pdf' && (
             <iframe
               src={fileUrl}
-              className="w-full h-96 border rounded-lg"
-              title={fileName || 'PDF preview'}
+              className="w-full min-h-full border rounded-lg"
+              title={fileName || 'Document PDF'}
             />
           )}
 
