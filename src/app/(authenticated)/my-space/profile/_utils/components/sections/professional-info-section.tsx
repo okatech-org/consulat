@@ -13,12 +13,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { ProfessionalInfoForm } from '@/components/registration/professional-info';
 import { ProfessionalInfoDisplay } from './professional-info-display';
 
 interface ProfessionalInfoSectionProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
   onSave: () => void;
   requestId?: string;
 }

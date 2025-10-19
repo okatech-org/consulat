@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { InfoField } from '@/components/ui/info-field';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { Mail, Phone, MapPin, Users } from 'lucide-react';
 import { DisplayAddress } from '@/components/ui/display-address';
 import { Separator } from '@/components/ui/separator';
@@ -10,7 +10,7 @@ import { Fragment } from 'react';
 import { EmergencyContactType } from '@/convex/lib/constants';
 
 interface ContactInfoDisplayProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
 }
 
 export function ContactInfoDisplay({ profile }: ContactInfoDisplayProps) {

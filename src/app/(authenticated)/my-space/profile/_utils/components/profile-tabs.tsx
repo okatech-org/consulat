@@ -1,7 +1,7 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { ContactInfoDisplay } from './sections/contact-info-display';
 import { FamilyInfoDisplay } from './sections/family-info-display';
 import { useTranslations } from 'next-intl';
@@ -24,8 +24,7 @@ type AdditionalTab = {
 };
 
 type ProfileTabsProps = {
-  profile: FullProfile;
-  requestId?: string;
+  profile?: CompleteProfile;
   requests?: Doc<'requests'>[];
   noTabs?: boolean;
   additionalTabs?: AdditionalTab[];
@@ -33,11 +32,14 @@ type ProfileTabsProps = {
 
 export function ProfileTabs({
   profile,
-  requestId,
   requests,
   noTabs,
   additionalTabs,
 }: ProfileTabsProps) {
+  if (!profile) {
+    return undefined;
+  }
+
   const t = useTranslations('profile');
   const t_common = useTranslations('common');
   const isMobile = useIsMobile();
@@ -90,7 +92,6 @@ export function ProfileTabs({
                   required
                   noFormLabel={true}
                   enableBackgroundRemoval={DocumentType.IdentityPhoto === document?.type}
-                  requestId={requestId}
                 />
               </Fragment>
             ))}
@@ -119,13 +120,7 @@ export function ProfileTabs({
 
   // Use Accordion on mobile, Tabs on desktop
   if (isMobile) {
-    return (
-      <MobileProfileNavigation
-        profile={profile}
-        requestId={requestId}
-        requests={requests}
-      />
-    );
+    return <MobileProfileNavigation profile={profile} requests={requests} />;
   }
 
   return (

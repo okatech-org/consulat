@@ -19,20 +19,18 @@ export default function ServiceSubmissionPage() {
   const serviceId = searchParams.get('serviceId') as Id<'services'> | null;
   const t = useTranslations('services');
   const { user } = useCurrentUser();
+  const profile = useQuery(
+    api.functions.profile.getCurrentProfile,
+    user ? { profileId: user.profileId } : 'skip',
+  );
 
-  // Get service details
+  // Get service details from Convex
   const service = useQuery(
     api.functions.service.getService,
     serviceId ? { serviceId } : 'skip',
   );
 
-  // Get user profile
-  const userProfile = useQuery(
-    api.functions.profile.getCurrentProfile,
-    user ? {} : 'skip',
-  );
-
-  const isLoading = service === undefined || userProfile === undefined;
+  const isLoading = service === undefined || profile === undefined;
 
   if (isLoading) {
     return (
@@ -42,7 +40,7 @@ export default function ServiceSubmissionPage() {
     );
   }
 
-  if (!service || !userProfile || !serviceId) {
+  if (!service || !profile || !serviceId) {
     return (
       <div className="container mx-auto py-6">
         <Link href={ROUTES.user.services}>
@@ -56,5 +54,5 @@ export default function ServiceSubmissionPage() {
     );
   }
 
-  return <ServiceSubmissionForm service={service} userProfile={userProfile} />;
+  return <ServiceSubmissionForm service={service} profile={profile} />;
 }

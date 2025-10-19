@@ -80,7 +80,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import type { FullProfileUpdateFormData } from '@/schemas/registration';
+import type { CompleteProfileUpdateFormData } from '@/schemas/registration';
 import * as XLSX from 'xlsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { api } from '@/trpc/react';
@@ -828,7 +828,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
         return tryCatch(
           updateProfile(row.id, {
             status: data.status,
-          } as Partial<FullProfileUpdateFormData>),
+          } as Partial<CompleteProfileUpdateFormData>),
         );
       });
       await Promise.all(updatePromises);

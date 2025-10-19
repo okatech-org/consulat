@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import type { FullProfile } from '@/types';
+import type { CompleteProfile } from '@/convex/lib/types';
 import {
   CheckCircle2,
   XCircle,
@@ -12,7 +12,7 @@ import CardContainer from '@/components/layouts/card-container';
 import { WorkStatus } from '@prisma/client';
 
 interface ProfileProfessionalProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
 }
 
 export function ProfileProfessional({ profile }: ProfileProfessionalProps) {

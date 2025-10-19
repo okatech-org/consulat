@@ -25,7 +25,7 @@ import { CountrySelect } from '../ui/country-select';
 import { type CountryCode } from '@/lib/autocomplete-datas';
 import Link from 'next/link';
 import { CountryStatus } from '@/convex/lib/constants';
-import { type FullProfile } from '@/types/convex-profile';
+import { type CompleteProfile } from '@/types/convex-profile';
 import React from 'react';
 import { useTabs } from '@/hooks/use-tabs';
 import { DocumentType } from '@/convex/lib/constants';
@@ -41,7 +41,7 @@ export type RegistrationStep =
   | 'professional-info'
   | 'review';
 
-export function RegistrationForm({ profile }: { profile: FullProfile }) {
+export function RegistrationForm({ profile }: { profile: CompleteProfile }) {
   const submitProfileForValidation = useMutation(
     api.functions.profile.submitProfileForValidation,
   );

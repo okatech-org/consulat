@@ -442,3 +442,25 @@ export enum MembershipStatus {
   Inactive = 'inactive',
   Suspended = 'suspended',
 }
+
+// Field type enum and validator
+export enum ServiceFieldType {
+  Text = 'text',
+  Email = 'email',
+  Phone = 'phone',
+  Date = 'date',
+  Select = 'select',
+  Address = 'address',
+  File = 'file',
+  Checkbox = 'checkbox',
+  Radio = 'radio',
+  Textarea = 'textarea',
+  Number = 'number',
+  Document = 'document',
+  Photo = 'photo',
+}
+
+export enum SelectType {
+  Single = 'single',
+  Multiple = 'multiple',
+}

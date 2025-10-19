@@ -23,7 +23,7 @@ import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
 import { capitalize, filterUneditedKeys } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
@@ -31,7 +31,7 @@ import { Button } from '../ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 type BasicInfoFormProps = {
-  profile: FullProfile;
+  profile: CompleteProfile;
   onSave: () => void;
   banner?: React.ReactNode;
   onPrevious: () => void;

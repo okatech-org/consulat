@@ -18,8 +18,12 @@ import {
   UserDocument,
   ServiceRequest,
   Appointment,
+  ServiceStepType as PrismaServiceStepType,
 } from '@prisma/client';
-import type { UserCentricDataExport } from '../../scripts/export-prisma-to-json';
+import type {
+  ServiceExport,
+  UserCentricDataExport,
+} from '../../scripts/export-prisma-to-json';
 
 import {
   AppointmentStatus,
@@ -56,9 +60,12 @@ import {
   NotificationChannel,
   UserPermission,
   EmergencyContactType,
+  ServiceStepType,
+  SelectType,
 } from '../lib/constants';
 import type { Id } from '../_generated/dataModel';
 import type { MutationCtx } from '../_generated/server';
+import { ProfileDocumentField, ServiceField, ServiceStep } from '../lib/types';
 
 // Types pour les anciennes métadonnées d'organisation (par pays)
 type DaySlot = { start?: string; end?: string };
@@ -118,12 +125,6 @@ const maritalStatusMapping: { [key: string]: MaritalStatus } = {
   WIDOWED: MaritalStatus.Widowed,
   CIVIL_UNION: MaritalStatus.CivilUnion,
   COHABITING: MaritalStatus.Cohabiting,
-};
-
-const serviceStatusMapping: { [key: string]: ServiceStatus } = {
-  ACTIVE: ServiceStatus.Active,
-  INACTIVE: ServiceStatus.Inactive,
-  SUSPENDED: ServiceStatus.Suspended,
 };
 
 const workStatusMapping: { [key: string]: WorkStatus } = {
@@ -304,6 +305,36 @@ const familyLinkMapping: Record<PrismaFamilyLink, FamilyLink> = {
   LEGAL_GUARDIAN: FamilyLink.LegalGuardian,
   CHILD: FamilyLink.Child,
   OTHER: FamilyLink.Other,
+};
+
+const mapDocumentTypeLabel: Record<DocumentType, string> = {
+  [DocumentType.Passport]: 'Passeport',
+  [DocumentType.IdentityCard]: "Carte d'identité",
+  [DocumentType.BirthCertificate]: 'Acte de naissance',
+  [DocumentType.ResidencePermit]: 'Titre de séjour',
+  [DocumentType.ProofOfAddress]: 'Justificatif de domicile',
+  [DocumentType.MarriageCertificate]: 'Certificat de mariage',
+  [DocumentType.DeathCertificate]: 'Certificat de décès',
+  [DocumentType.DivorceDecree]: 'Décret de divorce',
+  [DocumentType.NationalityCertificate]: 'Certificat de nationalité',
+  [DocumentType.Other]: 'Autre',
+  [DocumentType.VisaPages]: 'Pages de visa',
+  [DocumentType.EmploymentProof]: "Justificatif d'emploi",
+  [DocumentType.NaturalizationDecree]: 'Décret de naturalisation',
+  [DocumentType.IdentityPhoto]: "Photo d'identité",
+  [DocumentType.ConsularCard]: 'Carte consulaire',
+  [DocumentType.DriverLicense]: 'Permis de conduire',
+  [DocumentType.Photo]: 'Photo',
+  [DocumentType.FamilyBook]: 'Livret de famille',
+};
+
+const serviceStepTypeMapping: Record<PrismaServiceStepType, ServiceStepType> = {
+  FORM: ServiceStepType.Form,
+  DOCUMENTS: ServiceStepType.Documents,
+  APPOINTMENT: ServiceStepType.Appointment,
+  PAYMENT: ServiceStepType.Payment,
+  REVIEW: ServiceStepType.Review,
+  DELIVERY: ServiceStepType.Delivery,
 };
 
 export const importOrganizations = mutation({
@@ -552,10 +583,12 @@ export const importServices = mutation({
   handler: async (ctx: MutationCtx, args) => {
     console.log(`🚀 Import de ${args.services.length} services...`);
 
+    const typedServices = args.services as unknown as ServiceExport[];
+
     const importedServices: Array<Id<'services'>> = [];
     const importedLegacyIds: Array<string> = [];
 
-    for (const service of args.services) {
+    for (const service of typedServices) {
       try {
         // Trouver l'organisation Convex correspondante
         const organization = await ctx.db
@@ -570,40 +603,235 @@ export const importServices = mutation({
           continue;
         }
 
+        const serviceSteps: Array<ServiceStep> = [];
+
+        if (service.requiredDocuments.length || service.optionalDocuments.length) {
+          const fields: Array<ProfileDocumentField> = [];
+
+          for (const document of service.requiredDocuments) {
+            fields.push({
+              type: 'profileDocument',
+              name: documentTypeMapping[document] || DocumentType.Other,
+              label:
+                mapDocumentTypeLabel[documentTypeMapping[document] || DocumentType.Other],
+              required: true,
+              documentType: documentTypeMapping[document] || DocumentType.Other,
+            });
+          }
+
+          for (const document of service.optionalDocuments) {
+            fields.push({
+              type: 'profileDocument',
+              name: documentTypeMapping[document] || DocumentType.Other,
+              label:
+                mapDocumentTypeLabel[documentTypeMapping[document] || DocumentType.Other],
+              required: false,
+              documentType: documentTypeMapping[document] || DocumentType.Other,
+            });
+          }
+
+          serviceSteps.push({
+            order: serviceSteps.length,
+            title: 'Documents',
+            description: 'Documents requis pour la démarche',
+            type: ServiceStepType.Documents,
+            isRequired: true,
+            fields: fields,
+          });
+        }
+
+        for (const step of service.steps) {
+          const fieldsArray: Array<any> = step.fields
+            ? JSON.parse(step.fields as string)
+            : [];
+          const fields: Array<ServiceField> = [];
+
+          for (const field of fieldsArray) {
+            const fieldType = field.type as ServiceField['type'];
+            switch (fieldType) {
+              case 'text':
+                fields.push({
+                  name: field.name,
+                  type: 'text',
+                  label: field.label,
+                  required: field.required,
+                  description: field.description,
+                  autoComplete: field.autoComplete,
+                  profilePath: field.profilePath,
+                  minLength: field.minLength,
+                  maxLength: field.maxLength,
+                  pattern: field.pattern,
+                });
+                break;
+              case 'email':
+                fields.push({
+                  name: field.name,
+                  type: 'email',
+                  label: field.label,
+                  description: field.description,
+                  required: field.required,
+                });
+                break;
+              case 'phone':
+                fields.push({
+                  name: field.name,
+                  type: 'phone',
+                  label: field.label,
+                  description: field.description,
+                  required: field.required,
+                });
+                break;
+              case 'date':
+                fields.push({
+                  name: field.name,
+                  type: 'date',
+                  label: field.label,
+                  description: field.description,
+                  required: field.required,
+                });
+                break;
+              case 'select':
+                fields.push({
+                  name: field.name,
+                  type: 'select',
+                  label: field.label,
+                  description: field.description,
+                  required: field.required,
+                  selectType: (field.selectType as SelectType) || 'single',
+                  options: field.options.map((o: any) => ({
+                    label: o.label,
+                    value: o.value,
+                  })),
+                });
+                break;
+              case 'address':
+                fields.push({
+                  name: field.name,
+                  type: 'address',
+                  label: field.label,
+                  description: field.description,
+                  required: field.required,
+                  countries: field.countries,
+                });
+                break;
+              case 'file':
+                fields.push({
+                  name: field.name,
+                  type: 'file',
+                  label: field.label,
+                  description: field.description,
+                  required: field.required,
+                });
+                break;
+              case 'checkbox':
+                fields.push({
+                  name: field.name,
+                  type: 'checkbox',
+                  label: field.label,
+                  description: field.description,
+                  required: field.required,
+                });
+                break;
+              case 'textarea':
+                fields.push({
+                  name: field.name,
+                  type: 'textarea',
+                  label: field.label,
+                  description: field.description,
+                  required: field.required,
+                });
+                break;
+              case 'radio':
+                fields.push({
+                  name: field.name,
+                  type: 'radio',
+                  label: field.label,
+                  description: field.description,
+                  required: field.required,
+                  options: field.options.map((o: any) => ({
+                    label: o.label,
+                    value: o.value,
+                  })),
+                });
+                break;
+              case 'number':
+                fields.push({
+                  name: field.name,
+                  type: 'number',
+                  label: field.label,
+                  description: field.description,
+                  required: field.required,
+                });
+                break;
+              case 'document':
+                fields.push({
+                  name: field.name,
+                  type: 'document',
+                  label: field.label,
+                  description: field.description,
+                  required: field.required,
+                  documentType: field.documentType || 'other',
+                });
+                break;
+              default:
+                console.warn(`Field type ${fieldType} not supported`);
+                break;
+            }
+          }
+
+          serviceSteps.push({
+            order: serviceSteps.length,
+            title: step.title,
+            description: step.description || undefined,
+            type: serviceStepTypeMapping[step.type] || ServiceStepType.Form,
+            isRequired: step.isRequired,
+            fields: fields,
+          });
+        }
+
         const serviceId = await ctx.db.insert('services', {
-          code: service.code || `SVC_${service.id.substring(0, 8).toUpperCase()}`,
+          code: `SVC_${service.id.substring(0, 8).toUpperCase()}`,
           name: service.name,
           description: service.description || undefined,
           category: serviceCategoryMapping[service.category] || ServiceCategory.Other,
-          status: serviceStatusMapping[service.status] || ServiceStatus.Active,
+          status: service.isActive ? ServiceStatus.Active : ServiceStatus.Inactive,
+          countries: ['FR'],
           organizationId: organization._id,
-          config: {
-            requiredDocuments: service.requiredDocuments || [],
-            optionalDocuments: service.optionalDocuments || [],
-            steps: [],
-            pricing:
-              service.price && !service.isFree
-                ? {
-                    amount: service.price,
-                    currency: service.currency || 'EUR',
-                  }
-                : undefined,
+          steps: serviceSteps,
+          processing: {
+            mode:
+              processingModeMapping[service.processingMode] || ProcessingMode.OnlineOnly,
+            appointment: {
+              requires: service.requiresAppointment || false,
+              duration: service.appointmentDuration || undefined,
+              instructions: service.appointmentInstructions || undefined,
+            },
+            proxy: {
+              allows: service.proxyRequirements ? true : false,
+              requirements: service.proxyRequirements || undefined,
+            },
           },
-          steps: [],
-          processingMode: ProcessingMode.OnlineOnly,
-          deliveryModes: (service.deliveryMode || []).map(
-            (m: string) => deliveryModeMapping[m as PrismaDeliveryMode] || 'in_person',
-          ) || ['in_person'],
-          requiresAppointment: service.requiresAppointment || false,
-          appointmentDuration: service.appointmentDuration || undefined,
-          appointmentInstructions: service.appointmentInstructions || undefined,
-          deliveryAppointment: false,
-          deliveryAppointmentDuration: undefined,
-          deliveryAppointmentDesc: undefined,
-          isFree: service.isFree !== undefined ? service.isFree : true,
-          price: service.price || undefined,
-          currency: service.currency || 'EUR',
-          workflowId: undefined,
+          delivery: {
+            modes: (service.deliveryMode || []).map(
+              (m: string) =>
+                deliveryModeMapping[m as PrismaDeliveryMode] || DeliveryMode.InPerson,
+            ) || [DeliveryMode.InPerson],
+            appointment: {
+              requires: service.deliveryAppointment || false,
+              duration: service.deliveryAppointmentDuration || undefined,
+              instructions: service.deliveryAppointmentDesc || undefined,
+            },
+            proxy: {
+              allows: service.proxyRequirements ? true : false,
+              requirements: service.proxyRequirements || undefined,
+            },
+          },
+          pricing: {
+            isFree: service.isFree ? true : false,
+            price: service.price ? service.price : undefined,
+            currency: service.currency || 'EUR',
+          },
+          automations: undefined,
           legacyId: service.id,
         });
 

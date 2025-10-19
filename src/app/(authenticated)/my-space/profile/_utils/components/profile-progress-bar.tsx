@@ -20,12 +20,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronDown, ChevronUp, CheckCircle2, AlertCircle, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { calculateProfileCompletion, cn } from '@/lib/utils';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 
 interface ProfileProgressBarProps {
-  profile: FullProfile | null;
+  profile: CompleteProfile | null;
   className?: string;
 }
 

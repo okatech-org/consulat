@@ -13,7 +13,7 @@ import {
 import { checkAuth } from '@/lib/auth/action';
 import { tryCatch } from '@/lib/utils';
 import { Prisma } from '@prisma/client';
-import type { FullProfile } from '@/types/profile';
+import type { CompleteProfile } from '@/types/profile';
 
 export interface GetProfilesOptions {
   search?: string;
@@ -163,7 +163,7 @@ export async function getProfiles(
 /**
  * Get a list of profiles with basic public information
  */
-export async function getPublicProfiles(): Promise<FullProfile[]> {
+export async function getPublicProfiles(): Promise<CompleteProfile[]> {
   try {
     const profiles = await db.profile.findMany({
       select: {
@@ -191,7 +191,7 @@ export async function getPublicProfiles(): Promise<FullProfile[]> {
       },
     });
 
-    return profiles as FullProfile[];
+    return profiles as CompleteProfile[];
   } catch (error) {
     console.error('Error fetching profiles:', error);
     return [];
@@ -205,7 +205,7 @@ export async function getProfileById(
   profileId: string,
   userId?: string,
   userRoles?: string[],
-): Promise<FullProfile | null> {
+): Promise<CompleteProfile | null> {
   try {
     // Basic profile query with limited public information
     const profileQuery = {
@@ -290,7 +290,7 @@ export async function getProfileById(
       select: profileQuery,
     });
 
-    return profile as FullProfile;
+    return profile as CompleteProfile;
   } catch (error) {
     console.error(`Error fetching profile ${profileId}:`, error);
     return null;

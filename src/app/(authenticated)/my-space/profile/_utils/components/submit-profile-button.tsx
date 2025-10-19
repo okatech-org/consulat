@@ -17,12 +17,12 @@ import { useRouter } from 'next/navigation';
 import { useMutation } from 'convex/react';
 import { toast } from '@/hooks/use-toast';
 import { api } from '@/convex/_generated/api';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { calculateProfileCompletion } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 
 interface SubmitProfileButtonProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
 }
 
 export function SubmitProfileButton({ profile }: SubmitProfileButtonProps) {

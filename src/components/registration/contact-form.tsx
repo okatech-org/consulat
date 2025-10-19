@@ -16,7 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { type ContactInfoFormData, ContactInfoSchema } from '@/schemas/registration';
 import { type CountryCode } from '@/lib/autocomplete-datas';
 import { CountrySelect } from '../ui/country-select';
-import { type FullProfile } from '@/types/convex-profile';
+import { type CompleteProfile } from '@/types/convex-profile';
 import { PhoneInput } from '../ui/phone-input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from 'convex/react';
@@ -26,7 +26,7 @@ import { Button } from '../ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface ContactInfoFormProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
   onSave: () => void;
   banner?: React.ReactNode;
   onNext?: () => void;
@@ -268,7 +268,11 @@ export function ContactInfoForm({
             </Button>
           )}
 
-          <Button type="submit" disabled={isLoading} rightIcon={<ArrowRight className="size-icon" />}>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            rightIcon={<ArrowRight className="size-icon" />}
+          >
             Enregistrer et continuer
           </Button>
         </div>

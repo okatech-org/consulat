@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Organization } from '@/types/organization';
+import type { Organization } from '@/types/organization';
 
 interface OrganizationDialogStore {
   isOpen: boolean;

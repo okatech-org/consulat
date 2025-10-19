@@ -1,13 +1,13 @@
 'use client';
 
 import { api } from 'convex/_generated/api';
-import type { Doc } from 'convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import { createContext, useContext } from 'react';
 import { useAuth as useClerkAuth } from '@clerk/nextjs';
+import type { UserData } from '@/convex/lib/types';
 
 interface AuthContextValue {
-  user: Doc<'users'> | undefined;
+  user: UserData;
   loading: boolean;
 }
 
@@ -27,7 +27,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return (
     <AuthContext.Provider
       value={{
-        user: userData ?? undefined,
+        user: userData ?? null,
         loading: userData === undefined && userId !== null,
       }}
     >

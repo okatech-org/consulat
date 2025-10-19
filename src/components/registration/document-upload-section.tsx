@@ -17,7 +17,7 @@ import { analyzeDocuments } from '@/actions/documents';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Doc } from '@/convex/_generated/dataModel';
@@ -33,7 +33,7 @@ export type DocumentUploadItem = {
 };
 
 interface DocumentUploadSectionProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
   onSave: () => void;
   banner?: React.ReactNode;
   onNext?: () => void;

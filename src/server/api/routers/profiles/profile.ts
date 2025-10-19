@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc';
 import { TRPCError } from '@trpc/server';
 import { BasicInfoSchema } from '@/schemas/registration';
-import { FullProfileInclude, DashboardProfileSelect } from '@/types/profile';
+import { CompleteProfileInclude, DashboardProfileSelect } from '@/types/profile';
 import {
   createUserProfile,
   updateProfile as updateProfileAction,
@@ -106,7 +106,7 @@ export const profileRouter = createTRPCRouter({
         where: {
           OR: [{ userId: ctx.user.id }, { id: ctx.user?.profileId ?? '' }],
         },
-        ...FullProfileInclude,
+        ...CompleteProfileInclude,
       });
       const registrationRequest = await ctx.db.serviceRequest.findFirst({
         where: {
@@ -144,7 +144,7 @@ export const profileRouter = createTRPCRouter({
       try {
         const profile = await ctx.db.profile.findUnique({
           where: { id: input.id },
-          ...FullProfileInclude,
+          ...CompleteProfileInclude,
         });
 
         if (!profile) {
@@ -180,7 +180,7 @@ export const profileRouter = createTRPCRouter({
       if (input.profileId) {
         const profile = await ctx.db.profile.findUnique({
           where: { id: input.profileId },
-          ...FullProfileInclude,
+          ...CompleteProfileInclude,
         });
 
         if (!profile) {
@@ -202,7 +202,7 @@ export const profileRouter = createTRPCRouter({
           },
           include: {
             profile: {
-              ...FullProfileInclude,
+              ...CompleteProfileInclude,
             },
           },
         });
@@ -811,7 +811,7 @@ export const profileRouter = createTRPCRouter({
         // Récupérer le profil complet pour validation
         const profile = await ctx.db.profile.findUnique({
           where: { id: input.id },
-          ...FullProfileInclude,
+          ...CompleteProfileInclude,
         });
 
         if (!profile) {
@@ -881,7 +881,7 @@ export const profileRouter = createTRPCRouter({
               submittedAt: new Date(),
               validationRequestId: serviceRequest.id,
             },
-            ...FullProfileInclude,
+            ...CompleteProfileInclude,
           });
 
           return { profile: updatedProfile, serviceRequest };
@@ -950,7 +950,7 @@ export const profileRouter = createTRPCRouter({
         const updatedProfile = await ctx.db.profile.update({
           where: { id: input.id },
           data: updateData,
-          ...FullProfileInclude,
+          ...CompleteProfileInclude,
         });
 
         revalidatePath(ROUTES.user.child_profile(input.id));
@@ -1138,5 +1138,5 @@ export const profileRouter = createTRPCRouter({
     }),
 });
 
-export type FullProfile = RouterOutputs['profile']['getCurrent'];
+export type CompleteProfile = RouterOutputs['profile']['getCurrent'];
 export type RegistrationRequest = RouterOutputs['profile']['getRegistrationRequest'];

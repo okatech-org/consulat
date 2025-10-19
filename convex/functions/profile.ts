@@ -9,7 +9,7 @@ import {
   ServiceCategory,
 } from '../lib/constants';
 import type { ProfileStatus as ProfileStatusType } from '../lib/constants';
-import type { Doc, Id } from '../_generated/dataModel';
+import type { Doc } from '../_generated/dataModel';
 import {
   addressValidator,
   emergencyContactValidator,
@@ -463,7 +463,8 @@ export const searchProfiles = query({
 
 // Nouvelle fonction pour obtenir le profil courant avec toutes les données nécessaires
 export const getCurrentProfile = query({
-  handler: async (ctx) => {
+  args: { profileId: v.optional(v.id('profiles')) },
+  handler: async (ctx, args) => {
     const userIdentity = await ctx.auth.getUserIdentity();
 
     if (!userIdentity) {
@@ -480,13 +481,15 @@ export const getCurrentProfile = query({
     }
 
     // Obtenir le profil par userId
-    const profile = await ctx.db
-      .query('profiles')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .first();
+    const profile = args.profileId
+      ? await ctx.db.get(args.profileId)
+      : await ctx.db
+          .query('profiles')
+          .withIndex('by_user', (q) => q.eq('userId', user._id))
+          .first();
 
     if (!profile) {
-      return null;
+      throw new Error('profile_not_found');
     }
 
     // Obtenir les documents associés au profil

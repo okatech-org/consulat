@@ -5,77 +5,73 @@ import {
   processingModeValidator,
   serviceCategoryValidator,
   serviceStatusValidator,
-  serviceStepTypeValidator,
+  serviceStepValidator,
 } from '../lib/validators';
 
+/**
+ * Services table
+ * Stores all consular services with their configuration, steps, and pricing
+ */
 export const services = defineTable({
+  // Basic information
   code: v.string(),
   name: v.string(),
   description: v.optional(v.string()),
   category: serviceCategoryValidator,
   status: serviceStatusValidator,
-
+  countries: v.array(v.string()),
   organizationId: v.id('organizations'),
 
-  // Configuration du service
-  config: v.object({
-    requiredDocuments: v.array(v.string()),
-    optionalDocuments: v.array(v.string()),
-    steps: v.array(
+  // Service steps (with fully typed fields including profilePath)
+  steps: v.array(serviceStepValidator),
+
+  // Processing and delivery modes
+  processing: v.object({
+    mode: processingModeValidator,
+    appointment: v.object({
+      requires: v.boolean(),
+      duration: v.optional(v.number()),
+      instructions: v.optional(v.string()),
+    }),
+    proxy: v.optional(
       v.object({
-        order: v.number(),
-        name: v.string(),
-        type: v.string(),
-        required: v.boolean(),
-        fields: v.optional(v.any()),
-      }),
-    ),
-    pricing: v.optional(
-      v.object({
-        amount: v.number(),
-        currency: v.string(),
+        allows: v.boolean(),
+        requirements: v.optional(v.string()),
       }),
     ),
   }),
 
-  // Étapes du service (intégrées)
-  steps: v.array(
-    v.object({
-      order: v.number(),
-      title: v.string(),
-      description: v.optional(v.string()),
-      isRequired: v.boolean(),
-      type: serviceStepTypeValidator,
-      fields: v.optional(v.any()),
-      validations: v.optional(v.any()),
-    }),
-  ),
+  delivery: v.object({
+    modes: v.array(deliveryModeValidator),
+    appointment: v.optional(
+      v.object({
+        requires: v.boolean(),
+        duration: v.optional(v.number()),
+        instructions: v.optional(v.string()),
+      }),
+    ),
+    proxy: v.optional(
+      v.object({
+        allows: v.boolean(),
+        requirements: v.optional(v.string()),
+      }),
+    ),
+  }),
 
-  // Modes de traitement et livraison
-  processingMode: processingModeValidator,
-  deliveryModes: v.array(deliveryModeValidator),
+  pricing: v.object({
+    isFree: v.boolean(),
+    price: v.optional(v.number()),
+    currency: v.optional(v.string()),
+  }),
 
-  // Configuration des rendez-vous
-  requiresAppointment: v.boolean(),
-  appointmentDuration: v.optional(v.number()),
-  appointmentInstructions: v.optional(v.string()),
+  automations: v.optional(v.id('workflows')),
 
-  // Configuration de livraison
-  deliveryAppointment: v.boolean(),
-  deliveryAppointmentDuration: v.optional(v.number()),
-  deliveryAppointmentDesc: v.optional(v.string()),
-
-  // Tarification
-  isFree: v.boolean(),
-  price: v.optional(v.number()),
-  currency: v.optional(v.string()),
-
-  // Workflow
-  workflowId: v.optional(v.id('workflows')),
-
+  // Legacy ID for migration purposes
   legacyId: v.optional(v.string()),
 })
   .index('by_code', ['code'])
   .index('by_organization', ['organizationId'])
   .index('by_category', ['category'])
-  .index('by_status', ['status']);
+  .index('by_status', ['status'])
+  .index('by_organization_status', ['organizationId', 'status'])
+  .index('by_countries', ['countries']);

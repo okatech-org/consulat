@@ -2,39 +2,38 @@
 
 import { useTranslations } from 'next-intl';
 import { toast } from '@/hooks/use-toast';
-import {
-  type Address,
-  AppointmentType,
-  DeliveryMode,
-  type ServiceRequest,
-  type UserDocument,
-} from '@prisma/client';
 import { Info } from 'lucide-react';
 import { ErrorCard } from '@/components/ui/error-card';
 import { useRouter } from 'next/navigation';
-import type { ConsularServiceItem } from '@/types/consular-service';
 import { DynamicForm } from '@/components/services/dynamic-form';
-import { submitServiceRequest } from '@/actions/services';
 import { ServiceDocumentSection } from './service-document-section';
 import { useServiceForm } from '@/hooks/use-service-form';
-import type { FullProfile } from '@/types/profile';
 import { tryCatch } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
 import { StepIndicator } from '../registration/step-indicator';
-
-type ServiceWithSteps = ConsularServiceItem;
+import { useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { AppointmentType, DeliveryMode } from '../../../convex/lib/constants';
+import type { Doc, Id } from '../../../convex/_generated/dataModel';
+import type { CompleteProfile } from '@/convex/lib/types';
 
 export function ServiceSubmissionForm({
   service,
-  userProfile,
+  profile,
 }: {
-  service: ServiceWithSteps;
-  userProfile: FullProfile;
+  service: Doc<'services'>;
+  profile: CompleteProfile;
 }) {
   const t = useTranslations();
   const router = useRouter();
 
-  // Utiliser notre hook personnalisé
+  // Convex mutations
+  const createRequest = useMutation(api.functions.request.createRequest);
+  const submitRequest = useMutation(api.functions.request.submitRequest);
+  const autoAssignRequest = useMutation(api.functions.request.autoAssignRequestToAgent);
+  const updateRequest = useMutation(api.functions.request.updateRequest);
+
+  // Use the service form hook
   const {
     currentStep,
     setCurrentStep,
@@ -45,7 +44,7 @@ export function ServiceSubmissionForm({
     setError,
     isLoading,
     setIsLoading,
-  } = useServiceForm(service, userProfile);
+  } = useServiceForm(service, profile);
 
   type StepKey = keyof (typeof forms)[number]['id'];
 
@@ -71,43 +70,67 @@ export function ServiceSubmissionForm({
     setIsLoading(false);
   };
 
-  function getDeliveryAddress(address: Address) {
-    return `${address.firstLine ?? ''}, ${address.secondLine ?? ''}, ${address.city ?? ''}, ${address.zipCode ?? ''}, ${address.country ?? ''}`;
-  }
-
   const handleFinalSubmit = async () => {
     setIsLoading(true);
     setError(null);
 
     const { documents, delivery, ...rest } = formData;
 
-    const requestData: ServiceRequest = {
-      serviceId: service.id,
-      submittedById: userProfile.userId ?? '',
-      requestedForId: userProfile.id,
-      organizationId: service.organizationId ?? '',
-      countryCode: service.countryCode ?? '',
-      serviceCategory: service.category,
-      // @ts-expect-error - TODO: fix this
-      requiredDocuments: documents
-        ? Object.values(documents as Record<string, UserDocument>)
-        : [],
-      ...(delivery && {
-        chosenDeliveryMode: delivery.deliveryMode,
-        ...(delivery.deliveryMode === DeliveryMode.POSTAL && {
-          deliveryAddress: getDeliveryAddress(
-            (delivery.deliveryAddress ?? '') as Address,
-          ),
+    try {
+      // Step 1: Create the request in Draft status
+      const requestId = await createRequest({
+        serviceId: service._id,
+        requesterId: profile.userId as Id<'users'>,
+        profileId: profile._id as Id<'profiles'>,
+        formData: rest,
+        documentIds: documents
+          ? (Object.values(documents as Record<string, { _id: string }>)
+              .map((doc) => doc._id)
+              .filter(Boolean) as Id<'documents'>[])
+          : [],
+      });
+
+      // Step 2: Update request with delivery configuration if provided
+      if (delivery) {
+        const deliveryAddress = delivery.deliveryAddress
+          ? delivery.deliveryAddress
+          : undefined;
+
+        await updateRequest({
+          requestId,
+          formData: {
+            ...rest,
+            config: {
+              deliveryMode: delivery.deliveryMode,
+              ...(delivery.deliveryMode === DeliveryMode.Postal &&
+                deliveryAddress && {
+                  deliveryAddress,
+                }),
+            },
+          },
+        });
+      }
+
+      // Step 3: Submit the request (changes status from Draft to Submitted)
+      await submitRequest({ requestId });
+
+      // Step 4: Auto-assign to least busy agent
+      const result = await tryCatch(
+        autoAssignRequest({
+          requestId,
+          serviceId: service._id,
+          organizationId: service.organizationId,
+          countryCode: profile.residenceCountry || 'GA',
         }),
-      }),
-      formData: JSON.stringify(rest),
-    };
+      );
 
-    const result = await tryCatch(submitServiceRequest(requestData));
+      if (result.error) {
+        console.error('Failed to auto-assign agent:', result.error);
+        // Continue even if auto-assignment fails
+      }
 
-    setIsLoading(false);
+      setIsLoading(false);
 
-    if (result.data) {
       toast({
         title: t('messages.success.create'),
         description: t('messages.success.profile.update_description'),
@@ -115,39 +138,43 @@ export function ServiceSubmissionForm({
       });
 
       // Check if service requires appointment and redirect accordingly
-      if (service.requiresAppointment) {
+      if (service.processing.appointment.requires) {
         // Store the request ID in sessionStorage for the appointment form
-        sessionStorage.setItem('pendingAppointmentRequestId', result.data.id);
+        sessionStorage.setItem('pendingAppointmentRequestId', requestId);
         sessionStorage.setItem(
           'pendingAppointmentType',
-          AppointmentType.DOCUMENT_SUBMISSION,
+          AppointmentType.DocumentSubmission,
         );
         router.push(
-          `${ROUTES.user.appointments_new}?serviceRequestId=${result.data.id}&type=${AppointmentType.DOCUMENT_SUBMISSION}`,
+          `${ROUTES.user.appointments_new}?serviceRequestId=${requestId}&type=${AppointmentType.DocumentSubmission}`,
         );
       } else {
-        router.push(ROUTES.user.service_request_details(result.data?.id ?? ''));
+        router.push(ROUTES.user.service_request_details(requestId));
       }
-    }
+    } catch (error) {
+      setIsLoading(false);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'An error occurred while submitting the request';
 
-    if (result.error) {
       toast({
         title: t('messages.errors.create'),
-        description: result.error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
-      setError(result.error.message);
+      setError(errorMessage);
     }
   };
 
-  // Rendu du formulaire actuel
+  // Render the current step
   const renderCurrentStep = () => {
     if (currentStep === 'documents') {
       const formData = forms.find((form) => form.id === currentStep);
       if (!formData) return undefined;
       return (
         <ServiceDocumentSection
-          userId={userProfile.user?.id ?? ''}
+          userId={profile.userId}
           formData={formData}
           onNext={handleNext}
           onPrevious={() => {
@@ -178,7 +205,7 @@ export function ServiceSubmissionForm({
         }}
         currentStepIndex={currentStepIndex}
         totalSteps={totalSteps}
-        userId={userProfile.userId ?? ''}
+        userId={profile.userId}
         isLoading={isLoading}
       />
     );

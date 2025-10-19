@@ -30,7 +30,7 @@ import {
   NationalityAcquisition,
   WorkStatus,
 } from '@/convex/lib/constants';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 
 const homeLandCountry = process.env.NEXT_PUBLIC_BASE_COUNTRY_CODE as CountryCode;
 
@@ -68,7 +68,7 @@ export const professionalInfoFields = [
   'activityInGabon',
 ] as const;
 
-export function useRegistrationForm({ profile }: { profile: FullProfile }) {
+export function useRegistrationForm({ profile }: { profile: CompleteProfile }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ErrorMessageKey | undefined>();

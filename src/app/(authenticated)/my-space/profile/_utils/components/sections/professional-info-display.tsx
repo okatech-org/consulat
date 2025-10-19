@@ -4,10 +4,10 @@ import { useTranslations } from 'next-intl';
 import { InfoField } from '@/components/ui/info-field';
 import { Briefcase, Building, MapPin } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 
 interface ProfessionalInfoDisplayProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
 }
 
 export function ProfessionalInfoDisplay({ profile }: ProfessionalInfoDisplayProps) {

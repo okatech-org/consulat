@@ -16,7 +16,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { FullProfile } from '@/types';
+import { CompleteProfile } from '@/types';
 import {
   Collapsible,
   CollapsibleContent,
@@ -33,7 +33,7 @@ export function ProfileCompletionAssistant({
   profile,
   user,
 }: {
-  profile: FullProfile;
+  profile: CompleteProfile;
   user: User;
 }) {
   const t = useTranslations('profile.assistant');

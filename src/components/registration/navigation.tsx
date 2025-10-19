@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { validateStep as validateStepFn } from '@/lib/form/validation';
-import { type FullProfileUpdateFormData } from '@/schemas/registration';
+import { type CompleteProfileUpdateFormData } from '@/schemas/registration';
 import { type UseFormReturn } from 'react-hook-form';
 
 type Step =
@@ -22,7 +22,7 @@ interface NavigationProps {
   isLoading: boolean;
   onNext: (step: Step) => void;
   onPrevious: (step: Step) => void;
-  forms: Record<Step, UseFormReturn<Partial<FullProfileUpdateFormData>>>;
+  forms: Record<Step, UseFormReturn<Partial<CompleteProfileUpdateFormData>>>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validateStep?: (step: number, forms: any) => Promise<{ isValid: boolean; data?: any }>;
 }

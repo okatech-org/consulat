@@ -235,26 +235,7 @@ async function importServices() {
 
   try {
     const result = await convex.mutation(api.functions.migration.importServices, {
-      services: servicesToImport.map((service) => ({
-        id: service.id,
-        name: service.name,
-        description: service.description,
-        category: service.category,
-        isActive: service.isActive,
-        organizationId: service.organizationId,
-        requiredDocuments: service.requiredDocuments || [],
-        optionalDocuments: service.optionalDocuments || [],
-        processingMode: service.processingMode,
-        deliveryMode: service.deliveryMode || [],
-        requiresAppointment: service.requiresAppointment,
-        appointmentDuration: service.appointmentDuration,
-        appointmentInstructions: service.appointmentInstructions,
-        isFree: service.isFree,
-        price: service.price,
-        currency: service.currency,
-        createdAt: service.createdAt,
-        updatedAt: service.updatedAt,
-      })),
+      services: servicesToImport,
     });
 
     servicesToImport.forEach((service) => addMigratedId('services', service.id));

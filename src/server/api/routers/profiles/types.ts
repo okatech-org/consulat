@@ -102,5 +102,5 @@ export type GetChildrenForDashboardInput =
 export type ChildrenForDashboard = ProfilesRouterOutputs['getChildrenForDashboard'];
 
 // Types exportés depuis le router (compatibility)
-export type FullProfile = ProfilesRouterOutputs['getCurrent'];
+export type CompleteProfile = ProfilesRouterOutputs['getCurrent'];
 export type RegistrationRequestType = ProfilesRouterOutputs['getRegistrationRequest'];

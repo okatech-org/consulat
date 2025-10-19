@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { z, ZodSchema } from 'zod';
-import { DocumentType } from '@prisma/client';
-import type { ConsularServiceItem, ServiceField, ServiceStep } from '@/types/consular-service';
+import { z, type ZodSchema } from 'zod';
+import type { ServiceField, ServiceStep } from '@/types/consular-service';
 import {
   DateSchema,
   EmailSchema,
@@ -17,45 +16,44 @@ import {
   PictureFileSchema,
   BasicAddressSchema,
 } from '@/schemas/inputs';
-import type { FullProfile } from '@/types/profile';
 import { createFormStorage } from '@/lib/form-storage';
 import { useStoredTabs } from './use-tabs';
 import { useTranslations } from 'next-intl';
 import type { CountryCode } from '@/lib/autocomplete-datas';
+import type { Doc } from '@/convex/_generated/dataModel';
+import type { CompleteProfile } from '@/convex/lib/types';
+import { getProfileValueByPath } from '@/lib/profile-utils';
+import { ServiceStepType } from '@/convex/lib/constants';
 
 type StepFormValues = Record<string, unknown>;
-
-// Configuration des mappings DocumentType -> nom de champ
-const documentTypeToField: Partial<Record<DocumentType, string>> = {
-  [DocumentType.PASSPORT]: 'passport',
-  [DocumentType.BIRTH_CERTIFICATE]: 'birthCertificate',
-  [DocumentType.RESIDENCE_PERMIT]: 'residencePermit',
-  [DocumentType.PROOF_OF_ADDRESS]: 'addressProof',
-  [DocumentType.IDENTITY_PHOTO]: 'identityPicture',
-} as const;
 
 export type ServiceForm = {
   id?: string;
   title: string;
   description?: string;
   schema: ZodSchema;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultValues: Record<string, any>;
+  defaultValues: Record<string, unknown>;
   stepData?: ServiceStep;
 };
-export function useServiceForm(service: ConsularServiceItem, userProfile: FullProfile) {
-  const { clearData, saveData } = createFormStorage('consular_form_data' + service.id);
+
+/**
+ * Hook to manage multi-step service request forms with Convex backend
+ * @param service - Convex service document
+ * @param profile - Complete user profile from Convex
+ * @returns Form state and handlers
+ */
+export function useServiceForm(service: Doc<'services'>, profile: CompleteProfile) {
+  const { clearData, saveData } = createFormStorage('consular_form_data' + service._id);
   const tInputs = useTranslations('inputs');
   const [formData, setFormData] = useState<Record<string, StepFormValues>>({});
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fonction pour créer un schéma dynamique basé sur les champs du formulaire
+  // Dynamic schema generator for form fields
   const createDynamicSchema = useMemo(() => {
     return (fields: ServiceField[]) => {
-      // Vérifier si fields est un tableau, sinon retourner un objet vide
       if (!Array.isArray(fields)) {
-        console.error("fields n'est pas un tableau:", fields);
+        console.error('fields is not an array:', fields);
         return z.object({});
       }
 
@@ -81,8 +79,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
                       ...UserDocumentSchema.shape,
                     },
                     {
-                      required_error: 'messages.errors.doc_required',
-                      invalid_type_error: 'messages.errors.invalid_field',
+                      message: 'messages.errors.invalid_field',
                     },
                   )
                 : z
@@ -103,8 +100,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
                       ...AddressSchema.shape,
                     },
                     {
-                      required_error: 'messages.errors.doc_required',
-                      invalid_type_error: 'messages.errors.invalid_field',
+                      message: 'messages.errors.field_required',
                     },
                   )
                 : z
@@ -113,7 +109,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
                         ...BasicAddressSchema.shape,
                       },
                       {
-                        invalid_type_error: 'messages.errors.invalid_field',
+                        message: 'messages.errors.invalid_field',
                       },
                     )
                     .optional();
@@ -125,7 +121,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
                   ...string[],
                 ];
                 const selectSchema = z.enum(values, {
-                  required_error: 'messages.errors.field_required',
+                  message: 'messages.errors.field_required',
                 });
                 acc[field.name] = field.required ? selectSchema : selectSchema.optional();
               } else {
@@ -134,12 +130,10 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
               break;
             case 'checkbox':
               if (field.options && field.options.length > 0) {
-                // Multiple checkboxes
                 acc[field.name] = field.required
                   ? z.array(z.string()).min(1, 'messages.errors.field_required')
                   : z.array(z.string()).optional();
               } else {
-                // Single checkbox
                 acc[field.name] = field.required
                   ? z
                       .boolean()
@@ -154,7 +148,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
                   ...string[],
                 ];
                 const radioSchema = z.enum(values, {
-                  required_error: 'messages.errors.field_required',
+                  message: 'messages.errors.field_required',
                 });
                 acc[field.name] = field.required ? radioSchema : radioSchema.optional();
               } else {
@@ -173,8 +167,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
                       ...UserDocumentSchema.shape,
                     },
                     {
-                      required_error: 'messages.errors.doc_required',
-                      invalid_type_error: 'messages.errors.invalid_field',
+                      message: 'messages.errors.field_required',
                     },
                   )
                 : z
@@ -183,7 +176,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
                         ...UserDocumentSchema.shape,
                       },
                       {
-                        invalid_type_error: 'messages.errors.invalid_field',
+                        message: 'messages.errors.invalid_field',
                       },
                     )
                     .optional();
@@ -193,12 +186,11 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
                 ? PictureFileSchema
                 : PictureFileSchema.optional();
               break;
-            // Fallback for any other types
             default:
               console.warn(`Unhandled field type: ${(field as ServiceField).type}`);
               acc[(field as ServiceField).name] = (field as ServiceField).required
                 ? z.string({
-                    required_error: 'messages.errors.field_required',
+                    message: 'messages.errors.invalid_field',
                   })
                 : z.string().optional();
           }
@@ -211,58 +203,82 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
     };
   }, []);
 
-  // Générer le schéma Zod pour les documents dynamiquement
+  // Generate document schema from service steps
   const documentsSchema = useMemo(() => {
     const schemaFields: Record<string, z.ZodType> = {};
 
-    // Documents requis
-    service.requiredDocuments.forEach((docType) => {
-      const fieldName = documentTypeToField[docType];
-      if (fieldName) {
-        schemaFields[fieldName] = UserDocumentSchema;
-      }
-    });
-
-    // Documents optionnels
-    service.optionalDocuments?.forEach((docType) => {
-      const fieldName = documentTypeToField[docType];
-      if (fieldName) {
-        schemaFields[fieldName] = UserDocumentSchema.nullable().optional();
-      }
-    });
-
-    return z.object(schemaFields);
-  }, [service.requiredDocuments, service.optionalDocuments]);
-
-  // Générer les valeurs par défaut pour le formulaire de documents
-  const documentsDefaultValues = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const defaults: Record<string, any> = {};
-
-    // Initialiser tous les champs de documents à undefined
-    [...service.requiredDocuments, ...(service.optionalDocuments || [])].forEach(
-      (docType) => {
-        const fieldName = documentTypeToField[docType];
-        if (fieldName) {
-          defaults[fieldName] = undefined;
-          // Vérifier que userProfile existe et a la propriété correspondante
-          if (userProfile && userProfile[fieldName as keyof FullProfile]) {
-            defaults[fieldName] = userProfile[fieldName as keyof FullProfile];
-          }
-        }
-      },
+    // Find the documents step in service steps
+    const documentsStep = service.steps.find((step) =>
+      step.title.toLowerCase().includes('document'),
     );
 
-    return defaults;
-  }, [service.requiredDocuments, service.optionalDocuments, userProfile]);
+    if (documentsStep && documentsStep.fields) {
+      const stepFields = Array.isArray(documentsStep.fields)
+        ? documentsStep.fields
+        : Object.values(documentsStep.fields);
 
+      stepFields.forEach((field) => {
+        const typedField = field as ServiceField;
+        if (typedField.type === 'document' && typedField.documentType) {
+          const fieldName = typedField.name;
+          // Required documents use UserDocumentSchema, optional use nullable/optional
+          schemaFields[fieldName] = typedField.required
+            ? UserDocumentSchema
+            : UserDocumentSchema.nullable().optional();
+        }
+      });
+    }
+
+    return z.object(schemaFields);
+  }, [service.steps]);
+
+  // Generate default values for document form
+  const documentsDefaultValues = useMemo(() => {
+    const defaults: Record<string, unknown> = {};
+
+    // Find the documents step in service steps
+    const documentsStep = service.steps.find((step) =>
+      step.title.toLowerCase().includes('document'),
+    );
+
+    if (documentsStep && documentsStep.fields) {
+      const stepFields = Array.isArray(documentsStep.fields)
+        ? documentsStep.fields
+        : Object.values(documentsStep.fields);
+
+      stepFields.forEach((field) => {
+        const typedField = field as ServiceField;
+        if (typedField.type === 'document' && typedField.documentType) {
+          const fieldName = typedField.name;
+          defaults[fieldName] = undefined;
+          // Check if profile has this document
+          if (profile && profile[fieldName as keyof CompleteProfile]) {
+            defaults[fieldName] = profile[fieldName as keyof CompleteProfile];
+          }
+        }
+      });
+    }
+
+    return defaults;
+  }, [service.steps, profile]);
+
+  // Build forms array
   const forms: Array<ServiceForm> = [];
 
-  if ([...service.requiredDocuments, ...(service.optionalDocuments || [])].length > 0) {
+  // Add documents form if there are document steps
+  const documentsStep = service.steps.find(
+    (step) => step.type === ServiceStepType.Documents,
+  );
+  if (documentsStep && documentsStep.fields) {
+    const stepFields = Array.isArray(documentsStep.fields)
+      ? documentsStep.fields
+      : Object.values(documentsStep.fields);
+
     forms.push({
       id: 'documents',
-      title: 'Documents',
+      title: documentsStep.title || 'Documents',
       description:
+        documentsStep.description ||
         'Veuillez joindre les documents de votre profil requis pour la démarche',
       schema: documentsSchema,
       defaultValues: {
@@ -271,36 +287,78 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
       },
       stepData: {
         id: 'documents',
-        title: 'Documents',
-        fields: service.requiredDocuments.map((docType) => ({
-          name: documentTypeToField[docType] ?? docType,
-          type: 'document',
-          label: tInputs(`userDocument.options.${docType}`),
-          required: false,
-          documentType: docType,
-        })),
-        order: 0,
-        description:
-          'Veuillez joindre les documents de votre profil requis pour la démarche',
-        type: 'DOCUMENTS',
-        isRequired: true,
-        validations: {},
+        title: documentsStep.title || 'Documents',
+        fields: stepFields.map((field) => {
+          const typedField = field as ServiceField;
+          if (typedField.type === 'document') {
+            return {
+              name: typedField.name,
+              type: typedField.type,
+              label:
+                typedField.label ||
+                tInputs(`userDocument.options.${typedField.documentType}`),
+              required: typedField.required,
+              documentType: typedField.documentType,
+            };
+          }
+          return typedField;
+        }),
+        order: documentsStep.order || 0,
+        description: documentsStep.description || 'inputDocument.description',
+        type: 'documents' as any,
+        isRequired: documentsStep.isRequired || true,
+        validations: documentsStep.validations || {},
       },
     });
   }
 
-  service.steps.forEach((step) => {
-    forms.push({
-      id: step.id ?? undefined,
-      title: step.title,
-      schema: createDynamicSchema(step.fields),
-      defaultValues: {
-        ...(step.id && formData?.[step.id] ? formData?.[step.id] : {}),
-      },
-      stepData: step,
-    });
-  });
+  // Add service-defined steps (excluding documents step as it's handled separately)
+  service.steps
+    .filter((step) => !step.title.toLowerCase().includes('document'))
+    .forEach((step, index) => {
+      const stepId = step.title.toLowerCase().replace(/\s+/g, '_') || `step_${index}`;
 
+      // Convert fields from Record to Array if needed (Convex stores as record)
+      const stepFields = Array.isArray(step.fields)
+        ? step.fields
+        : step.fields
+          ? Object.values(step.fields)
+          : [];
+
+      // Build default values from profile using profilePath
+      const defaultValues: Record<string, unknown> = {};
+      stepFields.forEach((field) => {
+        const typedField = field as ServiceField;
+        if (typedField.profilePath) {
+          const profileValue = getProfileValueByPath(profile, typedField.profilePath);
+          if (profileValue !== undefined) {
+            defaultValues[typedField.name] = profileValue;
+          }
+        }
+      });
+
+      forms.push({
+        id: stepId,
+        title: step.title,
+        schema: createDynamicSchema(stepFields as ServiceField[]),
+        defaultValues: {
+          ...defaultValues, // Profile-based defaults first
+          ...(formData?.[stepId] ? formData[stepId] : {}), // Saved form data overrides
+        },
+        stepData: {
+          id: stepId,
+          title: step.title,
+          description: step.description || null,
+          type: step.type,
+          isRequired: step.isRequired,
+          fields: stepFields as ServiceField[],
+          validations: step.validations || null,
+          order: step.order,
+        },
+      });
+    });
+
+  // Add delivery form
   forms.push({
     id: 'delivery',
     title: 'Adresse de livraison',
@@ -315,7 +373,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
           label: 'Mode de délivrance',
           description: 'Veuillez choisir le mode de délivrance de votre demande',
           required: true,
-          options: service.deliveryMode.map((mode) => ({
+          options: service.delivery.modes.map((mode) => ({
             value: mode,
             label: tInputs(`deliveryMode.options.${mode}`),
           })),
@@ -326,7 +384,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
           type: 'address',
           label: 'Votre adresse de livraison',
           required: false,
-          countries: [userProfile.residenceCountyCode as CountryCode],
+          countries: [profile.residenceCountry as CountryCode],
         },
       ],
       order: 1,
@@ -339,7 +397,7 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
     schema: z.object({
       deliveryAddress: BasicAddressSchema,
       deliveryMode: z.string({
-        required_error: 'messages.errors.field_required',
+        message: 'messages.errors.invalid_field',
       }),
     }),
     defaultValues: {
@@ -347,12 +405,13 @@ export function useServiceForm(service: ConsularServiceItem, userProfile: FullPr
     },
   });
 
-  const steps = service.steps.map((step) => step.id).filter((step) => step);
+  // Generate step IDs for navigation
+  const steps = forms.map((form) => form.id || 'step').filter(Boolean);
 
   const { currentTab: currentStep, setCurrentTab: setCurrentStep } =
-    useStoredTabs<string>('service-step' + service.id, steps[0] ?? '');
+    useStoredTabs<string>('service-step' + service._id, steps[0] ?? '');
 
-  // Créer un formulaire pour chaque étape de service
+  // Update form data handler
   const updateFormData = (stepId: string, data: StepFormValues) => {
     const newData = { ...formData, [stepId]: data };
     setFormData(newData);

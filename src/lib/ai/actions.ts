@@ -11,7 +11,7 @@ import {
   RAY_AGENT_PROMPT,
   SUPER_ADMIN_PROMPT,
 } from '@/lib/ai/prompts';
-import { FullProfileInclude, FullUserInclude } from '@/types';
+import { CompleteProfileInclude, FullUserInclude } from '@/types';
 import { FullServiceRequestInclude } from '@/types/service-request';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '@/env';
@@ -191,7 +191,7 @@ async function getUserContextDataForUser(
     ] = await Promise.all([
       db.profile.findUnique({
         where: { userId },
-        ...FullProfileInclude,
+        ...CompleteProfileInclude,
       }),
       db.appointment.findMany({
         where: {
@@ -535,7 +535,7 @@ async function getUserContextDataAgent(
       await Promise.all([
         db.profile.findMany({
           where: { userId },
-          ...FullProfileInclude,
+          ...CompleteProfileInclude,
         }),
         db.notification.findMany({
           where: { userId },

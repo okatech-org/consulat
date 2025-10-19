@@ -1,25 +1,22 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { FullProfile } from '@/types';
+import type { CompleteChildProfile } from '@/convex/lib/types';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
-import { DocumentsSection } from '../../profile/_utils/components/sections/documents-section';
 import { LinkInfoSection } from './sections/link-info-section';
-import { useRouter } from 'next/navigation';
-import { BasicInfoSection } from '../../profile/_utils/components/sections/basic-info-section';
 import { useState } from 'react';
 import { useTabs } from '@/hooks/use-tabs';
+import { ChildBasicInfoForm } from '@/components/registration/child-basic-info-form';
+import { ChildDocumentsForm } from '@/components/registration/child-documents-form';
 
 type ProfileTabsProps = {
-  profile: FullProfile;
-  requestId?: string;
+  profile: CompleteChildProfile;
   noTabs?: boolean;
 };
 
-export function ChildProfileTabs({ profile, requestId, noTabs }: ProfileTabsProps) {
+export function ChildProfileTabs({ profile, noTabs }: ProfileTabsProps) {
   const t = useTranslations('profile');
-  const router = useRouter();
 
   const profileTabs = [
     {
@@ -31,33 +28,14 @@ export function ChildProfileTabs({ profile, requestId, noTabs }: ProfileTabsProp
       id: 'basic-info',
       title: t('sections.basic_info'),
       content: (
-        <BasicInfoSection
-          profile={profile}
-          onSave={() => {
-            router.refresh();
-          }}
-          requestId={requestId}
-        />
+        <ChildBasicInfoForm profile={profile} onSave={() => {}} onPrevious={() => {}} />
       ),
     },
     {
       id: 'documents',
       title: t('sections.documents'),
       content: (
-        <DocumentsSection
-          documents={{
-            identityPhoto: profile.identityPicture,
-            birthCertificate: profile.birthCertificate,
-            passport: profile.passport,
-            residencePermit: profile.residencePermit,
-            addressProof: profile.addressProof,
-          }}
-          profileId={profile.id}
-          onSave={() => {
-            router.refresh();
-          }}
-          requestId={requestId}
-        />
+        <ChildDocumentsForm profile={profile} onSave={() => {}} onPrevious={() => {}} />
       ),
     },
   ];

@@ -15,7 +15,7 @@ import type { OrganizationListingItem } from '@/types/organization';
 import { ROUTES } from '@/schemas/routes';
 import type { Doc } from 'convex/_generated/dataModel';
 import { ProfileStatus, UserRole } from 'convex/lib/constants';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { MaritalStatus, WorkStatus } from '@/convex/lib/constants';
 import type { RegistrationStep } from '@/components/registration/registration-form';
 
@@ -136,7 +136,7 @@ export const weekDays = [
 ];
 
 export interface DocumentField {
-  name: keyof FullProfile;
+  name: keyof CompleteProfile;
   description: string;
   required?: boolean;
   type?: 'string' | 'date' | 'address';
@@ -227,7 +227,7 @@ interface ProfileCompletionResult {
 }
 
 export function calculateProfileCompletion(
-  profile: FullProfile,
+  profile: CompleteProfile,
 ): ProfileCompletionResult {
   let totalFields = 0;
   let completedFields = 0;

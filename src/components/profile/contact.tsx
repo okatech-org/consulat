@@ -1,6 +1,6 @@
 // src/components/actions/profile/review/contact.tsx
 import { useTranslations } from 'next-intl';
-import type { FullProfile } from '@/types';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { CheckCircle2, XCircle, Mail, Phone, MapPin, User, Users } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
 import type { CountryCode } from '@/lib/autocomplete-datas';
@@ -8,7 +8,7 @@ import type { Address } from '@prisma/client';
 import { DisplayAddress } from '@/components/ui/display-address';
 
 interface ProfileContactProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
 }
 
 export function ProfileContact({ profile }: ProfileContactProps) {

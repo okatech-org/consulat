@@ -23,7 +23,7 @@ import { MaritalStatus } from '@/convex/lib/constants';
 import { type FamilyInfoFormData, FamilyInfoSchema } from '@/schemas/registration';
 import { Separator } from '@/components/ui/separator';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
@@ -31,7 +31,7 @@ import { Button } from '../ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface FamilyInfoFormProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
   onSave: () => void;
   banner?: React.ReactNode;
   onNext?: () => void;

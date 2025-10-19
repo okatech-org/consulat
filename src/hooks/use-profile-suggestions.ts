@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { FullProfile } from '@/types';
+import { CompleteProfile } from '@/types';
 import { analyzeProfile } from '@/actions/profile-suggestions';
 import { User } from '@prisma/client';
 
@@ -24,7 +24,7 @@ export interface ProfileSuggestion {
 }
 
 // Fonction utilitaire pour générer un hash simple du profil
-function generateProfileHash(profile: FullProfile): string {
+function generateProfileHash(profile: CompleteProfile): string {
   // On prend les champs qui nous intéressent pour la comparaison
   const relevantData = {
     id: profile.id,
@@ -54,7 +54,7 @@ function getFromStorage(): StoredData | null {
   }
 }
 
-export function useProfileSuggestions(profile: FullProfile, user: User) {
+export function useProfileSuggestions(profile: CompleteProfile, user: User) {
   const [suggestions, setSuggestions] = useState<ProfileSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

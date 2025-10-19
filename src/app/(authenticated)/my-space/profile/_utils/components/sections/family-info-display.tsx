@@ -4,10 +4,10 @@ import { useTranslations } from 'next-intl';
 import { InfoField } from '@/components/ui/info-field';
 import { Heart, User } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 
 interface FamilyInfoDisplayProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
 }
 
 export function FamilyInfoDisplay({ profile }: FamilyInfoDisplayProps) {

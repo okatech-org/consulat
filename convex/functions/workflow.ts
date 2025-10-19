@@ -98,10 +98,7 @@ export const getServiceWorkflow = query({
       throw new Error('Service not found');
     }
 
-    const workflow = defineServiceWorkflow(
-      service.category as string,
-      service.processingMode as string,
-    );
+    const workflow = defineServiceWorkflow(service.category, service.processing.mode);
 
     return {
       serviceId: args.serviceId,

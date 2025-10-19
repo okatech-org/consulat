@@ -1,12 +1,12 @@
 'use client';
 
-import type { FullProfile } from '@/types/profile';
+import type { CompleteProfile } from '@/types/profile';
 import { ProfileHeader } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-header';
 import { ProfileTabs } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-tabs';
 import type { ServiceRequest } from '@prisma/client';
 
 interface ProfileViewProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
   hasFullAccess?: boolean;
   requests?: ServiceRequest[];
 }

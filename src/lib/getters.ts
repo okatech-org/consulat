@@ -14,7 +14,7 @@ import {
   AgentSessionInclude,
   AdminSessionInclude,
 } from '@/lib/user';
-import { type FullProfile, FullProfileInclude } from '@/lib/profile';
+import { type CompleteProfile, CompleteProfileInclude } from '@/lib/profile';
 
 function getSelectForRoles(role: UserRole): Prisma.UserSelect {
   const includesByRole = {
@@ -59,11 +59,13 @@ export async function getUserById(
   }
 }
 
-export async function getUserFullProfile(id: string): Promise<FullProfile | null> {
+export async function getUserCompleteProfile(
+  id: string,
+): Promise<CompleteProfile | null> {
   try {
     return db.profile.findFirst({
       where: { userId: id },
-      ...FullProfileInclude,
+      ...CompleteProfileInclude,
     });
   } catch (e) {
     console.error(e);
@@ -80,10 +82,12 @@ export async function getProfileRegistrationRequest(
   }) as unknown as FullServiceRequest | null;
 }
 
-export async function getUserFullProfileById(id: string): Promise<FullProfile | null> {
+export async function getUserCompleteProfileById(
+  id: string,
+): Promise<CompleteProfile | null> {
   return db.profile.findUnique({
     where: { userId: id },
-    ...FullProfileInclude,
+    ...CompleteProfileInclude,
   });
 }
 

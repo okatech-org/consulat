@@ -1,5 +1,5 @@
 import type { DocumentField } from '@/lib/utils';
-import type { FullProfile } from '@/types';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { DocumentType } from '@/convex/lib/constants';
 export const documentFieldsToAnalyze: DocumentField[] = [
   {
@@ -121,7 +121,7 @@ export const documentSpecificFields = {
   ],
   [DocumentType.ResidencePermit]: ['profession', 'workStatus', 'address'],
   [DocumentType.ProofOfAddress]: ['address'],
-} as unknown as Record<DocumentType, Array<keyof FullProfile>>;
+} as unknown as Record<DocumentType, Array<keyof CompleteProfile>>;
 
 /**
  * Helper function to get relevant fields for a specific document type

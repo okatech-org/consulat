@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { User, Loader2, AlertCircle } from 'lucide-react';
+import { User, Loader2 } from 'lucide-react';
 import {
   Sheet,
   SheetTrigger,
@@ -11,26 +11,21 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ProfileTabs } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-tabs';
-import type { FullProfile } from '@/types/profile';
 import { ChildProfileTabs } from '@/app/(authenticated)/my-space/children/_components/profile-tabs';
-import { api } from '@/trpc/react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import type { CompleteChildProfile, CompleteProfile } from '@/convex/lib/types';
+import type { Id } from '@/convex/_generated/dataModel';
+import { api } from '@/convex/_generated/api';
+import { useQuery } from 'convex/react';
 
 interface ProfileLookupSheetProps {
   // Mode direct : profil fourni directement
-  profile?: FullProfile | null;
+  profile?: CompleteProfile;
+  childProfile?: CompleteChildProfile;
+  profileId?: Id<'profiles'>;
+  childProfileId?: Id<'childProfiles'>;
 
-  // Mode recherche : email, téléphone ou ID utilisateur
-  email?: string;
-  phoneNumber?: string;
-  userId?: string;
-
-  profileId?: string;
-
-  // Autres props
-  requestId?: string;
   triggerLabel?: string;
   triggerVariant?: 'default' | 'outline' | 'ghost';
   triggerIcon?: React.ReactNode;
@@ -41,11 +36,9 @@ interface ProfileLookupSheetProps {
 
 export function ProfileLookupSheet({
   profile: providedProfile,
-  email,
-  phoneNumber,
-  userId,
+  childProfile: providedChildProfile,
   profileId,
-  requestId,
+  childProfileId,
   triggerLabel,
   triggerVariant = 'outline',
   triggerIcon,
@@ -56,24 +49,15 @@ export function ProfileLookupSheet({
   const t = useTranslations();
   const [open, setOpen] = useState(false);
 
-  const {
-    data: fetchedProfile,
-    isLoading,
-    error,
-  } = api.profile.getByQuery.useQuery(
-    {
-      userId,
-      email,
-      phoneNumber,
-      profileId,
-    },
-    {
-      enabled: !!(userId || email || phoneNumber || profileId),
-      retry: false,
-    },
+  const fetchedProfile = useQuery(
+    api.functions.profile.getCurrentProfile,
+    profileId ? { profileId } : 'skip',
   );
 
-  // Profil à afficher
+  const fetchedChildProfile = useQuery(
+    api.functions.childProfile.getCurrentChildProfile,
+    childProfileId ? { childProfileId } : 'skip',
+  );
 
   const getTriggerButton = () => {
     if (children) {
@@ -115,7 +99,7 @@ export function ProfileLookupSheet({
 
   const renderContent = () => {
     // État de chargement
-    if (isLoading && !providedProfile) {
+    if (fetchedProfile === undefined && fetchedChildProfile === undefined) {
       return (
         <div className="flex items-center justify-center py-8">
           <div className="flex items-center gap-2">
@@ -126,27 +110,19 @@ export function ProfileLookupSheet({
       );
     }
 
-    // Gestion des erreurs
-    if (error) {
+    // Affichage du profil
+    if (providedChildProfile) {
       return (
         <div className="space-y-4">
-          <Alert variant="destructive">
-            <AlertCircle className="size-4" />
-            <AlertDescription>{t('profile.lookup.not_found')}</AlertDescription>
-          </Alert>
+          <ChildProfileTabs profile={providedChildProfile} />
         </div>
       );
     }
 
-    // Affichage du profil
     if (providedProfile) {
       return (
         <div className="space-y-4">
-          {providedProfile.category === 'MINOR' ? (
-            <ChildProfileTabs profile={providedProfile} requestId={requestId} />
-          ) : (
-            <ProfileTabs profile={providedProfile} requestId={requestId} />
-          )}
+          <ProfileTabs profile={fetchedProfile} />
         </div>
       );
     }
@@ -154,15 +130,14 @@ export function ProfileLookupSheet({
     if (fetchedProfile) {
       return (
         <div className="space-y-4">
-          {fetchedProfile.category === 'MINOR' ? (
-            <ChildProfileTabs
-              profile={fetchedProfile}
-              requestId={requestId}
-              noTabs={true}
-            />
-          ) : (
-            <ProfileTabs profile={fetchedProfile} requestId={requestId} noTabs={true} />
-          )}
+          <ProfileTabs profile={fetchedProfile} noTabs={true} />
+        </div>
+      );
+    }
+    if (fetchedChildProfile) {
+      return (
+        <div className="space-y-4">
+          <ChildProfileTabs profile={fetchedChildProfile} noTabs={true} />
         </div>
       );
     }

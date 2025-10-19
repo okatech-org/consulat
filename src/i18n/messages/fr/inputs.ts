@@ -45,29 +45,29 @@ export default {
   deliveryMode: {
     label: 'Mode de délivrance',
     options: {
-      IN_PERSON: 'En personne',
-      POSTAL: 'Par voie postale',
-      ELECTRONIC: 'Électronique',
-      BY_PROXY: 'Par procuration',
+      in_person: 'En personne',
+      postal: 'Par voie postale',
+      electronic: 'Électronique',
+      by_proxy: 'Par procuration',
     },
   },
   processingMode: {
     label: 'Mode de traitement',
     options: {
-      ONLINE_ONLY: 'En ligne uniquement',
-      PRESENCE_REQUIRED: 'Présence requise',
-      HYBRID: 'Hybride',
-      BY_PROXY: 'Par procuration',
+      online_only: 'En ligne uniquement',
+      presence_required: 'Présence requise',
+      hybrid: 'Hybride',
+      by_proxy: 'Par procuration',
     },
   },
   priority: {
     label: 'Priorité',
     options: {
-      STANDARD: 'Standard',
-      LOW: 'Faible',
-      MEDIUM: 'Moyenne',
-      HIGH: 'Élevée',
-      URGENT: 'Urgent',
+      standard: 'Standard',
+      low: 'Faible',
+      medium: 'Moyenne',
+      high: 'Élevée',
+      urgent: 'Urgent',
     },
   },
   organization: {

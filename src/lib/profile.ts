@@ -18,7 +18,7 @@ export const BaseProfileInclude = {
 } as const;
 
 // Includes complet pour un profil avec tous les documents
-export const FullProfileInclude = {
+export const CompleteProfileInclude = {
   include: {
     user: true,
     residentContact: {
@@ -69,21 +69,21 @@ export const FullUserInclude = {
 export type BaseProfile = Prisma.ProfileGetPayload<typeof BaseProfileInclude>;
 
 // Type pour un profil complet
-export type FullProfile = Prisma.ProfileGetPayload<typeof FullProfileInclude>;
+export type CompleteProfile = Prisma.ProfileGetPayload<typeof CompleteProfileInclude>;
 
 // Fonction helper pour créer un include personnalisé
-export function createProfileInclude<T extends keyof typeof FullProfileInclude.include>(
-  fields: T[],
-) {
+export function createProfileInclude<
+  T extends keyof typeof CompleteProfileInclude.include,
+>(fields: T[]) {
   return {
     include: Object.fromEntries(
-      fields.map((field) => [field, FullProfileInclude.include[field]]),
+      fields.map((field) => [field, CompleteProfileInclude.include[field]]),
     ),
   } as const;
 }
 
 // Type helper pour un profil avec des includes spécifiques
-export type ProfileWithIncludes<T extends keyof typeof FullProfileInclude.include> =
+export type ProfileWithIncludes<T extends keyof typeof CompleteProfileInclude.include> =
   Prisma.ProfileGetPayload<ReturnType<typeof createProfileInclude<T>>>;
 
 // Exemple d'utilisation:
@@ -92,7 +92,7 @@ export type ProfileWithIncludes<T extends keyof typeof FullProfileInclude.includ
 
 export type FullUser = Prisma.UserGetPayload<typeof FullUserInclude>;
 
-export type ProfileKey = keyof FullProfile;
+export type ProfileKey = keyof CompleteProfile;
 
 export type AppUserDocument = Omit<UserDocument, 'metadata'> & {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

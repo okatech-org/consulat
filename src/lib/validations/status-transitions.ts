@@ -1,7 +1,7 @@
 import { ProfileCategory, RequestStatus } from '@prisma/client';
 import { calculateChildProfileCompletion, calculateProfileCompletion } from '@/lib/utils';
 import type { RequestDetails } from '@/server/api/routers/requests/misc';
-import type { FullProfile } from '@/server/api/routers/profiles/profile';
+import type { CompleteProfile } from '@/server/api/routers/profiles/profile';
 
 type TransitionCheck = {
   can: boolean;
@@ -11,7 +11,7 @@ type TransitionCheck = {
 export function canSwitchTo(
   targetStatus: RequestStatus,
   request: RequestDetails,
-  profile: FullProfile,
+  profile: CompleteProfile,
   allow: boolean = false,
 ): TransitionCheck {
   if (allow) return { can: true };
@@ -42,7 +42,10 @@ export function canSwitchTo(
   }
 }
 
-function allDocumentsValidated(profile: FullProfile, category: ProfileCategory): boolean {
+function allDocumentsValidated(
+  profile: CompleteProfile,
+  category: ProfileCategory,
+): boolean {
   const requiredDocs =
     category === ProfileCategory.MINOR
       ? [profile.identityPicture, profile.birthCertificate]

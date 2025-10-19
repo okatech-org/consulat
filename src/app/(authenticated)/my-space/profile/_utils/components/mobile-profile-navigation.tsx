@@ -13,7 +13,7 @@ import { calculateProfileCompletion, cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { RequestsSection } from './sections/requests-section';
 import { CheckCircle2, Circle, Save } from 'lucide-react';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import type { Doc } from '@/convex/_generated/dataModel';
 import { BasicInfoDisplay } from './sections/basic-info-display';
 import { ContactInfoDisplay } from './sections/contact-info-display';
@@ -23,7 +23,7 @@ import { ProfessionalInfoDisplay } from './sections/professional-info-display';
 import { DocumentType } from '@/convex/lib/constants';
 
 type MobileProfileNavigationProps = {
-  profile: FullProfile;
+  profile: CompleteProfile;
   requestId?: string;
   requests?: Doc<'requests'>[];
 };

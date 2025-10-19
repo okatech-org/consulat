@@ -9,7 +9,7 @@ import {
   RequestActionType,
 } from '@prisma/client';
 import { checkAuth } from '@/lib/auth/action';
-import { FullProfileInclude } from '@/types';
+import { CompleteProfileInclude } from '@/types';
 import type { CountryCode } from '@/lib/autocomplete-datas';
 import { tryCatch } from '@/lib/utils';
 import { assignAgentToRequest } from '@/actions/agents';
@@ -105,7 +105,7 @@ export async function updateProfile(
   // Récupérer le profil existant avec toutes les relations nécessaires
   const existingProfile = await db.profile.findUnique({
     where: { id: profileId },
-    ...FullProfileInclude, // Utiliser l'include complet pour avoir toutes les données
+    ...CompleteProfileInclude, // Utiliser l'include complet pour avoir toutes les données
   });
 
   if (!existingProfile) {
@@ -317,7 +317,7 @@ export async function submitProfileForValidation(
   // Vérifier que le profil existe et est complet
   const profile = await db.profile.findUnique({
     where: { id: profileId },
-    ...FullProfileInclude,
+    ...CompleteProfileInclude,
   });
 
   // Vérifier qu'aucune demande d'inscription n'existe déjà

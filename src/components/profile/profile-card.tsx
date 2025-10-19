@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import type { FullProfile } from '@/types';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_util
 import type { CountryCode } from '@/lib/autocomplete-datas';
 
 interface ProfileCardProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
   onClick: () => void;
 }
 

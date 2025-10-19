@@ -13,6 +13,7 @@ export const serviceCategoryValidator = v.union(
   v.literal(constants.ServiceCategory.TravelDocument),
   v.literal(constants.ServiceCategory.Other),
 );
+
 export const serviceStatusValidator = v.union(
   v.literal(constants.ServiceStatus.Active),
   v.literal(constants.ServiceStatus.Inactive),
@@ -119,21 +120,6 @@ export const emergencyContactTypeValidator = v.union(
 export const pricingValidator = v.object({
   amount: v.number(),
   currency: v.string(),
-});
-
-export const stepValidator = v.object({
-  order: v.number(),
-  name: v.string(),
-  type: v.string(),
-  required: v.boolean(),
-  fields: v.optional(v.any()),
-});
-
-export const serviceConfigValidator = v.object({
-  requiredDocuments: v.array(v.string()),
-  optionalDocuments: v.array(v.string()),
-  steps: v.array(stepValidator),
-  pricing: v.optional(pricingValidator),
 });
 
 export const organizationSettingsValidator = v.object({
@@ -491,4 +477,191 @@ export const contactValidator = v.object({
 export const consularCardValidator = v.object({
   rectoModelUrl: v.optional(v.string()),
   versoModelUrl: v.optional(v.string()),
+});
+
+// ============================================================================
+// Service Field Type Validators
+// ============================================================================
+
+export const serviceFieldTypeValidator = v.union(
+  v.literal(constants.ServiceFieldType.Text),
+  v.literal(constants.ServiceFieldType.Email),
+  v.literal(constants.ServiceFieldType.Phone),
+  v.literal(constants.ServiceFieldType.Date),
+  v.literal(constants.ServiceFieldType.Select),
+  v.literal(constants.ServiceFieldType.Address),
+  v.literal(constants.ServiceFieldType.File),
+  v.literal(constants.ServiceFieldType.Checkbox),
+  v.literal(constants.ServiceFieldType.Radio),
+  v.literal(constants.ServiceFieldType.Textarea),
+  v.literal(constants.ServiceFieldType.Number),
+  v.literal(constants.ServiceFieldType.Document),
+  v.literal(constants.ServiceFieldType.Photo),
+);
+
+// Select type validator
+export const selectTypeValidator = v.union(
+  v.literal(constants.SelectType.Single),
+  v.literal(constants.SelectType.Multiple),
+);
+
+// Option validator (for select, radio, checkbox fields)
+export const fieldOptionValidator = v.object({
+  label: v.string(),
+  value: v.string(),
+});
+
+// Base field validator (common properties)
+const baseFieldValidator = v.object({
+  name: v.string(),
+  label: v.string(),
+  required: v.boolean(),
+  description: v.optional(v.string()),
+  autoComplete: v.optional(v.string()),
+  profilePath: v.optional(v.string()), // Path to profile field for default value (e.g., "personal.firstName", "contacts.email")
+});
+
+// Text field validator
+export const textFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('text'),
+  minLength: v.optional(v.number()),
+  maxLength: v.optional(v.number()),
+  pattern: v.optional(v.string()),
+});
+
+// Number field validator
+export const numberFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('number'),
+  min: v.optional(v.number()),
+  max: v.optional(v.number()),
+});
+
+// Email field validator
+export const emailFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('email'),
+});
+
+// Phone field validator
+export const phoneFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('phone'),
+});
+
+// Date field validator
+export const dateFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('date'),
+  minDate: v.optional(v.string()),
+  maxDate: v.optional(v.string()),
+});
+
+// Select field validator
+export const selectFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('select'),
+  selectType: selectTypeValidator,
+  options: v.array(fieldOptionValidator),
+});
+
+// Address field validator
+export const addressFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('address'),
+  countries: v.array(v.string()),
+});
+
+// File field validator
+export const fileFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('file'),
+  accept: v.optional(v.string()),
+  maxSize: v.optional(v.number()),
+  multiple: v.optional(v.boolean()),
+});
+
+// Checkbox field validator
+export const checkboxFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('checkbox'),
+  options: v.optional(v.array(fieldOptionValidator)),
+});
+
+// Radio field validator
+export const radioFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('radio'),
+  options: v.array(fieldOptionValidator),
+});
+
+// Textarea field validator
+export const textareaFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('textarea'),
+  minLength: v.optional(v.number()),
+  maxLength: v.optional(v.number()),
+});
+
+// Document field validator
+export const documentFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('document'),
+  documentType: v.string(), // Document type from enum
+  accept: v.optional(
+    v.union(
+      v.literal('image/*'),
+      v.literal('application/pdf'),
+      v.literal('image/*,application/pdf'),
+    ),
+  ),
+});
+
+// Photo field validator
+export const photoFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('photo'),
+  maxSize: v.optional(v.number()),
+  accept: v.optional(v.literal('image/*')),
+});
+
+export const profileDocumentFieldValidator = v.object({
+  ...baseFieldValidator.fields,
+  type: v.literal('profileDocument'),
+  documentType: documentTypeValidator,
+  required: v.boolean(),
+});
+
+// Union of all field types (polymorphic field validator)
+export const serviceFieldValidator = v.union(
+  textFieldValidator,
+  numberFieldValidator,
+  emailFieldValidator,
+  phoneFieldValidator,
+  dateFieldValidator,
+  selectFieldValidator,
+  addressFieldValidator,
+  fileFieldValidator,
+  checkboxFieldValidator,
+  radioFieldValidator,
+  textareaFieldValidator,
+  documentFieldValidator,
+  photoFieldValidator,
+  profileDocumentFieldValidator,
+);
+
+// ============================================================================
+// Service Step Validators
+// ============================================================================
+
+// Service step validator (with typed fields array)
+export const serviceStepValidator = v.object({
+  order: v.number(),
+  title: v.string(),
+  description: v.optional(v.string()),
+  isRequired: v.boolean(),
+  type: serviceStepTypeValidator,
+  fields: v.array(serviceFieldValidator),
+  validations: v.optional(v.record(v.string(), v.any())),
 });

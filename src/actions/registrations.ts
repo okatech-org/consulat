@@ -7,7 +7,7 @@ import type {
   RegistrationListingItem,
   RegistrationRequestDetails,
 } from '@/types/consular-service';
-import { FullProfileInclude } from '@/types';
+import { CompleteProfileInclude } from '@/types';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@/schemas/routes';
 
@@ -44,7 +44,7 @@ export async function getRegistrationRequestDetailsById(
             email: true,
             phoneNumber: true,
             documents: true,
-            profile: FullProfileInclude,
+            profile: CompleteProfileInclude,
           },
         },
         service: true,

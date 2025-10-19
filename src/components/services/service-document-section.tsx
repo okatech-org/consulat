@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { UserDocument } from '../documents/user-document';
-import type { AppUserDocument } from '@/types';
 import CardContainer from '../layouts/card-container';
 import type { ServiceForm } from '@/hooks/use-service-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,6 +18,7 @@ import { toast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
 import { ArrowLeft, ArrowRight, Info } from 'lucide-react';
 import { MobileProgress } from '../registration/mobile-progress';
+import type { Doc } from '@/convex/_generated/dataModel';
 
 interface ServiceDocumentSectionProps {
   formData: ServiceForm;
@@ -93,7 +93,7 @@ export function ServiceDocumentSection({
                         <FormItem>
                           <FormControl>
                             <UserDocument
-                              document={field.value as AppUserDocument}
+                              document={field.value as Doc<'documents'>}
                               expectedType={doc.documentType}
                               label={doc.label}
                               description={doc.description}

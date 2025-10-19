@@ -1,16 +1,10 @@
-import {
-  type ConsularService,
-  ServiceCategory,
-  ServiceStepType,
-  type Organization,
-  type ServiceRequest,
-  type RequestStatus,
-  type UserDocument,
-  type GenerateDocumentSettings,
-  DocumentType,
-} from '@prisma/client';
-import type { FullProfile } from '@/types/profile';
+import { ServiceCategory, DocumentType } from '@/convex/lib/constants';
 import type { CountryCode } from '@/lib/autocomplete-datas';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
+
+// ============================================================================
+// Field Types for Dynamic Forms
+// ============================================================================
 
 export type BasicField = {
   name: string;
@@ -18,6 +12,7 @@ export type BasicField = {
   required: boolean;
   description?: string;
   autoComplete?: string;
+  profilePath?: string; // Path to profile field for default value (e.g., "personal.firstName", "contacts.email")
 };
 
 export type NumberField = BasicField & {
@@ -84,7 +79,7 @@ export type TextareaField = BasicField & {
 
 export type DocumentField = BasicField & {
   type: 'document';
-  documentType: DocumentType;
+  documentType: string; // Convex uses string enum values
   accept?: 'image/*' | 'application/pdf' | 'image/*,application/pdf';
 };
 
@@ -112,7 +107,7 @@ export const fieldTypes = [
 
 export type ServiceFieldType = (typeof fieldTypes)[number];
 
-// Types pour les champs de formulaire dynamiques
+// Union type for all field types
 export type ServiceField =
   | TextField
   | EmailField
@@ -128,16 +123,52 @@ export type ServiceField =
   | DocumentField
   | PhotoField;
 
+// ============================================================================
+// Service Step Types (Convex-compatible)
+// ============================================================================
+
 export interface ServiceStep {
   id: string | null;
   order: number;
   title: string;
   description: string | null;
-  type: ServiceStepType;
+  type: string; // Convex service step types are strings
   isRequired: boolean;
   fields: ServiceField[];
   validations: Record<string, unknown> | null;
 }
+
+// ============================================================================
+// Service Types (Convex-compatible)
+// ============================================================================
+
+// Type alias for a Convex service document
+export type ConvexService = Doc<'services'>;
+
+// Extended service type with populated relationships
+export interface ServiceWithRelations extends ConvexService {
+  organization?: Doc<'organizations'>;
+}
+
+// ============================================================================
+// Request Types (Convex-compatible)
+// ============================================================================
+
+export type ConvexRequest = Doc<'requests'>;
+
+export interface RequestWithService extends ConvexRequest {
+  service: Doc<'services'>;
+}
+
+export interface RequestWithServiceAndProfile extends ConvexRequest {
+  service: Doc<'services'>;
+  profile?: Doc<'profiles'>;
+  requester: Doc<'users'>;
+}
+
+// ============================================================================
+// Document Type Mappings
+// ============================================================================
 
 export type ProfileDocument =
   | 'passport'
@@ -146,20 +177,59 @@ export type ProfileDocument =
   | 'addressProof'
   | 'identityPicture';
 
-export interface ConsularServiceItem
-  extends Omit<ConsularService, 'fields' | 'profileDocuments'> {
-  steps: ServiceStep[];
-  organization: Organization | null;
-  generateDocumentSettings: GenerateDocumentSettings[];
-  profileDocuments: ProfileDocument[];
+// Mapping from Convex DocumentType enum to profile field names
+export const documentTypeToField: Partial<Record<string, string>> = {
+  [DocumentType.Passport]: 'passport',
+  [DocumentType.BirthCertificate]: 'birthCertificate',
+  [DocumentType.ResidencePermit]: 'residencePermit',
+  [DocumentType.ProofOfAddress]: 'addressProof',
+  [DocumentType.IdentityPhoto]: 'identityPicture',
+} as const;
+
+// Reverse mapping from field name to DocumentType
+export const fieldToDocumentType: Record<ProfileDocument, string> = {
+  passport: DocumentType.Passport,
+  birthCertificate: DocumentType.BirthCertificate,
+  residencePermit: DocumentType.ResidencePermit,
+  addressProof: DocumentType.ProofOfAddress,
+  identityPicture: DocumentType.IdentityPhoto,
+} as const;
+
+// ============================================================================
+// Service Listing Types
+// ============================================================================
+
+export interface ServiceListingItem {
+  _id: Id<'services'>;
+  code: string;
+  name: string;
+  description?: string;
+  category: string;
+  status: string;
+  organizationId: Id<'organizations'>;
+  requiresAppointment: boolean;
+  isFree: boolean;
+  price?: number;
+  currency?: string;
 }
 
-export type UpdateServiceInput = Partial<ConsularServiceItem>;
+// ============================================================================
+// Form Field Mapping
+// ============================================================================
 
 export interface ProfileFieldMapping {
   [formField: string]: string;
 }
 
+// ============================================================================
+// Legacy Type Compatibility
+// (Keep these for gradual migration, mark as deprecated)
+// ============================================================================
+
+/** @deprecated Use ConvexService instead */
+export type ConsularServiceItem = ConvexService;
+
+/** @deprecated Use ServiceListingItem instead */
 export interface ConsularServiceListingItem {
   id: string;
   name: string;
@@ -168,38 +238,3 @@ export interface ConsularServiceListingItem {
   isActive: boolean;
   organizationId: string | null;
 }
-
-export type RegistrationListingItem = {
-  id: string;
-  status: RequestStatus;
-  submittedAt: string | Date | null;
-  updatedAt: string | Date | null;
-  submittedBy: {
-    name: string | null;
-    email: string | null;
-    nationality: string | null;
-    phoneNumber: string | null;
-    profile: {
-      status: RequestStatus | null;
-    } | null;
-  };
-};
-
-export type RegistrationRequestDetails = ServiceRequest & {
-  submittedBy: {
-    name: string | null;
-    email: string | null;
-    phoneNumber: string | null;
-    profile: FullProfile | null;
-    documents: UserDocument[];
-  };
-  service: ConsularService;
-};
-
-export const documentTypeToField: Partial<Record<DocumentType, string>> = {
-  [DocumentType.PASSPORT]: 'passport',
-  [DocumentType.BIRTH_CERTIFICATE]: 'birthCertificate',
-  [DocumentType.RESIDENCE_PERMIT]: 'residencePermit',
-  [DocumentType.PROOF_OF_ADDRESS]: 'addressProof',
-  [DocumentType.IDENTITY_PHOTO]: 'identityPicture',
-} as const;

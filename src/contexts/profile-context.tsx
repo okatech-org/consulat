@@ -1,17 +1,17 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import type { FullProfile } from '@/types/profile';
+import type { CompleteProfile } from '@/types/profile';
 
 interface ProfileContextValue {
-  profile: FullProfile | null;
+  profile: CompleteProfile | null;
 }
 
 const ProfileContext = createContext<ProfileContextValue | undefined>(undefined);
 
 interface ProfileProviderProps {
   children: React.ReactNode;
-  profile: FullProfile | null;
+  profile: CompleteProfile | null;
 }
 
 export function ProfileProvider({ children, profile }: ProfileProviderProps) {

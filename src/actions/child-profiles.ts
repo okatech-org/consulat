@@ -12,7 +12,7 @@ import {
   FullParentalAuthorityInclude,
 } from '@/types/parental-authority';
 import { getTranslations } from 'next-intl/server';
-import type { FullProfileUpdateFormData } from '@/schemas/registration';
+import type { CompleteProfileUpdateFormData } from '@/schemas/registration';
 
 export async function createChildProfile(data: LinkFormData): Promise<{ id: string }> {
   try {
@@ -84,7 +84,7 @@ export async function createChildProfile(data: LinkFormData): Promise<{ id: stri
 
 export async function updateChildProfile(
   profileId: string,
-  data: Partial<FullProfileUpdateFormData & Partial<LinkFormData>>,
+  data: Partial<CompleteProfileUpdateFormData & Partial<LinkFormData>>,
 ): Promise<{ id: string }> {
   const t = await getTranslations('messages.profile.errors');
   const { user } = await checkAuth();

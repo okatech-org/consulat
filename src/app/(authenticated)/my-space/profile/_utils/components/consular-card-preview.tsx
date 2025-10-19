@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn, useDateLocale } from '@/lib/utils';
-import type { ConvexFullProfile } from '@/types/convex-profile';
+import type { ConvexCompleteProfile } from '@/types/convex-profile';
 import { QRCode } from '@/components/ui/qr-code';
 
 const keaniaOne = Keania_One({
@@ -19,7 +19,7 @@ const keaniaOne = Keania_One({
 });
 
 interface ConsularCardPreviewProps {
-  profile: ConvexFullProfile;
+  profile: ConvexCompleteProfile;
   modelVersoUrl?: string;
   modelRectoUrl?: string;
 }

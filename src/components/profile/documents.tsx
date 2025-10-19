@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import type { FullProfile } from '@/types';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { Shield } from 'lucide-react';
 import { useDateLocale } from '@/lib/utils';
 import { Badge, type BadgeVariant } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import { DocumentValidationDialog } from './document-validation-dialog';
 import CardContainer from '@/components/layouts/card-container';
 
 interface ProfileDocumentsProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
 }
 
 export function ProfileDocuments({ profile }: ProfileDocumentsProps) {

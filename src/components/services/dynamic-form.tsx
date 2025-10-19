@@ -15,7 +15,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Info, ArrowRight } from 'lucide-react';
 import { UserDocument } from '../documents/user-document';
-import { type AppUserDocument } from '@/types/profile';
 import { PhoneInput } from '../ui/phone-input';
 import { Textarea } from '../ui/textarea';
 import { MultiSelect } from '../ui/multi-select';
@@ -25,6 +24,7 @@ import { toast } from '@/hooks/use-toast';
 import { MobileProgress } from '../registration/mobile-progress';
 import CardContainer from '../layouts/card-container';
 import { AddressField } from '../ui/address-field';
+import type { Doc } from '@/convex/_generated/dataModel';
 
 interface DynamicFormProps {
   formData: ServiceForm;
@@ -153,7 +153,7 @@ function getFieldComponent(
     case 'document':
       return (
         <UserDocument
-          document={formField.value as AppUserDocument}
+          document={formField.value as Doc<'documents'>}
           description={field.description}
           label={field.label}
           onUpload={formField.onChange}
@@ -165,7 +165,7 @@ function getFieldComponent(
     case 'photo':
       return (
         <UserDocument
-          document={formField.value as AppUserDocument}
+          document={formField.value as Doc<'documents'>}
           description={field.description}
           label={field.label}
           onUpload={formField.onChange}
@@ -177,7 +177,7 @@ function getFieldComponent(
     case 'file':
       return (
         <UserDocument
-          document={formField.value as AppUserDocument}
+          document={formField.value as Doc<'documents'>}
           description={field.description}
           label={field.label}
           onUpload={formField.onChange}

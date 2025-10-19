@@ -23,7 +23,7 @@ import { calculateProfileCompletion, useDateLocale } from '@/lib/utils';
 import type { CountryCode } from '@/lib/autocomplete-datas';
 import { FlagIcon } from '../ui/flag-icon';
 import { DisplayAddress } from '../ui/display-address';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
@@ -32,7 +32,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface ReviewFieldsProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
   onPrevious: () => void;
   onNext: () => void;
 }

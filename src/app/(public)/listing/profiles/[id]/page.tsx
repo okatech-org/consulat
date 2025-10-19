@@ -2,7 +2,7 @@
 
 import { usePublicProfile } from '@/hooks/use-public-profiles';
 import { useParams, useRouter } from 'next/navigation';
-import type { FullProfile } from '@/types/profile';
+import type { CompleteProfile } from '@/types/profile';
 import { ProfileView } from '../_components/profile-view';
 import { ProfileContactForm } from '../_components/profile-contact-form';
 import type { ServiceRequest } from '@prisma/client';
@@ -79,7 +79,7 @@ export default function ProfilePage() {
       className="container py-8 max-w-screen-xl"
     >
       <ProfileDetailsView
-        profile={profile as FullProfile}
+        profile={profile as CompleteProfile}
         hasFullAccess={hasFullAccess ?? false}
         canContact={canContact}
         requests={requests}
@@ -89,7 +89,7 @@ export default function ProfilePage() {
 }
 
 interface ProfileDetailsViewProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
   hasFullAccess: boolean;
   canContact: boolean;
   requests?: ServiceRequest[];

@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
 import type { RequestDetails } from '@/server/api/routers/requests/misc';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { UserRole } from '@/convex/lib/constants';
 
 interface RequestOverviewProps {
   request: NonNullable<RequestDetails>;
@@ -27,7 +28,7 @@ export function RequestOverview({ request }: RequestOverviewProps) {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
 
-  const isAdmin = hasAnyRole(user, ['ADMIN', 'MANAGER']);
+  const isAdmin = hasAnyRole(user, [UserRole.Admin, UserRole.Manager]);
 
   const getActionButton = () => {
     const isSubmitted = request.status === 'SUBMITTED';
@@ -107,10 +108,12 @@ export function RequestOverview({ request }: RequestOverviewProps) {
                     <span className="font-medium">Demande effectuée par :</span>{' '}
                     {request.submittedBy.name}
                   </p>
-                  <ProfileLookupSheet
-                    userId={request.submittedBy.id}
-                    triggerLabel={'Voir le profil du demandeur'}
-                  />
+                  {request.submittedBy.profileId && (
+                    <ProfileLookupSheet
+                      profileId={request.submittedBy.profileId}
+                      triggerLabel={'Voir le profil du demandeur'}
+                    />
+                  )}
                 </div>
               )}
             </div>

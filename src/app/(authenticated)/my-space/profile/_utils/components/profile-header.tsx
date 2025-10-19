@@ -9,11 +9,11 @@ import { ConsularCardPreview } from '@/app/(authenticated)/my-space/profile/_uti
 import CardContainer from '@/components/layouts/card-container';
 import { generateVCardString } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { ProfileStatus } from '@/convex/lib/constants';
 
 interface ProfileHeaderProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
   inMySpace?: boolean;
 }
 

@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from '../_generated/server';
 import { validateService } from '../helpers/validation';
-import { ServiceStatus } from '../lib/constants';
+import { ServiceCategory, ServiceStatus } from '../lib/constants';
 import type { Doc } from '../_generated/dataModel';
 import {
   serviceStepTypeValidator,
@@ -9,6 +9,7 @@ import {
   serviceStatusValidator,
   processingModeValidator,
   deliveryModeValidator,
+  serviceStepValidator,
 } from '../lib/validators';
 
 // Mutations
@@ -19,55 +20,52 @@ export const createService = mutation({
     description: v.optional(v.string()),
     category: serviceCategoryValidator,
     status: v.optional(serviceStatusValidator),
+    countries: v.array(v.string()),
     organizationId: v.id('organizations'),
-    config: v.object({
-      requiredDocuments: v.array(v.string()),
-      optionalDocuments: v.array(v.string()),
-      steps: v.array(
+    steps: v.array(serviceStepValidator),
+    processing: v.object({
+      mode: processingModeValidator,
+      appointment: v.object({
+        requires: v.boolean(),
+        duration: v.optional(v.number()),
+        instructions: v.optional(v.string()),
+      }),
+      proxy: v.optional(
         v.object({
-          order: v.number(),
-          name: v.string(),
-          type: v.string(),
-          required: v.boolean(),
-          fields: v.optional(v.record(v.string(), v.any())),
-        }),
-      ),
-      pricing: v.optional(
-        v.object({
-          amount: v.number(),
-          currency: v.string(),
+          allows: v.boolean(),
+          requirements: v.optional(v.string()),
         }),
       ),
     }),
-    steps: v.array(
-      v.object({
-        order: v.number(),
-        title: v.string(),
-        description: v.optional(v.string()),
-        isRequired: v.boolean(),
-        type: serviceStepTypeValidator,
-        fields: v.optional(v.record(v.string(), v.any())),
-        validations: v.optional(v.record(v.string(), v.any())),
-      }),
-    ),
-    processingMode: processingModeValidator,
-    deliveryModes: v.array(deliveryModeValidator),
-    requiresAppointment: v.boolean(),
-    appointmentDuration: v.optional(v.number()),
-    appointmentInstructions: v.optional(v.string()),
-    deliveryAppointment: v.boolean(),
-    deliveryAppointmentDuration: v.optional(v.number()),
-    deliveryAppointmentDesc: v.optional(v.string()),
-    isFree: v.boolean(),
-    price: v.optional(v.number()),
-    currency: v.optional(v.string()),
-    workflowId: v.optional(v.id('workflows')),
+    delivery: v.object({
+      modes: v.array(deliveryModeValidator),
+      appointment: v.optional(
+        v.object({
+          requires: v.boolean(),
+          duration: v.optional(v.number()),
+          instructions: v.optional(v.string()),
+        }),
+      ),
+      proxy: v.optional(
+        v.object({
+          allows: v.boolean(),
+          requirements: v.optional(v.string()),
+        }),
+      ),
+    }),
+    pricing: v.object({
+      isFree: v.boolean(),
+      price: v.optional(v.number()),
+      currency: v.optional(v.string()),
+    }),
+    automations: v.optional(v.id('workflows')),
+    legacyId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const serviceData = {
       name: args.name,
       code: args.code,
-      price: args.price,
+      price: args.pricing.price,
     };
 
     const validationErrors = validateService(serviceData);
@@ -83,21 +81,14 @@ export const createService = mutation({
       description: args.description,
       category: args.category,
       status: args.status ?? ServiceStatus.Active,
+      countries: args.countries,
       organizationId: args.organizationId,
-      config: args.config,
       steps: args.steps,
-      processingMode: args.processingMode,
-      deliveryModes: args.deliveryModes,
-      requiresAppointment: args.requiresAppointment,
-      appointmentDuration: args.appointmentDuration,
-      appointmentInstructions: args.appointmentInstructions,
-      deliveryAppointment: args.deliveryAppointment,
-      deliveryAppointmentDuration: args.deliveryAppointmentDuration,
-      deliveryAppointmentDesc: args.deliveryAppointmentDesc,
-      isFree: args.isFree,
-      price: args.price,
-      currency: args.currency,
-      workflowId: args.workflowId,
+      processing: args.processing,
+      delivery: args.delivery,
+      pricing: args.pricing,
+      automations: args.automations,
+      legacyId: args.legacyId,
     });
 
     const organization = await ctx.db.get(args.organizationId);
@@ -119,52 +110,51 @@ export const updateService = mutation({
     description: v.optional(v.string()),
     category: v.optional(serviceCategoryValidator),
     status: v.optional(serviceStatusValidator),
-    config: v.optional(
+    countries: v.optional(v.array(v.string())),
+    steps: v.optional(v.array(serviceStepValidator)),
+    processing: v.optional(
       v.object({
-        requiredDocuments: v.array(v.string()),
-        optionalDocuments: v.array(v.string()),
-        steps: v.array(
+        mode: processingModeValidator,
+        appointment: v.object({
+          requires: v.boolean(),
+          duration: v.optional(v.number()),
+          instructions: v.optional(v.string()),
+        }),
+        proxy: v.optional(
           v.object({
-            order: v.number(),
-            name: v.string(),
-            type: v.string(),
-            required: v.boolean(),
-            fields: v.optional(v.record(v.string(), v.any())),
-          }),
-        ),
-        pricing: v.optional(
-          v.object({
-            amount: v.number(),
-            currency: v.string(),
+            allows: v.boolean(),
+            requirements: v.optional(v.string()),
           }),
         ),
       }),
     ),
-    steps: v.optional(
-      v.array(
-        v.object({
-          order: v.number(),
-          title: v.string(),
-          description: v.optional(v.string()),
-          isRequired: v.boolean(),
-          type: serviceStepTypeValidator,
-          fields: v.optional(v.record(v.string(), v.any())),
-          validations: v.optional(v.record(v.string(), v.any())),
-        }),
-      ),
+    delivery: v.optional(
+      v.object({
+        modes: v.array(deliveryModeValidator),
+        appointment: v.optional(
+          v.object({
+            requires: v.boolean(),
+            duration: v.optional(v.number()),
+            instructions: v.optional(v.string()),
+          }),
+        ),
+        proxy: v.optional(
+          v.object({
+            allows: v.boolean(),
+            requirements: v.optional(v.string()),
+          }),
+        ),
+      }),
     ),
-    processingMode: v.optional(processingModeValidator),
-    deliveryModes: v.optional(v.array(deliveryModeValidator)),
-    requiresAppointment: v.optional(v.boolean()),
-    appointmentDuration: v.optional(v.number()),
-    appointmentInstructions: v.optional(v.string()),
-    deliveryAppointment: v.optional(v.boolean()),
-    deliveryAppointmentDuration: v.optional(v.number()),
-    deliveryAppointmentDesc: v.optional(v.string()),
-    isFree: v.optional(v.boolean()),
-    price: v.optional(v.number()),
-    currency: v.optional(v.string()),
-    workflowId: v.optional(v.id('workflows')),
+    pricing: v.optional(
+      v.object({
+        isFree: v.boolean(),
+        price: v.optional(v.number()),
+        currency: v.optional(v.string()),
+      }),
+    ),
+    automations: v.optional(v.id('workflows')),
+    legacyId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existingService = await ctx.db.get(args.serviceId);
@@ -172,11 +162,14 @@ export const updateService = mutation({
       throw new Error('Service not found');
     }
 
-    if (args.name || args.code || args.price !== undefined) {
+    if (args.name || args.code || args.pricing?.price !== undefined) {
       const serviceData = {
         name: args.name || existingService.name,
         code: args.code || existingService.code,
-        price: args.price !== undefined ? args.price : existingService.price,
+        price:
+          args.pricing?.price !== undefined
+            ? args.pricing.price
+            : existingService.pricing?.price,
       };
 
       const validationErrors = validateService(serviceData);
@@ -193,90 +186,16 @@ export const updateService = mutation({
       ...(args.description !== undefined && { description: args.description }),
       ...(args.category && { category: args.category }),
       ...(args.status && { status: args.status }),
-      ...(args.config && { config: args.config }),
+      ...(args.countries && { countries: args.countries }),
       ...(args.steps && { steps: args.steps }),
-      ...(args.processingMode && { processingMode: args.processingMode }),
-      ...(args.deliveryModes && { deliveryModes: args.deliveryModes }),
-      ...(args.requiresAppointment !== undefined && {
-        requiresAppointment: args.requiresAppointment,
-      }),
-      ...(args.appointmentDuration !== undefined && {
-        appointmentDuration: args.appointmentDuration,
-      }),
-      ...(args.appointmentInstructions !== undefined && {
-        appointmentInstructions: args.appointmentInstructions,
-      }),
-      ...(args.deliveryAppointment !== undefined && {
-        deliveryAppointment: args.deliveryAppointment,
-      }),
-      ...(args.deliveryAppointmentDuration !== undefined && {
-        deliveryAppointmentDuration: args.deliveryAppointmentDuration,
-      }),
-      ...(args.deliveryAppointmentDesc !== undefined && {
-        deliveryAppointmentDesc: args.deliveryAppointmentDesc,
-      }),
-      ...(args.isFree !== undefined && { isFree: args.isFree }),
-      ...(args.price !== undefined && { price: args.price }),
-      ...(args.currency !== undefined && { currency: args.currency }),
-      ...(args.workflowId !== undefined && { workflowId: args.workflowId }),
-      updatedAt: Date.now(),
+      ...(args.processing && { processing: args.processing }),
+      ...(args.delivery && { delivery: args.delivery }),
+      ...(args.pricing && { pricing: args.pricing }),
+      ...(args.automations && { automations: args.automations }),
+      ...(args.legacyId && { legacyId: args.legacyId }),
     };
 
     await ctx.db.patch(args.serviceId, updateData);
-    return args.serviceId;
-  },
-});
-
-export const updateServiceSteps = mutation({
-  args: {
-    serviceId: v.id('services'),
-    steps: v.array(
-      v.object({
-        order: v.number(),
-        title: v.string(),
-        description: v.optional(v.string()),
-        isRequired: v.boolean(),
-        type: serviceStepTypeValidator,
-        fields: v.optional(v.record(v.string(), v.any())),
-        validations: v.optional(v.record(v.string(), v.any())),
-      }),
-    ),
-  },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.serviceId, {
-      steps: args.steps,
-    });
-    return args.serviceId;
-  },
-});
-
-export const updateServiceConfig = mutation({
-  args: {
-    serviceId: v.id('services'),
-    config: v.object({
-      requiredDocuments: v.array(v.string()),
-      optionalDocuments: v.array(v.string()),
-      steps: v.array(
-        v.object({
-          order: v.number(),
-          name: v.string(),
-          type: v.string(),
-          required: v.boolean(),
-          fields: v.optional(v.record(v.string(), v.any())),
-        }),
-      ),
-      pricing: v.optional(
-        v.object({
-          amount: v.number(),
-          currency: v.string(),
-        }),
-      ),
-    }),
-  },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.serviceId, {
-      config: args.config,
-    });
     return args.serviceId;
   },
 });
@@ -385,7 +304,11 @@ export const getAllServices = query({
       services = await ctx.db.query('services').order('desc').collect();
     }
 
-    return args.limit ? services.slice(0, args.limit) : services;
+    return args.limit
+      ? services
+          .filter((service) => service.category === ServiceCategory.Registration)
+          .slice(0, args.limit)
+      : services;
   },
 });
 

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { FullProfile as ConvexFullProfile } from '@/types/convex-profile';
+import type { CompleteProfile as ConvexCompleteProfile } from '@/types/convex-profile';
 
 interface SectionCompletion {
   name: string;
@@ -18,7 +18,7 @@ interface ProfileCompletion {
 }
 
 export function useProfileCompletion(
-  profile: ConvexFullProfile | null,
+  profile: ConvexCompleteProfile | null,
 ): ProfileCompletion {
   return useMemo(() => {
     if (!profile) {
@@ -262,12 +262,12 @@ export function useProfileCompletion(
     ];
 
     const documentsCompleted = requiredDocuments.filter((doc) => {
-      return profile[doc.type as keyof ConvexFullProfile];
+      return profile[doc.type as keyof ConvexCompleteProfile];
     });
 
     const documentsMissing = requiredDocuments
       .filter((doc) => {
-        return !profile[doc.type as keyof ConvexFullProfile];
+        return !profile[doc.type as keyof ConvexCompleteProfile];
       })
       .map((doc) => doc.field);
 

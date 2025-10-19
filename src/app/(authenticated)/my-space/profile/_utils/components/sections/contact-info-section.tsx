@@ -9,13 +9,13 @@ import { EditableSection } from '../editable-section';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import type { FullProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { ContactInfoForm } from '@/components/registration/contact-form';
 import { ContactInfoDisplay } from './contact-info-display';
 
 interface ContactInfoSectionProps {
-  profile: FullProfile;
+  profile: CompleteProfile;
   onSave: () => void;
   requestId?: string;
 }
