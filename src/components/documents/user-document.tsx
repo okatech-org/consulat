@@ -252,12 +252,8 @@ export function UserDocument({
       URL.revokeObjectURL(tempImageUrl);
       setTempImageUrl(null);
     }
-    if (replaceFile) {
-      await handleReplaceFile(croppedFile);
-      setReplaceFile(null);
-    } else {
-      await handleUploadAndCreateDocument(croppedFile);
-    }
+
+    await handleUploadAndCreateDocument(croppedFile);
   };
 
   const handleCropCancel = () => {
@@ -266,7 +262,6 @@ export function UserDocument({
       URL.revokeObjectURL(tempImageUrl);
       setTempImageUrl(null);
     }
-    setReplaceFile(null);
   };
 
   const onUpdate = async (data: UpdateDocumentData) => {
