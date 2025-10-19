@@ -4,7 +4,6 @@ import { validateService } from '../helpers/validation';
 import { ServiceCategory, ServiceStatus } from '../lib/constants';
 import type { Doc } from '../_generated/dataModel';
 import {
-  serviceStepTypeValidator,
   serviceCategoryValidator,
   serviceStatusValidator,
   processingModeValidator,
