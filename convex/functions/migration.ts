@@ -359,7 +359,7 @@ export const importOrganizations = mutation({
     for (const postgresOrg of args.organizations) {
       try {
         // Extraire les codes pays du metadata si disponible
-        let countryIds: Array<string> = [];
+        let countryCodes: Array<string> = [];
         let parsedMetadata: Record<string, { settings?: CountrySettings }> | null = null;
 
         if (postgresOrg.metadata) {
@@ -378,7 +378,7 @@ export const importOrganizations = mutation({
 
             if (parsedMetadata && typeof parsedMetadata === 'object') {
               // Si metadata contient des clés de codes pays (FR, PM, WF, etc.)
-              countryIds = Object.keys(parsedMetadata).filter(
+              countryCodes = Object.keys(parsedMetadata).filter(
                 (key) => key.length === 2 && key.match(/^[A-Z]{2}$/),
               );
             }
@@ -397,7 +397,7 @@ export const importOrganizations = mutation({
           logo: postgresOrg.logo || undefined,
           type: postgresOrg.type.toLowerCase() as OrganizationType,
           status: postgresOrg.status.toLowerCase() as OrganizationStatus,
-          countryIds: countryIds,
+          countryCodes: countryCodes,
           memberIds: [],
           serviceIds: [],
           childIds: [],
@@ -486,7 +486,7 @@ export const importOrganizations = mutation({
 
         // Préparer les configurations par pays
         if (parsedMetadata && typeof parsedMetadata === 'object') {
-          for (const countryCode of countryIds) {
+          for (const countryCode of countryCodes) {
             const countryConfig = parsedMetadata[countryCode];
             if (countryConfig && countryConfig.settings) {
               orgCountryConfigs.push({
@@ -499,7 +499,7 @@ export const importOrganizations = mutation({
         }
 
         console.log(
-          `✅ Organisation importée: ${postgresOrg.name} (${countryIds.length} pays)`,
+          `✅ Organisation importée: ${postgresOrg.name} (${countryCodes.length} pays)`,
         );
       } catch (error) {
         console.error(`❌ Erreur import organisation ${postgresOrg.id}:`, error);
@@ -833,6 +833,10 @@ export const importServices = mutation({
           },
           automations: undefined,
           legacyId: service.id,
+        });
+
+        await ctx.db.patch(organization._id, {
+          serviceIds: [...organization.serviceIds, serviceId],
         });
 
         importedServices.push(serviceId);

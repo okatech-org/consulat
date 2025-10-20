@@ -284,7 +284,9 @@ export const submitChildProfileForValidation = mutation({
     // Get the organization's registration service
     const organization = await ctx.db
       .query('organizations')
-      .withIndex('by_country', (q) => q.eq('countryIds', [profile.residenceCountry!]))
+      .withIndex('by_country_code', (q) =>
+        q.eq('countryCodes', [profile.residenceCountry!]),
+      )
       .first();
 
     if (!organization) {

@@ -20,7 +20,7 @@ export const organizations = defineTable({
   childIds: v.array(v.id('organizations')),
 
   // Relations
-  countryIds: v.array(v.string()),
+  countryCodes: v.array(v.string()),
   memberIds: v.array(v.id('users')),
   serviceIds: v.array(v.id('services')),
 
@@ -49,4 +49,4 @@ export const organizations = defineTable({
   .index('by_code', ['code'])
   .index('by_status', ['status'])
   .index('by_parent', ['parentId'])
-  .index('by_country', ['countryIds']);
+  .index('by_country_code', ['countryCodes']);

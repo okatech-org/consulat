@@ -1,12 +1,14 @@
 'use client';
 
-import { api } from '@/trpc/react';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
-import type { UserRole } from '@prisma/client';
+import type { Id } from '@/convex/_generated/dataModel';
+import { UserRole } from '@/convex/lib/constants';
 
-// Types pour les hooks
+// Types for the hooks
 export interface AgentFilters {
   search?: string;
   linkedCountries?: string[];
@@ -26,240 +28,149 @@ export interface CreateAgentData {
   lastName: string;
   email: string;
   phoneNumber?: string;
-  countryIds: string[];
+  countryCodes: string[];
   serviceIds: string[];
   assignedOrganizationId: string;
   role?: UserRole;
   managedByUserId?: string;
-  managedAgentIds?: string[];
 }
 
 export interface UpdateAgentData {
   name?: string;
   email?: string;
   phoneNumber?: string;
-  countryIds?: string[];
+  countryCodes?: string[];
   serviceIds?: string[];
   managedByUserId?: string | null;
   role?: UserRole;
-  managedAgentIds?: string[];
 }
 
 /**
  * Hook principal pour la gestion des agents avec filtres et pagination
  */
 export function useAgents(filters: AgentFilters = {}) {
-  const utils = api.useUtils();
   const router = useRouter();
 
+  // Convert filter format for Convex query
+  const organizationId = filters.assignedOrganizationId?.[0]
+    ? (filters.assignedOrganizationId[0] as Id<'organizations'>)
+    : undefined;
+
+  const managerId = filters.managedByUserId?.[0]
+    ? (filters.managedByUserId[0] as Id<'users'>)
+    : undefined;
+
   // Query pour la liste des agents
-  const {
-    data: agentsData,
-    isLoading,
-    error,
-    refetch,
-  } = api.agents.getList.useQuery({
+  const agentsData = useQuery(api.functions.membership.getAgentsList, {
+    organizationId,
     search: filters.search,
     linkedCountries: filters.linkedCountries,
-    assignedServices: filters.assignedServices,
-    assignedOrganizationId: filters.assignedOrganizationId,
-    managedByUserId: filters.managedByUserId,
+    assignedServices: (filters.assignedServices as Id<'services'>[]) || undefined,
+    managerId,
     page: filters.page || 1,
     limit: filters.limit || 10,
-    sortBy: filters.sortBy,
   });
 
   // Mutation pour créer un agent
-  const createAgentMutation = api.agents.create.useMutation({
-    onSuccess: (newAgent) => {
-      toast.success(`Agent ${newAgent.name} créé avec succès`);
+  const createUserMutation = useMutation(api.functions.user.createUser);
 
-      // Invalider la liste des agents
-      utils.agents.getList.invalidate();
+  const createAgent = async (data: CreateAgentData) => {
+    try {
+      // Note: Additional operations like adding membership, linking countries/services
+      // would need to be handled via separate mutations or a compound action
+      const result = await createUserMutation({
+        userId: `user_${Date.now()}`, // Temporary ID, should be generated on backend
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phoneNumber: data.phoneNumber,
+        roles: [data.role as UserRole],
+      });
 
-      // Optionnel : rediriger vers la page de détail
-      router.push(ROUTES.dashboard.agent_detail(newAgent.id));
-    },
-    onError: (error) => {
-      console.error("Erreur lors de la création de l'agent:", error);
+      toast.success('Agent créé avec succès');
+      router.push(ROUTES.dashboard.agents);
+      return result;
+    } catch (error) {
       toast.error("Erreur lors de la création de l'agent");
-    },
-  });
+      throw error;
+    }
+  };
 
   // Mutation pour mettre à jour un agent
-  const updateAgentMutation = api.agents.update.useMutation({
-    onMutate: async ({ id, data }) => {
-      // Annuler les requêtes en cours
-      await utils.agents.getList.cancel();
-      await utils.agents.getById.cancel({ id });
+  const updateUserMutation = useMutation(api.functions.user.updateUser);
 
-      // Sauvegarder les données précédentes
-      const previousAgentsList = utils.agents.getList.getData();
-      const previousAgent = utils.agents.getById.getData({ id });
+  const updateAgent = async (agentId: Id<'users'>, data: UpdateAgentData) => {
+    try {
+      await updateUserMutation({
+        userId: agentId,
+        firstName: data.name?.split(' ')[0],
+        lastName: data.name?.split(' ').slice(1).join(' '),
+        email: data.email,
+        phoneNumber: data.phoneNumber,
+      });
 
-      // Optimistic update pour la liste
-      if (previousAgentsList) {
-        utils.agents.getList.setData(
-          filters, // Utiliser les filtres actuels
-          (old) => {
-            if (!old) return old;
-            return {
-              ...old,
-              items: old.items.map((agent) =>
-                agent.id === id ? { ...agent, ...data } : agent,
-              ),
-            };
-          },
-        );
-      }
-
-      // Optimistic update pour l'agent individuel
-      if (previousAgent) {
-        utils.agents.getById.setData({ id }, (old) => {
-          if (!old) return old;
-          return { ...old, ...data };
-        });
-      }
-
-      return { previousAgentsList, previousAgent };
-    },
-    onError: (error, { id }, context) => {
-      console.error("Erreur lors de la mise à jour de l'agent:", error);
+      toast.success('Agent mis à jour avec succès');
+      return true;
+    } catch (error) {
       toast.error("Erreur lors de la mise à jour de l'agent");
-
-      // Restaurer les données précédentes
-      if (context?.previousAgentsList) {
-        utils.agents.getList.setData(filters, context.previousAgentsList);
-      }
-      if (context?.previousAgent) {
-        utils.agents.getById.setData({ id }, context.previousAgent);
-      }
-    },
-    onSuccess: (updatedAgent) => {
-      toast.success(`Agent ${updatedAgent.name} mis à jour avec succès`);
-    },
-    onSettled: () => {
-      // Rafraîchir les données
-      utils.agents.getList.invalidate();
-      utils.agents.getById.invalidate();
-    },
-  });
-
-  // Mutation pour assigner une demande
-  const assignRequestMutation = api.agents.assignRequest.useMutation({
-    onSuccess: (updatedRequest) => {
-      toast.success('Demande assignée avec succès');
-
-      // Invalider les données liées
-      utils.agents.getList.invalidate();
-      utils.agents.getById.invalidate();
-      utils.requests.getList.invalidate();
-      utils.requests.getById.invalidate({ id: updatedRequest.id });
-    },
-    onError: (error) => {
-      console.error("Erreur lors de l'assignation:", error);
-      toast.error("Erreur lors de l'assignation de la demande");
-    },
-  });
-
-  // Mutation pour réassigner une demande
-  const reassignRequestMutation = api.agents.reassignRequest.useMutation({
-    onSuccess: () => {
-      toast.success('Demande réassignée avec succès');
-
-      // Invalider les données liées
-      utils.agents.getList.invalidate();
-      utils.agents.getById.invalidate();
-      utils.requests.getList.invalidate();
-    },
-    onError: (error) => {
-      console.error('Erreur lors de la réassignation:', error);
-      toast.error('Erreur lors de la réassignation de la demande');
-    },
-  });
+      throw error;
+    }
+  };
 
   return {
     // Données
-    agents: agentsData?.items || [],
+    agents: agentsData?.agents || [],
     total: agentsData?.total || 0,
     page: agentsData?.page || 1,
     limit: agentsData?.limit || 10,
-    totalPages: agentsData?.totalPages || 0,
+    totalPages: Math.ceil((agentsData?.total || 0) / (agentsData?.limit || 10)),
 
     // États
-    isLoading,
-    error,
+    isLoading: agentsData === undefined,
+    error: null,
 
     // Actions
-    refetch,
-    createAgent: createAgentMutation.mutate,
-    updateAgent: updateAgentMutation.mutate,
-    assignRequest: assignRequestMutation.mutate,
-    reassignRequest: reassignRequestMutation.mutate,
+    createAgent,
+    updateAgent,
 
     // États des mutations
-    isCreating: createAgentMutation.isPending,
-    isUpdating: updateAgentMutation.isPending,
-    isAssigning: assignRequestMutation.isPending,
-    isReassigning: reassignRequestMutation.isPending,
+    isCreating: false,
+    isUpdating: false,
   };
 }
 
 /**
  * Hook pour récupérer un agent spécifique avec ses détails complets
  */
-export function useAgent(id: string) {
-  const utils = api.useUtils();
+export function useAgent(id: Id<'users'>) {
+  const agentData = useQuery(api.functions.user.getUser, { userId: id });
 
-  const {
-    data: agent,
-    isLoading,
-    error,
-    refetch,
-  } = api.agents.getById.useQuery(
-    { id },
-    {
-      enabled: !!id,
-    },
-  );
+  const updateUserMutation = useMutation(api.functions.user.updateUser);
 
-  // Mutation pour mettre à jour l'agent
-  const updateAgentMutation = api.agents.update.useMutation({
-    onMutate: async ({ data }) => {
-      await utils.agents.getById.cancel({ id });
-      const previousAgent = utils.agents.getById.getData({ id });
-
-      utils.agents.getById.setData({ id }, (old) => {
-        if (!old) return old;
-        return { ...old, ...data };
+  const updateAgent = async (data: UpdateAgentData) => {
+    try {
+      await updateUserMutation({
+        userId: id,
+        firstName: data.name?.split(' ')[0],
+        lastName: data.name?.split(' ').slice(1).join(' '),
+        email: data.email,
+        phoneNumber: data.phoneNumber,
       });
 
-      return { previousAgent };
-    },
-    onError: (error, _, context) => {
-      console.error('Erreur lors de la mise à jour:', error);
+      toast.success('Agent mis à jour avec succès');
+      return true;
+    } catch (error) {
       toast.error("Erreur lors de la mise à jour de l'agent");
-
-      if (context?.previousAgent) {
-        utils.agents.getById.setData({ id }, context.previousAgent);
-      }
-    },
-    onSuccess: (updatedAgent) => {
-      toast.success(`Agent ${updatedAgent.name} mis à jour avec succès`);
-    },
-    onSettled: () => {
-      utils.agents.getById.invalidate({ id });
-      utils.agents.getList.invalidate();
-    },
-  });
+      throw error;
+    }
+  };
 
   return {
-    agent,
-    isLoading,
-    error,
-    refetch,
-    updateAgent: updateAgentMutation.mutate,
-    isUpdating: updateAgentMutation.isPending,
+    agent: agentData,
+    isLoading: agentData === undefined,
+    error: null,
+    updateAgent,
+    isUpdating: false,
   };
 }
 
@@ -272,117 +183,44 @@ export function useAvailableAgents(
   serviceId: string,
   enabled = true,
 ) {
-  const {
-    data: availableAgents,
-    isLoading,
-    error,
-  } = api.agents.getAvailable.useQuery(
-    {
-      organizationId,
-      countryCode,
-      serviceId,
-    },
-    {
-      enabled: enabled && !!organizationId && !!countryCode && !!serviceId,
-    },
+  const availableAgents = useQuery(
+    api.functions.membership.getAgentsList,
+    enabled && organizationId && countryCode && serviceId
+      ? {
+          organizationId: organizationId as Id<'organizations'>,
+          linkedCountries: [countryCode],
+          assignedServices: [serviceId as Id<'services'>],
+          limit: 1000,
+        }
+      : 'skip',
   );
 
   return {
-    availableAgents: availableAgents || [],
-    isLoading,
-    error,
-  };
-}
-
-/**
- * Hook pour récupérer les métriques de performance d'un agent
- */
-export function useAgentPerformance(agentId: string, enabled = true) {
-  const {
-    data: performanceMetrics,
-    isLoading,
-    error,
-    refetch,
-  } = api.agents.getPerformanceMetrics.useQuery(
-    { agentId },
-    {
-      enabled: enabled && !!agentId,
-    },
-  );
-
-  return {
-    performanceMetrics,
-    isLoading,
-    error,
-    refetch,
+    availableAgents: availableAgents?.agents || [],
+    isLoading: availableAgents === undefined,
+    error: null,
   };
 }
 
 /**
  * Hook pour récupérer les statistiques globales des agents
  */
-export function useAgentsStats(organizationId?: string, managerId?: string) {
-  const {
-    data: agentsStats,
-    isLoading,
-    error,
-    refetch,
-  } = api.agents.getStats.useQuery({
+export function useAgentsStats(
+  organizationId?: Id<'organizations'>,
+  managerId?: Id<'users'>,
+) {
+  const statsData = useQuery(api.functions.membership.getAgentsList, {
     organizationId,
     managerId,
+    limit: 1000,
   });
 
   return {
-    agentsStats,
-    isLoading,
-    error,
-    refetch,
-  };
-}
-
-/**
- * Hook pour les actions d'assignation/réassignation
- */
-export function useAgentAssignment() {
-  const utils = api.useUtils();
-
-  const assignRequestMutation = api.agents.assignRequest.useMutation({
-    onSuccess: (updatedRequest) => {
-      toast.success('Demande assignée avec succès');
-
-      // Invalider toutes les données liées
-      utils.agents.getList.invalidate();
-      utils.agents.getById.invalidate();
-      utils.requests.getList.invalidate();
-      utils.requests.getById.invalidate({ id: updatedRequest.id });
-      utils.dashboard.invalidate();
+    agentsStats: {
+      total: statsData?.total || 0,
+      agents: statsData?.agents || [],
     },
-    onError: (error) => {
-      console.error("Erreur lors de l'assignation:", error);
-      toast.error("Erreur lors de l'assignation de la demande");
-    },
-  });
-
-  const reassignRequestMutation = api.agents.reassignRequest.useMutation({
-    onSuccess: () => {
-      toast.success('Demande réassignée avec succès');
-
-      // Invalider toutes les données liées
-      utils.agents.getList.invalidate();
-      utils.agents.getById.invalidate();
-      utils.requests.getList.invalidate();
-      utils.dashboard.invalidate();
-    },
-    onError: (error) => {
-      console.error('Erreur lors de la réassignation:', error);
-      toast.error('Erreur lors de la réassignation de la demande');
-    },
-  });
-
-  return {
-    assignRequest: assignRequestMutation.mutate,
-    reassignRequest: reassignRequestMutation.mutate,
-    isAssigning: assignRequestMutation.isPending,
-    isReassigning: reassignRequestMutation.isPending,
+    isLoading: statsData === undefined,
+    error: null,
   };
 }

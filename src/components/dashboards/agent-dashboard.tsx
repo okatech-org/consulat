@@ -44,7 +44,7 @@ export default function AgentDashboard() {
     <PageContainer
       title={t('title')}
       description={t('welcome', {
-        name: user.name || '',
+        name: user.firstName || '',
       })}
     >
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

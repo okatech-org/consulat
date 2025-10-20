@@ -17,7 +17,7 @@ export const createOrganization = mutation({
     type: v.string(),
     status: v.optional(organizationStatusValidator),
     parentId: v.optional(v.id('organizations')),
-    countryIds: v.optional(v.array(v.string())),
+    countryCodes: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const organizationId = await ctx.db.insert('organizations', {
@@ -28,7 +28,7 @@ export const createOrganization = mutation({
       status: args.status ?? OrganizationStatus.Active,
       parentId: args.parentId,
       childIds: [],
-      countryIds: args.countryIds || [],
+      countryCodes: args.countryCodes || [],
       memberIds: [],
       serviceIds: [],
       settings: [],
@@ -56,7 +56,7 @@ export const updateOrganization = mutation({
     logo: v.optional(v.string()),
     type: v.optional(v.string()),
     status: v.optional(v.string()),
-    countryIds: v.optional(v.array(v.string())),
+    countryCodes: v.optional(v.array(v.string())),
     settings: v.optional(v.any()),
     metadata: v.optional(v.any()),
   },
@@ -72,7 +72,7 @@ export const updateOrganization = mutation({
       ...(args.logo !== undefined && { logo: args.logo }),
       ...(args.type && { type: args.type as OrganizationType }),
       ...(args.status && { status: args.status as OrganizationStatus }),
-      ...(args.countryIds && { countryIds: args.countryIds }),
+      ...(args.countryCodes && { countryCodes: args.countryCodes }),
       ...(args.settings && { settings: args.settings }),
       ...(args.metadata && { metadata: args.metadata }),
       updatedAt: Date.now(),
@@ -144,7 +144,63 @@ export const updateOrganizationSettings = mutation({
   },
 });
 
-/* 
+export const updateOrganizationStatus = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    status: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const organization = await ctx.db.get(args.organizationId);
+    if (!organization) {
+      throw new Error('Organization not found');
+    }
+
+    await ctx.db.patch(args.organizationId, {
+      status: args.status as OrganizationStatus,
+    });
+
+    return organization;
+  },
+});
+
+export const deleteOrganization = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+  },
+  handler: async (ctx, args) => {
+    const organization = await ctx.db.get(args.organizationId);
+    if (!organization) {
+      throw new Error('Organization not found');
+    }
+
+    // Delete associated services
+    const services = await ctx.db
+      .query('services')
+      .filter((q) => q.eq(q.field('organizationId'), args.organizationId))
+      .collect();
+
+    for (const service of services) {
+      await ctx.db.delete(service._id);
+    }
+
+    // Delete associated memberships
+    const memberships = await ctx.db
+      .query('memberships')
+      .filter((q) => q.eq(q.field('organizationId'), args.organizationId))
+      .collect();
+
+    for (const membership of memberships) {
+      await ctx.db.delete(membership._id);
+    }
+
+    // Delete the organization
+    await ctx.db.delete(args.organizationId);
+
+    return { success: true };
+  },
+});
+
+/*
 export const createOrganizationCountryConfig = mutation({
   args: {
     organizationId: v.id("organizations"),
@@ -272,7 +328,7 @@ export const getOrganizationsByCountry = query({
     const organizations = await ctx.db.query('organizations').collect();
 
     return organizations.filter(
-      (org) => org.countryIds && org.countryIds.includes(args.countryCode),
+      (org) => org.countryCodes && org.countryCodes.includes(args.countryCode),
     );
   },
 });
@@ -284,21 +340,78 @@ export const getOrganizationServices = query({
   },
 });
 
-/* 
-export const getOrganizationCountryConfig = query({
+// Enriched list query for organizations with counts and details
+export const getOrganizationsListEnriched = query({
   args: {
-    organizationId: v.id("organizations"),
-    countryCode: v.string(),
+    search: v.optional(v.string()),
+    type: v.optional(v.array(v.string())),
+    status: v.optional(v.array(v.string())),
+    page: v.optional(v.number()),
+    limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query("organizationCountryConfigs")
-      .withIndex("by_organization_country", (q) =>
-        q
-          .eq("organizationId", args.organizationId)
-          .eq("countryCode", args.countryCode),
-      )
-      .first();
+    const page = args.page || 1;
+    const limit = args.limit || 10;
+    const skip = (page - 1) * limit;
+
+    let organizations = await ctx.db.query('organizations').collect();
+
+    // Filter by status
+    if (args.status && args.status.length > 0) {
+      organizations = organizations.filter((org) => args.status!.includes(org.status));
+    }
+
+    // Filter by type
+    if (args.type && args.type.length > 0) {
+      organizations = organizations.filter((org) => args.type!.includes(org.type));
+    }
+
+    // Filter by search term
+    if (args.search) {
+      const searchLower = args.search.toLowerCase();
+      organizations = organizations.filter((org) =>
+        org.name.toLowerCase().includes(searchLower),
+      );
+    }
+
+    const total = organizations.length;
+
+    // Apply pagination
+    const paginatedOrganizations = organizations.slice(skip, skip + limit);
+
+    // Enrich with counts
+    const enrichedOrganizations = await Promise.all(
+      paginatedOrganizations.map(async (org) => {
+        const [services, members, countries] = await Promise.all([
+          getOrganizationServicesHelper(ctx, org._id),
+          getOrganizationUsers(ctx, org._id),
+          Promise.all(
+            (org.countryCodes || []).map(async (countryCode) => {
+              const country = await ctx.db
+                .query('countries')
+                .withIndex('by_code', (q) => q.eq('code', countryCode))
+                .first();
+              return country;
+            }),
+          ),
+        ]);
+
+        return {
+          ...org,
+          countries: countries.filter(Boolean),
+          _count: {
+            services: services.length,
+            agents: members.length,
+          },
+        };
+      }),
+    );
+
+    return {
+      organizations: enrichedOrganizations,
+      total,
+      page,
+      limit,
+    };
   },
 });
-*/

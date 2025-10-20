@@ -14,21 +14,37 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { getOrganizationIdFromUser } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
-import {
-  UserRole,
-  type ConsularService,
-  type Country,
-  type Organization,
-  type User,
-} from '@prisma/client';
+import { UserRole } from '@/convex/lib/constants';
 import Link from 'next/link';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
-import type { AgentListItem } from '@/server/api/routers/agents/types';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
+
+interface AgentListItem {
+  _id: Id<'memberships'>;
+  id: Id<'users'>;
+  name: string;
+  email: string;
+  roles: string[];
+  linkedCountries: any[];
+  assignedServices: any[];
+  assignedOrganizationId: Id<'organizations'>;
+  organizationName?: string;
+  managedByUserId?: Id<'users'>;
+  managerName?: string;
+  _count: {
+    assignedRequests: number;
+  };
+  completedRequests: number;
+  createdAt?: number;
+}
 
 export default function AgentsPageClient() {
   const { user: currentUser } = useCurrentUser();
   const organizationId = getOrganizationIdFromUser(currentUser);
+  const isSuperAdmin = currentUser?.roles.includes(UserRole.SuperAdmin);
 
   // État pour les filtres
   const {
@@ -59,7 +75,7 @@ export default function AgentsPageClient() {
     }
 
     // Les managers ne voient que leurs agents
-    if (currentUser?.roles.includes('MANAGER') && !currentUser.roles.includes('ADMIN')) {
+    if (currentUser?.roles.includes(UserRole.Manager) && !currentUser.roles.includes(UserRole.SuperAdmin)) {
       filters.managedByUserId = [currentUser.id];
     }
 
@@ -78,14 +94,17 @@ export default function AgentsPageClient() {
   }, [pagination, sorting, tableParams, organizationId, currentUser]);
 
   // Hook principal pour les agents
-  const { agents, total, isLoading, error } = useAgents(defaultFilters);
+  const { agents, total, isLoading } = useAgents(defaultFilters);
 
-  // Pour l'instant, utilisons des données vides pour les filtres
-  // TODO: Créer les routers countries et organizations
-  const countries: Country[] = [];
-  const services: ConsularService[] = [];
-  const organizations: Organization[] = [];
-  const managers: User[] = [];
+  // Fetch filter data
+  const countries = useQuery(api.functions.membership.getCountriesForFilter) || [];
+  const services = useQuery(api.functions.membership.getServicesForFilter, {
+    organizationId: organizationId ? (organizationId as Id<'organizations'>) : undefined,
+  }) || [];
+  const organizations = useQuery(api.functions.organization.getAllOrganizations) || [];
+  const managers = useQuery(api.functions.membership.getManagersForFilter, {
+    organizationId: organizationId ? (organizationId as Id<'organizations'>) : undefined,
+  }) || [];
 
   // Fonction pour adapter les paramètres de recherche
   function adaptSearchParams(urlSearchParams: URLSearchParams): AgentFilters {
@@ -165,9 +184,9 @@ export default function AgentsPageClient() {
           const user = row.original;
           if (!user.roles) return '-';
 
-          if (user.roles.includes(UserRole.MANAGER)) {
+          if (user.roles.includes(UserRole.Manager)) {
             return <Badge>Manager</Badge>;
-          } else if (user.roles.includes(UserRole.AGENT)) {
+          } else if (user.roles.includes(UserRole.Agent)) {
             return <Badge variant="secondary">Agent</Badge>;
           }
           return '-';
@@ -212,7 +231,7 @@ export default function AgentsPageClient() {
           row.original.assignedServices && row.original.assignedServices.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {row.original.assignedServices.slice(0, 1).map((service) => (
-                <Badge key={service.id} variant="outline" className="text-xs">
+                <Badge key={service._id} variant="outline" className="text-xs">
                   <span className="truncate max-w-[80px]">{service.name}</span>
                 </Badge>
               ))}
@@ -226,7 +245,7 @@ export default function AgentsPageClient() {
                   <TooltipContent>
                     <div className="space-y-1">
                       {row.original.assignedServices.slice(2).map((service) => (
-                        <div key={service.id}>{service.name}</div>
+                        <div key={service._id}>{service.name}</div>
                       ))}
                     </div>
                   </TooltipContent>
@@ -274,16 +293,13 @@ export default function AgentsPageClient() {
         ),
       },
       // Colonne organisation pour les super admins
-      ...(currentUser?.roles.includes('SUPER_ADMIN')
+      ...(isSuperAdmin
         ? [
             {
-              accessorKey: 'assignedOrganizationId',
+              accessorKey: 'organizationName',
               header: 'Organisation',
               cell: ({ row }: { row: { original: AgentListItem } }) => {
-                const org = organizations?.find(
-                  (item) => item.id === row.original.assignedOrganizationId,
-                );
-                return org?.name || '-';
+                return row.original.organizationName || '-';
               },
             } as ColumnDef<AgentListItem>,
           ]
@@ -298,7 +314,7 @@ export default function AgentsPageClient() {
         ),
       },
     ],
-    [currentUser, organizations, handleSortingChange],
+    [isSuperAdmin, handleSortingChange],
   );
 
   // Définition des filtres
@@ -326,19 +342,19 @@ export default function AgentsPageClient() {
         type: 'checkbox',
         property: 'assignedServices',
         label: 'Services',
-        options: (services || []).map((s) => ({ value: s.id, label: s.name || s.id })),
+        options: (services || []).map((s) => ({ value: s._id, label: s.name || s._id })),
         defaultValue: tableParams.assignedServices as string[],
         onChange: (value: string[]) => handleParamsChange('assignedServices', value),
       },
-      ...(currentUser?.roles.includes('SUPER_ADMIN')
+      ...(isSuperAdmin
         ? [
             {
               type: 'checkbox' as const,
               property: 'assignedOrganizationId' as keyof AgentListItem,
               label: 'Organisation',
               options: (organizations || []).map((o) => ({
-                value: o.id,
-                label: o.name || o.id,
+                value: o._id,
+                label: o.name || o._id,
               })),
               defaultValue: tableParams.assignedOrganizationId as string[],
               onChange: (value: string[]) =>
@@ -346,7 +362,7 @@ export default function AgentsPageClient() {
             },
           ]
         : []),
-      ...(!currentUser?.roles.includes('MANAGER') || currentUser?.roles.includes('ADMIN')
+      ...(!currentUser?.roles.includes(UserRole.Manager) || currentUser?.roles.includes(UserRole.SuperAdmin)
         ? [
             {
               type: 'checkbox' as const,
@@ -368,23 +384,11 @@ export default function AgentsPageClient() {
       organizations,
       managers,
       currentUser,
+      isSuperAdmin,
       tableParams,
       handleParamsChange,
     ],
   );
-
-  if (error) {
-    return (
-      <PageContainer title="Agents">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <p className="text-lg font-medium text-red-600">Erreur lors du chargement</p>
-            <p className="text-muted-foreground">{error.message}</p>
-          </div>
-        </div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

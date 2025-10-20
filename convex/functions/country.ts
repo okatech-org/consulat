@@ -166,7 +166,7 @@ export const getEnrichedCountries = query({
         // Compter les organisations liées à ce pays
         const allOrganizations = await ctx.db.query('organizations').collect();
         const organizationsCount = allOrganizations.filter((org) =>
-          org.countryIds.includes(country.code),
+          org.countryCodes.includes(country.code),
         ).length;
 
         // Compter les utilisateurs de ce pays

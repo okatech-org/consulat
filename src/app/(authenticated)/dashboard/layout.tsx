@@ -2,29 +2,12 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/ui/site-header';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { AppSidebar } from '@/components/ui/app-sidebar';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { ROUTES } from '@/schemas/routes';
-import { redirect } from 'next/navigation';
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    redirect(ROUTES.auth.login);
-  }
-
-  if (user?.roles?.includes('INTEL_AGENT')) {
-    redirect(ROUTES.intel.base);
-  }
-
-  if (user?.roles?.includes('USER')) {
-    redirect(ROUTES.user.base);
-  }
-
   return (
     <SidebarProvider>
       <AppSidebar />

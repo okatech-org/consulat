@@ -326,6 +326,136 @@ export const getAllUsers = query({
   },
 });
 
+// Enriched users list query with filtering and pagination
+export const getUsersListEnriched = query({
+  args: {
+    search: v.optional(v.string()),
+    roles: v.optional(v.array(userRoleValidator)),
+    status: v.optional(userStatusValidator),
+    countryCode: v.optional(v.array(v.string())),
+    organizationId: v.optional(v.array(v.id('organizations'))),
+    hasProfile: v.optional(v.boolean()),
+    page: v.optional(v.number()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const page = args.page || 1;
+    const limit = args.limit || 10;
+    const skip = (page - 1) * limit;
+
+    let users = await ctx.db.query('users').collect();
+
+    // Filter by status
+    if (args.status) {
+      users = users.filter((user) => user.status === args.status);
+    }
+
+    // Filter by roles
+    if (args.roles && args.roles.length > 0) {
+      users = users.filter((user) =>
+        args.roles!.some((role) => user.roles.includes(role)),
+      );
+    }
+
+    // Filter by hasProfile
+    if (args.hasProfile !== undefined) {
+      users = users.filter((user) =>
+        args.hasProfile ? !!user.profileId : !user.profileId,
+      );
+    }
+
+    // Filter by search (name or email)
+    if (args.search) {
+      const searchLower = args.search.toLowerCase();
+      users = users.filter((user) => {
+        const fullName = `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase();
+        const email = (user.email || '').toLowerCase();
+        return fullName.includes(searchLower) || email.includes(searchLower);
+      });
+    }
+
+    // Filter by organization (via memberships)
+    if (args.organizationId && args.organizationId.length > 0) {
+      const userIdsInOrgs = new Set<Id<'users'>>();
+
+      for (const orgId of args.organizationId) {
+        const memberships = await ctx.db
+          .query('memberships')
+          .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+          .collect();
+
+        memberships.forEach((m) => userIdsInOrgs.add(m.userId));
+      }
+
+      users = users.filter((user) => userIdsInOrgs.has(user._id));
+    }
+
+    // Filter by country (via memberships)
+    if (args.countryCode && args.countryCode.length > 0) {
+      const userIdsWithCountries = new Set<Id<'users'>>();
+
+      const allMemberships = await ctx.db.query('memberships').collect();
+
+      for (const membership of allMemberships) {
+        if (
+          args.countryCode.some((code) => membership.assignedCountries.includes(code))
+        ) {
+          userIdsWithCountries.add(membership.userId);
+        }
+      }
+
+      users = users.filter((user) => userIdsWithCountries.has(user._id));
+    }
+
+    const total = users.length;
+
+    // Apply pagination
+    const paginatedUsers = users.slice(skip, skip + limit);
+
+    // Enrich with additional data
+    const enrichedUsers = await Promise.all(
+      paginatedUsers.map(async (user) => {
+        // Get profile if exists
+        const profile = user.profileId ? await ctx.db.get(user.profileId) : null;
+
+        // Get memberships
+        const memberships = await ctx.db
+          .query('memberships')
+          .withIndex('by_user', (q) => q.eq('userId', user._id))
+          .collect();
+
+        // Get organizations
+        const organizations = await Promise.all(
+          memberships.map((m) => ctx.db.get(m.organizationId)),
+        );
+
+        // Get assigned countries from memberships
+        const assignedCountries = Array.from(
+          new Set(memberships.flatMap((m) => m.assignedCountries)),
+        );
+
+        return {
+          ...user,
+          name:
+            `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Nom non défini',
+          hasProfile: !!user.profileId,
+          profile,
+          organizations: organizations.filter(Boolean),
+          assignedCountries,
+          membershipCount: memberships.length,
+        };
+      }),
+    );
+
+    return {
+      users: enrichedUsers,
+      total,
+      page,
+      limit,
+    };
+  },
+});
+
 export const getUserProfile = query({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => {
@@ -543,7 +673,7 @@ export const getUserOrganizationContact = query({
     // Récupérer les organisations du pays de l'utilisateur
     const organizations = await ctx.db.query('organizations').collect();
     const userOrganizations = organizations.filter((org) =>
-      org.countryIds.includes(profile.residenceCountry!),
+      org.countryCodes.includes(profile.residenceCountry!),
     );
 
     if (userOrganizations.length === 0) return null;

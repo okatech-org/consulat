@@ -46,6 +46,7 @@ export const ROUTES = {
     services: '/dashboard/services' as Route<string>,
     feedback: '/dashboard/feedback' as Route<string>,
     users: '/dashboard/users' as Route<string>,
+    user_detail: (id: string) => `/dashboard/users/${id}` as Route<string>,
     edit_service: (id: string) => `/dashboard/services/${id}/edit` as Route<string>,
     new_service: (category: ServiceCategory) =>
       `/dashboard/services/new?category=${category}` as Route<string>,

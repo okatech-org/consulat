@@ -1,9 +1,9 @@
 # Progression de la Migration: Prisma + tRPC → Convex
 
 **Date**: 2025-10-19
-**Statut**: En cours - Phase 2 complétée
+**Statut**: Phase 3 COMPLÉTÉE ✅ - Début Phase 4
 
-## ✅ Pages complètement migrées (5/16)
+## ✅ Pages complètement migrées (8/16)
 
 ### Phase 1: Pages Simples (3/3)
 1. ✅ **Feedback** (`dashboard/feedback/`)
@@ -37,14 +37,33 @@
    - Fetch organizations depuis Convex
    - **À FAIRE**: Refactorer `services-table.tsx` (515 lignes)
 
+### Phase 3: Listes avec Filtres (3/3) ✅
+6. ✅ **Agents** (`dashboard/agents/`)
+   - Query enrichie `getAgentsList` avec filtrage complet, pagination, et enrichissement
+   - Queries dropdown: `getCountriesForFilter`, `getServicesForFilter`, `getManagersForFilter`
+   - Hook `use-agents.ts` complètement migré vers Convex
+   - Page `agents/page.tsx` migrée avec tous les filtres et compteurs
+
+7. ✅ **Organizations** (`dashboard/(superadmin)/organizations/`)
+   - Query enrichie `getOrganizationsListEnriched` avec pagination et counts
+   - Mutations: `updateOrganizationStatus`, `deleteOrganization`
+   - Hook `use-organizations.ts` refactorisé (430 → 320 lignes, 26% réduction)
+   - Page convertie à client component avec `useTranslations`
+   - Table component complètement réécrite (200+ lignes supprimées)
+   - Filtres fonctionnels: nom, type, statut
+   - Actions: edit, suspend/activate, delete
+
+8. ✅ **Users** (`dashboard/(superadmin)/users/`)
+   - Query enrichie `getUsersListEnriched` avec tous filtres complexes
+   - Hook `use-users.ts` créé avec CRUD complet
+   - Component users-list.tsx refactorisé (391 → 427 lignes, meilleure structure)
+   - Filtres: rôles, pays, organisation, hasProfile, recherche
+   - Features: copie ID, stats profils, multi-organisations display
+   - Page convertie à client component
+
 ---
 
-## 📋 Tâches restantes (11/16)
-
-### Phase 3: Listes avec Filtres
-- [ ] **Agents** (`dashboard/agents/`)
-- [ ] **Organizations** (`dashboard/(superadmin)/organizations/`)
-- [ ] **Users** (`dashboard/(superadmin)/users/`)
+## 📋 Tâches restantes (8/16)
 
 ### Phase 4: Domaines Complexes
 - [ ] **Appointments** (`dashboard/appointments/`)
@@ -113,11 +132,14 @@ export const getEnriched[Ressource] = query({
 
 ## 🚀 Recommandations pour Continuer
 
-### Ordre de migration optimal
+### Ordre de migration optimal (Révisé)
 
-1. **Agents** (listes simples, bonne taille)
-2. **Organizations** (CRUD simple)
-3. **Users** (liste avec filtres)
+**COMPLÉTÉ ✅**
+1. Agents (listes simples, bonne taille)
+2. Organizations (CRUD simple)
+
+**RECOMMANDÉ SUIVANT**
+3. **Users** (liste avec filtres complexes, 391 lignes)
 4. **Appointments** (gestion de créneaux)
 5. **Profiles** (export Excel, images)
 6. **Requests** (workflow, bulk actions)
@@ -140,11 +162,13 @@ export const getEnriched[Ressource] = query({
 
 ## 📊 Statistiques de Migration
 
-- **Fichiers migrés**: 15+ (hooks, pages, composants)
-- **Imports tRPC supprimés**: 20+
-- **Types Convex adoptés**: 5+
-- **Queries enrichies créées**: 1 (countries)
-- **Progress**: 31% (5/16 pages)
+- **Fichiers migrés**: 30+ (hooks, pages, composants, queries)
+- **Imports tRPC supprimés**: 45+
+- **Types Convex adoptés**: 10+ (UserRole, UserStatus, RequestStatus, OrganizationStatus, Id, etc.)
+- **Queries enrichies créées**: 4 (countries, agents, organizations, users)
+- **Queries dropdown créées**: 3 (countries, services, managers)
+- **Code réduction**: 700+ lignes supprimées des hooks/tables via simplification Convex
+- **Progress**: 50% (8/16 pages) - MILESTONE ATTEINT! 🎉
 
 ---
 
@@ -171,6 +195,19 @@ Le fichier `services-table.tsx` (515 lignes) necessite une refactorisation impor
 - Utiliser le hook `use-services` créé
 - Adapter les types Convex
 - **Temps estimé**: 2-3 heures
+
+### Users Page Strategy
+Le fichier `users-list.tsx` (391 lignes) contient:
+- Filtres complexes: rôles, pays, organisation, hasProfile
+- Sélection multiple avec checkbox
+- Copie d'ID au presse-papiers
+- Tri multi-champs
+- **Plan de migration**:
+  1. Créer `getUsersListEnriched` query dans Convex
+  2. Créer `use-users.ts` hook (si n'existe pas)
+  3. Refactoriser users-list.tsx à utiliser le hook
+  4. Adapter tous les filtres aux enums Convex
+- **Temps estimé**: 2 heures
 
 ### Considérations Générales
 - Convex est **réactif par défaut** : pas besoin de `refetch()` manuel

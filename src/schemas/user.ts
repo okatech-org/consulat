@@ -31,7 +31,7 @@ export const AgentSchema = z.object({
   phoneNumber: PhoneNumberSchema.optional(),
   roles: z.array(z.nativeEnum(UserRole)).default([UserRole.AGENT]),
   managedByUserId: z.string().optional(),
-  countryIds: z.array(z.string()).min(1, {
+  countryCodes: z.array(z.string()).min(1, {
     message: 'Vous devez sélectionner au moins un pays.',
   }),
   serviceIds: z.array(z.string()).default([]),

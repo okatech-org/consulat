@@ -6,36 +6,42 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/data-table/data-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
-import { Eye, Users, UserCheck } from 'lucide-react';
+import { Eye, UserCheck } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
-import { api } from '@/trpc/react';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
-import type { UserListItem } from '@/server/api/routers/users/types';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { useDateLocale } from '@/lib/utils';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '@/convex/lib/constants';
+import { useUsers, type UsersFilters } from '@/hooks/use-users';
+import type { Id } from '@/convex/_generated/dataModel';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
-// Types pour les filtres d'utilisateurs
-interface UsersFilters {
-  search?: string;
-  roles?: UserRole[];
-  countryCode?: string[];
-  organizationId?: string[];
-  hasProfile?: boolean;
+// User list item interface
+interface UserListItem {
+  _id: Id<'users'>;
+  id: string;
+  name: string;
+  email?: string;
+  roles: string[];
+  hasProfile: boolean;
+  profile: any;
+  organizations: any[];
+  assignedCountries: string[];
+  membershipCount: number;
+  _creationTime: number;
 }
 
 // Function to adapt search parameters for users
 function adaptSearchParams(searchParams: URLSearchParams): UsersFilters {
   return {
     search: searchParams.get('search') || undefined,
-    roles: searchParams.get('roles')?.split(',').filter(Boolean) as
-      | UserRole[]
-      | undefined,
+    roles: searchParams.get('roles')?.split(',').filter(Boolean),
     countryCode: searchParams.get('countryCode')?.split(',').filter(Boolean) || undefined,
     organizationId:
       searchParams.get('organizationId')?.split(',').filter(Boolean) || undefined,
@@ -59,20 +65,19 @@ export function UsersList() {
 
   const { formatDate } = useDateLocale();
 
-  const {
-    data: result,
-    isLoading,
-    refetch,
-  } = api.user.getList.useQuery({
+  // Fetch users with filters
+  const { users, total, isLoading } = useUsers({
     ...params,
     page: pagination.page,
     limit: pagination.limit,
-    sortBy: sorting.field as string,
-    sortOrder: sorting.order,
   });
 
-  const users = result?.items || [];
-  const total = result?.total || 0;
+  // Fetch organizations for filter
+  const organizations =
+    useQuery(api.functions.organization.getAllOrganizations, {}) || [];
+
+  // Fetch countries for filter
+  const countries = useQuery(api.functions.membership.getCountriesForFilter) || [];
 
   const columns = useMemo<ColumnDef<UserListItem>[]>(
     () => [
@@ -151,14 +156,14 @@ export function UsersList() {
         },
       },
       {
-        accessorKey: 'role',
+        accessorKey: 'roles',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
             title={t('table.role')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'role' as keyof UserListItem,
+                field: 'roles' as keyof UserListItem,
                 order: direction,
               })
             }
@@ -169,21 +174,25 @@ export function UsersList() {
           />
         ),
         cell: ({ row }) => {
-          const role = row.original.role;
+          const roles = row.original.roles || [];
+          const primaryRole = roles[0];
+
+          if (!primaryRole) return <span className="text-muted-foreground">-</span>;
+
           const variant =
-            role === 'SUPER_ADMIN'
+            primaryRole === UserRole.SuperAdmin
               ? 'destructive'
-              : role === 'ADMIN'
+              : primaryRole === UserRole.Admin
                 ? 'default'
-                : role === 'MANAGER'
+                : primaryRole === UserRole.Manager
                   ? 'secondary'
-                  : role === 'AGENT'
+                  : primaryRole === UserRole.Agent
                     ? 'outline'
-                    : 'warning';
+                    : 'default';
 
           return (
-            <Badge variant={variant}>
-              {t(`form.role.options.${role.toLowerCase()}`)}
+            <Badge variant={variant as any}>
+              {t(`form.role.options.${primaryRole.toLowerCase()}`)}
             </Badge>
           );
         },
@@ -192,20 +201,31 @@ export function UsersList() {
         },
       },
       {
-        accessorKey: 'country',
+        accessorKey: 'assignedCountries',
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t('table.country')} />
         ),
         cell: ({ row }) => {
-          const country = row.original.country;
-          return country ? (
+          const countryCodes = row.original.assignedCountries || [];
+          if (countryCodes.length === 0) {
+            return <span className="text-muted-foreground">-</span>;
+          }
+
+          const firstCountry = countries.find((c) => c.code === countryCodes[0]);
+
+          return firstCountry ? (
             <div className="flex items-center space-x-2">
               <img
-                src={`https://flagcdn.com/${country.code.toLowerCase()}.svg`}
-                alt={country.name}
+                src={`https://flagcdn.com/${firstCountry.code.toLowerCase()}.svg`}
+                alt={firstCountry.name}
                 className="w-4 h-3 rounded object-cover"
               />
-              <span className="text-sm">{country.name}</span>
+              <span className="text-sm">{firstCountry.name}</span>
+              {countryCodes.length > 1 && (
+                <Badge variant="outline" className="text-xs">
+                  +{countryCodes.length - 1}
+                </Badge>
+              )}
             </div>
           ) : (
             <span className="text-muted-foreground">-</span>
@@ -213,14 +233,21 @@ export function UsersList() {
         },
       },
       {
-        accessorKey: 'assignedOrganization',
+        accessorKey: 'organizations',
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t('table.organization')} />
         ),
         cell: ({ row }) => {
-          const org = row.original.assignedOrganization;
-          return org ? (
-            <Badge variant="outline">{org.name}</Badge>
+          const orgs = row.original.organizations || [];
+          return orgs.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {orgs.slice(0, 2).map((org: any) => (
+                <Badge key={org._id} variant="outline">
+                  {org.name}
+                </Badge>
+              ))}
+              {orgs.length > 2 && <Badge variant="outline">+{orgs.length - 2}</Badge>}
+            </div>
           ) : (
             <span className="text-muted-foreground">-</span>
           );
@@ -236,9 +263,7 @@ export function UsersList() {
           return profile ? (
             <div className="flex items-center space-x-1">
               <UserCheck className="h-4 w-4 text-green-600" />
-              <span className="text-sm text-green-600">
-                {profile.cardNumber || 'Profil existant'}
-              </span>
+              <span className="text-sm text-green-600">Profil existant</span>
             </div>
           ) : (
             <span className="text-muted-foreground">-</span>
@@ -246,44 +271,23 @@ export function UsersList() {
         },
       },
       {
-        accessorKey: 'createdAt',
+        accessorKey: '_creationTime',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
             title={t('table.createdAt')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'createdAt' as keyof UserListItem,
+                field: '_creationTime' as keyof UserListItem,
                 order: direction,
               })
             }
           />
         ),
         cell: ({ row }) => {
-          const date = row.original.createdAt;
-          return <span className="text-sm">{formatDate(date, 'dd/MM/yyyy')}</span>;
-        },
-      },
-      {
-        accessorKey: '_count',
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('table.requests')} />
-        ),
-        cell: ({ row }) => {
-          const count = row.original._count;
+          const date = row.original._creationTime;
           return (
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-1">
-                <Users className="h-3 w-3" />
-                <span className="text-xs">{count.submittedRequests}</span>
-              </div>
-              {count.assignedRequests > 0 && (
-                <div className="flex items-center space-x-1">
-                  <UserCheck className="h-3 w-3" />
-                  <span className="text-xs">{count.assignedRequests}</span>
-                </div>
-              )}
-            </div>
+            <span className="text-sm">{formatDate(new Date(date), 'dd/MM/yyyy')}</span>
           );
         },
       },
@@ -298,21 +302,18 @@ export function UsersList() {
                     buttonVariants({ variant: 'ghost', size: 'icon' }) +
                     ' aspect-square p-0'
                   }
-                  href={ROUTES.sa.user_details(row.original.id)}
+                  href={ROUTES.dashboard.user_detail(row.original._id)}
                 >
-                  <Eye className="size-icon" />
-                  <span className="sr-only">Voir détails</span>
+                  <Eye className="h-4 w-4" />
                 </Link>
               </TooltipTrigger>
-              <TooltipContent>
-                <span>Voir les détails</span>
-              </TooltipContent>
+              <TooltipContent>Voir le détail</TooltipContent>
             </Tooltip>
           </div>
         ),
       },
     ],
-    [t, handleSortingChange, formatDate],
+    [t, handleSortingChange, formatDate, countries],
   );
 
   // Définition des filtres
@@ -340,27 +341,66 @@ export function UsersList() {
           }
         },
       },
+      {
+        type: 'checkbox',
+        property: 'countryCode',
+        label: t('table.country'),
+        options: countries.map((country) => ({
+          value: country.code,
+          label: country.name,
+        })),
+        defaultValue: params.countryCode || [],
+        onChange: (value) => {
+          if (Array.isArray(value)) {
+            handleParamsChange('countryCode', value);
+          }
+        },
+      },
+      {
+        type: 'checkbox',
+        property: 'organizationId',
+        label: t('table.organization'),
+        options: organizations.map((org) => ({
+          value: org._id,
+          label: org.name,
+        })),
+        defaultValue: params.organizationId || [],
+        onChange: (value) => {
+          if (Array.isArray(value)) {
+            handleParamsChange('organizationId', value);
+          }
+        },
+      },
+      {
+        type: 'checkbox',
+        property: 'hasProfile',
+        label: t('table.profile'),
+        options: [
+          { value: 'true', label: 'Avec profil' },
+          { value: 'false', label: 'Sans profil' },
+        ],
+        defaultValue: params.hasProfile !== undefined ? [String(params.hasProfile)] : [],
+        onChange: (value) => {
+          if (Array.isArray(value) && value.length > 0) {
+            handleParamsChange('hasProfile', value[0] === 'true');
+          } else {
+            handleParamsChange('hasProfile', undefined);
+          }
+        },
+      },
     ],
-    [t, params, handleParamsChange],
+    [t, params, handleParamsChange, countries, organizations],
   );
 
   // Calcul des statistiques
   const stats = useMemo(() => {
     const totalUsers = total;
-    const withProfile = users.filter((user) => user.profile).length;
-    const byRole = Object.values(UserRole).reduce(
-      (acc, role) => {
-        acc[role] = users.filter((user) => user.role === role).length;
-        return acc;
-      },
-      {} as Record<UserRole, number>,
-    );
+    const withProfile = users.filter((user) => user.hasProfile).length;
 
     return {
       totalUsers,
       withProfile,
       withoutProfile: users.length - withProfile,
-      byRole,
     };
   }, [users, total]);
 
@@ -368,7 +408,7 @@ export function UsersList() {
     <>
       {stats && (
         <div className="mb-4 text-sm text-muted-foreground">
-          {stats.totalUsers} utilisateurs • {stats.withProfile} avec profil •
+          {stats.totalUsers} utilisateurs • {stats.withProfile} avec profil •{' '}
           {stats.withoutProfile} sans profil
         </div>
       )}
@@ -382,9 +422,7 @@ export function UsersList() {
         pageSize={pagination.limit}
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
         onLimitChange={(limit) => handlePaginationChange('limit', limit)}
-        onRefresh={refetch}
-        activeSorting={[sorting.field, sorting.order]}
-        hiddenColumns={['_count']}
+        activeSorting={sorting.field ? [sorting.field, sorting.order] : undefined}
       />
     </>
   );

@@ -1,303 +1,197 @@
 'use client';
 
-import { api } from '@/trpc/react';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
-import type { OrganizationType, OrganizationStatus } from '@prisma/client';
+import type { Id } from '@/convex/_generated/dataModel';
+import { OrganizationStatus, OrganizationType } from '@/convex/lib/constants';
 
 /**
- * Hook principal pour la gestion des organisations avec optimistic updates
+ * Hook principal pour la gestion des organisations avec filtres et pagination
  */
 export function useOrganizations(options?: {
   search?: string;
-  type?: OrganizationType[];
-  status?: OrganizationStatus[];
-  countryId?: string;
+  type?: string[];
+  status?: string[];
   page?: number;
   limit?: number;
 }) {
   const { toast } = useToast();
-  const utils = api.useUtils();
 
-  // Query pour récupérer la liste des organisations
-  const organizationsQuery = api.organizations.getList.useQuery(options);
+  // Query pour récupérer la liste des organisations enrichies
+  const organizationsData = useQuery(api.functions.organization.getOrganizationsListEnriched, {
+    search: options?.search,
+    type: options?.type,
+    status: options?.status,
+    page: options?.page || 1,
+    limit: options?.limit || 10,
+  });
 
   // Mutation pour créer une organisation
-  const createOrganizationMutation = api.organizations.create.useMutation({
-    onMutate: async (newOrganization) => {
-      // Annuler les requêtes en cours
-      await utils.organizations.getList.cancel();
+  const createMutation = useMutation(api.functions.organization.createOrganization);
 
-      // Snapshot des données précédentes
-      const previousData = utils.organizations.getList.getData(options);
-
-      // Optimistically update
-      if (previousData) {
-        const optimisticOrganization = {
-          id: `temp-${Date.now()}`,
-          name: newOrganization.name,
-          type: newOrganization.type,
-          status: newOrganization.status,
-          logo: null,
-          metadata: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          countries: [],
-          _count: {
-            services: 0,
-            agents: 0,
-          },
-        };
-
-        utils.organizations.getList.setData(options, {
-          ...previousData,
-          items: [optimisticOrganization, ...previousData.items],
-          total: previousData.total + 1,
-        });
-      }
-
-      return { previousData };
-    },
-    onError: (error, newOrganization, context) => {
-      // Rollback en cas d'erreur
-      if (context?.previousData) {
-        utils.organizations.getList.setData(options, context.previousData);
-      }
-
-      toast({
-        title: 'Erreur lors de la création',
-        description:
-          error.message ||
-          "Une erreur est survenue lors de la création de l'organisation.",
-        variant: 'destructive',
+  const createOrganization = async (data: {
+    name: string;
+    code?: string;
+    type: string;
+    status?: string;
+    logo?: string;
+    countryIds?: string[];
+  }) => {
+    try {
+      await createMutation({
+        name: data.name,
+        code: data.code,
+        type: data.type,
+        status: data.status || OrganizationStatus.Active,
+        logo: data.logo,
+        countryIds: (data.countryIds as Id<'countries'>[]) || [],
       });
-    },
-    onSuccess: (data) => {
+
       toast({
         title: 'Organisation créée avec succès',
         description: `L'organisation ${data.name} a été créée.`,
       });
-    },
-    onSettled: () => {
-      // Invalider et refetch
-      utils.organizations.getList.invalidate();
-      utils.organizations.getStats.invalidate();
-    },
-  });
+    } catch (error) {
+      toast({
+        title: 'Erreur lors de la création',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
 
   // Mutation pour mettre à jour une organisation
-  const updateOrganizationMutation = api.organizations.update.useMutation({
-    onMutate: async ({ id, data: updateData }) => {
-      await utils.organizations.getList.cancel();
-      await utils.organizations.getById.cancel({ id });
+  const updateMutation = useMutation(api.functions.organization.updateOrganization);
 
-      const previousListData = utils.organizations.getList.getData(options);
-      const previousOrganizationData = utils.organizations.getById.getData({ id });
-
-      // Update dans la liste
-      if (previousListData) {
-        const updatedItems = previousListData.items.map((item) =>
-          item.id === id ? { ...item, ...updateData } : item,
-        );
-
-        utils.organizations.getList.setData(options, {
-          ...previousListData,
-          items: updatedItems,
-        });
-      }
-
-      // Update dans le détail
-      if (previousOrganizationData) {
-        utils.organizations.getById.setData(
-          { id },
-          {
-            ...previousOrganizationData,
-            ...updateData,
-          },
-        );
-      }
-
-      return { previousListData, previousOrganizationData };
+  const updateOrganization = async (
+    organizationId: Id<'organizations'>,
+    data: {
+      name?: string;
+      code?: string;
+      type?: string;
+      logo?: string;
+      countryIds?: string[];
     },
-    onError: (error, { id }, context) => {
-      // Rollback
-      if (context?.previousListData) {
-        utils.organizations.getList.setData(options, context.previousListData);
-      }
-      if (context?.previousOrganizationData) {
-        utils.organizations.getById.setData({ id }, context.previousOrganizationData);
-      }
-
-      toast({
-        title: 'Erreur lors de la mise à jour',
-        description:
-          error.message ||
-          "Une erreur est survenue lors de la mise à jour de l'organisation.",
-        variant: 'destructive',
+  ) => {
+    try {
+      await updateMutation({
+        organizationId,
+        name: data.name,
+        code: data.code,
+        type: data.type,
+        logo: data.logo,
+        countryIds: (data.countryIds as Id<'countries'>[]) || [],
       });
-    },
-    onSuccess: (data) => {
+
       toast({
         title: 'Organisation mise à jour',
-        description: `L'organisation ${data.name} a été mise à jour avec succès.`,
+        description: `L'organisation a été mise à jour avec succès.`,
       });
-    },
-    onSettled: () => {
-      utils.organizations.getList.invalidate();
-      utils.organizations.getStats.invalidate();
-    },
-  });
+    } catch (error) {
+      toast({
+        title: 'Erreur lors de la mise à jour',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
 
   // Mutation pour mettre à jour le statut
-  const updateStatusMutation = api.organizations.updateStatus.useMutation({
-    onMutate: async ({ id, status }) => {
-      await utils.organizations.getList.cancel();
-      await utils.organizations.getById.cancel({ id });
+  const updateStatusMutation = useMutation(api.functions.organization.updateOrganizationStatus);
 
-      const previousListData = utils.organizations.getList.getData(options);
-      const previousOrganizationData = utils.organizations.getById.getData({ id });
-
-      // Update dans la liste
-      if (previousListData) {
-        const updatedItems = previousListData.items.map((item) =>
-          item.id === id ? { ...item, status } : item,
-        );
-
-        utils.organizations.getList.setData(options, {
-          ...previousListData,
-          items: updatedItems,
-        });
-      }
-
-      // Update dans le détail
-      if (previousOrganizationData) {
-        utils.organizations.getById.setData(
-          { id },
-          {
-            ...previousOrganizationData,
-            status,
-          },
-        );
-      }
-
-      return { previousListData, previousOrganizationData };
-    },
-    onError: (error, { id }, context) => {
-      // Rollback
-      if (context?.previousListData) {
-        utils.organizations.getList.setData(options, context.previousListData);
-      }
-      if (context?.previousOrganizationData) {
-        utils.organizations.getById.setData({ id }, context.previousOrganizationData);
-      }
-
-      toast({
-        title: 'Erreur lors de la mise à jour du statut',
-        description:
-          error.message || 'Une erreur est survenue lors de la mise à jour du statut.',
-        variant: 'destructive',
+  const updateStatus = async (organizationId: Id<'organizations'>, status: string) => {
+    try {
+      await updateStatusMutation({
+        organizationId,
+        status,
       });
-    },
-    onSuccess: (data) => {
+
       toast({
         title: 'Statut mis à jour',
-        description: `Le statut de l'organisation ${data.name} a été mis à jour.`,
+        description: `Le statut de l'organisation a été mis à jour.`,
       });
-    },
-    onSettled: () => {
-      utils.organizations.getList.invalidate();
-      utils.organizations.getStats.invalidate();
-    },
-  });
-
-  // Mutation pour supprimer une organisation
-  const deleteOrganizationMutation = api.organizations.delete.useMutation({
-    onMutate: async ({ id }) => {
-      await utils.organizations.getList.cancel();
-
-      const previousData = utils.organizations.getList.getData(options);
-
-      // Retirer optimistiquement de la liste
-      if (previousData) {
-        const filteredItems = previousData.items.filter((item) => item.id !== id);
-        utils.organizations.getList.setData(options, {
-          ...previousData,
-          items: filteredItems,
-          total: previousData.total - 1,
-        });
-      }
-
-      return { previousData };
-    },
-    onError: (error, { id }, context) => {
-      // Rollback
-      if (context?.previousData) {
-        utils.organizations.getList.setData(options, context.previousData);
-      }
-
+    } catch (error) {
       toast({
-        title: 'Erreur lors de la suppression',
-        description:
-          error.message ||
-          "Une erreur est survenue lors de la suppression de l'organisation.",
+        title: 'Erreur lors de la mise à jour du statut',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue.',
         variant: 'destructive',
       });
-    },
-    onSuccess: () => {
+      throw error;
+    }
+  };
+
+  // Mutation pour supprimer une organisation
+  const deleteMutation = useMutation(api.functions.organization.deleteOrganization);
+
+  const deleteOrganization = async (organizationId: Id<'organizations'>) => {
+    try {
+      await deleteMutation({
+        organizationId,
+      });
+
       toast({
         title: 'Organisation supprimée',
         description: "L'organisation a été supprimée avec succès.",
       });
-    },
-    onSettled: () => {
-      utils.organizations.getList.invalidate();
-      utils.organizations.getStats.invalidate();
-    },
-  });
+    } catch (error) {
+      toast({
+        title: 'Erreur lors de la suppression',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
 
   return {
     // Data
-    organizations: organizationsQuery.data?.items ?? [],
-    total: organizationsQuery.data?.total ?? 0,
-    pages: organizationsQuery.data?.pages ?? 0,
-    currentPage: organizationsQuery.data?.currentPage ?? 1,
+    organizations: organizationsData?.organizations ?? [],
+    total: organizationsData?.total ?? 0,
+    pages: organizationsData ? Math.ceil(organizationsData.total / (organizationsData.limit || 10)) : 0,
+    currentPage: organizationsData?.page ?? 1,
 
     // Loading states
-    isLoading: organizationsQuery.isLoading,
-    isError: organizationsQuery.isError,
-    error: organizationsQuery.error,
+    isLoading: organizationsData === undefined,
+    isError: false,
+    error: null,
 
     // Mutations
-    createOrganization: createOrganizationMutation.mutate,
-    updateOrganization: updateOrganizationMutation.mutate,
-    updateStatus: updateStatusMutation.mutate,
-    deleteOrganization: deleteOrganizationMutation.mutate,
+    createOrganization,
+    updateOrganization,
+    updateStatus,
+    deleteOrganization,
 
     // Mutation states
-    isCreating: createOrganizationMutation.isPending,
-    isUpdating: updateOrganizationMutation.isPending,
-    isUpdatingStatus: updateStatusMutation.isPending,
-    isDeleting: deleteOrganizationMutation.isPending,
+    isCreating: false,
+    isUpdating: false,
+    isUpdatingStatus: false,
+    isDeleting: false,
 
     // Utils
-    refetch: organizationsQuery.refetch,
-    invalidate: () => utils.organizations.getList.invalidate(),
+    refetch: () => {}, // Convex auto-refetches
+    invalidate: () => {}, // Not needed with Convex
   };
 }
 
 /**
  * Hook pour récupérer une organisation spécifique
  */
-export function useOrganization(id: string) {
-  const organizationQuery = api.organizations.getById.useQuery({ id }, { enabled: !!id });
+export function useOrganization(id: Id<'organizations'>) {
+  const organizationData = useQuery(api.functions.organization.getOrganization, {
+    organizationId: id,
+  });
 
   return {
-    organization: organizationQuery.data,
-    isLoading: organizationQuery.isLoading,
-    isError: organizationQuery.isError,
-    error: organizationQuery.error,
-    refetch: organizationQuery.refetch,
+    organization: organizationData,
+    isLoading: organizationData === undefined,
+    isError: false,
+    error: null,
+    refetch: () => {},
   };
 }
 
@@ -305,74 +199,56 @@ export function useOrganization(id: string) {
  * Hook pour les statistiques des organisations
  */
 export function useOrganizationsStats() {
-  const statsQuery = api.organizations.getStats.useQuery(undefined);
+  const organizationsData = useQuery(api.functions.organization.getAllOrganizations, {
+    limit: 1000,
+  });
 
   return {
-    stats: statsQuery.data,
-    isLoading: statsQuery.isLoading,
-    isError: statsQuery.isError,
-    error: statsQuery.error,
-    refetch: statsQuery.refetch,
+    stats: {
+      total: organizationsData?.length || 0,
+      organizations: organizationsData || [],
+    },
+    isLoading: organizationsData === undefined,
+    isError: false,
+    error: null,
+    refetch: () => {},
   };
 }
 
 /**
  * Hook pour les paramètres d'une organisation
  */
-export function useOrganizationSettings(id: string) {
+export function useOrganizationSettings(id: Id<'organizations'>) {
   const { toast } = useToast();
-  const utils = api.useUtils();
 
-  const updateSettingsMutation = api.organizations.updateSettings.useMutation({
-    onMutate: async ({ id, data }) => {
-      await utils.organizations.getById.cancel({ id });
+  const updateSettingsMutation = useMutation(api.functions.organization.updateOrganizationSettings);
 
-      const previousData = utils.organizations.getById.getData({ id });
-
-      // Update optimistique
-      if (previousData) {
-        utils.organizations.getById.setData(
-          { id },
-          {
-            ...previousData,
-            ...data,
-          },
-        );
-      }
-
-      return { previousData };
-    },
-    onError: (error, { id }, context) => {
-      // Rollback
-      if (context?.previousData) {
-        utils.organizations.getById.setData({ id }, context.previousData);
-      }
-
-      toast({
-        title: 'Erreur lors de la mise à jour',
-        description:
-          error.message ||
-          'Une erreur est survenue lors de la mise à jour des paramètres.',
-        variant: 'destructive',
+  const updateSettings = async (data: any) => {
+    try {
+      await updateSettingsMutation({
+        organizationId: id,
+        settings: data,
       });
-    },
-    onSuccess: (data) => {
+
       toast({
         title: 'Paramètres mis à jour',
-        description: `Les paramètres de l'organisation ${data.name} ont été mis à jour.`,
+        description: `Les paramètres de l'organisation ont été mis à jour.`,
       });
-    },
-    onSettled: () => {
-      utils.organizations.getById.invalidate({ id });
-      utils.organizations.getList.invalidate();
-    },
-  });
+    } catch (error) {
+      toast({
+        title: 'Erreur lors de la mise à jour',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
 
   return {
-    updateSettings: updateSettingsMutation.mutate,
-    updateSettingsAsync: updateSettingsMutation.mutateAsync,
-    isUpdating: updateSettingsMutation.isPending,
-    error: updateSettingsMutation.error,
+    updateSettings,
+    updateSettingsAsync: updateSettings,
+    isUpdating: false,
+    error: null,
   };
 }
 
@@ -382,38 +258,49 @@ export function useOrganizationSettings(id: string) {
 export function useOrganizationCreation() {
   const { toast } = useToast();
   const router = useRouter();
-  const utils = api.useUtils();
 
-  const createMutation = api.organizations.create.useMutation({
-    onSuccess: (data) => {
+  const createMutation = useMutation(api.functions.organization.createOrganization);
+
+  const create = async (data: {
+    name: string;
+    code?: string;
+    type: string;
+    status?: string;
+    logo?: string;
+    countryIds?: string[];
+  }) => {
+    try {
+      await createMutation({
+        name: data.name,
+        code: data.code,
+        type: data.type,
+        status: data.status || OrganizationStatus.Active,
+        logo: data.logo,
+        countryIds: (data.countryIds as Id<'countries'>[]) || [],
+      });
+
       toast({
         title: 'Organisation créée avec succès',
         description: `L'organisation ${data.name} a été créée.`,
       });
 
-      // Invalider les caches
-      utils.organizations.getList.invalidate();
-      utils.organizations.getStats.invalidate();
-
-      // Naviguer vers la page des organisations
+      // Navigate to organizations page
       router.push(ROUTES.sa.organizations);
-    },
-    onError: (error) => {
+    } catch (error) {
       toast({
         title: 'Erreur lors de la création',
-        description:
-          error.message ||
-          "Une erreur est survenue lors de la création de l'organisation.",
+        description: error instanceof Error ? error.message : 'Une erreur est survenue.',
         variant: 'destructive',
       });
-    },
-  });
+      throw error;
+    }
+  };
 
   return {
-    createOrganization: createMutation.mutate,
-    createOrganizationAsync: createMutation.mutateAsync,
-    isCreating: createMutation.isPending,
-    error: createMutation.error,
+    createOrganization: create,
+    createOrganizationAsync: create,
+    isCreating: false,
+    error: null,
   };
 }
 
@@ -421,16 +308,15 @@ export function useOrganizationCreation() {
  * Hook pour récupérer une organisation par pays
  */
 export function useOrganizationByCountry(countryCode: string) {
-  const organizationQuery = api.organizations.getByCountry.useQuery(
-    { countryCode },
-    { enabled: !!countryCode },
+  const organizationsData = useQuery(api.functions.organization.getOrganizationsByCountry,
+    countryCode ? { countryCode } : 'skip'
   );
 
   return {
-    organization: organizationQuery.data,
-    isLoading: organizationQuery.isLoading,
-    isError: organizationQuery.isError,
-    error: organizationQuery.error,
-    refetch: organizationQuery.refetch,
+    organization: organizationsData?.[0] || null,
+    isLoading: organizationsData === undefined,
+    isError: false,
+    error: null,
+    refetch: () => {},
   };
 }

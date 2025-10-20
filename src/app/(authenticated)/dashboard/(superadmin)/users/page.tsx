@@ -1,10 +1,12 @@
+'use client';
+
 import { PageContainer } from '@/components/layouts/page-container';
 import CardContainer from '@/components/layouts/card-container';
 import { UsersList } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/components/users-list';
-import { getTranslations } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 
-export default async function UsersPage() {
-  const t = await getTranslations('sa.users');
+export default function UsersPage() {
+  const t = useTranslations('sa.users');
 
   return (
     <PageContainer title={t('title')}>

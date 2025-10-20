@@ -9,7 +9,7 @@ import {
   userPermissionValidator,
   userRoleValidator,
 } from '../lib/validators';
-import { MembershipStatus } from '../lib/constants';
+import { MembershipStatus, RequestStatus, UserRole } from '../lib/constants';
 
 // Mutations
 export const addMember = mutation({
@@ -160,5 +160,215 @@ export const getOrganizationMembers = query({
       ...user,
       membership: memberships[index],
     }));
+  },
+});
+
+// Agent list query with comprehensive filtering and enrichment
+export const getAgentsList = query({
+  args: {
+    organizationId: v.optional(v.id('organizations')),
+    search: v.optional(v.string()),
+    linkedCountries: v.optional(v.array(v.string())),
+    assignedServices: v.optional(v.array(v.id('services'))),
+    managerId: v.optional(v.id('users')),
+    page: v.optional(v.number()),
+    limit: v.optional(v.number()),
+  },
+  returns: v.object({
+    agents: v.array(v.any()),
+    total: v.number(),
+    page: v.number(),
+    limit: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    const page = args.page || 1;
+    const limit = args.limit || 10;
+    const skip = (page - 1) * limit;
+
+    let query = ctx.db.query('memberships').filter((q) => q.eq(q.field('status'), MembershipStatus.Active));
+
+    // Filter by organization
+    if (args.organizationId) {
+      query = query.filter((q) => q.eq(q.field('organizationId'), args.organizationId));
+    }
+
+    // Filter by manager
+    if (args.managerId) {
+      query = query.filter((q) => q.eq(q.field('managerId'), args.managerId));
+    }
+
+    // Filter by linked countries - apply after fetching data
+    // (Convex doesn't support array.some() in filters, so we do it client-side)
+
+    // Filter by assigned services - apply after fetching data
+    // (Convex doesn't support array.some() in filters, so we do it client-side)
+
+    const allMemberships = await query.collect();
+
+    // Apply all client-side filters
+    let filteredMemberships = allMemberships;
+
+    // Filter by linked countries
+    if (args.linkedCountries && args.linkedCountries.length > 0) {
+      filteredMemberships = filteredMemberships.filter((membership) =>
+        args.linkedCountries!.some((country) => membership.assignedCountries.includes(country)),
+      );
+    }
+
+    // Filter by assigned services
+    if (args.assignedServices && args.assignedServices.length > 0) {
+      filteredMemberships = filteredMemberships.filter((membership) =>
+        args.assignedServices!.some((service) => membership.assignedServices.includes(service)),
+      );
+    }
+
+    // Apply search filter
+    if (args.search) {
+      const searchLower = args.search.toLowerCase();
+      const userIds = filteredMemberships.map((m) => m.userId);
+      const users = await Promise.all(userIds.map((id) => ctx.db.get(id)));
+
+      filteredMemberships = filteredMemberships.filter((membership, index) => {
+        const user = users[index];
+        if (!user) return false;
+
+        const fullName = `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase();
+        const email = (user.email || '').toLowerCase();
+
+        return fullName.includes(searchLower) || email.includes(searchLower);
+      });
+    }
+
+    const total = filteredMemberships.length;
+
+    // Apply pagination
+    const paginatedMemberships = filteredMemberships.slice(skip, skip + limit);
+
+    // Enrich with user data and counts
+    const enrichedAgents = await Promise.all(
+      paginatedMemberships.map(async (membership) => {
+        const user = await ctx.db.get(membership.userId);
+        const organization = await ctx.db.get(membership.organizationId);
+
+        // Get manager info if exists
+        let manager = null;
+        if (membership.managerId) {
+          manager = await ctx.db.get(membership.managerId);
+        }
+
+        // Fetch linked countries details
+        const countriesList = await Promise.all(
+          membership.assignedCountries.map(async (countryCode) => {
+            const country = await ctx.db
+              .query('countries')
+              .withIndex('by_code', (q) => q.eq('code', countryCode))
+              .first();
+            return country || { code: countryCode, name: countryCode };
+          }),
+        );
+
+        // Fetch assigned services details
+        const servicesList = await Promise.all(
+          membership.assignedServices.map((serviceId) => ctx.db.get(serviceId)),
+        );
+
+        // Count active requests (using InProduction and other non-final statuses)
+        const activeRequests = await ctx.db
+          .query('requests')
+          .withIndex('by_assigned_status', (q) => q.eq('assignedAgentId', membership._id))
+          .filter((q) => q.neq(q.field('status'), RequestStatus.Completed))
+          .filter((q) => q.neq(q.field('status'), RequestStatus.Cancelled))
+          .filter((q) => q.neq(q.field('status'), RequestStatus.Rejected))
+          .collect();
+
+        // Count completed requests
+        const completedRequests = await ctx.db
+          .query('requests')
+          .withIndex('by_assigned_status', (q) => q.eq('assignedAgentId', membership._id))
+          .filter((q) => q.eq(q.field('status'), RequestStatus.Completed))
+          .collect();
+
+        return {
+          _id: membership._id,
+          id: user?._id || membership._id,
+          name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
+          email: user?.email || '',
+          roles: user?.roles || [],
+          linkedCountries: countriesList.filter(Boolean),
+          assignedServices: servicesList.filter(Boolean),
+          assignedOrganizationId: membership.organizationId,
+          organizationName: organization?.name,
+          managedByUserId: membership.managerId,
+          managerName: manager ? `${manager.firstName || ''} ${manager.lastName || ''}`.trim() : undefined,
+          _count: {
+            assignedRequests: activeRequests.length,
+          },
+          completedRequests: completedRequests.length,
+          createdAt: membership.joinedAt,
+        };
+      }),
+    );
+
+    return {
+      agents: enrichedAgents,
+      total,
+      page,
+      limit,
+    };
+  },
+});
+
+// Get all countries for filter dropdowns
+export const getCountriesForFilter = query({
+  args: {},
+  returns: v.array(v.any()),
+  handler: async (ctx) => {
+    return await ctx.db.query('countries').collect();
+  },
+});
+
+// Get all services for filter dropdowns
+export const getServicesForFilter = query({
+  args: { organizationId: v.optional(v.id('organizations')) },
+  returns: v.array(v.any()),
+  handler: async (ctx, args) => {
+    let query = ctx.db.query('services');
+
+    if (args.organizationId) {
+      query = query.filter((q) => q.eq(q.field('organizationId'), args.organizationId));
+    }
+
+    return await query.collect();
+  },
+});
+
+// Get all managers in an organization
+export const getManagersForFilter = query({
+  args: { organizationId: v.optional(v.id('organizations')) },
+  returns: v.array(v.any()),
+  handler: async (ctx, args) => {
+    let query = ctx.db.query('memberships').filter((q) => q.eq(q.field('status'), MembershipStatus.Active));
+
+    if (args.organizationId) {
+      query = query.filter((q) => q.eq(q.field('organizationId'), args.organizationId));
+    }
+
+    query = query.filter((q) => q.eq(q.field('role'), UserRole.Manager));
+
+    const membershipList = await query.collect();
+
+    const managers = await Promise.all(
+      membershipList.map(async (membership) => {
+        const user = await ctx.db.get(membership.userId);
+        return {
+          _id: user?._id,
+          id: user?._id,
+          name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
+          email: user?.email || '',
+        };
+      }),
+    );
+
+    return managers.filter(Boolean);
   },
 });

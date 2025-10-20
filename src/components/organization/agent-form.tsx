@@ -70,7 +70,7 @@ export function AgentForm({
     resolver: zodResolver(AgentSchema),
     defaultValues: {
       ...initialData,
-      countryIds: initialData?.countryIds ?? [],
+      countryCodes: initialData?.countryCodes ?? [],
       serviceIds: initialData?.serviceIds ?? [],
       phoneNumber: initialData?.phoneNumber,
       roles: initialData?.roles ?? [UserRole.AGENT],
@@ -98,7 +98,7 @@ export function AgentForm({
           name: `${data.firstName} ${data.lastName}`,
           email: data.email,
           phoneNumber: data.phoneNumber,
-          countryIds: data.countryIds,
+          countryCodes: data.countryCodes || [],
           serviceIds: data.serviceIds || [],
           managedByUserId: watchedRole?.includes(UserRole.AGENT)
             ? data.managedByUserId
@@ -372,7 +372,7 @@ export function AgentForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="countryIds"
+              name="countryCodes"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t_inputs('country.label')}</FormLabel>
