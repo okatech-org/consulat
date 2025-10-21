@@ -138,7 +138,7 @@ export const searchCountries = query({
 });
 
 // Query enrichie avec compteurs pour l'interface admin
-export const getEnrichedCountries = query({
+export const getCountryListingItems = query({
   args: {
     status: v.optional(countryStatusValidator),
     limit: v.optional(v.number()),
@@ -164,28 +164,28 @@ export const getEnrichedCountries = query({
     const enrichedCountries = await Promise.all(
       countries.map(async (country) => {
         // Compter les organisations liées à ce pays
-        const allOrganizations = await ctx.db.query('organizations').collect();
-        const organizationsCount = allOrganizations.filter((org) =>
-          org.countryCodes.includes(country.code),
-        ).length;
-
-        // Compter les utilisateurs de ce pays
-        const usersCount = await ctx.db
-          .query('users')
+        const organizationsCount = await ctx.db
+          .query('organizations')
+          .withIndex('by_country_code', (q) => q.eq('countryCodes', [country.code]))
           .collect()
-          .then((users) => users.length);
+          .then((organizations) => organizations.length);
+
+        const profilesCount = await ctx.db
+          .query('profiles')
+          .withIndex('by_country_code', (q) => q.eq('residenceCountry', country.code))
+          .collect()
+          .then((profiles) => profiles.length);
+
+        const childProfilesCount = await ctx.db
+          .query('childProfiles')
+          .withIndex('by_country_code', (q) => q.eq('residenceCountry', country.code))
+          .collect()
+          .then((childProfiles) => childProfiles.length);
 
         return {
-          _id: country._id,
-          _creationTime: country._creationTime,
-          name: country.name,
-          code: country.code,
-          flag: country.flag,
-          status: country.status,
-          _count: {
-            organizations: organizationsCount,
-            users: usersCount,
-          },
+          ...country,
+          organizationsCount,
+          usersCount: profilesCount + childProfilesCount,
         };
       }),
     );

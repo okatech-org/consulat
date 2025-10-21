@@ -17,7 +17,10 @@ export function useCountries(options?: {
   limit?: number;
 }) {
   // Fetch all countries with counts
-  const allCountries = useQuery(api.functions.country.getEnrichedCountries, {});
+  const allCountries = useQuery(api.functions.country.getCountryListingItems, {
+    status: options?.status ? options.status[0] : undefined,
+    limit: options?.limit,
+  });
 
   // Mutations
   const createCountryMutation = useMutation(api.functions.country.createCountry);

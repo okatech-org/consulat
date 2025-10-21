@@ -1,7 +1,6 @@
-import { getTranslations } from 'next-intl/server';
+'use client';
+
 import { StatsCard } from '@/components/ui/stats-card';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { getManagerDashboardData } from '@/actions/manager-dashboard';
 import { format } from 'date-fns';
 import {
   ArrowRight,
@@ -20,36 +19,46 @@ import { PageContainer } from '@/components/layouts/page-container';
 import CardContainer from '@/components/layouts/card-container';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { RequestStatus } from '@prisma/client';
+import { useTranslations } from 'next-intl';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 
-export async function ManagerDashboard() {
-  const t = await getTranslations('manager.dashboard');
-  const t_status = await getTranslations('inputs.requestStatus.options');
+export default function ManagerDashboard() {
+  const { user, loading } = useCurrentUser();
+  const t = useTranslations('manager.dashboard');
+  const t_status = useTranslations('inputs.requestStatus.options');
 
-  const currentUser = await getCurrentUser();
+  const dashboardData = useQuery(
+    api.functions.analytics.getManagerDashboardData,
+    user?._id ? { userId: user._id } : 'skip',
+  );
 
-  if (!currentUser) {
+  if (loading || !user) {
     return null;
   }
 
-  // Fetch manager dashboard data
-  const dashboardData = await getManagerDashboardData();
-
   if (!dashboardData) {
-    return null;
+    return (
+      <PageContainer title={t('title')} description={t('description')}>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-muted-foreground">Chargement...</div>
+        </div>
+      </PageContainer>
+    );
   }
 
   const { stats, managedAgents, recentRequests, requestsByStatus } = dashboardData;
 
-  const statusKeys: Record<string, RequestStatus> = {
-    submitted: 'SUBMITTED',
-    pending: 'PENDING',
-    pendingCompletion: 'PENDING_COMPLETION',
-    validated: 'VALIDATED',
-    rejected: 'REJECTED',
-    inProduction: 'DOCUMENT_IN_PRODUCTION',
-    readyForPickup: 'READY_FOR_PICKUP',
-    completed: 'COMPLETED',
+  const statusKeys: Record<string, string> = {
+    submitted: 'submitted',
+    pending: 'pending',
+    pendingCompletion: 'pending_completion',
+    validated: 'validated',
+    rejected: 'rejected',
+    inProduction: 'in_production',
+    readyForPickup: 'ready_for_pickup',
+    completed: 'completed',
   };
 
   return (
@@ -139,14 +148,13 @@ export async function ManagerDashboard() {
                           <p className="text-sm font-medium">{request.service.name}</p>
                           <Badge
                             variant={
-                              request.status === 'COMPLETED'
+                              request.status === 'completed'
                                 ? 'default'
                                 : [
-                                      'VALIDATED',
-                                      'CARD_IN_PRODUCTION',
-                                      'DOCUMENT_IN_PRODUCTION',
-                                      'READY_FOR_PICKUP',
-                                      'APPOINTMENT_SCHEDULED',
+                                      'validated',
+                                      'in_production',
+                                      'ready_for_pickup',
+                                      'appointment_scheduled',
                                     ].includes(request.status)
                                   ? 'default'
                                   : 'secondary'
@@ -302,7 +310,7 @@ export async function ManagerDashboard() {
                   <div key={status} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium capitalize">
-                        {t_status(statusKeys[status] as RequestStatus)}
+                        {statusKeys[status] ? t_status(statusKeys[status]) : status}
                       </span>
                       <span className="text-sm text-muted-foreground">{count}</span>
                     </div>

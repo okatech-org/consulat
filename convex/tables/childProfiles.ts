@@ -41,4 +41,8 @@ export const childProfiles = defineTable({
   registrationRequest: v.optional(v.id('requests')),
 
   parents: v.array(parentalAuthorityValidator),
-});
+})
+  .index('by_user', ['authorUserId'])
+  .index('by_status', ['status'])
+  .index('by_card', ['consularCard.cardNumber'])
+  .index('by_country_code', ['residenceCountry']);

@@ -261,3 +261,227 @@ function calculateNewUsersTrend(
 
   return dailyStats;
 }
+
+export const getManagerDashboardData = query({
+  args: {
+    userId: v.id('users'),
+  },
+  handler: async (ctx, args) => {
+    const managedMemberships = await ctx.db
+      .query('memberships')
+      .filter((q) => q.eq(q.field('managerId'), args.userId))
+      .collect();
+
+    const managedMembershipIds = managedMemberships.map((m) => m._id);
+
+    if (managedMembershipIds.length === 0) {
+      return {
+        stats: {
+          totalAgents: 0,
+          pendingRequests: 0,
+          processingRequests: 0,
+          completedRequests: 0,
+          avgProcessingTime: 0,
+          trend: {
+            value: 0,
+            isPositive: true,
+          },
+        },
+        managedAgents: [],
+        recentRequests: [],
+        requestsByStatus: {
+          submitted: 0,
+          pending: 0,
+          pendingCompletion: 0,
+          validated: 0,
+          rejected: 0,
+          inProduction: 0,
+          readyForPickup: 0,
+          completed: 0,
+        },
+      };
+    }
+
+    const managedAgentsData = await Promise.all(
+      managedMemberships.map(async (membership) => {
+        const user = await ctx.db.get(membership.userId);
+        const assignedRequestsCount = await ctx.db
+          .query('requests')
+          .withIndex('by_assigned', (q) => q.eq('assignedAgentId', membership._id))
+          .collect();
+
+        const completedRequests = assignedRequestsCount.filter(
+          (r) => r.status === 'completed',
+        ).length;
+
+        return {
+          id: user?._id || membership._id,
+          name: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Agent',
+          email: user?.email || '',
+          _count: {
+            assignedRequests: assignedRequestsCount.length,
+          },
+          completedRequests,
+        };
+      }),
+    );
+
+    const allRequests = await ctx.db
+      .query('requests')
+      .filter((q) =>
+        q.or(...managedMembershipIds.map((id) => q.eq(q.field('assignedAgentId'), id))),
+      )
+      .collect();
+
+    const services = await ctx.db.query('services').collect();
+    const serviceMap = new Map(services.map((s) => [s._id, s]));
+
+    const requestsWithDetails = await Promise.all(
+      allRequests.map(async (request) => {
+        const service = serviceMap.get(request.serviceId);
+        const assignedMembership = request.assignedAgentId
+          ? await ctx.db.get(request.assignedAgentId)
+          : null;
+        const assignedUser =
+          assignedMembership && assignedMembership.userId
+            ? await ctx.db.get(assignedMembership.userId)
+            : null;
+
+        return {
+          id: request._id,
+          status: request.status,
+          createdAt: request._creationTime,
+          submittedAt: request.metadata.submittedAt,
+          completedAt: request.metadata.completedAt,
+          service: {
+            name: service?.name || 'Unknown Service',
+          },
+          assignedTo: assignedUser
+            ? {
+                name:
+                  `${assignedUser.firstName || ''} ${assignedUser.lastName || ''}`.trim() ||
+                  'Agent',
+              }
+            : null,
+        };
+      }),
+    );
+
+    const pendingStatuses = ['submitted', 'pending', 'pending_completion'];
+    const processingStatuses = [
+      'validated',
+      'in_production',
+      'ready_for_pickup',
+      'appointment_scheduled',
+    ];
+
+    const pendingRequests = requestsWithDetails.filter((req) =>
+      pendingStatuses.includes(req.status),
+    ).length;
+
+    const processingRequests = requestsWithDetails.filter((req) =>
+      processingStatuses.includes(req.status),
+    ).length;
+
+    const completedRequests = requestsWithDetails.filter(
+      (req) => req.status === 'completed',
+    ).length;
+
+    const completedWithTime = requestsWithDetails.filter(
+      (req) => req.status === 'completed' && req.completedAt && req.submittedAt,
+    );
+
+    const avgProcessingTime =
+      completedWithTime.length > 0
+        ? completedWithTime.reduce((acc, req) => {
+            const time = req.completedAt! - req.submittedAt!;
+            return acc + time;
+          }, 0) /
+          completedWithTime.length /
+          (1000 * 60 * 60)
+        : 0;
+
+    const recentRequests = [...requestsWithDetails]
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 10);
+
+    const currentMonthStart = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1,
+    ).getTime();
+    const currentMonthEnd = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    ).getTime();
+    const previousMonthStart = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() - 1,
+      1,
+    ).getTime();
+    const previousMonthEnd = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      0,
+      23,
+      59,
+      59,
+    ).getTime();
+
+    const currentMonthCompleted = requestsWithDetails.filter(
+      (req) =>
+        req.status === 'completed' &&
+        req.completedAt &&
+        req.completedAt >= currentMonthStart &&
+        req.completedAt <= currentMonthEnd,
+    ).length;
+
+    const previousMonthCompleted = requestsWithDetails.filter(
+      (req) =>
+        req.status === 'completed' &&
+        req.completedAt &&
+        req.completedAt >= previousMonthStart &&
+        req.completedAt <= previousMonthEnd,
+    ).length;
+
+    const trend =
+      previousMonthCompleted > 0
+        ? ((currentMonthCompleted - previousMonthCompleted) / previousMonthCompleted) *
+          100
+        : 0;
+
+    return {
+      stats: {
+        totalAgents: managedAgentsData.length,
+        pendingRequests,
+        processingRequests,
+        completedRequests,
+        avgProcessingTime: Math.round(avgProcessingTime),
+        trend: {
+          value: Math.abs(Math.round(trend)),
+          isPositive: trend >= 0,
+        },
+      },
+      managedAgents: managedAgentsData,
+      recentRequests,
+      requestsByStatus: {
+        submitted: requestsWithDetails.filter((r) => r.status === 'submitted').length,
+        pending: requestsWithDetails.filter((r) => r.status === 'pending').length,
+        pendingCompletion: requestsWithDetails.filter(
+          (r) => r.status === 'pending_completion',
+        ).length,
+        validated: requestsWithDetails.filter((r) => r.status === 'validated').length,
+        rejected: requestsWithDetails.filter((r) => r.status === 'rejected').length,
+        inProduction: requestsWithDetails.filter((r) => r.status === 'in_production')
+          .length,
+        readyForPickup: requestsWithDetails.filter((r) => r.status === 'ready_for_pickup')
+          .length,
+        completed: completedRequests,
+      },
+    };
+  },
+});

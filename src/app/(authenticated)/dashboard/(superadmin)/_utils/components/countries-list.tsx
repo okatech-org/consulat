@@ -59,7 +59,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { CountryStatus } from '@/convex/lib/constants';
-import type { EnrichedCountry } from '@/convex/lib/types';
+import type { CountryListingItem } from '@/convex/lib/types';
 
 // Types pour les filtres de pays
 interface CountryFilters {
@@ -85,13 +85,13 @@ export function CountriesList() {
     handleParamsChange,
     handleSortingChange,
     handlePaginationChange,
-  } = useTableSearchParams<EnrichedCountry, CountryFilters>(adaptSearchParams);
+  } = useTableSearchParams<CountryListingItem, CountryFilters>(adaptSearchParams);
 
   const t = useTranslations('sa.countries');
   const t_common = useTranslations('common');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [country, setCountry] = useState<EnrichedCountry | null>(null);
+  const [country, setCountry] = useState<CountryListingItem | null>(null);
 
   const { countries, total, isLoading, deleteCountry } = useCountries({
     ...params,
@@ -99,12 +99,12 @@ export function CountriesList() {
     limit: pagination.limit,
   });
 
-  const handleDelete = async (country: EnrichedCountry) => {
+  const handleDelete = async (country: CountryListingItem[number]) => {
     await deleteCountry(country._id);
     setShowDeleteDialog(false);
   };
 
-  const columns = useMemo<ColumnDef<EnrichedCountry>[]>(
+  const columns = useMemo<ColumnDef<CountryListingItem[number]>[]>(
     () => [
       {
         id: 'select',
@@ -138,7 +138,7 @@ export function CountriesList() {
             title={t('table.code')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'code' as keyof EnrichedCountry,
+                field: 'code',
                 order: direction,
               })
             }
@@ -158,7 +158,7 @@ export function CountriesList() {
             title={t('table.name')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'name' as keyof EnrichedCountry,
+                field: 'name',
                 order: direction,
               })
             }
@@ -193,7 +193,7 @@ export function CountriesList() {
             title={t('table.status')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'status' as keyof EnrichedCountry,
+                field: 'status',
                 order: direction,
               })
             }
@@ -204,14 +204,14 @@ export function CountriesList() {
           />
         ),
         cell: ({ row }) => {
-          const status = row.getValue('status') as 'ACTIVE' | 'INACTIVE';
+          const status = row.getValue('status') as CountryStatus;
 
           if (!status) {
             return null;
           }
 
           return (
-            <Badge variant={status === 'ACTIVE' ? 'default' : 'warning'}>
+            <Badge variant={status === CountryStatus.Active ? 'default' : 'warning'}>
               {t(`form.status.options.${status.toLowerCase() as 'active' | 'inactive'}`)}
             </Badge>
           );
@@ -221,14 +221,14 @@ export function CountriesList() {
         },
       },
       {
-        accessorKey: '_count.organizations',
+        accessorKey: 'organizationsCount',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
             title={t('table.organizationsCount')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: '_count' as keyof EnrichedCountry,
+                field: 'organizationsCount',
                 order: direction,
               })
             }
@@ -243,7 +243,7 @@ export function CountriesList() {
             title={t('table.usersCount')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: '_count' as keyof EnrichedCountry,
+                field: 'usersCount',
                 order: direction,
               })
             }
@@ -342,7 +342,7 @@ export function CountriesList() {
   );
 
   // Définition des filtres
-  const filters = useMemo<FilterOption<EnrichedCountry>[]>(
+  const filters = useMemo<FilterOption<CountryListingItem[number]>[]>(
     () => [
       {
         type: 'search',
@@ -411,7 +411,7 @@ export function CountriesList() {
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        onConfirm={() => handleDelete(country as EnrichedCountry)}
+        onConfirm={() => handleDelete(country)}
         title={t('dialogs.delete.title')}
         description={t('dialogs.delete.description')}
         variant={'destructive'}
@@ -435,13 +435,13 @@ const quickEditSchema = z.object({
     .string()
     .min(2, 'Le code pays doit contenir exactement 2 caractères')
     .optional(),
-  status: z.enum(['ACTIVE', 'INACTIVE']),
+  status: z.enum(['active', 'inactive']),
 });
 
 type QuickEditFormData = z.infer<typeof quickEditSchema>;
 
 type QuickEditFormProps = {
-  country: EnrichedCountry;
+  country: CountryListingItem[number];
   onSuccess: () => void;
 };
 
@@ -456,7 +456,7 @@ function QuickEditForm({ country, onSuccess }: QuickEditFormProps) {
     defaultValues: {
       name: country.name || '',
       code: country.code || '',
-      status: country.status as 'ACTIVE' | 'INACTIVE',
+      status: country.status,
     },
   });
 
@@ -561,13 +561,13 @@ function QuickEditForm({ country, onSuccess }: QuickEditFormProps) {
 
 // Schema pour le changement de statut en masse
 const statusChangeSchema = z.object({
-  status: z.enum(['ACTIVE', 'INACTIVE']),
+  status: z.enum(['active', 'inactive']),
 });
 
 type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
 
 type StatusChangeFormProps = {
-  selectedRows: EnrichedCountry[];
+  selectedRows: CountryListingItem[number][];
   onSuccess: () => void;
 };
 

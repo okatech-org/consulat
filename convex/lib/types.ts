@@ -115,8 +115,8 @@ export type AllOrganizations = FunctionReturnType<
 >;
 
 // Type pour un pays enrichi avec compteurs
-export type EnrichedCountry = FunctionReturnType<
-  typeof api.functions.country.getEnrichedCountries
+export type CountryListingItem = FunctionReturnType<
+  typeof api.functions.country.getCountryListingItems
 >;
 
 export type MembershipWithOrganization = FunctionReturnType<
