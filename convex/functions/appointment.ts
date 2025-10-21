@@ -242,6 +242,81 @@ export const getUpcomingAppointments = query({
   },
 });
 
+// Enriched query for user appointments grouped by status
+export const getUserAppointmentsEnriched = query({
+  args: {
+    userId: v.id('users'),
+    organizationId: v.optional(v.id('organizations')),
+  },
+  handler: async (ctx, args) => {
+    // Get all user appointments
+    const allAppointments = await ctx.db
+      .query('appointments')
+      .order('desc')
+      .collect();
+
+    // Filter by user participation
+    let userAppointments = allAppointments.filter((appointment) =>
+      appointment.participants.some((p) => p.userId === args.userId),
+    );
+
+    // Filter by organization if provided
+    if (args.organizationId) {
+      userAppointments = userAppointments.filter(
+        (apt) => apt.organizationId === args.organizationId,
+      );
+    }
+
+    const now = Date.now();
+
+    // Group by status
+    const upcoming = userAppointments
+      .filter((apt) => apt.startAt > now && apt.status !== AppointmentStatus.Cancelled)
+      .sort((a, b) => a.startAt - b.startAt);
+
+    const past = userAppointments
+      .filter((apt) => apt.startAt <= now && apt.status !== AppointmentStatus.Cancelled)
+      .sort((a, b) => b.startAt - a.startAt);
+
+    const cancelled = userAppointments
+      .filter((apt) => apt.status === AppointmentStatus.Cancelled)
+      .sort((a, b) => b.startAt - a.startAt);
+
+    // Enrich with participant details
+    const enrichAppointments = async (appointments: any[]) => {
+      return await Promise.all(
+        appointments.map(async (apt) => {
+          const participants = await Promise.all(
+            apt.participants.map(async (p: any) => {
+              const user = await ctx.db.get(p.userId);
+              return {
+                ...p,
+                user,
+              };
+            }),
+          );
+
+          const organization = await ctx.db.get(apt.organizationId);
+          const service = apt.serviceId ? await ctx.db.get(apt.serviceId) : null;
+
+          return {
+            ...apt,
+            participants,
+            organization,
+            service,
+          };
+        }),
+      );
+    };
+
+    return {
+      upcoming: await enrichAppointments(upcoming),
+      past: await enrichAppointments(past),
+      cancelled: await enrichAppointments(cancelled),
+    };
+  },
+});
+
 export const getAppointmentAvailability = query({
   args: {
     organizationId: v.id('organizations'),

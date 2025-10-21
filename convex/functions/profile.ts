@@ -461,6 +461,101 @@ export const searchProfiles = query({
   },
 });
 
+// Enriched profiles list query with filtering and pagination
+export const getProfilesListEnriched = query({
+  args: {
+    search: v.optional(v.string()),
+    status: v.optional(v.array(v.string())),
+    category: v.optional(v.array(v.string())),
+    gender: v.optional(v.array(v.string())),
+    organizationId: v.optional(v.array(v.id('organizations'))),
+    page: v.optional(v.number()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const page = args.page || 1;
+    const limit = args.limit || 10;
+    const skip = (page - 1) * limit;
+
+    let profiles = await ctx.db.query('profiles').collect();
+
+    // Filter by status
+    if (args.status && args.status.length > 0) {
+      profiles = profiles.filter((p) => args.status!.includes(p.status));
+    }
+
+    // Filter by category
+    if (args.category && args.category.length > 0) {
+      profiles = profiles.filter((p) => args.category!.includes(p.category));
+    }
+
+    // Filter by gender
+    if (args.gender && args.gender.length > 0) {
+      profiles = profiles.filter((p) =>
+        p.personal?.gender ? args.gender!.includes(p.personal.gender) : false,
+      );
+    }
+
+    // Filter by search term (firstName, lastName, cardNumber, email)
+    if (args.search) {
+      const searchLower = args.search.toLowerCase();
+      profiles = profiles.filter((p) => {
+        const firstName = p.personal?.firstName?.toLowerCase() || '';
+        const lastName = p.personal?.lastName?.toLowerCase() || '';
+        const cardNumber = p.consularCard?.cardNumber?.toLowerCase() || '';
+        const email = p.personal?.email?.toLowerCase() || '';
+
+        return (
+          firstName.includes(searchLower) ||
+          lastName.includes(searchLower) ||
+          cardNumber.includes(searchLower) ||
+          email.includes(searchLower)
+        );
+      });
+    }
+
+    const total = profiles.length;
+
+    // Apply pagination
+    const paginatedProfiles = profiles.slice(skip, skip + limit);
+
+    // Enrich with formatted data
+    const enrichedProfiles = paginatedProfiles.map((profile) => ({
+      id: profile._id,
+      cardNumber: profile.consularCard?.cardNumber || '',
+      firstName: profile.personal?.firstName || '',
+      lastName: profile.personal?.lastName || '',
+      email: profile.personal?.email || '',
+      gender: profile.personal?.gender || '',
+      category: profile.category,
+      status: profile.status,
+      cardPin: profile.consularCard?.pin || '',
+      cardIssuedAt: profile.consularCard?.issuedAt
+        ? new Date(profile.consularCard.issuedAt).toLocaleDateString()
+        : '',
+      cardExpiresAt: profile.consularCard?.expiresAt
+        ? new Date(profile.consularCard.expiresAt).toLocaleDateString()
+        : '',
+      createdAt: new Date(profile._creationTime).toLocaleString(),
+      IDPictureUrl: profile.documents?.profilePhoto?.url || '',
+      IDPictureFileName: profile.documents?.profilePhoto?.fileName || '',
+      IDPicturePath: profile.documents?.profilePhoto?.path || '',
+      shareUrl: profile.shareUrl || '',
+      validationRequestId: profile.validationRequestId,
+      _count: {
+        documents: profile.documents ? Object.keys(profile.documents).length : 0,
+      },
+    }));
+
+    return {
+      items: enrichedProfiles,
+      total,
+      page,
+      limit,
+    };
+  },
+});
+
 // Nouvelle fonction pour obtenir le profil courant avec toutes les données nécessaires
 export const getCurrentProfile = query({
   args: { profileId: v.optional(v.id('profiles')) },

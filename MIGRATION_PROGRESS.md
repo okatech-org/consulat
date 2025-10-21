@@ -1,9 +1,9 @@
 # Progression de la Migration: Prisma + tRPC → Convex
 
 **Date**: 2025-10-19
-**Statut**: Phase 3 COMPLÉTÉE ✅ - Début Phase 4
+**Statut**: Phase 4 en cours (3/3) - Phase 5 suivante
 
-## ✅ Pages complètement migrées (8/16)
+## ✅ Pages complètement migrées (11/16)
 
 ### Phase 1: Pages Simples (3/3)
 1. ✅ **Feedback** (`dashboard/feedback/`)
@@ -63,12 +63,33 @@
 
 ---
 
-## 📋 Tâches restantes (8/16)
+## 📋 Tâches restantes (7/16)
 
-### Phase 4: Domaines Complexes
-- [ ] **Appointments** (`dashboard/appointments/`)
-- [ ] **Profiles** (`dashboard/profiles/`)
-- [ ] **Requests** (`dashboard/requests/`)
+### Phase 4: Domaines Complexes (1/3)
+9. ✅ **Appointments** (`dashboard/appointments/`)
+   - Query enrichie `getUserAppointmentsEnriched` avec groupement par statut
+   - Hook `use-appointments.ts` créé avec toutes les opérations
+   - Mutations: create, confirm, cancel, complete, reschedule
+   - Features: upcoming/past/cancelled grouping, participant enrichment
+   - Page convertie à client component
+   - Loading states et error handling
+
+10. ✅ **Profiles** (`dashboard/profiles/`)
+   - Query enrichie `getProfilesListEnriched` avec filtrage complexe
+   - Hook `use-profiles.ts` créé avec toutes les opérations
+   - Page migrée avec filtres (status, category, gender, search)
+   - Bulk operations (status change) migré vers Convex
+   - Export Excel et images restent client-side (pas tRPC dependency)
+   - Type safety avec ProfileStatus enum
+   - Support pour agents d'intelligence et administrateurs
+
+11. ✅ **Requests** (`dashboard/requests/`)
+   - Query enrichie `getRequestsListEnriched` avec filtrage complet
+   - Mutations: `updateRequestStatus`, `assignRequestToAgent`
+   - Hook `use-requests.ts` créé avec 6 fonctions pour gestion des demandes
+   - Page migrée avec tous les filtres (status, priority, serviceCategory, assignedTo)
+   - Bulk operations: changement de statut et assignation en parallèle
+   - Type safety avec RequestStatus, ServicePriority, ServiceCategory enums
 
 ### Phase 5: Pages Spécialisées
 - [ ] **Tickets** (`dashboard/(superadmin)/tickets/`)
@@ -162,13 +183,13 @@ export const getEnriched[Ressource] = query({
 
 ## 📊 Statistiques de Migration
 
-- **Fichiers migrés**: 30+ (hooks, pages, composants, queries)
-- **Imports tRPC supprimés**: 45+
-- **Types Convex adoptés**: 10+ (UserRole, UserStatus, RequestStatus, OrganizationStatus, Id, etc.)
-- **Queries enrichies créées**: 4 (countries, agents, organizations, users)
-- **Queries dropdown créées**: 3 (countries, services, managers)
-- **Code réduction**: 700+ lignes supprimées des hooks/tables via simplification Convex
-- **Progress**: 50% (8/16 pages) - MILESTONE ATTEINT! 🎉
+- **Fichiers migrés**: 37+ (hooks, pages, composants, queries)
+- **Imports tRPC supprimés**: 60+
+- **Types Convex adoptés**: 13+ (UserRole, UserStatus, ProfileStatus, OrganizationStatus, AppointmentStatus, ParticipantStatus, etc.)
+- **Queries enrichies créées**: 6 (countries, agents, organizations, users, appointments, profiles)
+- **Hooks complets créés**: 10 (countries, services, agents, organizations, users, appointments, profiles, feedback, auth, current-user)
+- **Code réduction**: 1000+ lignes supprimées des hooks/tables via simplification Convex
+- **Progress**: 68.75% (11/16 pages) - Phase 4 complètement migrée! 🎉
 
 ---
 

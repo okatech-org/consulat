@@ -562,3 +562,220 @@ export const addRequestNote = mutation({
     return args.requestId;
   },
 });
+
+/**
+ * Get enriched requests list with filtering, sorting, and pagination
+ */
+export const getRequestsListEnriched = query({
+  args: {
+    search: v.optional(v.string()),
+    status: v.optional(v.array(requestStatusValidator)),
+    priority: v.optional(v.array(requestPriorityValidator)),
+    serviceCategory: v.optional(v.array(v.string())),
+    organizationId: v.optional(v.array(v.id('organizations'))),
+    assignedToId: v.optional(v.array(v.id('memberships'))),
+    page: v.optional(v.number()),
+    limit: v.optional(v.number()),
+    sortBy: v.optional(v.string()),
+    sortOrder: v.optional(v.union(v.literal('asc'), v.literal('desc'))),
+  },
+  handler: async (ctx, args) => {
+    const page = args.page ?? 1;
+    const limit = args.limit ?? 10;
+    const skip = (page - 1) * limit;
+
+    // Start with all requests
+    let requests = await ctx.db.query('requests').order('desc').collect();
+
+    // Filter by status
+    if (args.status && args.status.length > 0) {
+      requests = requests.filter((req) => args.status!.includes(req.status));
+    }
+
+    // Filter by priority
+    if (args.priority && args.priority.length > 0) {
+      requests = requests.filter((req) => args.priority!.includes(req.priority));
+    }
+
+    // Filter by serviceCategory
+    if (args.serviceCategory && args.serviceCategory.length > 0) {
+      const services = await ctx.db.query('services').collect();
+      const servicesByCategory = services
+        .filter((s) => args.serviceCategory!.includes(s.category))
+        .map((s) => s._id);
+      requests = requests.filter((req) =>
+        servicesByCategory.includes(req.serviceId),
+      );
+    }
+
+    // Filter by organizationId
+    if (args.organizationId && args.organizationId.length > 0) {
+      requests = requests.filter((req) =>
+        args.organizationId!.includes(
+          (req as any).organizationId || 'unknown',
+        ),
+      );
+    }
+
+    // Filter by assignedToId
+    if (args.assignedToId && args.assignedToId.length > 0) {
+      requests = requests.filter(
+        (req) =>
+          req.assignedAgentId &&
+          args.assignedToId!.includes(req.assignedAgentId),
+      );
+    }
+
+    // Filter by search term (firstName, lastName, email, phone, cardNumber, passportNumber, service name)
+    if (args.search) {
+      const searchTerm = args.search.toLowerCase();
+      requests = requests.filter((req) => {
+        const requestNumber = req.number.toLowerCase().includes(searchTerm);
+        return requestNumber;
+      });
+    }
+
+    // Get total count before pagination
+    const total = requests.length;
+
+    // Sort
+    const sortBy = args.sortBy ?? 'createdAt';
+    const sortOrder = args.sortOrder ?? 'desc';
+
+    requests.sort((a, b) => {
+      let aVal: any;
+      let bVal: any;
+
+      if (sortBy === 'createdAt') {
+        aVal = a._creationTime;
+        bVal = b._creationTime;
+      } else if (sortBy === 'status') {
+        aVal = a.status;
+        bVal = b.status;
+      } else if (sortBy === 'priority') {
+        aVal = a.priority;
+        bVal = b.priority;
+      } else {
+        aVal = (a as any)[sortBy] ?? '';
+        bVal = (b as any)[sortBy] ?? '';
+      }
+
+      if (sortOrder === 'asc') {
+        return aVal > bVal ? 1 : -1;
+      } else {
+        return aVal < bVal ? 1 : -1;
+      }
+    });
+
+    // Apply pagination
+    const paginatedRequests = requests.slice(skip, skip + limit);
+
+    // Enrich requests with related data
+    const enrichedRequests = await Promise.all(
+      paginatedRequests.map(async (req) => {
+        const [service, requester, organization, assignedAgent] =
+          await Promise.all([
+            ctx.db.get(req.serviceId),
+            ctx.db.get(req.requesterId),
+            req.organizationId
+              ? (ctx.db.get(req.organizationId as any) as any)
+              : Promise.resolve(null),
+            req.assignedAgentId
+              ? ctx.db.get(req.assignedAgentId)
+              : Promise.resolve(null),
+          ]);
+
+        return {
+          ...req,
+          service: service || undefined,
+          requester: requester || undefined,
+          organization: organization || undefined,
+          assignedAgent: assignedAgent || undefined,
+        };
+      }),
+    );
+
+    return {
+      items: enrichedRequests,
+      total,
+      page,
+      limit,
+    };
+  },
+});
+
+/**
+ * Update status for a single request
+ */
+export const updateRequestStatus = mutation({
+  args: {
+    requestId: v.id('requests'),
+    status: requestStatusValidator,
+  },
+  handler: async (ctx, args) => {
+    const request = await ctx.db.get(args.requestId);
+    if (!request) {
+      throw new Error('Request not found');
+    }
+
+    const newMetadata = { ...request.metadata };
+    const now = Date.now();
+
+    newMetadata.activities = [
+      ...request.metadata.activities,
+      {
+        type: ActivityType.StatusChanged,
+        actorId: request.assignedAgentId,
+        data: {
+          from: request.status,
+          to: args.status,
+        },
+        timestamp: now,
+      },
+    ];
+
+    await ctx.db.patch(args.requestId, {
+      status: args.status,
+      metadata: newMetadata,
+    });
+
+    return args.requestId;
+  },
+});
+
+/**
+ * Assign a request to an agent
+ */
+export const assignRequestToAgent = mutation({
+  args: {
+    requestId: v.id('requests'),
+    agentId: v.id('memberships'),
+  },
+  handler: async (ctx, args) => {
+    const request = await ctx.db.get(args.requestId);
+    if (!request) {
+      throw new Error('Request not found');
+    }
+
+    const newMetadata = { ...request.metadata };
+    const now = Date.now();
+
+    newMetadata.assignedAt = now;
+    newMetadata.activities = [
+      ...request.metadata.activities,
+      {
+        type: ActivityType.RequestAssigned,
+        actorId: args.agentId,
+        data: { assignedAgentId: args.agentId },
+        timestamp: now,
+      },
+    ];
+
+    await ctx.db.patch(args.requestId, {
+      assignedAgentId: args.agentId,
+      metadata: newMetadata,
+    });
+
+    return args.requestId;
+  },
+});

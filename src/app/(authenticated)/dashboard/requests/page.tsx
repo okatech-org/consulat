@@ -2,11 +2,11 @@
 
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
-import { useRequests, type RequestFilters } from '@/hooks/use-requests';
+import { useRequests, useUpdateRequestStatus, useAssignRequest, type RequestFilters } from '@/hooks/use-requests';
 import { cn, useDateLocale } from '@/lib/utils';
 import { PageContainer } from '@/components/layouts/page-container';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import { RequestStatus, ServiceCategory, ServicePriority } from '@prisma/client';
+import { RequestStatus, ServiceCategory, ServicePriority } from '@/convex/lib/constants';
 
 // Imports pour le DataTable
 import type { ColumnDef } from '@tanstack/react-table';
@@ -52,13 +52,21 @@ import {
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
-import type { RequestListItem } from '@/server/api/routers/requests/types';
+import type { Doc } from '@/convex/_generated/dataModel';
 
 // Types pour les agents
 type Agent = {
   id: string;
   name: string;
   email?: string;
+};
+
+// Type pour les demandes
+type RequestListItem = Doc<'requests'> & {
+  service?: Doc<'services'>;
+  requester?: Doc<'users'>;
+  organization?: Doc<'organizations'>;
+  assignedAgent?: Doc<'memberships'>;
 };
 
 // Function to adapt search parameters for service requests
@@ -85,7 +93,7 @@ function adaptSearchParams(searchParams: URLSearchParams): RequestFilters {
 
 // Schema pour les changements de statut en masse
 const statusChangeSchema = z.object({
-  status: z.nativeEnum(RequestStatus),
+  status: z.string(),
 });
 
 type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
@@ -166,17 +174,17 @@ export default function RequestsPageClient() {
                   size="sm"
                   className="p-0"
                   onClick={() => {
-                    navigator.clipboard.writeText(row.original.id);
+                    navigator.clipboard.writeText(row.original._id);
                     toast.success('ID copié dans le presse-papiers');
                   }}
                 >
                   <span className="uppercase text-muted-foreground">
-                    {row.original.id.slice(0, 6)}...
+                    {row.original._id.slice(0, 6)}...
                   </span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <span className="uppercase">{row.original.id}</span> (cliquez pour copier)
+                <span className="uppercase">{row.original._id}</span> (cliquez pour copier)
               </TooltipContent>
             </Tooltip>
           </label>
@@ -185,22 +193,25 @@ export default function RequestsPageClient() {
         enableHiding: false,
       },
       {
-        accessorKey: 'identityPictureUrl',
+        accessorKey: 'requester',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Photo" />,
         enableSorting: false,
         cell: ({ row }) => {
-          const url = row.original.requestedFor?.identityPicture?.fileUrl || '';
-          return url ? (
-            <Avatar className="bg-muted">
-              <AvatarImage src={url} />
-            </Avatar>
-          ) : (
-            '-'
+          return (
+            <div className="flex items-center gap-2">
+              {row.original.requester?.profileImageUrl ? (
+                <Avatar className="bg-muted">
+                  <AvatarImage src={row.original.requester.profileImageUrl} />
+                </Avatar>
+              ) : (
+                '-'
+              )}
+            </div>
           );
         },
       },
       {
-        accessorKey: 'firstName',
+        accessorKey: 'requester.name',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -221,14 +232,14 @@ export default function RequestsPageClient() {
           return (
             <div className="flex space-x-2">
               <span className="max-w-[500px] truncate font-medium">
-                {row.original.requestedFor?.firstName}
+                {row.original.requester?.name}
               </span>
             </div>
           );
         },
       },
       {
-        accessorKey: 'lastName',
+        accessorKey: 'requester.email',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -249,14 +260,14 @@ export default function RequestsPageClient() {
           return (
             <div className="flex space-x-2">
               <span className="max-w-[500px] truncate font-medium">
-                {row.original.requestedFor?.lastName}
+                {row.original.requester?.email}
               </span>
             </div>
           );
         },
       },
       {
-        accessorKey: 'createdAt',
+        accessorKey: '_creationTime',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -270,8 +281,8 @@ export default function RequestsPageClient() {
           />
         ),
         cell: ({ row }) => {
-          const date = row.original.createdAt;
-          return date ? formatDate(date, 'dd/MM/yyyy') : '-';
+          const date = row.original._creationTime;
+          return date ? formatDate(new Date(date), 'dd/MM/yyyy') : '-';
         },
         enableSorting: true,
       },
@@ -313,7 +324,7 @@ export default function RequestsPageClient() {
         },
       },
       {
-        accessorKey: 'serviceCategory',
+        accessorKey: 'service.category',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -331,10 +342,11 @@ export default function RequestsPageClient() {
           />
         ),
         cell: ({ row }) => {
+          const category = row.original.service?.category;
           return (
             <div className="flex items-center">
               <Badge variant={'outline'}>
-                {t(`inputs.serviceCategory.options.${row.original.serviceCategory}`)}
+                {category ? t(`inputs.serviceCategory.options.${category}`) : '-'}
               </Badge>
             </div>
           );
@@ -379,7 +391,7 @@ export default function RequestsPageClient() {
     const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']) : false;
     if (isAdmin) {
       tableColumns.push({
-        accessorKey: 'assignedTo',
+        accessorKey: 'assignedAgent',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -397,8 +409,8 @@ export default function RequestsPageClient() {
           />
         ),
         cell: ({ row }) => {
-          const assignedTo = row.original.assignedTo;
-          return assignedTo ? assignedTo.name : '-';
+          const assignedAgent = row.original.assignedAgent;
+          return assignedAgent?.name || '-';
         },
       });
     }
@@ -459,7 +471,7 @@ export default function RequestsPageClient() {
           </Tooltip>
 
           <ProfileLookupSheet
-            profileId={row.original.requestedFor?.id}
+            profileId={row.original.requester?._id}
             icon={<Eye className="size-icon" />}
             tooltipContent="Aperçu du profil"
           />
@@ -561,15 +573,15 @@ export default function RequestsPageClient() {
       <DataTable
         isLoading={isLoading}
         columns={columns}
-        data={requests?.items || []}
+        data={requests || []}
         filters={filters}
-        totalCount={requests?.total || 0}
+        totalCount={total || 0}
         pageIndex={pagination.page - 1}
         pageSize={pagination.limit}
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
         onLimitChange={(limit) => handlePaginationChange('limit', limit)}
         hiddenColumns={hiddenColumns}
-        onRefresh={refetch}
+        onRefresh={() => {}}
         activeSorting={[sorting.field, sorting.order]}
         sticky={[
           {
@@ -596,7 +608,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { updateStatus } = useRequests();
+  const { updateStatus } = useUpdateRequestStatus();
 
   const form = useForm<StatusChangeFormData>({
     resolver: zodResolver(statusChangeSchema),
@@ -608,10 +620,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
       // Mise à jour en parallèle de toutes les demandes sélectionnées
       await Promise.all(
         selectedRows.map((row) =>
-          updateStatus({
-            requestId: row.id,
-            status: data.status,
-          }),
+          updateStatus(row._id, data.status),
         ),
       );
 
@@ -700,7 +709,7 @@ function AssignToChangeForm({
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { assign } = useRequests();
+  const { assignRequest } = useAssignRequest();
 
   const form = useForm<AssignToFormData>({
     resolver: zodResolver(assignToSchema),
@@ -712,10 +721,7 @@ function AssignToChangeForm({
       // Assignation en parallèle de toutes les demandes sélectionnées
       await Promise.all(
         selectedRows.map((row) =>
-          assign({
-            requestId: row.id,
-            agentId: data.assignedToId,
-          }),
+          assignRequest(row._id, data.assignedToId as any),
         ),
       );
 

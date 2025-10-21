@@ -1,34 +1,38 @@
+'use client';
+
 import { AgentAppointmentsTabs } from '@/components/appointments/agent-appointments-tabs';
-import { getTranslations } from 'next-intl/server';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { getUserAppointments } from '@/actions/appointments';
+import { useTranslations } from 'next-intl';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useUserAppointments } from '@/hooks/use-appointments';
 import { ErrorCard } from '@/components/ui/error-card';
 import { PageContainer } from '@/components/layouts/page-container';
 
-export default async function AgentAppointmentsPage() {
-  const t = await getTranslations('appointments');
-  const user = await getCurrentUser();
+export default function AgentAppointmentsPage() {
+  const t = useTranslations('appointments');
+  const { user } = useCurrentUser();
+
+  const { upcoming, past, cancelled, isLoading } = useUserAppointments(
+    user?._id,
+    undefined,
+  );
 
   if (!user) {
     return <ErrorCard />;
   }
 
-  // Récupérer les rendez-vous de l'agent
-  const { data, error } = await getUserAppointments({ agentId: user?.id });
-
-  if (error) {
-    return <ErrorCard description={error} />;
+  if (isLoading) {
+    return (
+      <PageContainer title={t('title')} description={t('description')}>
+        <div className="flex items-center justify-center p-8">
+          <div className="text-muted-foreground">Chargement...</div>
+        </div>
+      </PageContainer>
+    );
   }
 
   return (
     <PageContainer title={t('title')} description={t('description')}>
-      {data && (
-        <AgentAppointmentsTabs
-          upcoming={data.upcoming}
-          past={data.past}
-          cancelled={data.cancelled}
-        />
-      )}
+      <AgentAppointmentsTabs upcoming={upcoming} past={past} cancelled={cancelled} />
     </PageContainer>
   );
 }

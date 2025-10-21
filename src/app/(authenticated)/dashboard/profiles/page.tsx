@@ -39,7 +39,7 @@ import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { ROUTES } from '@/schemas/routes';
 import { Avatar, AvatarImage } from '@radix-ui/react-avatar';
 import { FileText, Edit, Download, FolderOpen, Eye } from 'lucide-react';
-import { RequestStatus, ProfileCategory, Gender, UserRole } from '@prisma/client';
+import { ProfileStatus, ProfileCategory, Gender, UserRole } from '@/convex/lib/constants';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
@@ -70,7 +70,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
-import { updateProfile } from '@/actions/profile';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
 import {
@@ -83,16 +82,16 @@ import {
 import type { CompleteProfileUpdateFormData } from '@/schemas/registration';
 import * as XLSX from 'xlsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { api } from '@/trpc/react';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { useProfilesList, useUpdateProfileStatus } from '@/hooks/use-profiles';
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
   const params = {
     ...(searchParams.get('search') && { search: searchParams.get('search') }),
     ...(searchParams.get('status') && {
       status: searchParams.get('status')?.split(',').filter(Boolean) as
-        | RequestStatus[]
+        | string[]
         | undefined,
     }),
     ...(searchParams.get('category') && {
@@ -118,7 +117,7 @@ function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
 export default function ProfilesPage() {
   const t = useTranslations();
   const { user } = useCurrentUser();
-  const isIntelAgent = user.roles?.includes(UserRole.INTEL_AGENT);
+  const isIntelAgent = user?.roles?.includes(UserRole.SuperAdmin) === false;
   const {
     params,
     pagination,
@@ -127,22 +126,26 @@ export default function ProfilesPage() {
     handlePaginationChange,
     handleSortingChange,
   } = useTableSearchParams<ProfilesArrayItem, ProfilesFilters>(adaptSearchParams);
-  const {
-    isLoading,
-    data: result,
-    refetch,
-  } = api.profile.getList.useQuery({
+
+  const { profiles, total, isLoading } = useProfilesList({
+    search: params.search,
+    status: params.status as string[],
+    category: params.category as string[],
+    gender: params.gender as string[],
     page: pagination.page,
     limit: pagination.limit,
-    sort: sorting,
-    ...params,
   });
+
+  const result = {
+    items: profiles,
+    total,
+  };
 
   const statuses = useMemo(
     () =>
-      Object.values(RequestStatus).map((status) => ({
+      Object.values(ProfileStatus).map((status) => ({
         value: status,
-        label: t(`inputs.requestStatus.options.${status}`),
+        label: t(`inputs.profileStatus.options.${status}`),
       })),
     [t],
   );
@@ -713,7 +716,7 @@ export default function ProfilesPage() {
 // Define schema for profile quick edit
 const quickEditSchema = z.object({
   cardNumber: z.string().optional(),
-  status: z.nativeEnum(RequestStatus),
+  status: z.string(),
 });
 
 type QuickEditFormData = z.infer<typeof quickEditSchema>;
@@ -726,6 +729,7 @@ type QuickEditFormProps = {
 function QuickEditForm({ profile, onSuccess }: QuickEditFormProps) {
   const t = useTranslations();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { updateStatus } = useUpdateProfileStatus();
 
   const form = useForm<QuickEditFormData>({
     resolver: zodResolver(quickEditSchema),
@@ -736,17 +740,10 @@ function QuickEditForm({ profile, onSuccess }: QuickEditFormProps) {
   });
 
   const onSubmit = async (data: QuickEditFormData) => {
-    const editedData = filterUneditedKeys(data, form.formState.dirtyFields);
-
     setIsSubmitting(true);
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await tryCatch(updateProfile(profile.id, editedData as any));
-
-      if (result.error) {
-        toast.error(t('errors.common.unknown_error'));
-        console.error(result.error);
-        return;
+      if (data.status && data.status !== profile.status) {
+        await updateStatus(profile.id as any, data.status);
       }
 
       toast.success(t('profile.update_success'));
@@ -775,9 +772,9 @@ function QuickEditForm({ profile, onSuccess }: QuickEditFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {Object.values(RequestStatus).map((status) => (
+                  {Object.values(ProfileStatus).map((status) => (
                     <SelectItem key={status} value={status}>
-                      {t(`inputs.requestStatus.options.${status}`)}
+                      {t(`inputs.profileStatus.options.${status}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -806,7 +803,7 @@ function QuickEditForm({ profile, onSuccess }: QuickEditFormProps) {
 
 // Bulk status change form for profiles
 const statusChangeSchema = z.object({
-  status: z.nativeEnum(RequestStatus),
+  status: z.string(),
 });
 type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
 type StatusChangeFormProps = {
@@ -817,20 +814,19 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { updateStatus } = useUpdateProfileStatus();
+
   const form = useForm<StatusChangeFormData>({
     resolver: zodResolver(statusChangeSchema),
   });
+
   const onSubmit = async (data: StatusChangeFormData) => {
     setIsSubmitting(true);
     try {
       if (!selectedRows.length) return;
-      const updatePromises = selectedRows.map(async (row) => {
-        return tryCatch(
-          updateProfile(row.id, {
-            status: data.status,
-          } as Partial<CompleteProfileUpdateFormData>),
-        );
-      });
+      const updatePromises = selectedRows.map((row) =>
+        updateStatus(row.id as any, data.status),
+      );
       await Promise.all(updatePromises);
       toast.success(
         t('common.success.bulk_update_success', { count: selectedRows.length }),
@@ -870,9 +866,9 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.values(RequestStatus).map((status) => (
+                      {Object.values(ProfileStatus).map((status) => (
                         <SelectItem key={status} value={status}>
-                          {t(`inputs.requestStatus.options.${status}`)}
+                          {t(`inputs.profileStatus.options.${status}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
