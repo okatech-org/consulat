@@ -1,7 +1,6 @@
 'use client';
 
 import { ROUTES } from '@/schemas/routes';
-import { UserRole } from '@prisma/client';
 import {
   Settings,
   LayoutDashboard,
@@ -31,6 +30,7 @@ import { CountBadge } from '@/components/layouts/count-badge';
 import { useCurrentUser } from './use-current-user';
 import { useQuery } from 'convex/react';
 import { api } from 'convex/_generated/api';
+import { UserRole } from '@/convex/lib/constants';
 
 export type NavMainItem = {
   title: string;
@@ -56,134 +56,132 @@ export function useNavigation() {
     user ? { userId: user._id } : 'skip',
   );
 
-  console.log({ unreadNotifications, user });
-
   const AdminNavigation: Array<NavMainItem & { roles: UserRole[] }> = [
     {
       title: t('dashboard'),
       url: ROUTES.dashboard.base,
       icon: LayoutDashboard,
-      roles: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
+      roles: [UserRole.SuperAdmin, UserRole.Admin, UserRole.Manager],
     },
     {
       title: t('countries'),
       url: ROUTES.sa.countries,
       icon: Globe,
-      roles: [UserRole.SUPER_ADMIN],
+      roles: [UserRole.SuperAdmin],
     },
     {
       title: t('organizations'),
       url: ROUTES.sa.organizations,
       icon: Building2,
-      roles: [UserRole.SUPER_ADMIN],
+      roles: [UserRole.SuperAdmin],
     },
     {
       title: t('users'),
       url: ROUTES.sa.users,
       icon: Users,
-      roles: [UserRole.SUPER_ADMIN],
+      roles: [UserRole.SuperAdmin],
     },
     {
       title: t('requests'),
       url: ROUTES.dashboard.requests,
       icon: FolderIcon,
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
+      roles: [UserRole.Admin, UserRole.Agent, UserRole.SuperAdmin, UserRole.Manager],
     },
     {
       title: t('profiles'),
       url: ROUTES.dashboard.profiles,
       icon: Users,
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.SUPER_ADMIN, UserRole.MANAGER],
+      roles: [UserRole.Admin, UserRole.Agent, UserRole.SuperAdmin, UserRole.Manager],
     },
     {
       title: t('appointments'),
       url: ROUTES.dashboard.appointments,
       icon: Calendar,
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER],
+      roles: [UserRole.Admin, UserRole.Agent, UserRole.Manager],
     },
     {
       title: t('services'),
       url: ROUTES.dashboard.services,
       icon: FileText,
-      roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+      roles: [UserRole.Admin, UserRole.SuperAdmin],
     },
     {
       title: t('agents'),
       url: ROUTES.dashboard.agents,
       icon: Users,
-      roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPER_ADMIN],
+      roles: [UserRole.Admin, UserRole.Manager, UserRole.SuperAdmin],
     },
     {
       title: t('users'),
       url: ROUTES.dashboard.users,
       icon: Users,
-      roles: [UserRole.SUPER_ADMIN],
+      roles: [UserRole.SuperAdmin],
     },
     {
       title: t('document-templates'),
       url: ROUTES.dashboard.doc_templates,
       icon: FileIcon,
-      roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+      roles: [UserRole.Admin, UserRole.SuperAdmin],
     },
     {
       title: t('tickets'),
       url: ROUTES.dashboard.tickets,
       icon: Ticket,
-      roles: [UserRole.SUPER_ADMIN],
+      roles: [UserRole.SuperAdmin],
     },
     {
       title: t('dashboard'),
       url: ROUTES.intel.base,
       icon: LayoutDashboard,
-      roles: [UserRole.INTEL_AGENT],
+      roles: [UserRole.IntelAgent],
     },
     {
       title: t('intel-profiles'),
       url: ROUTES.intel.profiles,
       icon: Users,
-      roles: [UserRole.INTEL_AGENT],
+      roles: [UserRole.IntelAgent],
     },
     {
       title: t('intel-notes'),
       url: ROUTES.intel.notes,
       icon: FileText,
-      roles: [UserRole.INTEL_AGENT],
+      roles: [UserRole.IntelAgent],
     },
     {
       title: t('intel-map'),
       url: ROUTES.intel.map,
       icon: MapPin,
-      roles: [UserRole.INTEL_AGENT],
+      roles: [UserRole.IntelAgent],
     },
     {
       title: t('intel-competences'),
       url: ROUTES.intel.competences,
       icon: BookOpen,
-      roles: [UserRole.INTEL_AGENT],
+      roles: [UserRole.IntelAgent],
     },
     {
       title: t('intel-associations'),
       url: ROUTES.intel.associations,
       icon: Building2,
-      roles: [UserRole.INTEL_AGENT],
+      roles: [UserRole.IntelAgent],
     },
     {
       title: t('intel-reports'),
       url: ROUTES.intel.reports,
       icon: FileText,
-      roles: [UserRole.INTEL_AGENT],
+      roles: [UserRole.IntelAgent],
     },
     {
       title: t('intel-analytics'),
       url: ROUTES.intel.analytics,
       icon: BarChart3,
-      roles: [UserRole.INTEL_AGENT],
+      roles: [UserRole.IntelAgent],
     },
     {
       title: t('intel-predictions'),
       url: ROUTES.intel.predictions,
       icon: Brain,
-      roles: [UserRole.INTEL_AGENT],
+      roles: [UserRole.IntelAgent],
     },
   ];
 
@@ -195,13 +193,13 @@ export function useNavigation() {
       badge: (
         <CountBadge count={unreadNotifications?.length ?? 0} variant="destructive" />
       ),
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER, UserRole.INTEL_AGENT],
+      roles: [UserRole.Admin, UserRole.Agent, UserRole.Manager, UserRole.IntelAgent],
     },
     {
       title: t('settings'),
       url: ROUTES.user.settings,
       icon: Settings,
-      roles: [UserRole.ADMIN, UserRole.AGENT, UserRole.MANAGER, UserRole.INTEL_AGENT],
+      roles: [UserRole.Admin, UserRole.Agent, UserRole.Manager, UserRole.IntelAgent],
     },
   ] as const;
 
@@ -218,12 +216,12 @@ export function useNavigation() {
       url: ROUTES.dashboard.account_settings,
       icon: User,
       roles: [
-        UserRole.USER,
-        UserRole.ADMIN,
-        UserRole.SUPER_ADMIN,
-        UserRole.MANAGER,
-        UserRole.AGENT,
-        UserRole.INTEL_AGENT,
+        UserRole.User,
+        UserRole.Admin,
+        UserRole.SuperAdmin,
+        UserRole.Manager,
+        UserRole.Agent,
+        UserRole.IntelAgent,
       ],
     },
     {
@@ -231,12 +229,12 @@ export function useNavigation() {
       url: ROUTES.dashboard.feedback,
       icon: MessageSquare,
       roles: [
-        UserRole.USER,
-        UserRole.ADMIN,
-        UserRole.SUPER_ADMIN,
-        UserRole.MANAGER,
-        UserRole.AGENT,
-        UserRole.INTEL_AGENT,
+        UserRole.User,
+        UserRole.Admin,
+        UserRole.SuperAdmin,
+        UserRole.Manager,
+        UserRole.Agent,
+        UserRole.IntelAgent,
       ],
     },
     ...secondaryMenu,

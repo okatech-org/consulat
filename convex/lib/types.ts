@@ -118,3 +118,7 @@ export type AllOrganizations = FunctionReturnType<
 export type EnrichedCountry = FunctionReturnType<
   typeof api.functions.country.getEnrichedCountries
 >;
+
+export type MembershipWithOrganization = FunctionReturnType<
+  typeof api.functions.membership.getMembershipWithOrganizationByUserId
+>;

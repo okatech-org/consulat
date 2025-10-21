@@ -45,6 +45,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { ServiceCategory } from '@/convex/lib/constants';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 // CSS variables as chart colors
 const CHART_COLORS = {
@@ -64,7 +65,9 @@ const CHART_COLORS_ARRAY = [
 ];
 
 export default function SuperAdminDashboard() {
+  const { user } = useCurrentUser();
   const t = useTranslations('sa.dashboard');
+  const t_base = useTranslations('sa');
 
   const dashboardStats = useQuery(api.functions.analytics.getDashboardStats);
   const requestAnalytics = useQuery(api.functions.analytics.getRequestAnalytics, {});
@@ -120,11 +123,6 @@ export default function SuperAdminDashboard() {
     },
   ];
 
-  const activeUsers = dashboardStats?.users?.total || 0;
-  const activeOrganizations = dashboardStats?.organizations?.byStatus?.active || 0;
-  const activeServices = dashboardStats?.services?.byStatus?.active || 0;
-  const totalCountries = dashboardStats?.countries?.byStatus?.active || 0;
-
   // Calculate derived metrics from real data
   const totalRequests = dashboardStats?.requests?.total || 1;
   const completedRequests = dashboardStats?.requests?.byStatus?.completed || 0;
@@ -137,33 +135,33 @@ export default function SuperAdminDashboard() {
     Math.round(averageProcessingTimeMs / (24 * 60 * 60 * 1000)) || 3.2; // Convert to days
 
   return (
-    <PageContainer title={t('title')}>
+    <PageContainer title={`${t_base('welcome', { name: user?.firstName || '' })}`}>
       {/* KPI Cards Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8">
         <StatsCard
           title={t('kpi.activeCountries')}
-          value={totalCountries}
+          value={dashboardStats?.countries?.byStatus?.active || 0}
           icon={Globe}
           description={t('kpi.activeCountriesSubtitle')}
           trend={{ value: 2, isPositive: true }}
         />
         <StatsCard
           title={t('kpi.organizations')}
-          value={activeOrganizations}
+          value={dashboardStats?.organizations?.byStatus?.active || 0}
           icon={Building2}
           description={t('kpi.organizationsSubtitle')}
           trend={{ value: 5, isPositive: true }}
         />
         <StatsCard
           title={t('kpi.services')}
-          value={activeServices}
+          value={dashboardStats?.services?.byStatus?.active || 0}
           icon={Settings}
           description={t('kpi.servicesSubtitle')}
           trend={{ value: 1, isPositive: true }}
         />
         <StatsCard
           title={t('kpi.users')}
-          value={activeUsers}
+          value={dashboardStats?.users?.active || 0}
           icon={Users}
           description={t('kpi.usersSubtitle')}
           trend={{ value: 12, isPositive: true }}

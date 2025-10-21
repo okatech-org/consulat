@@ -48,8 +48,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Link href={ROUTES.base}>
                 {appLogo && <Image src={appLogo} alt={appName} width={32} height={32} />}
                 <span className="text-sm font-semibold">{appName}</span>
-                {user?.countryCode && (
-                  <FlagIcon countryCode={user?.countryCode as CountryCode} />
+                {user?.membership?.assignedCountries && (
+                  <FlagIcon
+                    countryCode={user?.membership?.assignedCountries[0] as CountryCode}
+                  />
                 )}
               </Link>
             </SidebarMenuButton>

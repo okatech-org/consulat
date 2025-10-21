@@ -185,7 +185,9 @@ export const getAgentsList = query({
     const limit = args.limit || 10;
     const skip = (page - 1) * limit;
 
-    let query = ctx.db.query('memberships').filter((q) => q.eq(q.field('status'), MembershipStatus.Active));
+    let query = ctx.db
+      .query('memberships')
+      .filter((q) => q.eq(q.field('status'), MembershipStatus.Active));
 
     // Filter by organization
     if (args.organizationId) {
@@ -211,14 +213,18 @@ export const getAgentsList = query({
     // Filter by linked countries
     if (args.linkedCountries && args.linkedCountries.length > 0) {
       filteredMemberships = filteredMemberships.filter((membership) =>
-        args.linkedCountries!.some((country) => membership.assignedCountries.includes(country)),
+        args.linkedCountries!.some((country) =>
+          membership.assignedCountries.includes(country),
+        ),
       );
     }
 
     // Filter by assigned services
     if (args.assignedServices && args.assignedServices.length > 0) {
       filteredMemberships = filteredMemberships.filter((membership) =>
-        args.assignedServices!.some((service) => membership.assignedServices.includes(service)),
+        args.assignedServices!.some((service) =>
+          membership.assignedServices.includes(service),
+        ),
       );
     }
 
@@ -299,7 +305,9 @@ export const getAgentsList = query({
           assignedOrganizationId: membership.organizationId,
           organizationName: organization?.name,
           managedByUserId: membership.managerId,
-          managerName: manager ? `${manager.firstName || ''} ${manager.lastName || ''}`.trim() : undefined,
+          managerName: manager
+            ? `${manager.firstName || ''} ${manager.lastName || ''}`.trim()
+            : undefined,
           _count: {
             assignedRequests: activeRequests.length,
           },
@@ -347,7 +355,9 @@ export const getManagersForFilter = query({
   args: { organizationId: v.optional(v.id('organizations')) },
   returns: v.array(v.any()),
   handler: async (ctx, args) => {
-    let query = ctx.db.query('memberships').filter((q) => q.eq(q.field('status'), MembershipStatus.Active));
+    let query = ctx.db
+      .query('memberships')
+      .filter((q) => q.eq(q.field('status'), MembershipStatus.Active));
 
     if (args.organizationId) {
       query = query.filter((q) => q.eq(q.field('organizationId'), args.organizationId));
@@ -370,5 +380,27 @@ export const getManagersForFilter = query({
     );
 
     return managers.filter(Boolean);
+  },
+});
+
+export const getMembershipWithOrganizationByUserId = query({
+  args: { userId: v.id('users') },
+  returns: v.union(v.null(), v.any()),
+  handler: async (ctx, args) => {
+    const membership = await ctx.db
+      .query('memberships')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .first();
+
+    if (!membership) {
+      return null;
+    }
+
+    const organization = await ctx.db.get(membership.organizationId);
+
+    return {
+      ...membership,
+      organization,
+    };
   },
 });

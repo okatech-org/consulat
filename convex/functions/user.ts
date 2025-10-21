@@ -285,12 +285,26 @@ export const getUser = query({
 });
 
 export const getUserByClerkId = query({
-  args: { clerkUserId: v.string() },
+  args: { clerkUserId: v.string(), withMembership: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const user = await ctx.db
       .query('users')
       .withIndex('by_userId', (q) => q.eq('userId', args.clerkUserId))
       .first();
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      ...user,
+      membership: args.withMembership
+        ? await ctx.db
+            .query('memberships')
+            .withIndex('by_user', (q) => q.eq('userId', user._id))
+            .first()
+        : null,
+    };
   },
 });
 
