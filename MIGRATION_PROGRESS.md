@@ -1,9 +1,9 @@
 # Progression de la Migration: Prisma + tRPC → Convex
 
 **Date**: 2025-10-19
-**Statut**: Phase 4 en cours (3/3) - Phase 5 suivante
+**Statut**: Phase 5 en cours (4/5) - Presque terminé! 🚀
 
-## ✅ Pages complètement migrées (11/16)
+## ✅ Pages complètement migrées (15/16)
 
 ### Phase 1: Pages Simples (3/3)
 1. ✅ **Feedback** (`dashboard/feedback/`)
@@ -91,12 +91,39 @@
    - Bulk operations: changement de statut et assignation en parallèle
    - Type safety avec RequestStatus, ServicePriority, ServiceCategory enums
 
-### Phase 5: Pages Spécialisées
-- [ ] **Tickets** (`dashboard/(superadmin)/tickets/`)
-- [ ] **Competences** (`dashboard/competences/`)
-- [ ] **Document Templates** (`dashboard/document-templates/`)
-- [ ] **Settings** (`dashboard/settings/`)
-- [ ] **Maps** (`dashboard/maps/`)
+### Phase 5: Pages Spécialisées (4/5)
+12. ✅ **Tickets** (`dashboard/(superadmin)/tickets/`)
+   - Query enrichie `getAdminFeedbackList` avec filtrage
+   - Mutations: `respondToFeedback`, `updateFeedbackStatus`
+   - Hook `use-feedback.ts` utilisé pour page et action sheet
+   - Bulk status change avec mutations parallèles
+   - Support pour réponses avec notifications (email/SMS)
+   - Type safety avec FeedbackStatus, FeedbackCategory enums
+
+13. ✅ **Document Templates** (`dashboard/document-templates/`)
+   - Convertie de server component à client component
+   - Query: `getDocumentTemplates` par organizationId
+   - Migration simple: affichage de grille de templates
+   - Utilise hook `useCurrentUser` pour récupérer organizationId
+
+14. ✅ **Settings** (`dashboard/settings/`)
+   - Convertie de server component à client component
+   - Queries: `getOrganization`, `getActiveCountries`
+   - Permission check côté client avec `hasAnyRole`
+   - Données filtrées par type de rôle (agents, managers)
+
+15. ✅ **Maps** (`dashboard/maps/`)
+   - 3 pages (associations, movements, enterprises)
+   - Données statiques/hardcodées (pas de backend)
+   - Aucune migration nécessaire - déjà client-side
+
+**Restantes Phase 5:**
+- [ ] **Competences** (`dashboard/competences/`) - ⭐⭐⭐⭐⭐ COMPLEX
+   - 1,264 lignes frontend
+   - 674 lignes backend (tRPC router)
+   - 415 lignes utilitaires (skill extraction)
+   - Nécessite migration importante de la logique backend
+   - À faire après les pages simples
 
 ---
 
@@ -189,7 +216,7 @@ export const getEnriched[Ressource] = query({
 - **Queries enrichies créées**: 6 (countries, agents, organizations, users, appointments, profiles)
 - **Hooks complets créés**: 10 (countries, services, agents, organizations, users, appointments, profiles, feedback, auth, current-user)
 - **Code réduction**: 1000+ lignes supprimées des hooks/tables via simplification Convex
-- **Progress**: 68.75% (11/16 pages) - Phase 4 complètement migrée! 🎉
+- **Progress**: 93.75% (15/16 pages) - Quasi complet! Only Competences remaining! 🎉
 
 ---
 

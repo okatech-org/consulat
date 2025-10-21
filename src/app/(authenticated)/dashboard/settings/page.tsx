@@ -1,31 +1,40 @@
-import { getOrganizationById } from '@/actions/organizations';
-import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { getCurrentUser } from '@/lib/auth/utils';
+'use client';
+
+import { useTranslations } from 'next-intl';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { SettingsTabs } from '@/components/organization/settings-tabs';
 import { PageContainer } from '@/components/layouts/page-container';
-import { getActiveCountries } from '@/actions/countries';
-import { ServerRoleGuard } from '@/lib/permissions/utils';
-import { UserRole } from '@prisma/client';
-import { getOrganizationIdFromUser } from '@/lib/utils';
+import { hasAnyRole } from '@/lib/permissions/utils';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
+import { UserRole } from '@/convex/lib/constants';
 
-export default async function OrganizationSettingsPage() {
-  const [t, user, countries] = await Promise.all([
-    getTranslations(),
-    getCurrentUser(),
-    getActiveCountries(),
-  ]);
+export default function OrganizationSettingsPage() {
+  const t = useTranslations();
+  const { user } = useCurrentUser();
 
-  const organizationId = getOrganizationIdFromUser(user);
+  const organizationId = (
+    user?.organizationId ?? user?.assignedOrganizationId
+  ) as Id<'organizations'> | undefined;
 
-  if (!organizationId || !user) {
-    notFound();
+  const organization = useQuery(
+    api.functions.organization.getOrganization,
+    organizationId ? { organizationId } : 'skip'
+  );
+
+  const countries = useQuery(api.functions.country.getActiveCountries);
+
+  if (!user || !organizationId) {
+    return <div>Non autorisé</div>;
   }
 
-  const { data: organization, error } = await getOrganizationById(organizationId);
+  if (!hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN', 'MANAGER'])) {
+    return <div>Vous n&apos;êtes pas autorisé à accéder à cette page</div>;
+  }
 
-  if (!organization || error) {
-    notFound();
+  if (!organization) {
+    return <div>Organisation non trouvée</div>;
   }
 
   return (
@@ -33,29 +42,24 @@ export default async function OrganizationSettingsPage() {
       title={t('organization.title')}
       description={t('organization.settings.description')}
     >
-      <ServerRoleGuard
-        roles={['ADMIN', 'SUPER_ADMIN', 'MANAGER']}
-        user={user}
-        fallback={<div>Vous n&apos;êtes pas autorisé à accéder à cette page</div>}
-      >
-        <SettingsTabs
-          organization={{
-            ...organization,
-            metadata: organization.metadata as Record<string, unknown> | null,
-            countries: organization.countries ?? [],
-            services: organization.services ?? [],
-            agents:
-              organization.agents.filter((agent) =>
-                agent.roles?.includes(UserRole.AGENT),
-              ) ?? [],
-            managers:
-              organization.agents.filter((agent) =>
-                agent.roles?.includes(UserRole.MANAGER),
-              ) ?? [],
-          }}
-          availableCountries={countries}
-        />
-      </ServerRoleGuard>
+      <SettingsTabs
+        organization={{
+          _id: organization._id,
+          name: organization.name,
+          metadata: organization.metadata as Record<string, unknown> | null,
+          countries: organization.countries ?? [],
+          services: organization.services ?? [],
+          agents:
+            organization.agents?.filter((agent) =>
+              agent.roles?.includes(UserRole.Agent),
+            ) ?? [],
+          managers:
+            organization.agents?.filter((agent) =>
+              agent.roles?.includes(UserRole.Manager),
+            ) ?? [],
+        } as any}
+        availableCountries={countries ?? []}
+      />
     </PageContainer>
   );
 }

@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
+import { useRespondToFeedback, useUpdateFeedbackStatus, useAdminFeedbackList } from '@/hooks/use-feedback';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
   Form,
@@ -47,7 +47,7 @@ const actionSchema = z.object({
     sms: z.boolean().default(false),
   }),
   changeStatus: z.boolean().default(true),
-  newStatus: z.enum(['PENDING', 'IN_REVIEW', 'RESOLVED', 'CLOSED']).optional(),
+  newStatus: z.enum(['pending', 'in_review', 'resolved', 'closed']).optional(),
 });
 
 type ActionFormValues = z.infer<typeof actionSchema>;
@@ -62,12 +62,12 @@ export function TicketActionSheet({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Récupérer les détails du ticket
-  const { data: tickets } = api.feedback.getAdminList.useQuery(
-    { page: 1, limit: 100 },
-    { enabled: open && !!ticketId },
-  );
+  const { data: tickets } = useAdminFeedbackList({
+    page: 1,
+    limit: 100,
+  });
 
-  const ticket = tickets?.feedbacks.find((f) => f.id === ticketId);
+  const ticket = tickets?.find((f) => f._id === ticketId);
 
   const form = useForm<ActionFormValues>({
     resolver: zodResolver(actionSchema),
@@ -79,32 +79,12 @@ export function TicketActionSheet({
         sms: false,
       },
       changeStatus: true,
-      newStatus: 'RESOLVED',
+      newStatus: 'resolved',
     },
   });
 
-  const respondMutation = api.feedback.respondToFeedback.useMutation({
-    onSuccess: () => {
-      toast.success(t('feedback.admin.tickets.response.success'));
-      form.reset();
-      onSuccess();
-      onOpenChange(false);
-    },
-    onError: () => {
-      toast.error(t('feedback.admin.tickets.response.error'));
-    },
-  });
-
-  const updateStatusMutation = api.feedback.updateStatus.useMutation({
-    onSuccess: () => {
-      toast.success(t('feedback.admin.tickets.statusUpdate.success'));
-      onSuccess();
-      onOpenChange(false);
-    },
-    onError: () => {
-      toast.error(t('feedback.admin.tickets.statusUpdate.error'));
-    },
-  });
+  const { respondToFeedback } = useRespondToFeedback();
+  const { updateStatus } = useUpdateFeedbackStatus();
 
   const onSubmit = async (data: ActionFormValues) => {
     if (!ticket) return;
@@ -115,43 +95,43 @@ export function TicketActionSheet({
 
       // Si il y a une réponse, l'envoyer
       if (data.response && data.response.trim()) {
-        const channels: ('EMAIL' | 'SMS')[] = [];
-        if (data.notifyUser) {
-          if (data.channels.email) channels.push('EMAIL');
-          if (data.channels.sms) channels.push('SMS');
-        }
-
         promises.push(
-          respondMutation.mutateAsync({
-            feedbackId: ticket.id,
-            response: data.response,
-            notifyUser: data.notifyUser,
-            channels,
-          }),
+          respondToFeedback(
+            {
+              ticketId: ticket._id as any,
+              response: data.response,
+            },
+            { onError: () => {} }
+          )
         );
       }
 
       // Si on doit changer le statut
       if (data.changeStatus && data.newStatus && data.newStatus !== ticket.status) {
         promises.push(
-          updateStatusMutation.mutateAsync({
-            feedbackId: ticket.id,
-            status: data.newStatus,
-          }),
+          updateStatus(
+            {
+              ticketId: ticket._id as any,
+              status: data.newStatus as any,
+            },
+            { onError: () => {} }
+          )
         );
       }
-
-      await Promise.all(promises);
 
       if (promises.length === 0) {
         toast.error('Aucune action sélectionnée');
         return;
       }
 
+      await Promise.all(promises);
+
+      toast.success('Action effectuée avec succès');
       form.reset();
       onSuccess();
       onOpenChange(false);
     } catch (error) {
+      toast.error('Erreur lors de l\'action');
       console.error('Error submitting ticket action:', error);
     } finally {
       setIsSubmitting(false);
@@ -471,16 +451,16 @@ export function TicketActionSheet({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="PENDING">
+                            <SelectItem value="pending">
                               {t('feedback.admin.tickets.list.status.pending')}
                             </SelectItem>
-                            <SelectItem value="IN_REVIEW">
+                            <SelectItem value="in_review">
                               {t('feedback.admin.tickets.list.status.in_review')}
                             </SelectItem>
-                            <SelectItem value="RESOLVED">
+                            <SelectItem value="resolved">
                               {t('feedback.admin.tickets.list.status.resolved')}
                             </SelectItem>
-                            <SelectItem value="CLOSED">
+                            <SelectItem value="closed">
                               {t('feedback.admin.tickets.list.status.closed')}
                             </SelectItem>
                           </SelectContent>

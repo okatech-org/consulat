@@ -603,26 +603,20 @@ export const getRequestsListEnriched = query({
       const servicesByCategory = services
         .filter((s) => args.serviceCategory!.includes(s.category))
         .map((s) => s._id);
-      requests = requests.filter((req) =>
-        servicesByCategory.includes(req.serviceId),
-      );
+      requests = requests.filter((req) => servicesByCategory.includes(req.serviceId));
     }
 
     // Filter by organizationId
     if (args.organizationId && args.organizationId.length > 0) {
       requests = requests.filter((req) =>
-        args.organizationId!.includes(
-          (req as any).organizationId || 'unknown',
-        ),
+        args.organizationId!.includes((req as any).organizationId || 'unknown'),
       );
     }
 
     // Filter by assignedToId
     if (args.assignedToId && args.assignedToId.length > 0) {
       requests = requests.filter(
-        (req) =>
-          req.assignedAgentId &&
-          args.assignedToId!.includes(req.assignedAgentId),
+        (req) => req.assignedAgentId && args.assignedToId!.includes(req.assignedAgentId),
       );
     }
 
@@ -673,17 +667,14 @@ export const getRequestsListEnriched = query({
     // Enrich requests with related data
     const enrichedRequests = await Promise.all(
       paginatedRequests.map(async (req) => {
-        const [service, requester, organization, assignedAgent] =
-          await Promise.all([
-            ctx.db.get(req.serviceId),
-            ctx.db.get(req.requesterId),
-            req.organizationId
-              ? (ctx.db.get(req.organizationId as any) as any)
-              : Promise.resolve(null),
-            req.assignedAgentId
-              ? ctx.db.get(req.assignedAgentId)
-              : Promise.resolve(null),
-          ]);
+        const [service, requester, organization, assignedAgent] = await Promise.all([
+          ctx.db.get(req.serviceId),
+          ctx.db.get(req.requesterId),
+          req.serviceId
+            ? (ctx.db.get(req.serviceId as any) as any)
+            : Promise.resolve(null),
+          req.assignedAgentId ? ctx.db.get(req.assignedAgentId) : Promise.resolve(null),
+        ]);
 
         return {
           ...req,

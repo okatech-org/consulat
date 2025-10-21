@@ -2,16 +2,16 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
+import { useAdminFeedbackList, useUpdateFeedbackStatus } from '@/hooks/use-feedback';
 import { PageContainer } from '@/components/layouts/page-container';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TicketActionSheet } from './_components/ticket-action-sheet';
 import { Settings, Star } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import type { FeedbackStatus, FeedbackCategory } from '@prisma/client';
+import type { FeedbackStatus, FeedbackCategory } from '@/convex/lib/constants';
 import { DataTable } from '@/components/data-table/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -49,43 +49,43 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 
 type TicketFilters = {
   search?: string;
-  status?: FeedbackStatus[];
-  category?: FeedbackCategory[];
+  status?: string[];
+  category?: string[];
   organizationId?: string[];
 };
 
 type FeedbackWithRelations = {
-  id: string;
+  _id: string;
   subject: string;
   message: string;
-  category: FeedbackCategory;
-  status: FeedbackStatus;
+  category: string;
+  status: string;
   rating: number | null;
   email: string | null;
   phoneNumber: string | null;
-  createdAt: Date;
-  user: {
-    id: string;
-    name: string | null;
-    email: string | null;
-    phoneNumber: string | null;
-  } | null;
-  service: {
-    id: string;
+  _creationTime: number;
+  user?: {
+    _id: string;
     name: string;
-  } | null;
-  request: {
-    id: string;
+    email: string;
+    phoneNumber?: string;
+  };
+  service?: {
+    _id: string;
+    name: string;
+  };
+  request?: {
+    _id: string;
     serviceCategory: string;
-  } | null;
-  organization: {
-    id: string;
+  };
+  organization?: {
+    _id: string;
     name: string;
-  } | null;
-  respondedBy: {
-    id: string;
-    name: string | null;
-  } | null;
+  };
+  respondedBy?: {
+    _id: string;
+    name: string;
+  };
 };
 
 function adaptSearchParams(searchParams: URLSearchParams): TicketFilters {
@@ -129,22 +129,21 @@ export default function TicketsPage() {
   const {
     data: ticketsData,
     isLoading,
-    refetch,
-  } = api.feedback.getAdminList.useQuery({
+  } = useAdminFeedbackList({
     page: pagination.page,
     limit: pagination.limit,
-    status: params.status?.[0],
-    category: params.category?.[0],
-    organizationId: params.organizationId?.[0],
+    status: (params.status?.[0] as any) || undefined,
+    category: (params.category?.[0] as any) || undefined,
+    organizationId: (params.organizationId?.[0] as any) || undefined,
   });
 
   // Options pour les filtres
   const statuses = useMemo(
     () =>
-      (['PENDING', 'IN_REVIEW', 'RESOLVED', 'CLOSED'] as FeedbackStatus[]).map(
+      (['pending', 'in_review', 'resolved', 'closed'] as const).map(
         (status) => ({
           value: status,
-          label: t(`feedback.admin.tickets.list.status.${status.toLowerCase()}`),
+          label: t(`feedback.admin.tickets.list.status.${status}`),
         }),
       ),
     [t],
@@ -152,10 +151,10 @@ export default function TicketsPage() {
 
   const categories = useMemo(
     () =>
-      (['BUG', 'FEATURE', 'IMPROVEMENT', 'OTHER'] as FeedbackCategory[]).map(
+      (['bug', 'feature', 'improvement', 'other'] as const).map(
         (category) => ({
           value: category,
-          label: t(`inputs.feedback.categories.options.${category}`),
+          label: t(`inputs.feedback.categories.options.${category.toUpperCase()}`),
         }),
       ),
     [t],
@@ -195,19 +194,17 @@ export default function TicketsPage() {
                   size="sm"
                   className="p-0"
                   onClick={() => {
-                    navigator.clipboard.writeText(row.original.id);
-                    toast({
-                      title: 'ID copié dans le presse-papiers',
-                    });
+                    navigator.clipboard.writeText(row.original._id);
+                    toast.success('ID copié dans le presse-papiers');
                   }}
                 >
                   <span className="uppercase text-muted-foreground">
-                    {row.original.id.slice(-8)}
+                    {row.original._id.slice(-8)}
                   </span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <span className="uppercase">{row.original.id}</span> (cliquez pour copier)
+                <span className="uppercase">{row.original._id}</span> (cliquez pour copier)
               </TooltipContent>
             </Tooltip>
           </label>
@@ -350,7 +347,7 @@ export default function TicketsPage() {
         },
       },
       {
-        accessorKey: 'createdAt',
+        accessorKey: '_creationTime',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -366,7 +363,7 @@ export default function TicketsPage() {
         ),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
-            {formatDistanceToNow(new Date(row.original.createdAt), {
+            {formatDistanceToNow(new Date(row.original._creationTime), {
               addSuffix: true,
               locale: fr,
             })}
@@ -385,7 +382,7 @@ export default function TicketsPage() {
                     selectedRows={table
                       .getFilteredSelectedRowModel()
                       .flatRows.map((row) => row.original)}
-                    onSuccess={() => refetch()}
+                    onSuccess={() => {}}
                   />
                 ),
               },
@@ -398,7 +395,7 @@ export default function TicketsPage() {
             variant="ghost"
             className="w-full justify-start"
             onClick={() => {
-              setSelectedTicket(row.original.id);
+              setSelectedTicket(row.original._id);
               setShowActionSheet(true);
             }}
             leftIcon={<Settings className="size-icon" />}
@@ -408,7 +405,7 @@ export default function TicketsPage() {
         ),
       },
     ],
-    [handleSortingChange, t, refetch],
+    [handleSortingChange, t],
   );
 
   const filters = useMemo<FilterOption<FeedbackWithRelations>[]>(
@@ -456,9 +453,9 @@ export default function TicketsPage() {
       <DataTable
         isLoading={isLoading}
         columns={columns}
-        data={ticketsData?.feedbacks || []}
+        data={ticketsData || []}
         filters={filters}
-        totalCount={ticketsData?.pagination?.total || 0}
+        totalCount={ticketsData?.length || 0}
         pageIndex={pagination.page - 1}
         pageSize={pagination.limit}
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
@@ -469,7 +466,7 @@ export default function TicketsPage() {
           { id: 'id', position: 'left' },
           { id: 'actions', position: 'right' },
         ]}
-        onRefresh={() => refetch()}
+        onRefresh={() => {}}
       />
 
       {/* Action Sheet */}
@@ -477,7 +474,7 @@ export default function TicketsPage() {
         ticketId={selectedTicket}
         open={showActionSheet}
         onOpenChange={setShowActionSheet}
-        onSuccess={() => refetch()}
+        onSuccess={() => {}}
       />
     </PageContainer>
   );
@@ -485,7 +482,7 @@ export default function TicketsPage() {
 
 // Schéma pour le changement de statut en lot
 const bulkStatusChangeSchema = z.object({
-  status: z.enum(['PENDING', 'IN_REVIEW', 'RESOLVED', 'CLOSED']),
+  status: z.enum(['pending', 'in_review', 'resolved', 'closed']),
 });
 
 type BulkStatusChangeFormData = z.infer<typeof bulkStatusChangeSchema>;
@@ -499,8 +496,7 @@ function BulkStatusChangeForm({ selectedRows, onSuccess }: BulkStatusChangeFormP
   const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const updateStatusMutation = api.feedback.updateStatus.useMutation();
+  const { updateStatus } = useUpdateFeedbackStatus();
 
   const form = useForm<BulkStatusChangeFormData>({
     resolver: zodResolver(bulkStatusChangeSchema),
@@ -512,26 +508,26 @@ function BulkStatusChangeForm({ selectedRows, onSuccess }: BulkStatusChangeFormP
       if (!selectedRows.length) return;
 
       const updatePromises = selectedRows.map(async (row) => {
-        return updateStatusMutation.mutateAsync({
-          feedbackId: row.id,
-          status: data.status,
-        });
+        return updateStatus(
+          {
+            ticketId: row._id as any,
+            status: data.status as any,
+          },
+          { onError: () => {} }
+        );
       });
 
       await Promise.all(updatePromises);
 
-      toast({
-        title: t('feedback.admin.tickets.bulk.statusUpdate.success', {
+      toast.success(
+        t('feedback.admin.tickets.bulk.statusUpdate.success', {
           count: selectedRows.length,
-        }),
-      });
+        })
+      );
       onSuccess();
       setOpen(false);
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('feedback.admin.tickets.bulk.statusUpdate.error'),
-      });
+      toast.error(t('feedback.admin.tickets.bulk.statusUpdate.error'));
       console.error('Error updating ticket statuses:', error);
     } finally {
       setIsSubmitting(false);
@@ -566,16 +562,16 @@ function BulkStatusChangeForm({ selectedRows, onSuccess }: BulkStatusChangeFormP
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="PENDING">
+                      <SelectItem value="pending">
                         {t('feedback.admin.tickets.list.status.pending')}
                       </SelectItem>
-                      <SelectItem value="IN_REVIEW">
+                      <SelectItem value="in_review">
                         {t('feedback.admin.tickets.list.status.in_review')}
                       </SelectItem>
-                      <SelectItem value="RESOLVED">
+                      <SelectItem value="resolved">
                         {t('feedback.admin.tickets.list.status.resolved')}
                       </SelectItem>
-                      <SelectItem value="CLOSED">
+                      <SelectItem value="closed">
                         {t('feedback.admin.tickets.list.status.closed')}
                       </SelectItem>
                     </SelectContent>

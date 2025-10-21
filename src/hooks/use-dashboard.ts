@@ -4,7 +4,6 @@ import { getOrganizationIdFromUser } from '@/lib/utils';
 import { api } from '@/trpc/react';
 import { useMemo } from 'react';
 import { useCurrentUser } from './use-current-user';
-import type { UserRole } from '@prisma/client';
 import type { TRPCClientErrorLike } from '@trpc/client';
 import type { InferrableClientTypes } from '@trpc/server/unstable-core-do-not-import';
 
@@ -24,16 +23,16 @@ export function useDashboard<T>(options?: {
   refresh: () => void;
 } {
   const { user } = useCurrentUser();
-  
+
   const userRoles = user?.roles || [];
   const organizationId = getOrganizationIdFromUser(user || null);
 
   // Déterminer quel type de dashboard utiliser
   const dashboardType = useMemo(() => {
-    if (userRoles.includes('SUPER_ADMIN')) return 'superadmin';
-    if (userRoles.includes('ADMIN')) return 'admin';
-    if (userRoles.includes('MANAGER')) return 'manager';
-    if (userRoles.includes('AGENT')) return 'agent';
+    if (userRoles.includes(UserRole.SUPER_ADMIN)) return 'superadmin';
+    if (userRoles.includes(UserRole.ADMIN)) return 'admin';
+    if (userRoles.includes(UserRole.MANAGER)) return 'manager';
+    if (userRoles.includes(UserRole.AGENT)) return 'agent';
     return 'user';
   }, [userRoles]);
 

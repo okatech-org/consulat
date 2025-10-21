@@ -7,7 +7,7 @@ const prisma = new PrismaClient({
     'postgresql://neondb_owner:npg_iZ2rXwYGM1xh@ep-lingering-frost-a95p0p8l-pooler.gwc.azure.neon.tech/neondb?sslmode=require&channel_binding=require',
 });
 
-const userEmail: string | undefined = 'itoutouberny@gmail.com';
+const userEmail: string | undefined = undefined;
 
 interface ExportStats {
   entity: string;
@@ -423,11 +423,6 @@ async function exportUserParentalAuthorities() {
     orderBy: { createdAt: 'asc' },
     where: {
       ...(userEmail && { parentUser: { email: { equals: userEmail } } }),
-      profile: {
-        status: {
-          not: 'DRAFT',
-        },
-      },
     },
   });
 

@@ -484,11 +484,6 @@ export const getProfilesListEnriched = query({
       profiles = profiles.filter((p) => args.status!.includes(p.status));
     }
 
-    // Filter by category
-    if (args.category && args.category.length > 0) {
-      profiles = profiles.filter((p) => args.category!.includes(p.category));
-    }
-
     // Filter by gender
     if (args.gender && args.gender.length > 0) {
       profiles = profiles.filter((p) =>
@@ -503,7 +498,7 @@ export const getProfilesListEnriched = query({
         const firstName = p.personal?.firstName?.toLowerCase() || '';
         const lastName = p.personal?.lastName?.toLowerCase() || '';
         const cardNumber = p.consularCard?.cardNumber?.toLowerCase() || '';
-        const email = p.personal?.email?.toLowerCase() || '';
+        const email = p.contacts?.email?.toLowerCase() || '';
 
         return (
           firstName.includes(searchLower) ||
@@ -525,26 +520,21 @@ export const getProfilesListEnriched = query({
       cardNumber: profile.consularCard?.cardNumber || '',
       firstName: profile.personal?.firstName || '',
       lastName: profile.personal?.lastName || '',
-      email: profile.personal?.email || '',
+      email: profile.contacts?.email || '',
       gender: profile.personal?.gender || '',
-      category: profile.category,
       status: profile.status,
-      cardPin: profile.consularCard?.pin || '',
-      cardIssuedAt: profile.consularCard?.issuedAt
-        ? new Date(profile.consularCard.issuedAt).toLocaleDateString()
+      cardPin: profile.consularCard?.cardNumber || '',
+      cardIssuedAt: profile.consularCard?.cardIssuedAt
+        ? new Date(profile.consularCard.cardIssuedAt).toLocaleDateString()
         : '',
-      cardExpiresAt: profile.consularCard?.expiresAt
-        ? new Date(profile.consularCard.expiresAt).toLocaleDateString()
+      cardExpiresAt: profile.consularCard?.cardExpiresAt
+        ? new Date(profile.consularCard.cardExpiresAt).toLocaleDateString()
         : '',
       createdAt: new Date(profile._creationTime).toLocaleString(),
-      IDPictureUrl: profile.documents?.profilePhoto?.url || '',
-      IDPictureFileName: profile.documents?.profilePhoto?.fileName || '',
-      IDPicturePath: profile.documents?.profilePhoto?.path || '',
-      shareUrl: profile.shareUrl || '',
-      validationRequestId: profile.validationRequestId,
-      _count: {
-        documents: profile.documents ? Object.keys(profile.documents).length : 0,
-      },
+      IDPictureUrl: '',
+      IDPictureFileName: '',
+      IDPicturePath: '',
+      shareUrl: `/listing/profiles/${profile._id}`,
     }));
 
     return {

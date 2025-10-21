@@ -2,95 +2,99 @@ import { v } from 'convex/values';
 import { query } from '../_generated/server';
 
 export const getDashboardStats = query({
-  args: {
-    organizationId: v.optional(v.id('organizations')),
-    startDate: v.optional(v.number()),
-    endDate: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    const startDate = args.startDate || Date.now() - 30 * 24 * 60 * 60 * 1000;
-    const endDate = args.endDate || Date.now();
-
-    const allUsers = await ctx.db.query('users').collect();
-    const activeUsers = allUsers.filter((user) => user.status === 'active');
-
-    let requests = await ctx.db.query('requests').collect();
-    if (args.organizationId) {
-      const orgServices = await ctx.db
-        .query('services')
-        .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId!))
-        .collect();
-
-      const serviceIds = orgServices.map((service) => service._id);
-      requests = requests.filter((request) => serviceIds.includes(request.serviceId));
-    }
-
-    const requestsInPeriod = requests.filter(
-      (request) => request._creationTime >= startDate && request._creationTime <= endDate,
-    );
-
-    let appointments = await ctx.db.query('appointments').collect();
-    if (args.organizationId) {
-      appointments = appointments.filter(
-        (apt) => apt.organizationId === args.organizationId,
-      );
-    }
-
-    const appointmentsInPeriod = appointments.filter(
-      (appointment) => appointment.startAt >= startDate && appointment.startAt <= endDate,
-    );
-
-    const allDocuments = await ctx.db.query('documents').collect();
-    const documentsInPeriod = allDocuments.filter(
-      (document) =>
-        document._creationTime >= startDate && document._creationTime <= endDate,
-    );
-
-    const allNotifications = await ctx.db.query('notifications').collect();
-    const notificationsInPeriod = allNotifications.filter(
-      (notification) =>
-        notification._creationTime >= startDate && notification._creationTime <= endDate,
-    );
+  handler: async (ctx) => {
+    const [
+      totalCountries,
+      totalOrganizations,
+      totalServices,
+      totalUsers,
+      totalDocuments,
+      totalRequests,
+      totalTickets,
+      totalChildProfiles,
+      totalProfiles,
+      totalMemberships,
+    ] = await Promise.all([
+      ctx.db.query('countries').collect(),
+      ctx.db.query('organizations').collect(),
+      ctx.db.query('services').collect(),
+      ctx.db.query('users').collect(),
+      ctx.db.query('documents').collect(),
+      ctx.db.query('requests').collect(),
+      ctx.db.query('tickets').collect(),
+      ctx.db.query('childProfiles').collect(),
+      ctx.db.query('profiles').collect(),
+      ctx.db.query('memberships').collect(),
+    ]);
 
     return {
       users: {
-        total: allUsers.length,
-        active: activeUsers.length,
-        inactive: allUsers.length - activeUsers.length,
-      },
-      requests: {
-        total: requests.length,
-        inPeriod: requestsInPeriod.length,
-        byStatus: {
-          draft: requests.filter((r) => r.status === 'draft').length,
-          submitted: requests.filter((r) => r.status === 'submitted').length,
-          pending: requests.filter((r) => r.status === 'pending').length,
-          completed: requests.filter((r) => r.status === 'completed').length,
-        },
-      },
-      appointments: {
-        total: appointments.length,
-        inPeriod: appointmentsInPeriod.length,
-        byStatus: {
-          pending: appointments.filter((a) => a.status === 'pending').length,
-          confirmed: appointments.filter((a) => a.status === 'confirmed').length,
-          completed: appointments.filter((a) => a.status === 'completed').length,
-          cancelled: appointments.filter((a) => a.status === 'cancelled').length,
-        },
+        total: totalUsers.length,
+        active: totalUsers.length,
+        inactive: totalUsers.length,
       },
       documents: {
-        total: allDocuments.length,
-        inPeriod: documentsInPeriod.length,
+        total: totalDocuments.length,
         byStatus: {
-          pending: allDocuments.filter((d) => d.status === 'pending').length,
-          validated: allDocuments.filter((d) => d.status === 'validated').length,
-          rejected: allDocuments.filter((d) => d.status === 'rejected').length,
+          pending: totalDocuments.filter((d) => d.status === 'pending').length,
+          validated: totalDocuments.filter((d) => d.status === 'validated').length,
+          rejected: totalDocuments.filter((d) => d.status === 'rejected').length,
         },
       },
-      notifications: {
-        total: allNotifications.length,
-        inPeriod: notificationsInPeriod.length,
-        unread: allNotifications.filter((n) => !n.readAt).length,
+      services: {
+        total: totalServices.length,
+        byStatus: {
+          active: totalServices.filter((s) => s.status === 'active').length,
+          inactive: totalServices.filter((s) => s.status === 'inactive').length,
+        },
+      },
+      organizations: {
+        total: totalOrganizations.length,
+        byStatus: {
+          active: totalOrganizations.filter((o) => o.status === 'active').length,
+          inactive: totalOrganizations.filter((o) => o.status === 'inactive').length,
+        },
+      },
+      countries: {
+        total: totalCountries.length,
+        byStatus: {
+          active: totalCountries.filter((c) => c.status === 'active').length,
+          inactive: totalCountries.filter((c) => c.status === 'inactive').length,
+        },
+      },
+
+      tickets: {
+        total: totalTickets.length,
+      },
+      childProfiles: {
+        total: totalChildProfiles.length,
+        byStatus: {
+          active: totalChildProfiles.filter((c) => c.status === 'active').length,
+          inactive: totalChildProfiles.filter((c) => c.status === 'inactive').length,
+        },
+      },
+      profiles: {
+        total: totalProfiles.length,
+        byStatus: {
+          active: totalProfiles.filter((p) => p.status === 'active').length,
+          inactive: totalProfiles.filter((p) => p.status === 'inactive').length,
+        },
+      },
+      memberships: {
+        total: totalMemberships.length,
+        byStatus: {
+          active: totalMemberships.filter((m) => m.status === 'active').length,
+          inactive: totalMemberships.filter((m) => m.status === 'inactive').length,
+        },
+      },
+      requests: {
+        total: totalRequests.length,
+        byStatus: {
+          draft: totalRequests.filter((r) => r.status === 'draft').length,
+          submitted: totalRequests.filter((r) => r.status === 'submitted').length,
+          pending: totalRequests.filter((r) => r.status === 'pending').length,
+          completed: totalRequests.filter((r) => r.status === 'completed').length,
+        },
       },
     };
   },
