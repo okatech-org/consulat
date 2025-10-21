@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/table';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // Type pour définir les colonnes sticky
 export interface StickyColumn {
@@ -233,42 +234,74 @@ export function DataTable<TData, TValue>({
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                    onClick={() => {
-                      onRowClick?.(row);
-                    }}
+              <AnimatePresence mode="wait">
+                {isLoading ? (
+                  <motion.tr
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
                   >
-                    {row.getVisibleCells().map((cell) => {
-                      const columnId = cell.column.id;
-                      const stickyStyles = getStickyStyles(columnId);
-                      const sticky = isColumnSticky(columnId);
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      Loading data...
+                    </TableCell>
+                  </motion.tr>
+                ) : table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row, index) => (
+                    <motion.tr
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                      onClick={() => {
+                        onRowClick?.(row);
+                      }}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.15, delay: index * 0.02 }}
+                      className={cn(
+                        'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer',
+                      )}
+                    >
+                      {row.getVisibleCells().map((cell) => {
+                        const columnId = cell.column.id;
+                        const stickyStyles = getStickyStyles(columnId);
+                        const sticky = isColumnSticky(columnId);
 
-                      return (
-                        <TableCell
-                          key={cell.id}
-                          style={stickyStyles}
-                          className={cn(
-                            sticky && 'bg-background border-r border-border shadow-sm',
-                            sticky && 'z-10',
-                          )}
-                        >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    {t('no_data')}
-                  </TableCell>
-                </TableRow>
-              )}
+                        return (
+                          <motion.td
+                            key={cell.id}
+                            style={stickyStyles}
+                            className={cn(
+                              'px-4 py-2 text-sm',
+                              sticky && 'bg-background border-r border-border shadow-sm',
+                              sticky && 'z-10',
+                            )}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.15, delay: index * 0.02 }}
+                          >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </motion.td>
+                        );
+                      })}
+                    </motion.tr>
+                  ))
+                ) : (
+                  <motion.tr
+                    key="no-data"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      {t('no_data')}
+                    </TableCell>
+                  </motion.tr>
+                )}
+              </AnimatePresence>
             </TableBody>
           </Table>
         </div>

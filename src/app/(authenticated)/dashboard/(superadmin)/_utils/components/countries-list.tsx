@@ -85,13 +85,13 @@ export function CountriesList() {
     handleParamsChange,
     handleSortingChange,
     handlePaginationChange,
-  } = useTableSearchParams<CountryListingItem, CountryFilters>(adaptSearchParams);
+  } = useTableSearchParams<CountryListingItem[number], CountryFilters>(adaptSearchParams);
 
   const t = useTranslations('sa.countries');
   const t_common = useTranslations('common');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [country, setCountry] = useState<CountryListingItem | null>(null);
+  const [country, setCountry] = useState<CountryListingItem[number] | null>(null);
 
   const { countries, total, isLoading, deleteCountry } = useCountries({
     ...params,
@@ -411,7 +411,11 @@ export function CountriesList() {
       <ConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        onConfirm={() => handleDelete(country)}
+        onConfirm={() => {
+          if (country) {
+            handleDelete(country);
+          }
+        }}
         title={t('dialogs.delete.title')}
         description={t('dialogs.delete.description')}
         variant={'destructive'}
