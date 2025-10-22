@@ -65,7 +65,7 @@ export const updateUser = mutation({
     phoneNumber: v.optional(v.string()),
     roles: v.optional(v.array(userRoleValidator)),
     status: v.optional(userStatusValidator),
-    countryCode: v.optional(v.string()),
+    countryCode: v.optional(countryCodeValidator),
   },
   handler: async (ctx, args) => {
     const existingUser = await ctx.db.get(args.userId);
@@ -81,7 +81,6 @@ export const updateUser = mutation({
       roles: args.roles,
       status: args.status,
       countryCode: args.countryCode,
-      updatedAt: Date.now(),
     };
 
     if (args.email || args.phoneNumber) {
@@ -127,25 +126,22 @@ export const softDeleteUser = mutation({
 
 export const deleteUser = mutation({
   args: {
-    clerkUserId: v.string(),
+    userId: v.id('users'),
   },
   handler: async (ctx, args) => {
-    const { clerkUserId } = args;
+    const { userId } = args;
 
-    const user = await ctx.db
-      .query('users')
-      .withIndex('by_userId', (q) => q.eq('userId', clerkUserId))
-      .first();
+    const user = await ctx.db.get(userId);
 
-    if (user) {
-      await ctx.db.patch(user._id, {
-        status: UserStatus.Suspended,
-        deletedAt: Date.now(),
-      });
-      return true;
+    if (!user) {
+      throw new Error('user_not_found');
     }
 
-    return false;
+    await ctx.db.patch(userId, {
+      status: UserStatus.Suspended,
+      deletedAt: Date.now(),
+    });
+    return userId;
   },
 });
 
@@ -755,5 +751,158 @@ export const searchUsersByEmailOrPhone = query({
     );
 
     return usersWithProfiles;
+  },
+});
+
+export const getUserById = query({
+  args: { id: v.id('users') },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.id);
+    if (!user) {
+      return null;
+    }
+
+    // Get profile if exists
+    const profile = user.profileId ? await ctx.db.get(user.profileId) : null;
+
+    // Get country if countryCode exists
+    let country: Doc<'countries'> | null = null;
+    if (user.countryCode) {
+      const countryDoc = await ctx.db
+        .query('countries')
+        .withIndex('by_code', (q) => q.eq('code', user.countryCode!))
+        .first();
+      country = countryDoc || null;
+    }
+
+    // Get memberships for staff members
+    const memberships: Array<Doc<'memberships'>> = [];
+    let assignedOrganization: Doc<'organizations'> | null = null;
+    let managedOrganization: Doc<'organizations'> | null = null;
+
+    const staffRoles = [UserRole.Admin, UserRole.Manager, UserRole.Agent];
+    if (user.roles && user.roles.some((role) => staffRoles.includes(role))) {
+      const userMemberships = await ctx.db
+        .query('memberships')
+        .withIndex('by_user', (q) => q.eq('userId', user._id))
+        .collect();
+      memberships.push(...userMemberships);
+
+      // Get organization details
+      const orgDetailsPromises = memberships.map(async (membership) => ({
+        ...membership,
+        organization: await ctx.db.get(membership.organizationId),
+      }));
+
+      const membershipsWithOrgs = await Promise.all(orgDetailsPromises);
+
+      // Find assigned organization (where role includes admin/manager/agent)
+      const assignedMembership = membershipsWithOrgs.find((m) =>
+        staffRoles.includes(m.role),
+      );
+      if (assignedMembership?.organization) {
+        assignedOrganization = assignedMembership.organization;
+      }
+
+      // Find managed organization (where managerId is this user)
+      const managedMembership = membershipsWithOrgs.find((m) => m.managerId === user._id);
+      if (managedMembership?.organization) {
+        managedOrganization = managedMembership.organization;
+      }
+    }
+
+    // Get submitted requests (last 10)
+    const submittedRequests = await ctx.db
+      .query('requests')
+      .withIndex('by_requester', (q) => q.eq('requesterId', user._id))
+      .order('desc')
+      .take(10);
+
+    // Enrich submitted requests with service details
+    const enrichedSubmittedRequests = await Promise.all(
+      submittedRequests.map(async (request) => {
+        const service = await ctx.db.get(request.serviceId);
+        return {
+          ...request,
+          service,
+        };
+      }),
+    );
+
+    // Get assigned requests for staff (last 10)
+    const assignedRequestsList: any[] = [];
+    if (user.roles && user.roles.some((role) => staffRoles.includes(role))) {
+      // Find all requests assigned to this user's membership
+      const allRequests = await ctx.db.query('requests').collect();
+      const filteredAssignedRequests = allRequests
+        .filter(
+          (req) =>
+            req.assignedAgentId && memberships.some((m) => m._id === req.assignedAgentId),
+        )
+        .slice(-10)
+        .reverse();
+
+      // Enrich assigned requests with service details
+      const enrichedAssignedRequests = await Promise.all(
+        filteredAssignedRequests.map(async (request) => {
+          const service = await ctx.db.get(request.serviceId);
+          return {
+            ...request,
+            service,
+          };
+        }),
+      );
+      assignedRequestsList.push(...enrichedAssignedRequests);
+    }
+
+    // Count stats
+    const allUserRequests = await ctx.db
+      .query('requests')
+      .withIndex('by_requester', (q) => q.eq('requesterId', user._id))
+      .collect();
+    const submittedCount = allUserRequests.length;
+
+    let assignedCount = 0;
+    if (memberships.length > 0) {
+      const allRequests = await ctx.db.query('requests').collect();
+      assignedCount = allRequests.filter((req) =>
+        memberships.some((m) => m._id === req.assignedAgentId),
+      ).length;
+    }
+
+    // Count managed agents (for MANAGER role)
+    let managedAgentsCount = 0;
+    if (user.roles?.includes(UserRole.Manager)) {
+      const managedMemberships = await ctx.db.query('memberships').collect();
+      managedAgentsCount = managedMemberships.filter(
+        (m) => m.managerId === user._id,
+      ).length;
+    }
+
+    // Get child profiles (for users who are parents)
+    const childProfiles = await ctx.db
+      .query('childProfiles')
+      .withIndex('by_user', (q) => q.eq('authorUserId', user._id))
+      .collect();
+
+    return {
+      ...user,
+      id: user._id,
+      createdAt: user._creationTime,
+      updatedAt: user._creationTime,
+      name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Nom non défini',
+      country,
+      profile,
+      childProfiles,
+      assignedOrganization,
+      managedOrganization,
+      submittedRequests: enrichedSubmittedRequests,
+      assignedRequests: assignedRequestsList,
+      _count: {
+        submittedRequests: submittedCount,
+        assignedRequests: assignedCount,
+        managedAgents: managedAgentsCount,
+      },
+    };
   },
 });

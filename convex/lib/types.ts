@@ -127,3 +127,13 @@ export type MembershipWithOrganization = FunctionReturnType<
 export type OrganizationListSearchResult = FunctionReturnType<
   typeof api.functions.organization.getOrganizationsListEnriched
 >;
+
+export type UserListSearchResult = FunctionReturnType<
+  typeof api.functions.user.getUsersListEnriched
+>;
+export type UserListItem = UserListSearchResult['users'][number];
+
+export type RequestSearchResult = FunctionReturnType<
+  typeof api.functions.request.getRequestsListEnriched
+>;
+export type RequestListItem = RequestSearchResult['items'][number];

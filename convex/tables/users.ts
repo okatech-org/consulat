@@ -1,6 +1,6 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { userRoleValidator, userStatusValidator } from '../lib/validators';
+import { userRoleValidator, userStatusValidator, countryCodeValidator } from '../lib/validators';
 
 export const users = defineTable({
   userId: v.string(),
@@ -9,11 +9,14 @@ export const users = defineTable({
   lastName: v.optional(v.string()),
   email: v.optional(v.string()),
   phoneNumber: v.optional(v.string()),
+  emailVerified: v.optional(v.boolean()),
+  phoneNumberVerified: v.optional(v.boolean()),
 
   roles: v.array(userRoleValidator),
   status: userStatusValidator,
 
   profileId: v.optional(v.id('profiles')),
+  countryCode: v.optional(countryCodeValidator),
 
   deletedAt: v.optional(v.number()),
   lastActiveAt: v.optional(v.number()),

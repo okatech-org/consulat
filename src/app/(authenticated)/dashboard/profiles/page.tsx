@@ -69,7 +69,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { filterUneditedKeys, tryCatch } from '@/lib/utils';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions';
 import {
@@ -79,12 +78,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import type { CompleteProfileUpdateFormData } from '@/schemas/registration';
 import * as XLSX from 'xlsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useProfilesList, useUpdateProfileStatus } from '@/hooks/use-profiles';
+import { useRouter } from 'next/navigation';
+import type { Id } from '@/convex/_generated/dataModel';
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
   const params = {
@@ -115,6 +115,7 @@ function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
 }
 
 export default function ProfilesPage() {
+  const router = useRouter();
   const t = useTranslations();
   const { user } = useCurrentUser();
   const isIntelAgent = user?.roles?.includes(UserRole.SuperAdmin) === false;
@@ -497,7 +498,7 @@ export default function ProfilesPage() {
                     selectedRows={table
                       .getFilteredSelectedRowModel()
                       .flatRows.map((row) => row.original)}
-                    onSuccess={() => refetch()}
+                    onSuccess={() => router.refresh()}
                   />
                 ),
               },
@@ -507,7 +508,7 @@ export default function ProfilesPage() {
                     selectedRows={table
                       .getFilteredSelectedRowModel()
                       .flatRows.map((row) => row.original)}
-                    onSuccess={() => refetch()}
+                    onSuccess={() => router.refresh()}
                   />
                 ),
               },
@@ -539,7 +540,7 @@ export default function ProfilesPage() {
               </Tooltip>
             )}
             <ProfileLookupSheet
-              profileId={row.original.id}
+              profileId={row.original.id as Id<'profiles'>}
               icon={<Eye className="size-icon" />}
               tooltipContent="Aperçu du profil"
             />
@@ -562,7 +563,10 @@ export default function ProfilesPage() {
                 <DialogHeader>
                   <DialogTitle>{t('common.actions.edit')}</DialogTitle>
                 </DialogHeader>
-                <QuickEditForm profile={row.original} onSuccess={() => refetch()} />
+                <QuickEditForm
+                  profile={row.original}
+                  onSuccess={() => router.refresh()}
+                />
               </DialogContent>
             </Dialog>
           </div>
@@ -624,7 +628,7 @@ export default function ProfilesPage() {
 
   const columns = useMemo<ColumnDef<ProfilesArrayItem>[]>(
     () => generateColumns(),
-    [handleSortingChange, t, categories, statuses, genders, refetch, isIntelAgent],
+    [handleSortingChange, t, categories, statuses, genders, router, isIntelAgent],
   );
 
   const filters = useMemo<FilterOption<ProfilesArrayItem>[]>(
@@ -707,7 +711,7 @@ export default function ProfilesPage() {
           { id: 'id', position: 'left' },
           { id: 'actions', position: 'right' },
         ]}
-        onRefresh={() => refetch()}
+        onRefresh={() => router.refresh()}
       />
     </PageContainer>
   );

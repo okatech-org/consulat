@@ -641,8 +641,8 @@ export const getRequestsListEnriched = query({
       let bVal: any;
 
       if (sortBy === 'createdAt') {
-        aVal = a._creationTime;
-        bVal = b._creationTime;
+        aVal = a.metadata.submittedAt;
+        bVal = b.metadata.submittedAt;
       } else if (sortBy === 'status') {
         aVal = a.status;
         bVal = b.status;

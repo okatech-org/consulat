@@ -2,11 +2,22 @@
 
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
-import { useRequests, useUpdateRequestStatus, useAssignRequest, type RequestFilters } from '@/hooks/use-requests';
+import {
+  useRequests,
+  useUpdateRequestStatus,
+  useAssignRequest,
+  type RequestFilters,
+} from '@/hooks/use-requests';
 import { cn, useDateLocale } from '@/lib/utils';
 import { PageContainer } from '@/components/layouts/page-container';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import { RequestStatus, ServiceCategory, ServicePriority } from '@/convex/lib/constants';
+import {
+  RequestPriority,
+  RequestStatus,
+  ServiceCategory,
+  ServicePriority,
+  UserRole,
+} from '@/convex/lib/constants';
 
 // Imports pour le DataTable
 import type { ColumnDef } from '@tanstack/react-table';
@@ -18,7 +29,6 @@ import { DataTable } from '@/components/data-table/data-table';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { DialogClose } from '@/components/ui/dialog';
@@ -52,7 +62,8 @@ import {
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
-import type { Doc } from '@/convex/_generated/dataModel';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
+import { useRouter } from 'next/navigation';
 
 // Types pour les agents
 type Agent = {
@@ -76,16 +87,16 @@ function adaptSearchParams(searchParams: URLSearchParams): RequestFilters {
       | RequestStatus[]
       | undefined,
     priority: searchParams.get('priority')?.split(',').filter(Boolean) as
-      | ServicePriority[]
+      | RequestPriority[]
       | undefined,
     serviceCategory: searchParams.get('serviceCategory')?.split(',').filter(Boolean) as
       | ServiceCategory[]
       | undefined,
     organizationId: searchParams.get('organizationId')?.split(',').filter(Boolean) as
-      | string[]
+      | Id<'organizations'>[]
       | undefined,
     assignedToId: searchParams.get('assignedToId')?.split(',').filter(Boolean) as
-      | string[]
+      | Id<'memberships'>[]
       | undefined,
     search: searchParams.get('search') || undefined,
   };
@@ -107,6 +118,7 @@ type AssignToFormData = z.infer<typeof assignToSchema>;
 
 export default function RequestsPageClient() {
   const { user } = useCurrentUser();
+  const router = useRouter();
 
   const {
     params,
@@ -118,9 +130,10 @@ export default function RequestsPageClient() {
   } = useTableSearchParams<RequestListItem, RequestFilters>(adaptSearchParams);
 
   const t = useTranslations();
+
   const { formatDate } = useDateLocale();
 
-  const { requests, isLoading, refetch } = useRequests({
+  const { requests, total, isLoading } = useRequests({
     ...params,
     page: pagination.page,
     limit: pagination.limit,
@@ -184,31 +197,14 @@ export default function RequestsPageClient() {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <span className="uppercase">{row.original._id}</span> (cliquez pour copier)
+                <span className="uppercase">{row.original._id}</span> (cliquez pour
+                copier)
               </TooltipContent>
             </Tooltip>
           </label>
         ),
         enableSorting: false,
         enableHiding: false,
-      },
-      {
-        accessorKey: 'requester',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Photo" />,
-        enableSorting: false,
-        cell: ({ row }) => {
-          return (
-            <div className="flex items-center gap-2">
-              {row.original.requester?.profileImageUrl ? (
-                <Avatar className="bg-muted">
-                  <AvatarImage src={row.original.requester.profileImageUrl} />
-                </Avatar>
-              ) : (
-                '-'
-              )}
-            </div>
-          );
-        },
       },
       {
         accessorKey: 'requester.name',
@@ -232,7 +228,7 @@ export default function RequestsPageClient() {
           return (
             <div className="flex space-x-2">
               <span className="max-w-[500px] truncate font-medium">
-                {row.original.requester?.name}
+                {row.original.requester?.firstName} {row.original.requester?.lastName}
               </span>
             </div>
           );
@@ -274,7 +270,7 @@ export default function RequestsPageClient() {
             title={t('requests.table.submitted_at')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'createdAt',
+                field: '_creationTime',
                 order: direction,
               })
             }
@@ -374,7 +370,11 @@ export default function RequestsPageClient() {
           return (
             <div className="flex items-center">
               <Badge
-                variant={row.original.priority === 'URGENT' ? 'destructive' : 'outline'}
+                variant={
+                  row.original.priority === RequestPriority.Urgent
+                    ? 'destructive'
+                    : 'outline'
+                }
               >
                 {t(`inputs.priority.options.${row.original.priority}`)}
               </Badge>
@@ -388,7 +388,9 @@ export default function RequestsPageClient() {
     ];
 
     // Ajouter la colonne assignedTo si l'utilisateur est admin
-    const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']) : false;
+    const isAdmin = user
+      ? hasAnyRole(user, [UserRole.Admin, UserRole.Manager, UserRole.SuperAdmin])
+      : false;
     if (isAdmin) {
       tableColumns.push({
         accessorKey: 'assignedAgent',
@@ -429,7 +431,7 @@ export default function RequestsPageClient() {
                     .getFilteredSelectedRowModel()
                     .flatRows.map((row) => row.original)}
                   onSuccess={() => {
-                    refetch();
+                    router.refresh();
                   }}
                 />
               ),
@@ -442,7 +444,7 @@ export default function RequestsPageClient() {
                     .flatRows.map((row) => row.original)}
                   agents={agents}
                   onSuccess={() => {
-                    refetch();
+                    router.refresh();
                   }}
                 />
               ),
@@ -459,7 +461,7 @@ export default function RequestsPageClient() {
                   buttonVariants({ variant: 'ghost', size: 'icon' }) +
                   ' aspect-square p-0'
                 }
-                href={ROUTES.dashboard.service_requests(row.original.id)}
+                href={ROUTES.dashboard.service_requests(row.original._id)}
               >
                 <FileText className="size-icon" />
                 <span className="sr-only">{t('common.actions.consult')}</span>
@@ -471,7 +473,7 @@ export default function RequestsPageClient() {
           </Tooltip>
 
           <ProfileLookupSheet
-            profileId={row.original.requester?._id}
+            profileId={row.original.requester?.profileId}
             icon={<Eye className="size-icon" />}
             tooltipContent="Aperçu du profil"
           />
@@ -480,11 +482,13 @@ export default function RequestsPageClient() {
     });
 
     return tableColumns;
-  }, [t, user, formatDate, statuses, handleSortingChange, agents, refetch]);
+  }, [t, user, formatDate, statuses, handleSortingChange, agents]);
 
   // Définition des filtres
   const filters = useMemo<FilterOption<RequestListItem>[]>(() => {
-    const isAdmin = user ? hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN']) : false;
+    const isAdmin = user
+      ? hasAnyRole(user, [UserRole.Admin, UserRole.Manager, UserRole.SuperAdmin])
+      : false;
 
     const filterOptions: FilterOption<RequestListItem>[] = [
       {
@@ -505,7 +509,7 @@ export default function RequestsPageClient() {
         })),
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange('serviceCategory', value);
+            handleParamsChange('serviceCategory', value as ServiceCategory[]);
           }
         },
       },
@@ -517,7 +521,7 @@ export default function RequestsPageClient() {
         options: statuses,
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange('status', value);
+            handleParamsChange('status', value as RequestStatus[]);
           }
         },
       },
@@ -532,7 +536,7 @@ export default function RequestsPageClient() {
         })),
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange('priority', value);
+            handleParamsChange('priority', value as RequestPriority[]);
           }
         },
       },
@@ -551,7 +555,7 @@ export default function RequestsPageClient() {
         })),
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange('assignedToId', value);
+            handleParamsChange('assignedToId', value as Id<'memberships'>[]);
           }
         },
       });
@@ -564,7 +568,11 @@ export default function RequestsPageClient() {
     return null;
   }
 
-  const hiddenColumns = hasAnyRole(user, ['ADMIN', 'MANAGER', 'SUPER_ADMIN'])
+  const hiddenColumns = hasAnyRole(user, [
+    UserRole.Admin,
+    UserRole.Manager,
+    UserRole.SuperAdmin,
+  ])
     ? ['priority']
     : ['priority', 'assignedTo'];
 
@@ -618,11 +626,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
     setIsSubmitting(true);
     try {
       // Mise à jour en parallèle de toutes les demandes sélectionnées
-      await Promise.all(
-        selectedRows.map((row) =>
-          updateStatus(row._id, data.status),
-        ),
-      );
+      await Promise.all(selectedRows.map((row) => updateStatus(row._id, data.status)));
 
       toast.success(
         t('common.success.bulk_update_success', {
@@ -720,9 +724,7 @@ function AssignToChangeForm({
     try {
       // Assignation en parallèle de toutes les demandes sélectionnées
       await Promise.all(
-        selectedRows.map((row) =>
-          assignRequest(row._id, data.assignedToId as any),
-        ),
+        selectedRows.map((row) => assignRequest(row._id, data.assignedToId as any)),
       );
 
       toast.success(

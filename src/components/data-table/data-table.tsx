@@ -241,10 +241,10 @@ export function DataTable<TData, TValue>({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
+                    transition={{ duration: 0.05 }}
                   >
                     <TableCell colSpan={columns.length} className="h-24 text-center">
-                      Loading data...
+                      Chargement des données...
                     </TableCell>
                   </motion.tr>
                 ) : table.getRowModel().rows?.length ? (
@@ -259,7 +259,7 @@ export function DataTable<TData, TValue>({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.15, delay: index * 0.02 }}
+                      transition={{ duration: 0.1, delay: index * 0.02 }}
                       className={cn(
                         'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer',
                       )}
@@ -280,7 +280,7 @@ export function DataTable<TData, TValue>({
                             )}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            transition={{ duration: 0.15, delay: index * 0.02 }}
+                            transition={{ duration: 0.1, delay: index * 0.02 }}
                           >
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </motion.td>
@@ -294,7 +294,7 @@ export function DataTable<TData, TValue>({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
+                    transition={{ duration: 0.1 }}
                   >
                     <TableCell colSpan={columns.length} className="h-24 text-center">
                       {t('no_data')}

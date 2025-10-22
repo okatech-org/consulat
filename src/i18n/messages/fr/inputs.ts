@@ -68,6 +68,7 @@ export default {
       medium: 'Moyenne',
       high: 'Élevée',
       urgent: 'Urgent',
+      normal: 'Normal',
     },
   },
   organization: {
@@ -698,6 +699,7 @@ export default {
       inactive: 'Inactif',
       pending: 'En attente',
       suspended: 'Suspendu',
+      draft: 'Brouillon',
     },
   },
   requestStatus: {
@@ -715,6 +717,9 @@ export default {
       appointment_scheduled: 'RDV programmé',
       completed: 'Terminé',
       edited: 'Modifiée',
+      cancelled: 'Annulée',
+      under_review: 'En cours de révision',
+      in_production: 'En production',
     },
   },
   userDocument: {

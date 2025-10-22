@@ -4,15 +4,15 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
 import type { Id } from '@/convex/_generated/dataModel';
-import { UserRole, UserStatus } from '@/convex/lib/constants';
+import { CountryCode, UserRole, UserStatus } from '@/convex/lib/constants';
 
 // Types pour les filtres d'utilisateurs
 export interface UsersFilters {
   search?: string;
-  roles?: string[];
-  status?: string;
-  countryCode?: string[];
-  organizationId?: string[];
+  roles?: UserRole[];
+  status?: UserStatus;
+  countryCode?: CountryCode[];
+  organizationId?: Id<'organizations'>[];
   hasProfile?: boolean;
   page?: number;
   limit?: number;
@@ -64,7 +64,7 @@ export function useUsers(filters: UsersFilters = {}) {
 
       toast.success('Utilisateur créé avec succès');
     } catch (error) {
-      toast.error('Erreur lors de la création de l\'utilisateur');
+      toast.error("Erreur lors de la création de l'utilisateur");
       throw error;
     }
   };
@@ -96,7 +96,7 @@ export function useUsers(filters: UsersFilters = {}) {
 
       toast.success('Utilisateur mis à jour avec succès');
     } catch (error) {
-      toast.error('Erreur lors de la mise à jour de l\'utilisateur');
+      toast.error("Erreur lors de la mise à jour de l'utilisateur");
       throw error;
     }
   };
@@ -109,7 +109,7 @@ export function useUsers(filters: UsersFilters = {}) {
       await deleteMutation({ userId });
       toast.success('Utilisateur supprimé avec succès');
     } catch (error) {
-      toast.error('Erreur lors de la suppression de l\'utilisateur');
+      toast.error("Erreur lors de la suppression de l'utilisateur");
       throw error;
     }
   };
@@ -170,7 +170,7 @@ export function useUser(userId: Id<'users'>) {
 
       toast.success('Utilisateur mis à jour avec succès');
     } catch (error) {
-      toast.error('Erreur lors de la mise à jour de l\'utilisateur');
+      toast.error("Erreur lors de la mise à jour de l'utilisateur");
       throw error;
     }
   };

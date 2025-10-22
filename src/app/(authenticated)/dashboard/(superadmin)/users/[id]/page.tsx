@@ -2,7 +2,8 @@
 
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { PageContainer } from '@/components/layouts/page-container';
 import CardContainer from '@/components/layouts/card-container';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
@@ -30,18 +31,16 @@ import { useDateLocale } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
 import { SendMessageDialog } from './_components/send-message-dialog';
+import type { Id } from '@/convex/_generated/dataModel';
 
 export default function UserDetailsPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: Id<'users'> }>();
   const t = useTranslations('sa.users');
 
   const { formatDate } = useDateLocale();
 
-  const {
-    data: user,
-    isLoading,
-    error,
-  } = api.user.getById.useQuery({ id }, { enabled: !!id });
+  const user = useQuery(api.functions.user.getUserById, id ? { id } : 'skip');
+  const isLoading = user === undefined;
 
   if (isLoading) {
     return (
@@ -53,7 +52,7 @@ export default function UserDetailsPage() {
     );
   }
 
-  if (error || !user) {
+  if (!user) {
     return (
       <PageContainer title="Utilisateur non trouvé">
         <CardContainer>
@@ -65,13 +64,13 @@ export default function UserDetailsPage() {
 
   const getRoleVariant = (role: string) => {
     switch (role) {
-      case 'SUPER_ADMIN':
+      case 'super_admin':
         return 'destructive';
-      case 'ADMIN':
+      case 'admin':
         return 'default';
-      case 'MANAGER':
+      case 'manager':
         return 'secondary';
-      case 'AGENT':
+      case 'agent':
         return 'outline';
       default:
         return 'warning';
@@ -89,9 +88,9 @@ export default function UserDetailsPage() {
   };
 
   const isStaffMember = user.roles?.some((role) =>
-    ['ADMIN', 'MANAGER', 'AGENT'].includes(role),
+    ['admin', 'manager', 'agent'].includes(role as string),
   );
-  const isUser = user.roles?.includes('USER');
+  const isUser = user.roles?.includes('user' as any);
 
   return (
     <PageContainer title={user.name || 'Utilisateur sans nom'}>
@@ -113,19 +112,19 @@ export default function UserDetailsPage() {
                     <h2 className="text-2xl font-bold">
                       {user.name || 'Nom non défini'}
                     </h2>
-                    <Badge variant={getRoleVariant(user.roles?.[0] || 'USER')}>
+                    <Badge variant={getRoleVariant(user.roles?.[0] || 'user')}>
                       {t(
-                        `form.role.options.${(user.roles?.[0] || 'USER').toLowerCase()}`,
+                        `form.role.options.${user.roles?.[0] || 'user'}`,
                       )}
                     </Badge>
                   </div>
 
                   <SendMessageDialog
                     user={{
-                      id: user.id,
+                      id: user._id,
                       name: user.name,
-                      email: user.email,
-                      phoneNumber: user.phoneNumber,
+                      email: (user.email ?? null) as string | null,
+                      phoneNumber: (user.phoneNumber ?? null) as string | null,
                     }}
                   />
                 </div>
@@ -157,7 +156,7 @@ export default function UserDetailsPage() {
 
                   <div className="flex items-center space-x-1">
                     <Calendar className="h-4 w-4" />
-                    <span>Créé le {formatDate(user.createdAt, 'dd/MM/yyyy')}</span>
+                    <span>Créé le {formatDate(new Date(user._creationTime), 'dd/MM/yyyy')}</span>
                   </div>
                 </div>
               </div>
@@ -170,6 +169,9 @@ export default function UserDetailsPage() {
             <TabsTrigger value="general">Informations générales</TabsTrigger>
             {isUser && user.profile && (
               <TabsTrigger value="profile">Profil consulaire</TabsTrigger>
+            )}
+            {isUser && user.childProfiles.length > 0 && (
+              <TabsTrigger value="childProfiles">Enfants ({user.childProfiles.length})</TabsTrigger>
             )}
             {(isUser || isStaffMember) && (
               <TabsTrigger value="requests">Demandes</TabsTrigger>
@@ -258,9 +260,9 @@ export default function UserDetailsPage() {
                       Rôle principal
                     </label>
                     <p className="mt-1">
-                      <Badge variant={getRoleVariant(user.roles?.[0] || 'USER')}>
+                      <Badge variant={getRoleVariant(user.roles?.[0] || 'user')}>
                         {t(
-                          `form.role.options.${(user.roles?.[0] || 'USER').toLowerCase()}`,
+                          `form.role.options.${user.roles?.[0] || 'user'}`,
                         )}
                       </Badge>
                     </p>
@@ -273,7 +275,7 @@ export default function UserDetailsPage() {
                     <div className="mt-1 flex flex-wrap gap-1">
                       {user.roles.map((role) => (
                         <Badge key={role} variant="outline" className="text-xs">
-                          {t(`form.role.options.${role.toLowerCase()}`)}
+                          {t(`form.role.options.${role}`)}
                         </Badge>
                       ))}
                     </div>
@@ -284,7 +286,7 @@ export default function UserDetailsPage() {
                       Créé le
                     </label>
                     <p className="mt-1">
-                      {formatDate(user.createdAt, 'dd/MM/yyyy HH:mm')}
+                      {formatDate(new Date(user._creationTime), 'dd/MM/yyyy HH:mm')}
                     </p>
                   </div>
 
@@ -293,7 +295,7 @@ export default function UserDetailsPage() {
                       Dernière modification
                     </label>
                     <p className="mt-1">
-                      {formatDate(user.updatedAt, 'dd/MM/yyyy HH:mm')}
+                      {formatDate(new Date(user._creationTime), 'dd/MM/yyyy HH:mm')}
                     </p>
                   </div>
                 </CardContent>
@@ -312,7 +314,7 @@ export default function UserDetailsPage() {
                       <span>Profil consulaire</span>
                     </div>
                     <ProfileLookupSheet
-                      profileId={user.profile.id}
+                      profileId={user.profile._id}
                       triggerLabel="Voir le profil complet"
                       triggerVariant="outline"
                     />
@@ -325,8 +327,8 @@ export default function UserDetailsPage() {
                         Nom complet
                       </label>
                       <p className="mt-1">
-                        {user.profile.firstName && user.profile.lastName
-                          ? `${user.profile.firstName} ${user.profile.lastName}`
+                        {user.profile.personal?.firstName && user.profile.personal?.lastName
+                          ? `${user.profile.personal.firstName} ${user.profile.personal.lastName}`
                           : '-'}
                       </p>
                     </div>
@@ -338,7 +340,7 @@ export default function UserDetailsPage() {
                       <p className="mt-1">
                         <Badge
                           variant={
-                            user.profile.status === 'VALIDATED' ? 'default' : 'warning'
+                            user.profile.status === 'active' ? 'default' : 'warning'
                           }
                         >
                           {user.profile.status}
@@ -346,39 +348,139 @@ export default function UserDetailsPage() {
                       </p>
                     </div>
 
-                    {user.profile.cardNumber && (
+                    {user.profile.consularCard?.cardNumber && (
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           Numéro de carte
                         </label>
-                        <p className="mt-1 font-mono">{user.profile.cardNumber}</p>
+                        <p className="mt-1 font-mono">{user.profile.consularCard.cardNumber}</p>
                       </div>
                     )}
 
-                    {user.profile.cardIssuedAt && (
+                    {user.profile.consularCard?.cardIssuedAt && (
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           Carte émise le
                         </label>
                         <p className="mt-1">
-                          {formatDate(user.profile.cardIssuedAt, 'dd/MM/yyyy')}
+                          {formatDate(new Date(user.profile.consularCard.cardIssuedAt), 'dd/MM/yyyy')}
                         </p>
                       </div>
                     )}
 
-                    {user.profile.cardExpiresAt && (
+                    {user.profile.consularCard?.cardExpiresAt && (
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           Carte expire le
                         </label>
                         <p className="mt-1">
-                          {formatDate(user.profile.cardExpiresAt, 'dd/MM/yyyy')}
+                          {formatDate(new Date(user.profile.consularCard.cardExpiresAt), 'dd/MM/yyyy')}
                         </p>
                       </div>
                     )}
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+          )}
+
+          {/* Onglet Enfants (Profils des enfants) */}
+          {isUser && user.childProfiles.length > 0 && (
+            <TabsContent value="childProfiles">
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  {user.childProfiles.map((childProfile) => (
+                    <Card key={childProfile._id}>
+                      <CardHeader>
+                        <CardTitle className="text-base flex items-center justify-between">
+                          <span>
+                            {childProfile.personal?.firstName} {childProfile.personal?.lastName}
+                          </span>
+                          <Badge
+                            variant={
+                              childProfile.status === 'active' ? 'default' : 'warning'
+                            }
+                          >
+                            {childProfile.status}
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {childProfile.personal?.birthDate && (
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Date de naissance
+                            </label>
+                            <p className="mt-1">
+                              {formatDate(new Date(childProfile.personal.birthDate), 'dd/MM/yyyy')}
+                            </p>
+                          </div>
+                        )}
+
+                        {childProfile.personal?.birthPlace && (
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Lieu de naissance
+                            </label>
+                            <p className="mt-1">{childProfile.personal.birthPlace}</p>
+                          </div>
+                        )}
+
+                        {childProfile.personal?.gender && (
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Genre
+                            </label>
+                            <p className="mt-1 capitalize">{childProfile.personal.gender}</p>
+                          </div>
+                        )}
+
+                        {childProfile.consularCard?.cardNumber && (
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Numéro de carte consulaire
+                            </label>
+                            <p className="mt-1 font-mono">{childProfile.consularCard.cardNumber}</p>
+                          </div>
+                        )}
+
+                        {childProfile.consularCard?.cardIssuedAt && (
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Carte émise le
+                            </label>
+                            <p className="mt-1">
+                              {formatDate(new Date(childProfile.consularCard.cardIssuedAt), 'dd/MM/yyyy')}
+                            </p>
+                          </div>
+                        )}
+
+                        {childProfile.consularCard?.cardExpiresAt && (
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Carte expire le
+                            </label>
+                            <p className="mt-1">
+                              {formatDate(new Date(childProfile.consularCard.cardExpiresAt), 'dd/MM/yyyy')}
+                            </p>
+                          </div>
+                        )}
+
+                        {childProfile.parents && childProfile.parents.length > 0 && (
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Parent/Responsable
+                            </label>
+                            <p className="mt-1 text-sm">
+                              {(childProfile.parents?.[0]?.role as string) || 'Non spécifié'}
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             </TabsContent>
           )}
 
@@ -422,7 +524,7 @@ export default function UserDetailsPage() {
                     </Card>
                   )}
 
-                  {user.roles?.includes('MANAGER') && (
+                  {user.roles?.includes('manager' as any) && (
                     <Card>
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-2">
@@ -449,21 +551,21 @@ export default function UserDetailsPage() {
                       <div className="space-y-3">
                         {user.submittedRequests.map((request) => (
                           <div
-                            key={request.id}
+                            key={request._id}
                             className="flex items-center justify-between p-3 border rounded-lg"
                           >
                             <div className="space-y-1">
-                              <p className="font-medium">{request.service.name}</p>
+                              <p className="font-medium">{request.service?.name}</p>
                               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                <span>{request.serviceCategory}</span>
+                                <span>{request.priority}</span>
                                 <span>•</span>
-                                <span>{formatDate(request.createdAt, 'dd/MM/yyyy')}</span>
+                                <span>{formatDate(new Date(request.metadata?.submittedAt || request._creationTime), 'dd/MM/yyyy')}</span>
                               </div>
                             </div>
                             <div className="flex items-center space-x-2">
                               <Badge
                                 variant={
-                                  request.priority === 'URGENT'
+                                  request.priority === 'urgent'
                                     ? 'destructive'
                                     : 'outline'
                                 }
@@ -472,7 +574,7 @@ export default function UserDetailsPage() {
                               </Badge>
                               <Badge variant="outline">{request.status}</Badge>
                               <Link
-                                href={ROUTES.dashboard.service_requests(request.id)}
+                                href={ROUTES.dashboard.service_requests(request._id)}
                                 className={buttonVariants({
                                   variant: 'ghost',
                                   size: 'sm',
@@ -498,21 +600,21 @@ export default function UserDetailsPage() {
                       <div className="space-y-3">
                         {user.assignedRequests.map((request) => (
                           <div
-                            key={request.id}
+                            key={request._id}
                             className="flex items-center justify-between p-3 border rounded-lg"
                           >
                             <div className="space-y-1">
-                              <p className="font-medium">{request.service.name}</p>
+                              <p className="font-medium">{request.service?.name}</p>
                               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                <span>{request.serviceCategory}</span>
+                                <span>{request.priority}</span>
                                 <span>•</span>
-                                <span>{formatDate(request.createdAt, 'dd/MM/yyyy')}</span>
+                                <span>{formatDate(new Date(request.metadata?.submittedAt || request._creationTime), 'dd/MM/yyyy')}</span>
                               </div>
                             </div>
                             <div className="flex items-center space-x-2">
                               <Badge
                                 variant={
-                                  request.priority === 'URGENT'
+                                  request.priority === 'urgent'
                                     ? 'destructive'
                                     : 'outline'
                                 }
@@ -521,7 +623,7 @@ export default function UserDetailsPage() {
                               </Badge>
                               <Badge variant="outline">{request.status}</Badge>
                               <Link
-                                href={ROUTES.dashboard.service_requests(request.id)}
+                                href={ROUTES.dashboard.service_requests(request._id)}
                                 className={buttonVariants({
                                   variant: 'ghost',
                                   size: 'sm',
@@ -581,7 +683,7 @@ export default function UserDetailsPage() {
                           <p className="mt-1">
                             <Badge
                               variant={
-                                user.assignedOrganization.status === 'ACTIVE'
+                                user.assignedOrganization.status === 'active'
                                   ? 'default'
                                   : 'warning'
                               }
@@ -592,7 +694,7 @@ export default function UserDetailsPage() {
                         </div>
 
                         <Link
-                          href={ROUTES.sa.edit_organization(user.assignedOrganization.id)}
+                          href={ROUTES.sa.edit_organization(user.assignedOrganization._id)}
                           className={buttonVariants({ variant: 'outline' })}
                         >
                           Voir l&apos;organisation
@@ -639,7 +741,7 @@ export default function UserDetailsPage() {
                           <p className="mt-1">
                             <Badge
                               variant={
-                                user.managedOrganization.status === 'ACTIVE'
+                                user.managedOrganization.status === 'active'
                                   ? 'default'
                                   : 'warning'
                               }
@@ -650,7 +752,7 @@ export default function UserDetailsPage() {
                         </div>
 
                         <Link
-                          href={ROUTES.sa.edit_organization(user.managedOrganization.id)}
+                          href={ROUTES.sa.edit_organization(user.managedOrganization._id)}
                           className={buttonVariants({ variant: 'outline' })}
                         >
                           Gérer l&apos;organisation

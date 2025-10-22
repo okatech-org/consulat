@@ -16,35 +16,26 @@ import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { useDateLocale } from '@/lib/utils';
-import { UserRole } from '@/convex/lib/constants';
+import { CountryCode, UserRole } from '@/convex/lib/constants';
 import { useUsers, type UsersFilters } from '@/hooks/use-users';
-import type { Id } from '@/convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-
-// User list item interface
-interface UserListItem {
-  _id: Id<'users'>;
-  id: string;
-  name: string;
-  email?: string;
-  roles: string[];
-  hasProfile: boolean;
-  profile: any;
-  organizations: any[];
-  assignedCountries: string[];
-  membershipCount: number;
-  _creationTime: number;
-}
+import type { UserListItem } from '@/convex/lib/types';
+import type { Id } from '@/convex/_generated/dataModel';
 
 // Function to adapt search parameters for users
 function adaptSearchParams(searchParams: URLSearchParams): UsersFilters {
   return {
     search: searchParams.get('search') || undefined,
-    roles: searchParams.get('roles')?.split(',').filter(Boolean),
-    countryCode: searchParams.get('countryCode')?.split(',').filter(Boolean) || undefined,
-    organizationId:
-      searchParams.get('organizationId')?.split(',').filter(Boolean) || undefined,
+    roles: searchParams.get('roles')?.split(',').filter(Boolean) as
+      | UserRole[]
+      | undefined,
+    countryCode: searchParams.get('countryCode')?.split(',').filter(Boolean) as
+      | CountryCode[]
+      | undefined,
+    organizationId: searchParams.get('organizationId')?.split(',').filter(Boolean) as
+      | Id<'organizations'>[]
+      | undefined,
     hasProfile: searchParams.get('hasProfile')
       ? searchParams.get('hasProfile') === 'true'
       : undefined,
@@ -107,17 +98,18 @@ export function UsersList() {
                 <button
                   className="text-muted-foreground hover:text-foreground"
                   onClick={() => {
-                    navigator.clipboard.writeText(row.original.id);
+                    navigator.clipboard.writeText(row.original._id);
                     toast.success('ID copié dans le presse-papiers');
                   }}
                 >
                   <span className="uppercase text-xs">
-                    {row.original.id.slice(0, 6)}...
+                    {row.original._id.slice(0, 6)}...
                   </span>
                 </button>
               </TooltipTrigger>
               <TooltipContent>
-                <span className="uppercase">{row.original.id}</span> (cliquez pour copier)
+                <span className="uppercase">{row.original._id}</span> (cliquez pour
+                copier)
               </TooltipContent>
             </Tooltip>
           </div>
@@ -337,7 +329,7 @@ export function UsersList() {
         defaultValue: params.roles || [],
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange('roles', value);
+            handleParamsChange('roles', value as unknown as UserRole[]);
           }
         },
       },
@@ -352,7 +344,7 @@ export function UsersList() {
         defaultValue: params.countryCode || [],
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange('countryCode', value);
+            handleParamsChange('countryCode', value as unknown as CountryCode[]);
           }
         },
       },
@@ -367,7 +359,10 @@ export function UsersList() {
         defaultValue: params.organizationId || [],
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange('organizationId', value);
+            handleParamsChange(
+              'organizationId',
+              value as unknown as Id<'organizations'>[],
+            );
           }
         },
       },
@@ -412,18 +407,20 @@ export function UsersList() {
           {stats.withoutProfile} sans profil
         </div>
       )}
-      <DataTable
-        isLoading={isLoading}
-        columns={columns}
-        data={users}
-        filters={filters}
-        totalCount={total}
-        pageIndex={pagination.page - 1}
-        pageSize={pagination.limit}
-        onPageChange={(page) => handlePaginationChange('page', page + 1)}
-        onLimitChange={(limit) => handlePaginationChange('limit', limit)}
-        activeSorting={sorting.field ? [sorting.field, sorting.order] : undefined}
-      />
+      <div className="min-h-full">
+        <DataTable
+          isLoading={isLoading}
+          columns={columns}
+          data={users}
+          filters={filters}
+          totalCount={total}
+          pageIndex={pagination.page - 1}
+          pageSize={pagination.limit}
+          onPageChange={(page) => handlePaginationChange('page', page + 1)}
+          onLimitChange={(limit) => handlePaginationChange('limit', limit)}
+          activeSorting={sorting.field ? [sorting.field, sorting.order] : undefined}
+        />
+      </div>
     </>
   );
 }

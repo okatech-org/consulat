@@ -51,12 +51,12 @@ export function ProfileLookupSheet({
 
   const fetchedProfile = useQuery(
     api.functions.profile.getCurrentProfile,
-    profileId ? { profileId } : 'skip',
+    profileId && open ? { profileId } : 'skip',
   );
 
   const fetchedChildProfile = useQuery(
     api.functions.childProfile.getCurrentChildProfile,
-    childProfileId ? { childProfileId } : 'skip',
+    childProfileId && open ? { childProfileId } : 'skip',
   );
 
   const getTriggerButton = () => {

@@ -4,15 +4,20 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
 import type { Id } from '@/convex/_generated/dataModel';
+import type {
+  RequestStatus,
+  ServiceCategory,
+  RequestPriority,
+} from '@/convex/lib/constants';
 
 // Types pour les filtres
 export interface RequestFilters {
   search?: string;
-  status?: string[];
-  priority?: string[];
-  serviceCategory?: string[];
-  assignedToId?: string[];
-  organizationId?: string[];
+  status?: RequestStatus[];
+  priority?: RequestPriority[];
+  serviceCategory?: ServiceCategory[];
+  assignedToId?: Id<'memberships'>[];
+  organizationId?: Id<'organizations'>[];
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -25,12 +30,11 @@ export interface RequestFilters {
 export function useRequests(filters?: RequestFilters) {
   const requestsData = useQuery(api.functions.request.getRequestsListEnriched, {
     search: filters?.search,
-    status: (filters?.status as any) || undefined,
-    priority: (filters?.priority as any) || undefined,
+    status: filters?.status || undefined,
+    priority: filters?.priority || undefined,
     serviceCategory: filters?.serviceCategory,
-    assignedToId: (filters?.assignedToId as Id<'memberships'>[]) || undefined,
-    organizationId:
-      (filters?.organizationId as Id<'organizations'>[]) || undefined,
+    assignedToId: filters?.assignedToId || undefined,
+    organizationId: filters?.organizationId || undefined,
     page: filters?.page || 1,
     limit: filters?.limit || 10,
     sortBy: filters?.sortBy || 'createdAt',
@@ -66,18 +70,13 @@ export function useRequest(requestId: Id<'requests'>) {
  * Hook pour mettre à jour le statut d'une demande
  */
 export function useUpdateRequestStatus() {
-  const updateStatusMutation = useMutation(
-    api.functions.request.updateRequestStatus,
-  );
+  const updateStatusMutation = useMutation(api.functions.request.updateRequestStatus);
 
-  const updateStatus = async (
-    requestId: Id<'requests'>,
-    status: string,
-  ) => {
+  const updateStatus = async (requestId: Id<'requests'>, status: RequestStatus) => {
     try {
       await updateStatusMutation({
         requestId,
-        status: status as any,
+        status,
       });
       toast.success('Statut mis à jour avec succès');
     } catch (error) {
@@ -96,14 +95,9 @@ export function useUpdateRequestStatus() {
  * Hook pour assigner une demande
  */
 export function useAssignRequest() {
-  const assignMutation = useMutation(
-    api.functions.request.assignRequestToAgent,
-  );
+  const assignMutation = useMutation(api.functions.request.assignRequestToAgent);
 
-  const assignRequest = async (
-    requestId: Id<'requests'>,
-    agentId: Id<'memberships'>,
-  ) => {
+  const assignRequest = async (requestId: Id<'requests'>, agentId: Id<'memberships'>) => {
     try {
       await assignMutation({
         requestId,
@@ -111,7 +105,7 @@ export function useAssignRequest() {
       });
       toast.success('Demande assignée avec succès');
     } catch (error) {
-      toast.error('Erreur lors de l\'assignation');
+      toast.error("Erreur lors de l'assignation");
       throw error;
     }
   };
@@ -119,52 +113,5 @@ export function useAssignRequest() {
   return {
     assignRequest,
     isAssigning: false,
-  };
-}
-
-/**
- * Hook pour récupérer les demandes d'un utilisateur
- */
-export function useUserRequests(userId: Id<'users'>) {
-  const requests = useQuery(api.functions.request.getUserRequests, {
-    userId,
-  });
-
-  return {
-    requests: requests ?? [],
-    isLoading: requests === undefined,
-    error: null,
-  };
-}
-
-/**
- * Hook pour les demandes récentes
- */
-export function useRecentRequests(userId: Id<'users'>, limit?: number) {
-  const requests = useQuery(api.functions.request.getRecentRequests, {
-    userId,
-    limit,
-  });
-
-  return {
-    requests: requests ?? [],
-    isLoading: requests === undefined,
-    error: null,
-  };
-}
-
-/**
- * Hook pour rechercher des demandes
- */
-export function useSearchRequests(searchTerm: string, status?: string) {
-  const results = useQuery(api.functions.request.searchRequests, {
-    searchTerm: searchTerm || '',
-    status: (status as any) || undefined,
-  });
-
-  return {
-    results: results ?? [],
-    isLoading: results === undefined,
-    error: null,
   };
 }

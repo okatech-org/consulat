@@ -62,7 +62,6 @@ export const requests = defineTable({
     submittedAt: v.optional(v.number()),
     completedAt: v.optional(v.number()),
     assignedAt: v.optional(v.number()),
-    // Traçabilité et actions
     activities: v.array(activityValidator),
   }),
 })
