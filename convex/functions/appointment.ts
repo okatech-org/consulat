@@ -7,6 +7,7 @@ import {
   addressValidator,
   appointmentStatusValidator,
   appointmentTypeValidator,
+  countryCodeValidator,
   participantRoleValidator,
   participantStatusValidator,
 } from '../lib/validators';
@@ -40,7 +41,7 @@ export const createAppointment = mutation({
         street: v.string(),
         city: v.string(),
         postalCode: v.string(),
-        country: v.string(),
+        country: countryCodeValidator,
       }),
     ),
   },
@@ -250,10 +251,7 @@ export const getUserAppointmentsEnriched = query({
   },
   handler: async (ctx, args) => {
     // Get all user appointments
-    const allAppointments = await ctx.db
-      .query('appointments')
-      .order('desc')
-      .collect();
+    const allAppointments = await ctx.db.query('appointments').order('desc').collect();
 
     // Filter by user participation
     let userAppointments = allAppointments.filter((appointment) =>

@@ -1,6 +1,7 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import {
+  countryCodeValidator,
   membershipStatusValidator,
   userPermissionValidator,
   userRoleValidator,
@@ -17,7 +18,7 @@ export const memberships = defineTable({
 
   // Statut de l'adhésion
   status: membershipStatusValidator,
-  assignedCountries: v.array(v.string()),
+  assignedCountries: v.array(countryCodeValidator),
 
   managerId: v.optional(v.id('users')),
 

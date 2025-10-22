@@ -1,10 +1,10 @@
-import { countries } from "./countries";
+import { CountryCode } from './constants';
 
 export const countryCodeFromPhoneNumber = (phoneNumber: string) => {
-  const country = countries.find((country) =>
-    phoneNumber.startsWith(country.dial_code)
+  const country = Object.values(CountryCode).find((countryCode) =>
+    phoneNumber.startsWith(`+${countryCode}`),
   );
-  return country;
+  return country ? country : undefined;
 };
 
 interface ProfileCompletionResult {
@@ -53,7 +53,9 @@ export function calculateProfileCompletion(profile: any): ProfileCompletionResul
     { key: 'nationality', value: profile.personal.nationality },
   ];
   const personalCompleted = personalFields.filter((f) => isFilled(f.value)).length;
-  const personalMissing = personalFields.filter((f) => !isFilled(f.value)).map((f) => f.key);
+  const personalMissing = personalFields
+    .filter((f) => !isFilled(f.value))
+    .map((f) => f.key);
   totalFields += personalFields.length;
   completedFields += personalCompleted;
   sections.push({
@@ -71,7 +73,9 @@ export function calculateProfileCompletion(profile: any): ProfileCompletionResul
     { key: 'address', value: profile.contacts.address },
   ];
   const contactCompleted = contactFields.filter((f) => isFilled(f.value)).length;
-  const contactMissing = contactFields.filter((f) => !isFilled(f.value)).map((f) => f.key);
+  const contactMissing = contactFields
+    .filter((f) => !isFilled(f.value))
+    .map((f) => f.key);
   totalFields += contactFields.length;
   completedFields += contactCompleted;
   sections.push({
@@ -111,7 +115,9 @@ export function calculateProfileCompletion(profile: any): ProfileCompletionResul
   });
 
   // Professional Situation
-  const professionFields = [{ key: 'workStatus', value: profile.professionSituation.workStatus }];
+  const professionFields = [
+    { key: 'workStatus', value: profile.professionSituation.workStatus },
+  ];
 
   // Add work-related fields if employed
   if (
@@ -127,7 +133,9 @@ export function calculateProfileCompletion(profile: any): ProfileCompletionResul
   }
 
   const professionCompleted = professionFields.filter((f) => isFilled(f.value)).length;
-  const professionMissing = professionFields.filter((f) => !isFilled(f.value)).map((f) => f.key);
+  const professionMissing = professionFields
+    .filter((f) => !isFilled(f.value))
+    .map((f) => f.key);
   totalFields += professionFields.length;
   completedFields += professionCompleted;
   sections.push({
@@ -139,7 +147,8 @@ export function calculateProfileCompletion(profile: any): ProfileCompletionResul
   });
 
   // Emergency Contacts (at least one required)
-  const hasEmergencyContact = profile.emergencyContacts && profile.emergencyContacts.length > 0;
+  const hasEmergencyContact =
+    profile.emergencyContacts && profile.emergencyContacts.length > 0;
   totalFields += 1;
   if (hasEmergencyContact) completedFields += 1;
   sections.push({
@@ -199,7 +208,9 @@ export function calculateChildProfileCompletion(profile: any): ProfileCompletion
     { key: 'nationality', value: profile.personal.nationality },
   ];
   const personalCompleted = personalFields.filter((f) => isFilled(f.value)).length;
-  const personalMissing = personalFields.filter((f) => !isFilled(f.value)).map((f) => f.key);
+  const personalMissing = personalFields
+    .filter((f) => !isFilled(f.value))
+    .map((f) => f.key);
   totalFields += personalFields.length;
   completedFields += personalCompleted;
   sections.push({

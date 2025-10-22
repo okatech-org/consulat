@@ -6,7 +6,11 @@ import {
   getOrganizationServicesHelper,
   getOrganizationUsers,
 } from '../helpers/relationships';
-import { organizationStatusValidator } from '../lib/validators';
+import {
+  countryCodeValidator,
+  organizationStatusValidator,
+  organizationTypeValidator,
+} from '../lib/validators';
 
 // Mutations
 export const createOrganization = mutation({
@@ -14,10 +18,10 @@ export const createOrganization = mutation({
     code: v.string(),
     name: v.string(),
     logo: v.optional(v.string()),
-    type: v.string(),
+    type: organizationTypeValidator,
     status: v.optional(organizationStatusValidator),
     parentId: v.optional(v.id('organizations')),
-    countryCodes: v.optional(v.array(v.string())),
+    countryCodes: v.optional(v.array(countryCodeValidator)),
   },
   handler: async (ctx, args) => {
     const organizationId = await ctx.db.insert('organizations', {
@@ -323,7 +327,7 @@ export const getOrganizationWithDetails = query({
 });
 
 export const getOrganizationsByCountry = query({
-  args: { countryCode: v.string() },
+  args: { countryCode: countryCodeValidator },
   handler: async (ctx, args) => {
     const organizations = await ctx.db.query('organizations').collect();
 
@@ -399,10 +403,8 @@ export const getOrganizationsListEnriched = query({
         return {
           ...org,
           countries: countries.filter(Boolean),
-          _count: {
-            services: services.length,
-            agents: members.length,
-          },
+          servicesCount: services.length,
+          membersCount: members.length,
         };
       }),
     );

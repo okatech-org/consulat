@@ -14,6 +14,7 @@ import {
 import type { ProfileStatus as ProfileStatusType } from '../lib/constants';
 import type { Doc } from '../_generated/dataModel';
 import {
+  countryCodeValidator,
   genderValidator,
   nationalityAcquisitionValidator,
   parentalAuthorityValidator,
@@ -25,7 +26,7 @@ import { api } from '../_generated/api';
 export const createChildProfile = mutation({
   args: {
     authorUserId: v.id('users'),
-    residenceCountry: v.string(),
+    residenceCountry: countryCodeValidator,
     firstName: v.string(),
     lastName: v.string(),
   },
@@ -85,7 +86,7 @@ export const updateChildProfile = mutation({
   args: {
     childProfileId: v.id('childProfiles'),
     status: v.optional(profileStatusValidator),
-    residenceCountry: v.optional(v.string()),
+    residenceCountry: v.optional(countryCodeValidator),
     registrationRequest: v.optional(v.id('requests')),
 
     consularCard: v.optional(
@@ -102,9 +103,9 @@ export const updateChildProfile = mutation({
         lastName: v.optional(v.string()),
         birthDate: v.optional(v.number()),
         birthPlace: v.optional(v.string()),
-        birthCountry: v.optional(v.string()),
+        birthCountry: v.optional(countryCodeValidator),
         gender: v.optional(genderValidator),
-        nationality: v.optional(v.string()),
+        nationality: v.optional(countryCodeValidator),
         acquisitionMode: v.optional(nationalityAcquisitionValidator),
         passportInfos: v.optional(
           v.object({
@@ -128,9 +129,9 @@ export const updateChildProfile = mutation({
     const updateData: {
       personal?: typeof existingProfile.personal;
       parents?: typeof existingProfile.parents;
-      residenceCountry?: string;
+      residenceCountry?: typeof existingProfile.residenceCountry;
       consularCard?: typeof existingProfile.consularCard;
-      status?: ProfileStatusType;
+      status?: typeof existingProfile.status;
       registrationRequest?: typeof existingProfile.registrationRequest;
     } = {};
 
@@ -171,9 +172,9 @@ export const updateChildPersonalInfo = mutation({
       lastName: v.optional(v.string()),
       birthDate: v.optional(v.number()),
       birthPlace: v.optional(v.string()),
-      birthCountry: v.optional(v.string()),
+      birthCountry: v.optional(countryCodeValidator),
       gender: v.optional(genderValidator),
-      nationality: v.optional(v.string()),
+      nationality: v.optional(countryCodeValidator),
       acquisitionMode: v.optional(nationalityAcquisitionValidator),
       passportInfos: v.optional(
         v.object({

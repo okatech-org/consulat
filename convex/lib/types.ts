@@ -34,6 +34,7 @@ import {
   consularCardValidator,
   weeklyScheduleValidator,
 } from './validators';
+import { Organization } from '@clerk/backend';
 
 // ============================================================================
 // Profile Types
@@ -121,4 +122,8 @@ export type CountryListingItem = FunctionReturnType<
 
 export type MembershipWithOrganization = FunctionReturnType<
   typeof api.functions.membership.getMembershipWithOrganizationByUserId
+>;
+
+export type OrganizationListSearchResult = FunctionReturnType<
+  typeof api.functions.organization.getOrganizationsListEnriched
 >;

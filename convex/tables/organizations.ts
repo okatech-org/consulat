@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import {
   consularCardValidator,
   contactValidator,
+  countryCodeValidator,
   organizationStatusValidator,
   organizationTypeValidator,
   weeklyScheduleValidator,
@@ -20,7 +21,7 @@ export const organizations = defineTable({
   childIds: v.array(v.id('organizations')),
 
   // Relations
-  countryCodes: v.array(v.string()),
+  countryCodes: v.array(countryCodeValidator),
   memberIds: v.array(v.id('users')),
   serviceIds: v.array(v.id('services')),
 
@@ -30,7 +31,7 @@ export const organizations = defineTable({
       appointmentSettings: v.optional(v.any()),
       workflowSettings: v.optional(v.any()),
       notificationSettings: v.optional(v.any()),
-      countryCode: v.string(),
+      countryCode: countryCodeValidator,
 
       contact: v.optional(contactValidator),
 

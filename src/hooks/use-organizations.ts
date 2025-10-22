@@ -7,27 +7,31 @@ import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import type { Id } from '@/convex/_generated/dataModel';
 import { OrganizationStatus, OrganizationType } from '@/convex/lib/constants';
+import type { CountryCode } from '@/convex/lib/countries';
 
 /**
  * Hook principal pour la gestion des organisations avec filtres et pagination
  */
 export function useOrganizations(options?: {
   search?: string;
-  type?: string[];
-  status?: string[];
+  type?: OrganizationType[];
+  status?: OrganizationStatus[];
   page?: number;
   limit?: number;
 }) {
   const { toast } = useToast();
 
   // Query pour récupérer la liste des organisations enrichies
-  const organizationsData = useQuery(api.functions.organization.getOrganizationsListEnriched, {
-    search: options?.search,
-    type: options?.type,
-    status: options?.status,
-    page: options?.page || 1,
-    limit: options?.limit || 10,
-  });
+  const organizationsData = useQuery(
+    api.functions.organization.getOrganizationsListEnriched,
+    {
+      search: options?.search,
+      type: options?.type,
+      status: options?.status,
+      page: options?.page || 1,
+      limit: options?.limit || 10,
+    },
+  );
 
   // Mutation pour créer une organisation
   const createMutation = useMutation(api.functions.organization.createOrganization);
@@ -35,10 +39,10 @@ export function useOrganizations(options?: {
   const createOrganization = async (data: {
     name: string;
     code?: string;
-    type: string;
-    status?: string;
+    type: OrganizationType;
+    status?: OrganizationStatus;
     logo?: string;
-    countryIds?: string[];
+    countryCodes?: CountryCode[];
   }) => {
     try {
       await createMutation({
@@ -102,7 +106,9 @@ export function useOrganizations(options?: {
   };
 
   // Mutation pour mettre à jour le statut
-  const updateStatusMutation = useMutation(api.functions.organization.updateOrganizationStatus);
+  const updateStatusMutation = useMutation(
+    api.functions.organization.updateOrganizationStatus,
+  );
 
   const updateStatus = async (organizationId: Id<'organizations'>, status: string) => {
     try {
@@ -152,7 +158,9 @@ export function useOrganizations(options?: {
     // Data
     organizations: organizationsData?.organizations ?? [],
     total: organizationsData?.total ?? 0,
-    pages: organizationsData ? Math.ceil(organizationsData.total / (organizationsData.limit || 10)) : 0,
+    pages: organizationsData
+      ? Math.ceil(organizationsData.total / (organizationsData.limit || 10))
+      : 0,
     currentPage: organizationsData?.page ?? 1,
 
     // Loading states
@@ -221,7 +229,9 @@ export function useOrganizationsStats() {
 export function useOrganizationSettings(id: Id<'organizations'>) {
   const { toast } = useToast();
 
-  const updateSettingsMutation = useMutation(api.functions.organization.updateOrganizationSettings);
+  const updateSettingsMutation = useMutation(
+    api.functions.organization.updateOrganizationSettings,
+  );
 
   const updateSettings = async (data: any) => {
     try {
@@ -308,8 +318,9 @@ export function useOrganizationCreation() {
  * Hook pour récupérer une organisation par pays
  */
 export function useOrganizationByCountry(countryCode: string) {
-  const organizationsData = useQuery(api.functions.organization.getOrganizationsByCountry,
-    countryCode ? { countryCode } : 'skip'
+  const organizationsData = useQuery(
+    api.functions.organization.getOrganizationsByCountry,
+    countryCode ? { countryCode } : 'skip',
   );
 
   return {

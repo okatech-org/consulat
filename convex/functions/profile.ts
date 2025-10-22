@@ -18,6 +18,7 @@ import {
   workStatusValidator,
   nationalityAcquisitionValidator,
   profileStatusValidator,
+  countryCodeValidator,
 } from '../lib/validators';
 import { api } from '../_generated/api';
 
@@ -29,7 +30,7 @@ export const createProfile = mutation({
     lastName: v.string(),
     email: v.string(),
     phone: v.string(),
-    residenceCountry: v.optional(v.string()),
+    residenceCountry: v.optional(countryCodeValidator),
   },
   handler: async (ctx, args) => {
     const existingProfile = await ctx.db
@@ -87,7 +88,7 @@ export const updateProfile = mutation({
   args: {
     profileId: v.id('profiles'),
     status: v.optional(profileStatusValidator),
-    residenceCountry: v.optional(v.string()),
+    residenceCountry: v.optional(countryCodeValidator),
     registrationRequest: v.optional(v.id('requests')),
 
     consularCard: v.optional(
@@ -112,9 +113,9 @@ export const updateProfile = mutation({
         lastName: v.optional(v.string()),
         birthDate: v.optional(v.number()),
         birthPlace: v.optional(v.string()),
-        birthCountry: v.optional(v.string()),
+        birthCountry: v.optional(countryCodeValidator),
         gender: v.optional(genderValidator),
-        nationality: v.optional(v.string()),
+        nationality: v.optional(countryCodeValidator),
         acquisitionMode: v.optional(nationalityAcquisitionValidator),
         passportInfos: v.optional(
           v.object({
@@ -176,7 +177,7 @@ export const updateProfile = mutation({
       family?: typeof existingProfile.family;
       emergencyContacts?: typeof existingProfile.emergencyContacts;
       professionSituation?: typeof existingProfile.professionSituation;
-      residenceCountry?: string;
+      residenceCountry?: typeof existingProfile.residenceCountry;
       consularCard?: typeof existingProfile.consularCard;
       contacts?: typeof existingProfile.contacts;
       status?: ProfileStatusType;
@@ -358,7 +359,7 @@ export const getProfileByUser = query({
 export const getAllProfiles = query({
   args: {
     status: v.optional(profileStatusValidator),
-    residenceCountry: v.optional(v.string()),
+    residenceCountry: v.optional(countryCodeValidator),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -873,9 +874,9 @@ export const updatePersonalInfo = mutation({
       lastName: v.optional(v.string()),
       birthDate: v.optional(v.number()),
       birthPlace: v.optional(v.string()),
-      birthCountry: v.optional(v.string()),
+      birthCountry: v.optional(countryCodeValidator),
       gender: v.optional(genderValidator),
-      nationality: v.optional(v.string()),
+      nationality: v.optional(countryCodeValidator),
       acquisitionMode: v.optional(nationalityAcquisitionValidator),
       passportInfos: v.optional(
         v.object({

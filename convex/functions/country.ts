@@ -2,12 +2,12 @@ import { v } from 'convex/values';
 import { mutation, query } from '../_generated/server';
 import { CountryStatus } from '../lib/constants';
 import type { Doc } from '../_generated/dataModel';
-import { countryStatusValidator } from '../lib/validators';
+import { countryCodeValidator, countryStatusValidator } from '../lib/validators';
 
 export const createCountry = mutation({
   args: {
     name: v.string(),
-    code: v.string(),
+    code: countryCodeValidator,
     flag: v.optional(v.string()),
     status: v.optional(countryStatusValidator),
   },
@@ -67,7 +67,7 @@ export const getCountry = query({
 });
 
 export const getCountryByCode = query({
-  args: { code: v.string() },
+  args: { code: countryCodeValidator },
   handler: async (ctx, args) => {
     return await ctx.db
       .query('countries')
@@ -80,9 +80,9 @@ export const updateCountry = mutation({
   args: {
     countryId: v.id('countries'),
     name: v.optional(v.string()),
-    code: v.optional(v.string()),
+    code: v.optional(countryCodeValidator),
     flag: v.optional(v.string()),
-    status: v.optional(v.string()),
+    status: v.optional(countryStatusValidator),
   },
   returns: v.id('countries'),
   handler: async (ctx, args) => {
@@ -106,7 +106,7 @@ export const updateCountry = mutation({
       ...(args.name && { name: args.name }),
       ...(args.code && { code: args.code }),
       ...(args.flag !== undefined && { flag: args.flag }),
-      ...(args.status && { status: args.status as CountryStatus }),
+      ...(args.status && { status: args.status }),
       updatedAt: Date.now(),
     };
 

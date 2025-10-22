@@ -62,10 +62,12 @@ import {
   EmergencyContactType,
   ServiceStepType,
   SelectType,
+  CountryCode,
 } from '../lib/constants';
 import type { Id } from '../_generated/dataModel';
 import type { MutationCtx } from '../_generated/server';
 import { ProfileDocumentField, ServiceField, ServiceStep } from '../lib/types';
+import { countryCodeValidator, countryStatusValidator } from '../lib/validators';
 
 // Types pour les anciennes métadonnées d'organisation (par pays)
 type DaySlot = { start?: string; end?: string };
@@ -352,15 +354,16 @@ export const importOrganizations = mutation({
     const importedOrgs: Array<Id<'organizations'>> = [];
     const orgCountryConfigs: Array<{
       orgId: Id<'organizations'>;
-      countryCode: string;
+      countryCode: CountryCode;
       config: CountrySettings;
     }> = [];
 
     for (const postgresOrg of args.organizations) {
       try {
         // Extraire les codes pays du metadata si disponible
-        let countryCodes: Array<string> = [];
-        let parsedMetadata: Record<string, { settings?: CountrySettings }> | null = null;
+        let countryCodes: Array<CountryCode> = [];
+        let parsedMetadata: Record<CountryCode, { settings?: CountrySettings }> | null =
+          null;
 
         if (postgresOrg.metadata) {
           try {
@@ -368,11 +371,11 @@ export const importOrganizations = mutation({
             parsedMetadata =
               typeof postgresOrg.metadata === 'string'
                 ? (JSON.parse(postgresOrg.metadata) as Record<
-                    string,
+                    CountryCode,
                     { settings?: CountrySettings }
                   >)
                 : (postgresOrg.metadata as Record<
-                    string,
+                    CountryCode,
                     { settings?: CountrySettings }
                   >);
 
@@ -380,7 +383,7 @@ export const importOrganizations = mutation({
               // Si metadata contient des clés de codes pays (FR, PM, WF, etc.)
               countryCodes = Object.keys(parsedMetadata).filter(
                 (key) => key.length === 2 && key.match(/^[A-Z]{2}$/),
-              );
+              ) as CountryCode[];
             }
           } catch (error) {
             console.error(
@@ -414,7 +417,8 @@ export const importOrganizations = mutation({
                         street: config.config.contact.address.firstLine || '',
                         city: config.config.contact.address.city || '',
                         postalCode: config.config.contact.address.zipCode || '',
-                        country: config.config.contact.address.country || '',
+                        country: (config.config.contact.address.country ||
+                          'FR') as CountryCode,
                       }
                     : undefined,
                   phone: config.config.contact.phone,
@@ -525,8 +529,8 @@ export const importCountries = mutation({
       v.object({
         id: v.string(),
         name: v.string(),
-        code: v.string(),
-        status: v.string(),
+        code: countryCodeValidator,
+        status: countryStatusValidator,
         flag: v.union(v.null(), v.string()),
         createdAt: v.optional(v.any()),
         updatedAt: v.optional(v.any()),
@@ -935,7 +939,10 @@ export const importUserWithData = mutation({
         status:
           profileStatusMapping[profile.status as PrismaRequestStatus] ||
           ProfileStatus.Pending,
-        residenceCountry: profile.residenceCountyCode || countryCode || undefined,
+        residenceCountry:
+          (profile.residenceCountyCode as CountryCode) ||
+          (countryCode as CountryCode) ||
+          undefined,
         consularCard: {
           cardNumber: profile.cardNumber || undefined,
           cardIssuedAt: profile.cardIssuedAt
@@ -955,7 +962,10 @@ export const importUserWithData = mutation({
                 city: profileAddress.city || '',
                 postalCode: profileAddress.zipCode || '',
                 state: undefined,
-                country: profileAddress.country || countryCode || 'FR',
+                country:
+                  (profileAddress.country as CountryCode) ||
+                  (countryCode as CountryCode) ||
+                  'FR',
                 coordinates: undefined,
               }
             : undefined,
@@ -967,9 +977,9 @@ export const importUserWithData = mutation({
             ? new Date(profile.birthDate).getTime()
             : undefined,
           birthPlace: profile.birthPlace || undefined,
-          birthCountry: profile.birthCountry || undefined,
+          birthCountry: (profile.birthCountry as CountryCode) || undefined,
           gender: profile.gender ? genderMapping[profile.gender] : undefined,
-          nationality: profile.nationality || 'GA',
+          nationality: (profile.nationality as CountryCode) || ('GA' as CountryCode),
           acquisitionMode: profile.acquisitionMode
             ? nationalityAcquisitionMapping[profile.acquisitionMode]
             : NationalityAcquisition.Birth,
@@ -1035,7 +1045,7 @@ export const importUserWithData = mutation({
                 city: c.address.city || '',
                 postalCode: c.address.zipCode || '',
                 state: undefined,
-                country: c.address.country || 'FR',
+                country: (c.address.country as CountryCode) || ('FR' as CountryCode),
                 coordinates: undefined,
               }
             : undefined,
@@ -1657,7 +1667,7 @@ export const importNonUsersAccounts = mutation({
         roles: v.array(v.string()),
         organizationId: v.optional(v.union(v.string(), v.null())),
         assignedOrganizationId: v.optional(v.union(v.string(), v.null())),
-        assignedCountries: v.optional(v.array(v.string())),
+        assignedCountries: v.optional(v.array(countryCodeValidator)),
         notifications: v.optional(
           v.array(
             v.object({
@@ -1752,7 +1762,7 @@ export const importNonUsersAccounts = mutation({
               assignedCountries: (account.assignedCountries &&
               account.assignedCountries.length > 0
                 ? account.assignedCountries
-                : []) as string[],
+                : []) as CountryCode[],
               managerId: account.managedByUserId
                 ? ((await findConvexUserByLegacyId(
                     ctx,

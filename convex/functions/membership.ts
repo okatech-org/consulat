@@ -5,6 +5,7 @@ import {
   removeMemberFromOrganization,
 } from '../helpers/relationships';
 import {
+  countryCodeValidator,
   membershipStatusValidator,
   userPermissionValidator,
   userRoleValidator,
@@ -168,7 +169,7 @@ export const getAgentsList = query({
   args: {
     organizationId: v.optional(v.id('organizations')),
     search: v.optional(v.string()),
-    linkedCountries: v.optional(v.array(v.string())),
+    linkedCountries: v.optional(v.array(countryCodeValidator)),
     assignedServices: v.optional(v.array(v.id('services'))),
     managerId: v.optional(v.id('users')),
     page: v.optional(v.number()),
@@ -198,12 +199,6 @@ export const getAgentsList = query({
     if (args.managerId) {
       query = query.filter((q) => q.eq(q.field('managerId'), args.managerId));
     }
-
-    // Filter by linked countries - apply after fetching data
-    // (Convex doesn't support array.some() in filters, so we do it client-side)
-
-    // Filter by assigned services - apply after fetching data
-    // (Convex doesn't support array.some() in filters, so we do it client-side)
 
     const allMemberships = await query.collect();
 

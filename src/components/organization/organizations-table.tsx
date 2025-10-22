@@ -16,22 +16,18 @@ import { DataTableColumnHeader } from '../data-table/data-table-column-header';
 import { useOrganizations } from '@/hooks/use-organizations';
 import type { Id } from '@/convex/_generated/dataModel';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
+import type { OrganizationListSearchResult } from '@/convex/lib/types';
+export type OrganizationListItem = OrganizationListSearchResult['organizations'][number];
 
-interface OrganizationListItem {
-  _id: Id<'organizations'>;
-  id: Id<'organizations'>;
-  name: string;
-  type: string;
-  status: string;
-  countries: any[];
-  _count?: {
-    services: number;
-    agents: number;
-  };
+interface OrganizationFilters {
+  search?: string;
+  type?: OrganizationType[];
+  status?: OrganizationStatus[];
 }
 
 export function OrganizationsTable() {
   const t = useTranslations('sa.organizations');
+  const t_inputs = useTranslations('inputs');
   const t_common = useTranslations('common');
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -42,19 +38,14 @@ export function OrganizationsTable() {
   const {
     params: tableParams,
     pagination,
+    sorting,
     handleParamsChange,
     handlePaginationChange,
-  } = useTableSearchParams<
-    OrganizationListItem,
-    {
-      search?: string;
-      type?: string[];
-      status?: string[];
-    }
-  >((urlParams) => ({
+    handleSortingChange,
+  } = useTableSearchParams<OrganizationListItem, OrganizationFilters>((urlParams) => ({
     search: urlParams.get('search') || undefined,
-    type: urlParams.get('type')?.split(',').filter(Boolean),
-    status: urlParams.get('status')?.split(',').filter(Boolean),
+    type: urlParams.get('type')?.split(',').filter(Boolean) as OrganizationType[],
+    status: urlParams.get('status')?.split(',').filter(Boolean) as OrganizationStatus[],
   }));
 
   // Fetch data
@@ -80,7 +71,7 @@ export function OrganizationsTable() {
 
   const handleDelete = async (org: OrganizationListItem) => {
     try {
-      await deleteOrganization(org.id);
+      await deleteOrganization(org._id);
       setShowDeleteDialog(false);
       setSelectedOrganization(null);
     } catch (error) {
@@ -93,31 +84,59 @@ export function OrganizationsTable() {
       {
         accessorKey: 'name',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('table.name')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('table.name')}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'name',
+                order: direction,
+              })
+            }
+            labels={{
+              asc: 'A-Z',
+              desc: 'Z-A',
+            }}
+          />
         ),
         enableSorting: true,
       },
       {
         accessorKey: 'type',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('table.type')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t_inputs('organization.type.label')}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'type',
+                order: direction,
+              })
+            }
+            labels={{
+              asc: 'A-Z',
+              desc: 'Z-A',
+            }}
+          />
         ),
         cell: ({ row }) => {
-          const typeValue = row.original.type as keyof typeof OrganizationType;
-          return t(`types.${typeValue}`) || row.original.type;
+          return t_inputs(`organization.type.options.${row.original.type.toLowerCase()}`);
         },
       },
       {
         accessorKey: 'countries',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('table.country')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t_inputs('organization.country.label')}
+          />
         ),
         cell: ({ row }) =>
           row.original.countries && row.original.countries.length > 0 ? (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex max-w-[300px] flex-wrap gap-1">
               {row.original.countries.map((country) => (
-                <Badge className="mr-1" key={country._id} variant="outline">
-                  {country.name}
+                <Badge className="mr-1" key={country?._id} variant="outline">
+                  {country?.code}
                 </Badge>
               ))}
             </div>
@@ -128,7 +147,20 @@ export function OrganizationsTable() {
       {
         accessorKey: 'status',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('table.status')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('table.status')}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'status',
+                order: direction,
+              })
+            }
+            labels={{
+              asc: 'A-Z',
+              desc: 'Z-A',
+            }}
+          />
         ),
         cell: ({ row }) => (
           <Badge
@@ -140,16 +172,25 @@ export function OrganizationsTable() {
                   : 'destructive'
             }
           >
-            {t(`status.${row.original.status.toUpperCase()}`)}
+            {t_inputs(`organization.status.options.${row.original.status.toLowerCase()}`)}
           </Badge>
         ),
       },
       {
         accessorKey: '_count.services',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('table.services')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('table.services')}
+            sortHandler={(direction) =>
+              handleSortingChange({
+                field: 'servicesCount',
+                order: direction,
+              })
+            }
+          />
         ),
-        cell: ({ row }) => row.original._count?.services || 0,
+        cell: ({ row }) => row.original.servicesCount || 0,
       },
       {
         id: 'actions',
@@ -160,7 +201,7 @@ export function OrganizationsTable() {
                 component: (
                   <Link
                     onClick={(e) => e.stopPropagation()}
-                    href={ROUTES.dashboard.edit_organization(row.original.id)}
+                    href={ROUTES.dashboard.edit_organization(row.original._id)}
                   >
                     <Pencil className="mr-1 size-4" /> {t_common('actions.edit')}
                   </Link>
@@ -184,7 +225,7 @@ export function OrganizationsTable() {
                 ),
                 onClick: (org) => {
                   handleStatusChange(
-                    org.id,
+                    org._id,
                     org.status === OrganizationStatus.Active
                       ? OrganizationStatus.Suspended
                       : OrganizationStatus.Active,
@@ -212,7 +253,7 @@ export function OrganizationsTable() {
         ),
       },
     ],
-    [t, t_common],
+    [t, t_common, handleSortingChange],
   );
 
   const filters: FilterOption<OrganizationListItem>[] = useMemo(
@@ -228,20 +269,27 @@ export function OrganizationsTable() {
         type: 'checkbox',
         property: 'status',
         label: t('table.status'),
-        defaultValue: tableParams.status || [],
-        onChange: (value: string[]) => handleParamsChange('status', value),
+        defaultValue: (tableParams.status || []).map(String),
+        onChange: (value: string[]) =>
+          handleParamsChange('status', value as OrganizationStatus[]),
         options: [
           {
             value: OrganizationStatus.Active,
-            label: t_common(`status.${OrganizationStatus.Active.toUpperCase()}`),
+            label: t_inputs(
+              `organization.status.options.${OrganizationStatus.Active.toLowerCase()}`,
+            ),
           },
           {
             value: OrganizationStatus.Inactive,
-            label: t_common(`status.${OrganizationStatus.Inactive.toUpperCase()}`),
+            label: t_inputs(
+              `organization.status.options.${OrganizationStatus.Inactive.toLowerCase()}`,
+            ),
           },
           {
             value: OrganizationStatus.Suspended,
-            label: t_common(`status.${OrganizationStatus.Suspended.toUpperCase()}`),
+            label: t_inputs(
+              `organization.status.options.${OrganizationStatus.Suspended.toLowerCase()}`,
+            ),
           },
         ],
       },
@@ -249,8 +297,9 @@ export function OrganizationsTable() {
         type: 'checkbox',
         property: 'type',
         label: t('table.type'),
-        defaultValue: tableParams.type || [],
-        onChange: (value: string[]) => handleParamsChange('type', value),
+        defaultValue: (tableParams.type || []).map(String),
+        onChange: (value: string[]) =>
+          handleParamsChange('type', value as OrganizationType[]),
         options: Object.values(OrganizationType).map((type) => ({
           value: type,
           label: t_common(`organization_types.${type}`),
@@ -275,6 +324,7 @@ export function OrganizationsTable() {
         pageSize={pagination.limit}
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
         onLimitChange={(limit) => handlePaginationChange('limit', limit)}
+        activeSorting={[sorting.field, sorting.order]}
       />
 
       <ConfirmDialog

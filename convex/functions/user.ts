@@ -8,7 +8,11 @@ import { countryCodeFromPhoneNumber } from '../lib/utils';
 import { getUserProfileHelper } from '../helpers/relationships';
 import { createClerkClient } from '@clerk/backend';
 import { internalMutation } from '../_generated/server';
-import { userRoleValidator, userStatusValidator } from '../lib/validators';
+import {
+  countryCodeValidator,
+  userRoleValidator,
+  userStatusValidator,
+} from '../lib/validators';
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY!,
@@ -224,9 +228,9 @@ export const handleNewUser = action({
         throw new Error('User must have at least an email or phone number');
       }
 
-      const country = countryCodeFromPhoneNumber(phoneNumber || '');
+      const extratedCountryCode = countryCodeFromPhoneNumber(phoneNumber || '');
 
-      if (!country) {
+      if (!extratedCountryCode) {
         throw new Error('Could not determine country code from phone number');
       }
 
@@ -247,7 +251,7 @@ export const handleNewUser = action({
           lastName: clerkUser.lastName || '',
           email: email || '',
           phone: phoneNumber || '',
-          residenceCountry: country.code,
+          residenceCountry: extratedCountryCode,
         },
       );
 
@@ -256,7 +260,7 @@ export const handleNewUser = action({
           publicMetadata: {
             profileId: profileId,
             roles: [UserRole.User],
-            countryCode: country.code,
+            countryCode: extratedCountryCode,
             userId: userId,
           },
         });
@@ -346,7 +350,7 @@ export const getUsersListEnriched = query({
     search: v.optional(v.string()),
     roles: v.optional(v.array(userRoleValidator)),
     status: v.optional(userStatusValidator),
-    countryCode: v.optional(v.array(v.string())),
+    countryCode: v.optional(v.array(countryCodeValidator)),
     organizationId: v.optional(v.array(v.id('organizations'))),
     hasProfile: v.optional(v.boolean()),
     page: v.optional(v.number()),

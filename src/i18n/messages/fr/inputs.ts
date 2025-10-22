@@ -73,6 +73,30 @@ export default {
   organization: {
     label: 'Organisme',
     placeholder: 'Sélectionner un organisme',
+    status: {
+      label: "Statut de l'organisme",
+      placeholder: 'Sélectionner un statut',
+      options: {
+        active: 'Actif',
+        inactive: 'Inactif',
+        suspended: 'Suspendu',
+      },
+    },
+    type: {
+      label: "Type d'organisme",
+      placeholder: 'Sélectionner un type',
+      options: {
+        embassy: 'Ambassade',
+        consulate: 'Consulat',
+        general_consulate: 'Consulat général',
+        honorary_consulate: 'Consulat honoraire',
+        other: 'Autre',
+      },
+    },
+    country: {
+      label: 'Pays de rattachement',
+      placeholder: 'Sélectionner un pays',
+    },
   },
   firstName: {
     label: 'Prénom',

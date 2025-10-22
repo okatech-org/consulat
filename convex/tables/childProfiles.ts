@@ -1,6 +1,7 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import {
+  countryCodeValidator,
   genderValidator,
   nationalityAcquisitionValidator,
   parentalAuthorityValidator,
@@ -10,7 +11,7 @@ import {
 export const childProfiles = defineTable({
   authorUserId: v.id('users'),
   status: profileStatusValidator,
-  residenceCountry: v.optional(v.string()),
+  residenceCountry: v.optional(countryCodeValidator),
 
   consularCard: v.object({
     cardNumber: v.optional(v.string()),
@@ -23,9 +24,9 @@ export const childProfiles = defineTable({
     lastName: v.string(),
     birthDate: v.optional(v.number()),
     birthPlace: v.optional(v.string()),
-    birthCountry: v.optional(v.string()),
+    birthCountry: v.optional(countryCodeValidator),
     gender: v.optional(genderValidator),
-    nationality: v.optional(v.string()),
+    nationality: v.optional(countryCodeValidator),
     acquisitionMode: v.optional(nationalityAcquisitionValidator),
     passportInfos: v.optional(
       v.object({
