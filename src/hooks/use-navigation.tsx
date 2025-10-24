@@ -94,6 +94,12 @@ export function useNavigation() {
       roles: [UserRole.Admin, UserRole.Agent, UserRole.SuperAdmin, UserRole.Manager],
     },
     {
+      title: t('child-profiles'),
+      url: ROUTES.dashboard.child_profiles,
+      icon: Users,
+      roles: [UserRole.Admin, UserRole.Agent, UserRole.SuperAdmin, UserRole.Manager],
+    },
+    {
       title: t('appointments'),
       url: ROUTES.dashboard.appointments,
       icon: Calendar,

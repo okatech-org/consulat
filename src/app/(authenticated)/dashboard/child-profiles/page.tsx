@@ -89,14 +89,13 @@ import * as XLSX from 'xlsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { useProfilesList, useUpdateProfileStatus } from '@/hooks/use-profiles';
+import { useChildProfilesList, useUpdateProfileStatus } from '@/hooks/use-profiles';
 import { useRouter } from 'next/navigation';
-import type { Id } from '@/convex/_generated/dataModel';
-import type { ProfileListItem } from '@/convex/lib/types';
+import type { ChildProfileListItem } from '@/convex/lib/types';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 
-export type ProfilesFilters = {
+export type ChildProfilesFilters = {
   search?: string;
   status?: RequestStatus[];
   gender?: Gender[];
@@ -104,12 +103,12 @@ export type ProfilesFilters = {
   page?: number;
   limit?: number;
   sort?: {
-    field: keyof ProfileListItem;
+    field: keyof ChildProfileListItem;
     order: 'asc' | 'desc';
   };
 };
 
-function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
+function adaptSearchParams(searchParams: URLSearchParams): ChildProfilesFilters {
   const params = {
     ...(searchParams.get('search') && { search: searchParams.get('search') }),
     ...(searchParams.get('status') && {
@@ -127,12 +126,12 @@ function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
         | CountryCode[]
         | undefined,
     }),
-  } as ProfilesFilters;
+  } as ChildProfilesFilters;
 
   return params;
 }
 
-export default function ProfilesPage() {
+export default function ChildProfilesPage() {
   const router = useRouter();
   const t = useTranslations();
   const { user } = useCurrentUser();
@@ -147,9 +146,9 @@ export default function ProfilesPage() {
     handleParamsChange,
     handlePaginationChange,
     handleSortingChange,
-  } = useTableSearchParams<ProfileListItem, ProfilesFilters>(adaptSearchParams);
+  } = useTableSearchParams<ChildProfileListItem, ChildProfilesFilters>(adaptSearchParams);
 
-  const { profiles, total, isLoading } = useProfilesList({
+  const { profiles, total, isLoading } = useChildProfilesList({
     search: params.search,
     status: params.status,
     gender: params.gender,
@@ -191,7 +190,7 @@ export default function ProfilesPage() {
   );
 
   const generateColumns = () => {
-    const baseColumns: ColumnDef<ProfileListItem>[] = [
+    const baseColumns: ColumnDef<ChildProfileListItem>[] = [
       {
         id: 'id',
         header: ({ table }) => (
@@ -513,7 +512,7 @@ export default function ProfilesPage() {
               </Tooltip>
             )}
             <ProfileLookupSheet
-              profileId={row.original.id as Id<'profiles'>}
+              childProfileId={row.original.id}
               icon={<Eye className="size-icon" />}
               tooltipContent="Aperçu du profil"
             />
@@ -573,12 +572,12 @@ export default function ProfilesPage() {
           if (column.id === 'actions') {
             return {
               ...column,
-              cell: ({ row }: { row: { original: ProfileListItem } }) => (
+              cell: ({ row }: { row: { original: ChildProfileListItem } }) => (
                 <div className="flex items-center gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={ROUTES.dashboard.profile(row.original.id)}>
+                        <Link href={ROUTES.dashboard.child_profile(row.original.id)}>
                           <Eye className="size-icon" />
                           <span className="sr-only">Voir le profil</span>
                         </Link>
@@ -599,12 +598,12 @@ export default function ProfilesPage() {
     return baseColumns;
   };
 
-  const columns = useMemo<ColumnDef<ProfileListItem>[]>(
+  const columns = useMemo<ColumnDef<ChildProfileListItem>[]>(
     () => generateColumns(),
     [handleSortingChange, t, categories, statuses, genders, router, isIntelAgent],
   );
 
-  const filters = useMemo<FilterOption<ProfileListItem>[]>(
+  const filters = useMemo<FilterOption<ChildProfileListItem>[]>(
     () => [
       {
         type: 'search',
@@ -659,7 +658,9 @@ export default function ProfilesPage() {
   );
 
   return (
-    <PageContainer title={isIntelAgent ? 'Profils des Citoyens' : 'Gestion des profils'}>
+    <PageContainer
+      title={isIntelAgent ? 'Profils des Citoyens' : 'Gestion des profils enfants'}
+    >
       <DataTable
         isLoading={isLoading}
         columns={columns}
@@ -675,13 +676,11 @@ export default function ProfilesPage() {
             ? ['shareUrl', 'IDPictureFileName', 'IDPicturePath']
             : [
                 'cardPin',
-                'email',
                 'shareUrl',
                 'IDPictureFileName',
                 'IDPicturePath',
                 'gender',
                 'cardExpiresAt',
-                'category',
               ]
         }
         activeSorting={[sorting.field, sorting.order]}
@@ -704,7 +703,7 @@ const quickEditSchema = z.object({
 type QuickEditFormData = z.infer<typeof quickEditSchema>;
 
 type QuickEditFormProps = {
-  profile: ProfileListItem;
+  profile: ChildProfileListItem;
   onSuccess: () => void;
 };
 
@@ -789,7 +788,7 @@ const statusChangeSchema = z.object({
 });
 type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
 type StatusChangeFormProps = {
-  selectedRows: ProfileListItem[];
+  selectedRows: ChildProfileListItem[];
   onSuccess: () => void;
 };
 function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
@@ -876,7 +875,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
 
 // Bulk export with directory selection form for profiles
 type ExportWithDirectoryFormProps = {
-  selectedRows: ProfileListItem[];
+  selectedRows: ChildProfileListItem[];
   onSuccess: () => void;
 };
 

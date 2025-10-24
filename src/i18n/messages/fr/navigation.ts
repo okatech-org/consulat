@@ -21,6 +21,7 @@ export default {
     new_request: 'Nouvelle démarche',
     available: 'Nouvelle démarche',
     profiles: 'Profils consulaires',
+    'child-profiles': 'Profils enfants',
     'document-templates': 'Modèles de documents',
     agents: 'Agents',
     contact: 'Contacts consulaires',

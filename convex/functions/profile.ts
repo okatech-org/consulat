@@ -452,9 +452,8 @@ export const getProfilesListEnriched = query({
   args: {
     search: v.optional(v.string()),
     status: v.optional(v.array(v.string())),
-    category: v.optional(v.array(v.string())),
     gender: v.optional(v.array(v.string())),
-    organizationId: v.optional(v.array(v.id('organizations'))),
+    countryCode: v.optional(v.array(countryCodeValidator)),
     page: v.optional(v.number()),
     limit: v.optional(v.number()),
   },
@@ -475,6 +474,11 @@ export const getProfilesListEnriched = query({
       profiles = profiles.filter((p) =>
         p.personal?.gender ? args.gender!.includes(p.personal.gender) : false,
       );
+    }
+
+    // Filter by country code
+    if (args.countryCode && args.countryCode.length > 0) {
+      profiles = profiles.filter((p) => args.countryCode!.includes(p.residenceCountry!));
     }
 
     // Filter by search term (firstName, lastName, cardNumber, email)
@@ -521,6 +525,7 @@ export const getProfilesListEnriched = query({
       IDPictureFileName: `${profile.personal?.firstName}_${profile.personal?.lastName}_${profile.consularCard?.cardNumber}`,
       shareUrl: `${process.env.PUBLIC_APP_URL}/listing/profiles/${profile._id}`,
       registrationRequest: profile.registrationRequest,
+      countryCode: profile.residenceCountry,
     }));
 
     return {

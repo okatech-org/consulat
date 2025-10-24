@@ -411,6 +411,105 @@ export const getChildProfileWithDocuments = query({
   },
 });
 
+// Enriched profiles list query with filtering and pagination
+export const getChildProfilesListEnriched = query({
+  args: {
+    search: v.optional(v.string()),
+    status: v.optional(v.array(v.string())),
+    gender: v.optional(v.array(v.string())),
+    countryCode: v.optional(v.array(countryCodeValidator)),
+    organizationId: v.optional(v.array(v.id('organizations'))),
+    page: v.optional(v.number()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const page = args.page || 1;
+    const limit = args.limit || 10;
+    const skip = (page - 1) * limit;
+
+    let profiles = await ctx.db.query('childProfiles').collect();
+
+    // Filter by status
+    if (args.status && args.status.length > 0) {
+      profiles = profiles.filter((p) => args.status!.includes(p.status));
+    } else {
+      profiles = profiles.filter((p) => p.status !== ProfileStatus.Draft);
+    }
+
+    // Filter by gender
+    if (args.gender && args.gender.length > 0) {
+      profiles = profiles.filter((p) =>
+        p.personal?.gender ? args.gender!.includes(p.personal.gender) : false,
+      );
+    }
+
+    // Filter by country code
+    if (args.countryCode && args.countryCode.length > 0) {
+      profiles = profiles.filter((p) => args.countryCode!.includes(p.residenceCountry!));
+    }
+
+    // Filter by search term (firstName, lastName, cardNumber, email)
+    if (args.search) {
+      const searchLower = args.search.toLowerCase();
+      profiles = profiles.filter((p) => {
+        const firstName = p.personal?.firstName?.toLowerCase() || '';
+        const lastName = p.personal?.lastName?.toLowerCase() || '';
+        const cardNumber = p.consularCard?.cardNumber?.toLowerCase() || '';
+        const parentFirstName = p.parents[0]?.firstName?.toLowerCase() || '';
+        const parentLastName = p.parents[0]?.lastName?.toLowerCase() || '';
+        const parentEmail = p.parents[0]?.email?.toLowerCase() || '';
+
+        return (
+          firstName.includes(searchLower) ||
+          lastName.includes(searchLower) ||
+          cardNumber.includes(searchLower) ||
+          parentFirstName.includes(searchLower) ||
+          parentLastName.includes(searchLower) ||
+          parentEmail.includes(searchLower)
+        );
+      });
+    }
+
+    const total = profiles.length;
+
+    // Apply pagination
+    const paginatedProfiles = profiles.slice(skip, skip + limit);
+
+    // Enrich with formatted data
+    const enrichedProfiles = paginatedProfiles.map((profile) => ({
+      id: profile._id,
+      cardNumber: profile.consularCard?.cardNumber || '',
+      firstName: profile.personal?.firstName || '',
+      lastName: profile.personal?.lastName || '',
+      parentFirstName: profile.parents[0]?.firstName || '',
+      parentLastName: profile.parents[0]?.lastName || '',
+      parentEmail: profile.parents[0]?.email || '',
+      gender: profile.personal?.gender || '',
+      status: profile.status,
+      nipCode: profile.personal?.nipCode || '',
+      cardIssuedAt: profile.consularCard?.cardIssuedAt
+        ? new Date(profile.consularCard.cardIssuedAt).toLocaleDateString()
+        : '',
+      cardExpiresAt: profile.consularCard?.cardExpiresAt
+        ? new Date(profile.consularCard.cardExpiresAt).toLocaleDateString()
+        : '',
+      createdAt: new Date(profile._creationTime).toLocaleString(),
+      IDPictureUrl: profile.documents?.identityPicture?.fileUrl || '',
+      IDPictureFileName: `${profile.personal?.firstName}_${profile.personal?.lastName}_${profile.consularCard?.cardNumber}`,
+      shareUrl: `${process.env.PUBLIC_APP_URL}/listing/profiles/${profile._id}`,
+      registrationRequest: profile.registrationRequest,
+      countryCode: profile.residenceCountry,
+    }));
+
+    return {
+      items: enrichedProfiles,
+      total,
+      page,
+      limit,
+    };
+  },
+});
+
 export const getAllChildProfiles = query({
   args: {
     status: v.optional(v.string()),

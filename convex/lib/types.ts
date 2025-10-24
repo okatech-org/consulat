@@ -141,3 +141,8 @@ export type ProfileSearchResult = FunctionReturnType<
   typeof api.functions.profile.getProfilesListEnriched
 >;
 export type ProfileListItem = ProfileSearchResult['items'][number];
+
+export type ChildProfileSearchResult = FunctionReturnType<
+  typeof api.functions.childProfile.getChildProfilesListEnriched
+>;
+export type ChildProfileListItem = ChildProfileSearchResult['items'][number];

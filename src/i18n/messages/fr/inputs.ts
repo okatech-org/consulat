@@ -1011,4 +1011,8 @@ export default {
       },
     },
   },
+  countryCode: {
+    label: 'Code du pays',
+    placeholder: 'Sélectionner le code du pays...',
+  },
 } as const;
