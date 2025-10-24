@@ -812,22 +812,13 @@ export const getUserById = query({
     }
 
     // Get submitted requests (last 10)
-    const submittedRequests = await ctx.db
-      .query('requests')
-      .withIndex('by_requester', (q) => q.eq('requesterId', user._id))
-      .order('desc')
-      .take(10);
-
-    // Enrich submitted requests with service details
-    const enrichedSubmittedRequests = await Promise.all(
-      submittedRequests.map(async (request) => {
-        const service = await ctx.db.get(request.serviceId);
-        return {
-          ...request,
-          service,
-        };
-      }),
-    );
+    const submittedRequests = profile?._id
+      ? await ctx.db
+          .query('requests')
+          .withIndex('by_requester', (q) => q.eq('requesterId', profile?._id))
+          .order('desc')
+          .take(10)
+      : [];
 
     // Get assigned requests for staff (last 10)
     const assignedRequestsList: any[] = [];
@@ -843,23 +834,16 @@ export const getUserById = query({
         .reverse();
 
       // Enrich assigned requests with service details
-      const enrichedAssignedRequests = await Promise.all(
-        filteredAssignedRequests.map(async (request) => {
-          const service = await ctx.db.get(request.serviceId);
-          return {
-            ...request,
-            service,
-          };
-        }),
-      );
-      assignedRequestsList.push(...enrichedAssignedRequests);
+      assignedRequestsList.push(...filteredAssignedRequests);
     }
 
     // Count stats
-    const allUserRequests = await ctx.db
-      .query('requests')
-      .withIndex('by_requester', (q) => q.eq('requesterId', user._id))
-      .collect();
+    const allUserRequests = profile?._id
+      ? await ctx.db
+          .query('requests')
+          .withIndex('by_requester', (q) => q.eq('requesterId', profile?._id))
+          .collect()
+      : [];
     const submittedCount = allUserRequests.length;
 
     let assignedCount = 0;
@@ -896,7 +880,7 @@ export const getUserById = query({
       childProfiles,
       assignedOrganization,
       managedOrganization,
-      submittedRequests: enrichedSubmittedRequests,
+      submittedRequests: submittedRequests,
       assignedRequests: assignedRequestsList,
       _count: {
         submittedRequests: submittedCount,

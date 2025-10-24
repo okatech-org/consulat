@@ -42,4 +42,5 @@ export const documents = defineTable({
   .index('by_owner', ['ownerId', 'ownerType'])
   .index('by_type', ['type'])
   .index('by_status', ['status'])
-  .index('by_storage', ['storageId']);
+  .index('by_storage', ['storageId'])
+  .index('by_type_and_owner', ['type', 'ownerId']);

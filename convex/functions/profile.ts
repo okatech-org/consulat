@@ -753,15 +753,18 @@ export const submitProfileForValidation = mutation({
     const requestId = await ctx.db.insert('requests', {
       number: requestNumber,
       serviceId: registrationService._id,
+      organizationId: organization._id,
+      countryCode: profile.residenceCountry!,
+
       profileId: args.profileId,
-      requesterId: profile.userId!,
+      requesterId: profile._id,
       status: RequestStatus.Submitted,
       priority: RequestPriority.Normal,
       documentIds: [],
       generatedDocuments: [],
       notes: [],
+      submittedAt: now,
       metadata: {
-        submittedAt: now,
         activities: [
           {
             type: ActivityType.RequestSubmitted,
@@ -773,6 +776,27 @@ export const submitProfileForValidation = mutation({
             },
           },
         ],
+        service: {
+          name: registrationService.name,
+          category: registrationService.category,
+        },
+        profile: {
+          firstName: profile.personal?.firstName,
+          lastName: profile.personal?.lastName,
+          email: profile.contacts?.email,
+          phoneNumber: profile.contacts?.phone,
+        },
+        organization: {
+          name: organization.name,
+          type: organization.type,
+          logo: organization.logo,
+        },
+        requester: {
+          firstName: profile.personal?.firstName,
+          lastName: profile.personal?.lastName,
+          email: profile.contacts?.email,
+          phoneNumber: profile.contacts?.phone,
+        },
       },
     });
 
@@ -817,7 +841,7 @@ export const getOverviewProfile = query({
     const requestsRequest: Promise<Array<Doc<'requests'>>> = ctx.runQuery(
       api.functions.request.getUserRequests,
       {
-        userId: args.userId,
+        profileId: profile._id,
       },
     );
 

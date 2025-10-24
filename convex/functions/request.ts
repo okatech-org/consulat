@@ -9,8 +9,8 @@ import { requestStatusValidator, requestPriorityValidator } from '../lib/validat
 export const createRequest = mutation({
   args: {
     serviceId: v.id('services'),
-    requesterId: v.id('users'),
-    profileId: v.optional(v.id('profiles')),
+    requesterId: v.id('profiles'),
+    profileId: v.union(v.id('profiles'), v.id('childProfiles')),
     priority: v.optional(requestPriorityValidator),
     formData: v.optional(v.record(v.string(), v.any())),
     documentIds: v.optional(v.array(v.id('documents'))),
@@ -21,6 +21,25 @@ export const createRequest = mutation({
       requesterId: args.requesterId,
       priority: args.priority,
     };
+
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) {
+      throw new Error('profile_not_found');
+    }
+    const requester = await ctx.db.get(args.requesterId);
+    if (!requester) {
+      throw new Error('requester_not_found');
+    }
+
+    const service = await ctx.db.get(args.serviceId);
+    if (!service) {
+      throw new Error('service_not_found');
+    }
+
+    const organization = await ctx.db.get(service.organizationId);
+    if (!organization) {
+      throw new Error('organization_not_found');
+    }
 
     const validationErrors = validateRequest(requestData);
     if (validationErrors.length > 0) {
@@ -44,13 +63,33 @@ export const createRequest = mutation({
       documentIds: args.documentIds || [],
       assignedAgentId: undefined,
       notes: [],
-      metadata: {
-        submittedAt: undefined,
-        completedAt: undefined,
-        assignedAt: undefined,
-        activities: [],
-      },
+      organizationId: organization._id,
+      countryCode: profile.residenceCountry ?? requester.residenceCountry!,
       generatedDocuments: [],
+      metadata: {
+        activities: [],
+        organization: {
+          name: organization.name,
+          type: organization.type,
+          logo: organization.logo,
+        },
+        requester: {
+          firstName: requester.personal?.firstName,
+          lastName: requester.personal?.lastName,
+          email: requester.contacts?.email,
+          phoneNumber: requester.contacts?.phone,
+        },
+        profile: {
+          firstName: profile.personal?.firstName,
+          lastName: profile.personal?.lastName,
+          email: requester.contacts?.email,
+          phoneNumber: requester.contacts?.phone,
+        },
+        service: {
+          name: service.name,
+          category: service.category,
+        },
+      },
     });
 
     return requestId;
@@ -59,14 +98,14 @@ export const createRequest = mutation({
 
 export const getCurrentRequest = query({
   args: {
-    userId: v.id('users'),
+    profileId: v.id('profiles'),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) return null;
+    if (!args.profileId) return null;
 
     const current: Doc<'requests'> | null = await ctx.db
       .query('requests')
-      .withIndex('by_requester', (q) => q.eq('requesterId', args.userId))
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
       .order('desc')
       .first();
 
@@ -82,15 +121,15 @@ export const getCurrentRequest = query({
 });
 
 export const getRecentRequests = query({
-  args: { limit: v.optional(v.number()), userId: v.id('users') },
+  args: { limit: v.optional(v.number()), profileId: v.id('profiles') },
   handler: async (ctx, args) => {
-    if (!args.userId) return [];
+    if (!args.profileId) return [];
 
     const limit = args.limit ?? 5;
 
     const requests: Array<Doc<'requests'>> = await ctx.db
       .query('requests')
-      .withIndex('by_requester', (q) => q.eq('requesterId', args.userId))
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
       .order('desc')
       .take(limit);
 
@@ -125,7 +164,7 @@ export const getRequestByNumber = query({
 export const getAllRequests = query({
   args: {
     status: v.optional(requestStatusValidator),
-    requesterId: v.optional(v.id('users')),
+    profileId: v.optional(v.union(v.id('profiles'), v.id('childProfiles'))),
     assignedAgentId: v.optional(v.id('memberships')),
     serviceId: v.optional(v.id('services')),
     priority: v.optional(requestPriorityValidator),
@@ -134,16 +173,16 @@ export const getAllRequests = query({
   handler: async (ctx, args) => {
     let requests: Array<Doc<'requests'>> = [];
 
-    if (args.requesterId) {
+    if (args.profileId) {
       requests = await ctx.db
         .query('requests')
-        .withIndex('by_requester', (q) => q.eq('requesterId', args.requesterId!))
+        .withIndex('by_profile', (q) => q.eq('profileId', args.profileId!))
         .order('desc')
         .collect();
     } else if (args.assignedAgentId) {
       requests = await ctx.db
         .query('requests')
-        .withIndex('by_assigned', (q) => q.eq('assignedAgentId', args.assignedAgentId!))
+        .withIndex('by_assignee', (q) => q.eq('assignedAgentId', args.assignedAgentId!))
         .order('desc')
         .collect();
     } else if (args.serviceId) {
@@ -175,7 +214,7 @@ export const getAllRequests = query({
 });
 
 export const getRequestsByRequester = query({
-  args: { requesterId: v.id('users') },
+  args: { requesterId: v.id('profiles') },
   handler: async (ctx, args) => {
     return await ctx.db
       .query('requests')
@@ -190,7 +229,7 @@ export const getRequestsByAssignee = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query('requests')
-      .withIndex('by_assigned', (q) => q.eq('assignedAgentId', args.assignedAgentId))
+      .withIndex('by_assignee', (q) => q.eq('assignedAgentId', args.assignedAgentId))
       .order('desc')
       .collect();
   },
@@ -221,7 +260,7 @@ export const getRequestsByService = query({
 export const searchRequests = query({
   args: {
     searchTerm: v.string(),
-    requesterId: v.optional(v.id('users')),
+    requesterId: v.optional(v.id('profiles')),
     status: v.optional(requestStatusValidator),
   },
   handler: async (ctx, args) => {
@@ -254,11 +293,11 @@ export const searchRequests = query({
 });
 
 export const getUserRequests = query({
-  args: { userId: v.id('users') },
+  args: { profileId: v.id('profiles') },
   handler: async (ctx, args) => {
     return await ctx.db
       .query('requests')
-      .withIndex('by_requester', (q) => q.eq('requesterId', args.userId))
+      .withIndex('by_profile', (q) => q.eq('profileId', args.profileId))
       .order('desc')
       .collect();
   },
@@ -310,7 +349,14 @@ export const updateRequest = mutation({
     const newMetadata = { ...existingRequest.metadata };
 
     if (args.assignedAgentId) {
-      newMetadata.assignedAt = now;
+      const assignee = await ctx.db.get(args.assignedAgentId);
+      if (!assignee) {
+        throw new Error('assignee_not_found');
+      }
+      newMetadata.assignee = {
+        firstName: assignee.firstName ?? '',
+        lastName: assignee.lastName ?? '',
+      };
       metadataChanged = true;
     }
 
@@ -353,9 +399,10 @@ export const submitRequest = mutation({
 
     await ctx.db.patch(args.requestId, {
       status: RequestStatus.Submitted,
+      submittedAt: Date.now(),
       metadata: {
         ...request.metadata,
-        submittedAt: Date.now(),
+
         activities: [
           ...request.metadata.activities,
           {
@@ -381,14 +428,23 @@ export const assignRequest = mutation({
   handler: async (ctx, args) => {
     const request = await ctx.db.get(args.requestId);
     if (!request) {
-      throw new Error('Request not found');
+      throw new Error('request_not_found');
+    }
+
+    const assignee = await ctx.db.get(args.assignedAgentId);
+    if (!assignee) {
+      throw new Error('assignee_not_found');
     }
 
     await ctx.db.patch(args.requestId, {
       assignedAgentId: args.assignedAgentId,
+      assignedAt: Date.now(),
       metadata: {
         ...request.metadata,
-        assignedAt: Date.now(),
+        assignee: {
+          firstName: assignee.firstName ?? '',
+          lastName: assignee.lastName ?? '',
+        },
         activities: [
           ...request.metadata.activities,
           {
@@ -439,7 +495,7 @@ export const autoAssignRequestToAgent = mutation({
       agents.map(async (agent) => {
         const activeRequestsCount = await ctx.db
           .query('requests')
-          .withIndex('by_assigned', (q) => q.eq('assignedAgentId', agent._id))
+          .withIndex('by_assignee', (q) => q.eq('assignedAgentId', agent._id))
           .filter((q) => q.not(q.eq(q.field('status'), RequestStatus.Completed)))
           .filter((q) => q.not(q.eq(q.field('status'), RequestStatus.Rejected)))
           .filter((q) => q.not(q.eq(q.field('status'), RequestStatus.Cancelled)))
@@ -469,14 +525,14 @@ export const completeRequest = mutation({
   handler: async (ctx, args) => {
     const request = await ctx.db.get(args.requestId);
     if (!request) {
-      throw new Error('Request not found');
+      throw new Error('request_not_found');
     }
 
     await ctx.db.patch(args.requestId, {
       status: RequestStatus.Completed,
+      completedAt: Date.now(),
       metadata: {
         ...request.metadata,
-        completedAt: Date.now(),
         activities: [
           ...request.metadata.activities,
           {
@@ -641,8 +697,8 @@ export const getRequestsListEnriched = query({
       let bVal: any;
 
       if (sortBy === 'createdAt') {
-        aVal = a.metadata.submittedAt;
-        bVal = b.metadata.submittedAt;
+        aVal = a.submittedAt;
+        bVal = b.submittedAt;
       } else if (sortBy === 'status') {
         aVal = a.status;
         bVal = b.status;
@@ -664,30 +720,32 @@ export const getRequestsListEnriched = query({
     // Apply pagination
     const paginatedRequests = requests.slice(skip, skip + limit);
 
-    // Enrich requests with related data
-    const enrichedRequests = await Promise.all(
-      paginatedRequests.map(async (req) => {
-        const [service, requester, organization, assignedAgent] = await Promise.all([
-          ctx.db.get(req.serviceId),
-          ctx.db.get(req.requesterId),
-          req.serviceId
-            ? (ctx.db.get(req.serviceId as any) as any)
-            : Promise.resolve(null),
-          req.assignedAgentId ? ctx.db.get(req.assignedAgentId) : Promise.resolve(null),
-        ]);
-
-        return {
-          ...req,
-          service: service || undefined,
-          requester: requester || undefined,
-          organization: organization || undefined,
-          assignedAgent: assignedAgent || undefined,
-        };
-      }),
-    );
-
     return {
-      items: enrichedRequests,
+      items: paginatedRequests.map((request) => ({
+        _id: request._id,
+        profileId: request.profileId,
+        profileFirstName: request.metadata.requester?.firstName,
+        profileLastName: request.metadata.requester?.lastName,
+        profileEmail: request.metadata.requester?.email,
+        profilePhoneNumber: request.metadata.requester?.phoneNumber,
+        status: request.status,
+        priority: request.priority,
+        submittedAt: request.submittedAt,
+        serviceCategory: request.metadata.service?.category,
+        assigneeFullName:
+          request.metadata.assignee?.firstName +
+          ' ' +
+          request.metadata.assignee?.lastName,
+        assigneeMembershipId: request.assignedAgentId,
+        requesterFullName:
+          request.metadata.requester?.firstName +
+          ' ' +
+          request.metadata.requester?.lastName,
+        countryCode: request.countryCode,
+        organizationName: request.metadata.organization?.name,
+        organizationType: request.metadata.organization?.type,
+        organizationId: request.organizationId,
+      })),
       total,
       page,
       limit,
@@ -751,18 +809,34 @@ export const assignRequestToAgent = mutation({
     const newMetadata = { ...request.metadata };
     const now = Date.now();
 
-    newMetadata.assignedAt = now;
+    const assignee = await ctx.db.get(args.agentId);
+    if (!assignee) {
+      throw new Error('assignee_not_found');
+    }
+
+    newMetadata.assignee = {
+      firstName: assignee.firstName ?? '',
+      lastName: assignee.lastName ?? '',
+    };
+
     newMetadata.activities = [
       ...request.metadata.activities,
       {
         type: ActivityType.RequestAssigned,
         actorId: args.agentId,
-        data: { assignedAgentId: args.agentId },
+        data: {
+          assignedAgentId: args.agentId,
+          assignee: {
+            firstName: assignee.firstName ?? '',
+            lastName: assignee.lastName ?? '',
+          },
+        },
         timestamp: now,
       },
     ];
 
     await ctx.db.patch(args.requestId, {
+      assignedAt: now,
       assignedAgentId: args.agentId,
       metadata: newMetadata,
     });

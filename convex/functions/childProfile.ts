@@ -204,11 +204,13 @@ export const updateChildPersonalInfo = mutation({
 export const submitChildProfileForValidation = mutation({
   args: {
     childProfileId: v.id('childProfiles'),
+    requesterId: v.id('profiles'),
   },
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.childProfileId);
+    const requester = await ctx.db.get(args.requesterId);
 
-    if (!profile) {
+    if (!profile || !requester) {
       throw new Error('profile_not_found');
     }
 
@@ -259,7 +261,15 @@ export const submitChildProfileForValidation = mutation({
       )
       .collect();
 
-    const birthCertificate = documents.find((d) => d?.type === 'birth_certificate');
+    const identityPicture = documents.find((d) => d?.type === DocumentType.IdentityPhoto);
+
+    const birthCertificate = documents.find(
+      (d) => d?.type === DocumentType.BirthCertificate,
+    );
+
+    if (!identityPicture) {
+      throw new Error('missing_documents:identityPicture');
+    }
 
     if (!birthCertificate) {
       throw new Error('missing_documents:birthCertificate');
@@ -311,15 +321,17 @@ export const submitChildProfileForValidation = mutation({
     const requestId = await ctx.db.insert('requests', {
       number: requestNumber,
       serviceId: registrationService._id,
+      organizationId: organization._id,
+      countryCode: profile.residenceCountry!,
+      requesterId: args.requesterId,
       profileId: args.childProfileId,
-      requesterId: profile.authorUserId,
       status: RequestStatus.Submitted,
       priority: RequestPriority.Normal,
-      documentIds: [],
+      documentIds: [identityPicture._id, birthCertificate._id],
       generatedDocuments: [],
       notes: [],
+      submittedAt: now,
       metadata: {
-        submittedAt: now,
         activities: [
           {
             type: ActivityType.RequestSubmitted,
@@ -331,6 +343,27 @@ export const submitChildProfileForValidation = mutation({
             },
           },
         ],
+        profile: {
+          firstName: profile.personal?.firstName,
+          lastName: profile.personal?.lastName,
+          email: requester.contacts?.email,
+          phoneNumber: requester.contacts?.phone,
+        },
+        service: {
+          name: registrationService.name,
+          category: registrationService.category,
+        },
+        organization: {
+          name: organization.name,
+          type: organization.type,
+          logo: organization.logo,
+        },
+        requester: {
+          firstName: profile.personal?.firstName,
+          lastName: profile.personal?.lastName,
+          email: requester.contacts?.email,
+          phoneNumber: requester.contacts?.phone,
+        },
       },
     });
 

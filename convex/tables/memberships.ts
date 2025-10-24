@@ -9,6 +9,9 @@ import {
 
 // Table pour gérer les appartenances aux organisations
 export const memberships = defineTable({
+  firstName: v.optional(v.string()),
+  lastName: v.optional(v.string()),
+
   userId: v.id('users'),
   organizationId: v.id('organizations'),
 

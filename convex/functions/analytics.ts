@@ -307,7 +307,7 @@ export const getManagerDashboardData = query({
         const user = await ctx.db.get(membership.userId);
         const assignedRequestsCount = await ctx.db
           .query('requests')
-          .withIndex('by_assigned', (q) => q.eq('assignedAgentId', membership._id))
+          .withIndex('by_assignee', (q) => q.eq('assignedAgentId', membership._id))
           .collect();
 
         const completedRequests = assignedRequestsCount.filter(
@@ -351,8 +351,8 @@ export const getManagerDashboardData = query({
           id: request._id,
           status: request.status,
           createdAt: request._creationTime,
-          submittedAt: request.metadata.submittedAt,
-          completedAt: request.metadata.completedAt,
+          submittedAt: request.submittedAt,
+          completedAt: request.completedAt,
           service: {
             name: service?.name || 'Unknown Service',
           },

@@ -276,7 +276,7 @@ export const getAgentsList = query({
         // Count active requests (using InProduction and other non-final statuses)
         const activeRequests = await ctx.db
           .query('requests')
-          .withIndex('by_assigned_status', (q) => q.eq('assignedAgentId', membership._id))
+          .withIndex('by_assignee_status', (q) => q.eq('assignedAgentId', membership._id))
           .filter((q) => q.neq(q.field('status'), RequestStatus.Completed))
           .filter((q) => q.neq(q.field('status'), RequestStatus.Cancelled))
           .filter((q) => q.neq(q.field('status'), RequestStatus.Rejected))
@@ -285,7 +285,7 @@ export const getAgentsList = query({
         // Count completed requests
         const completedRequests = await ctx.db
           .query('requests')
-          .withIndex('by_assigned_status', (q) => q.eq('assignedAgentId', membership._id))
+          .withIndex('by_assignee_status', (q) => q.eq('assignedAgentId', membership._id))
           .filter((q) => q.eq(q.field('status'), RequestStatus.Completed))
           .collect();
 

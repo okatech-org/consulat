@@ -530,7 +530,7 @@ export const importCountries = mutation({
         id: v.string(),
         name: v.string(),
         code: countryCodeValidator,
-        status: countryStatusValidator,
+        status: v.string(),
         flag: v.union(v.null(), v.string()),
         createdAt: v.optional(v.any()),
         updatedAt: v.optional(v.any()),
@@ -1141,6 +1141,10 @@ export const importUserWithData = mutation({
             ctx,
             req.assignedToId ?? '',
           );
+          const organizationId = await findConvexOrganizationByLegacyId(
+            ctx,
+            req.organizationId,
+          );
           const activities = await Promise.all(
             req.actions
               .map(async (a: RequestAction) => {
@@ -1159,6 +1163,14 @@ export const importUserWithData = mutation({
               .filter((a) => a !== undefined),
           );
 
+          const [service, requester, profile, organization, assigee] = await Promise.all([
+            ctx.db.get(serviceId!),
+            ctx.db.get(profileId!),
+            ctx.db.get(profileId!),
+            ctx.db.get(organizationId!),
+            ctx.db.get(assignedAgentId!),
+          ]);
+
           if (serviceId) {
             await ctx.db.insert('requests', {
               number: `REQ-${req.id.substring(0, 8).toUpperCase()}`,
@@ -1169,9 +1181,9 @@ export const importUserWithData = mutation({
                 req.priority === 'URGENT'
                   ? RequestPriority.Urgent
                   : RequestPriority.Normal,
-              serviceId: serviceId,
-              requesterId: userId,
-              profileId: profileId,
+              serviceId: service!._id,
+              requesterId: requester!._id,
+              profileId: profile!._id,
               formData: req.formData || {},
               documentIds: [],
               notes: req.notes.map((n: Note) => ({
@@ -1185,17 +1197,52 @@ export const importUserWithData = mutation({
                 serviceRequestId: undefined,
               })),
               assignedAgentId: assignedAgentId ?? undefined,
+              submittedAt: req.submittedAt
+                ? new Date(req.submittedAt).getTime()
+                : undefined,
+              completedAt: req.completedAt
+                ? new Date(req.completedAt).getTime()
+                : undefined,
+              assignedAt: req.assignedAt ? new Date(req.assignedAt).getTime() : undefined,
+              organizationId: organizationId!,
+              countryCode: req.countryCode,
               metadata: {
-                submittedAt: req.submittedAt
-                  ? new Date(req.submittedAt).getTime()
-                  : undefined,
-                completedAt: req.completedAt
-                  ? new Date(req.completedAt).getTime()
-                  : undefined,
-                assignedAt: req.assignedAt
-                  ? new Date(req.assignedAt).getTime()
-                  : undefined,
                 activities: activities.filter((a) => a !== undefined),
+                organization: organization
+                  ? {
+                      name: organization.name,
+                      type: organization.type,
+                      logo: organization.logo,
+                    }
+                  : undefined,
+                requester: requester
+                  ? {
+                      firstName: requester.personal?.firstName,
+                      lastName: requester.personal?.lastName,
+                      email: requester.contacts?.email,
+                      phoneNumber: requester.contacts?.phone,
+                    }
+                  : undefined,
+                profile: profile
+                  ? {
+                      firstName: profile.personal?.firstName,
+                      lastName: profile.personal?.lastName,
+                      email: profile.contacts?.email,
+                      phoneNumber: profile.contacts?.phone,
+                    }
+                  : undefined,
+                service: service
+                  ? {
+                      name: service!.name,
+                      category: service!.category,
+                    }
+                  : undefined,
+                assignee: assigee
+                  ? {
+                      firstName: assigee.firstName ?? '',
+                      lastName: assigee.lastName ?? '',
+                    }
+                  : undefined,
               },
               config: {
                 processingMode:
@@ -1555,12 +1602,31 @@ export const importParentalAuthority = mutation({
     ) {
       const serviceId = await findConvexServiceByLegacyId(ctx, args.request.serviceId);
       const requesterId = await findConvexUserByLegacyId(ctx, args.request.submittedById);
+      const requesterUser = requesterId ? await ctx.db.get(requesterId) : undefined;
       const assignedAgentId = await findConvexMembershipByLegacyId(
         ctx,
         args.request.assignedToId,
       );
+      const organizationId = await findConvexOrganizationByLegacyId(
+        ctx,
+        args.request.organizationId,
+      );
 
-      if (args.request && serviceId && requesterId) {
+      if (
+        args.request &&
+        serviceId &&
+        requesterUser &&
+        requesterUser.profileId &&
+        organizationId
+      ) {
+        const [service, requester, profile, organization, assigee] = await Promise.all([
+          ctx.db.get(serviceId),
+          ctx.db.get(requesterUser.profileId),
+          ctx.db.get(childProfileId),
+          ctx.db.get(organizationId),
+          ctx.db.get(assignedAgentId!),
+        ]);
+
         const activities = await Promise.all(
           args.request.actions.map(async (a: RequestAction) => {
             const actorId = await findConvexUserByLegacyId(ctx, a.userId);
@@ -1587,8 +1653,8 @@ export const importParentalAuthority = mutation({
               ? RequestPriority.Urgent
               : RequestPriority.Normal,
           serviceId: serviceId,
-          requesterId: requesterId,
-          profileId: childProfileId,
+          requesterId: requester!._id,
+          profileId: profile!._id,
           formData: args.request.formData || {},
           documentIds: [],
           notes: args.request.notes.map((n: Note) => ({
@@ -1598,17 +1664,54 @@ export const importParentalAuthority = mutation({
             serviceRequestId: undefined,
           })),
           assignedAgentId: assignedAgentId ?? undefined,
+          submittedAt: args.request.submittedAt
+            ? new Date(args.request.submittedAt).getTime()
+            : undefined,
+          completedAt: args.request.completedAt
+            ? new Date(args.request.completedAt).getTime()
+            : undefined,
+          assignedAt: args.request.assignedAt
+            ? new Date(args.request.assignedAt).getTime()
+            : undefined,
+          organizationId: organization!._id,
+          countryCode: args.request.countryCode,
           metadata: {
-            submittedAt: args.request.submittedAt
-              ? new Date(args.request.submittedAt).getTime()
-              : undefined,
-            completedAt: args.request.completedAt
-              ? new Date(args.request.completedAt).getTime()
-              : undefined,
-            assignedAt: args.request.assignedAt
-              ? new Date(args.request.assignedAt).getTime()
-              : undefined,
             activities: activities.filter((a) => a !== undefined),
+            organization: organization
+              ? {
+                  name: organization.name,
+                  type: organization.type,
+                  logo: organization.logo,
+                }
+              : undefined,
+            requester: requester
+              ? {
+                  firstName: requester.personal?.firstName,
+                  lastName: requester.personal?.lastName,
+                  email: requester.contacts?.email,
+                  phoneNumber: requester.contacts?.phone,
+                }
+              : undefined,
+            profile: profile
+              ? {
+                  firstName: profile.personal?.firstName,
+                  lastName: profile.personal?.lastName,
+                  email: requester?.contacts?.email,
+                  phoneNumber: requester?.contacts?.phone,
+                }
+              : undefined,
+            service: service
+              ? {
+                  name: service.name,
+                  category: service.category,
+                }
+              : undefined,
+            assignee: assigee
+              ? {
+                  firstName: assigee.firstName ?? '',
+                  lastName: assigee.lastName ?? '',
+                }
+              : undefined,
           },
           config: {
             processingMode:
