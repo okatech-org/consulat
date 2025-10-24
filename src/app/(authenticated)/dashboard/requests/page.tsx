@@ -62,7 +62,7 @@ import {
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
-import type { Doc, Id } from '@/convex/_generated/dataModel';
+import type { Id } from '@/convex/_generated/dataModel';
 import { useRouter } from 'next/navigation';
 
 // Types pour les agents
@@ -72,12 +72,25 @@ type Agent = {
   email?: string;
 };
 
-// Type pour les demandes
-type RequestListItem = Doc<'requests'> & {
-  service?: Doc<'services'>;
-  requester?: Doc<'users'>;
-  organization?: Doc<'organizations'>;
-  assignedAgent?: Doc<'memberships'>;
+// Type pour les demandes enrichies
+type RequestListItem = {
+  _id: Id<'requests'>;
+  profileId?: Id<'profiles'> | Id<'childProfiles'>;
+  profileFirstName?: string;
+  profileLastName?: string;
+  profileEmail?: string;
+  profilePhoneNumber?: string;
+  status: string;
+  priority: string;
+  submittedAt?: number;
+  serviceCategory?: string;
+  assigneeFullName?: string;
+  assigneeMembershipId?: Id<'memberships'>;
+  requesterFullName?: string;
+  countryCode?: string;
+  organizationName?: string;
+  organizationType?: string;
+  organizationId?: Id<'organizations'>;
 };
 
 // Function to adapt search parameters for service requests
@@ -207,14 +220,14 @@ export default function RequestsPageClient() {
         enableHiding: false,
       },
       {
-        accessorKey: 'requester.name',
+        accessorKey: 'requesterFullName',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
-            title={t('inputs.firstName.label')}
+            title={t('requests.table.requester')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'firstName' as keyof RequestListItem,
+                field: 'requesterFullName' as keyof RequestListItem,
                 order: direction,
               })
             }
@@ -228,21 +241,21 @@ export default function RequestsPageClient() {
           return (
             <div className="flex space-x-2">
               <span className="max-w-[500px] truncate font-medium">
-                {row.original.requester?.firstName} {row.original.requester?.lastName}
+                {row.original.requesterFullName || '-'}
               </span>
             </div>
           );
         },
       },
       {
-        accessorKey: 'requester.email',
+        accessorKey: 'profileEmail',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
-            title={t('inputs.lastName.label')}
+            title={t('inputs.email.label')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'lastName' as keyof RequestListItem,
+                field: 'profileEmail' as keyof RequestListItem,
                 order: direction,
               })
             }
@@ -256,28 +269,28 @@ export default function RequestsPageClient() {
           return (
             <div className="flex space-x-2">
               <span className="max-w-[500px] truncate font-medium">
-                {row.original.requester?.email}
+                {row.original.profileEmail || '-'}
               </span>
             </div>
           );
         },
       },
       {
-        accessorKey: '_creationTime',
+        accessorKey: 'submittedAt',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
             title={t('requests.table.submitted_at')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: '_creationTime',
+                field: 'submittedAt' as keyof RequestListItem,
                 order: direction,
               })
             }
           />
         ),
         cell: ({ row }) => {
-          const date = row.original._creationTime;
+          const date = row.original.submittedAt;
           return date ? formatDate(new Date(date), 'dd/MM/yyyy') : '-';
         },
         enableSorting: true,
@@ -320,14 +333,14 @@ export default function RequestsPageClient() {
         },
       },
       {
-        accessorKey: 'service.category',
+        accessorKey: 'serviceCategory',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
             title={t('inputs.serviceCategory.label')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'serviceCategory',
+                field: 'serviceCategory' as keyof RequestListItem,
                 order: direction,
               })
             }
@@ -338,7 +351,7 @@ export default function RequestsPageClient() {
           />
         ),
         cell: ({ row }) => {
-          const category = row.original.service?.category;
+          const category = row.original.serviceCategory;
           return (
             <div className="flex items-center">
               <Badge variant={'outline'}>
@@ -393,14 +406,14 @@ export default function RequestsPageClient() {
       : false;
     if (isAdmin) {
       tableColumns.push({
-        accessorKey: 'assignedAgent',
+        accessorKey: 'assigneeFullName',
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
             title={t('requests.table.assigned_to')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'assignedTo' as keyof RequestListItem,
+                field: 'assigneeFullName' as keyof RequestListItem,
                 order: direction,
               })
             }
@@ -411,8 +424,8 @@ export default function RequestsPageClient() {
           />
         ),
         cell: ({ row }) => {
-          const assignedAgent = row.original.assignedAgent;
-          return assignedAgent?.name || '-';
+          const assigneeFullName = row.original.assigneeFullName;
+          return assigneeFullName || '-';
         },
       });
     }
@@ -473,7 +486,7 @@ export default function RequestsPageClient() {
           </Tooltip>
 
           <ProfileLookupSheet
-            profileId={row.original.requester?.profileId}
+            profileId={row.original.profileId as Id<'profiles'>}
             icon={<Eye className="size-icon" />}
             tooltipContent="Aperçu du profil"
           />
@@ -625,8 +638,9 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
   const onSubmit = async (data: StatusChangeFormData) => {
     setIsSubmitting(true);
     try {
-      // Mise à jour en parallèle de toutes les demandes sélectionnées
-      await Promise.all(selectedRows.map((row) => updateStatus(row._id, data.status)));
+      await Promise.all(
+        selectedRows.map((row) => updateStatus(row._id, data.status as RequestStatus)),
+      );
 
       toast.success(
         t('common.success.bulk_update_success', {
@@ -722,9 +736,10 @@ function AssignToChangeForm({
   const onSubmit = async (data: AssignToFormData) => {
     setIsSubmitting(true);
     try {
-      // Assignation en parallèle de toutes les demandes sélectionnées
       await Promise.all(
-        selectedRows.map((row) => assignRequest(row._id, data.assignedToId as any)),
+        selectedRows.map((row) =>
+          assignRequest(row._id, data.assignedToId as Id<'memberships'>),
+        ),
       );
 
       toast.success(

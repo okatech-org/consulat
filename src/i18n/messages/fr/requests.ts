@@ -110,6 +110,7 @@ export default {
     status: 'Statut',
     priority: 'Priorité',
     assigned_to: 'Assigné à',
+    requester: 'Demandeur',
   },
   filters: {
     search: 'Rechercher',
