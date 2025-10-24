@@ -29,7 +29,7 @@ export function useTableSearchParams<T, V>(
   });
   const [params, setParams] = useState<V>(adaptSearchParams(searchParams));
 
-  function handleParamsChange(key: keyof V, value: V[keyof V]) {
+  function handleParamsChange<K extends keyof V>(key: K, value: V[K]) {
     const newParams = { ...params };
 
     // On retire la clé si la valeur est vide (string vide ou tableau vide)

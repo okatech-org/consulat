@@ -4,16 +4,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
 import type { Id } from '@/convex/_generated/dataModel';
-
-export interface ProfilesFilters {
-  search?: string;
-  status?: string[];
-  category?: string[];
-  gender?: string[];
-  organizationId?: string[];
-  page?: number;
-  limit?: number;
-}
+import type { ProfilesFilters } from '@/app/(authenticated)/dashboard/profiles/page';
 
 /**
  * Hook for fetching profiles list with filtering and pagination
@@ -22,7 +13,6 @@ export function useProfilesList(filters: ProfilesFilters = {}) {
   const profilesData = useQuery(api.functions.profile.getProfilesListEnriched, {
     search: filters.search,
     status: filters.status,
-    category: filters.category,
     gender: filters.gender,
     organizationId: (filters.organizationId as Id<'organizations'>[]) || undefined,
     page: filters.page || 1,
@@ -60,10 +50,7 @@ export function useProfile(profileId: Id<'profiles'>) {
 export function useUpdateProfile() {
   const updateMutation = useMutation(api.functions.profile.updateProfile);
 
-  const updateProfile = async (
-    profileId: Id<'profiles'>,
-    data: any,
-  ) => {
+  const updateProfile = async (profileId: Id<'profiles'>, data: any) => {
     try {
       await updateMutation({
         profileId,
@@ -88,10 +75,7 @@ export function useUpdateProfile() {
 export function useUpdateProfileStatus() {
   const updateStatusMutation = useMutation(api.functions.profile.updateProfileStatus);
 
-  const updateStatus = async (
-    profileId: Id<'profiles'>,
-    status: string,
-  ) => {
+  const updateStatus = async (profileId: Id<'profiles'>, status: string) => {
     try {
       await updateStatusMutation({
         profileId,
@@ -147,10 +131,7 @@ export function useCurrentProfile(profileId?: Id<'profiles'>) {
 export function useUpdateConsularCard() {
   const updateMutation = useMutation(api.functions.profile.updateConsularCard);
 
-  const updateConsularCard = async (
-    profileId: Id<'profiles'>,
-    cardData: any,
-  ) => {
+  const updateConsularCard = async (profileId: Id<'profiles'>, cardData: any) => {
     try {
       await updateMutation({
         profileId,

@@ -134,7 +134,6 @@ export function DataTable<TData, TValue>({
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
@@ -150,7 +149,7 @@ export function DataTable<TData, TValue>({
         onLimitChange(newPagination.pageSize);
       }
     },
-    rowCount: totalCount,
+    pageCount: totalCount ? Math.ceil(totalCount / pageSize) : 0,
   });
 
   // Helper function to get sticky styles for a column

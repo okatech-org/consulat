@@ -34,7 +34,6 @@ import {
   consularCardValidator,
   weeklyScheduleValidator,
 } from './validators';
-import { Organization } from '@clerk/backend';
 
 // ============================================================================
 // Profile Types
@@ -137,3 +136,8 @@ export type RequestSearchResult = FunctionReturnType<
   typeof api.functions.request.getRequestsListEnriched
 >;
 export type RequestListItem = RequestSearchResult['items'][number];
+
+export type ProfileSearchResult = FunctionReturnType<
+  typeof api.functions.profile.getProfilesListEnriched
+>;
+export type ProfileListItem = ProfileSearchResult['items'][number];

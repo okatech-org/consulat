@@ -67,7 +67,7 @@ import {
 import type { Id } from '../_generated/dataModel';
 import type { MutationCtx } from '../_generated/server';
 import { ProfileDocumentField, ServiceField, ServiceStep } from '../lib/types';
-import { countryCodeValidator, countryStatusValidator } from '../lib/validators';
+import { countryCodeValidator } from '../lib/validators';
 
 // Types pour les anciennes métadonnées d'organisation (par pays)
 type DaySlot = { start?: string; end?: string };
@@ -1061,68 +1061,170 @@ export const importUserWithData = mutation({
           activityInGabon: profile.activityInGabon || undefined,
           cv: undefined,
         },
+        documents: {},
       });
 
       recordCount++;
 
       // Mettre à jour l'utilisateur avec le profileId
       await ctx.db.patch(userId, { profileId });
-    }
 
-    const profileDocuments: UserDocument[] = [
       // @ts-expect-error - identityPicture is not typed
-      profile?.identityPicture,
-      // @ts-expect-error - passport is not typed
-      profile?.passport,
-      // @ts-expect-error - birthCertificate is not typed
-      profile?.birthCertificate,
-      // @ts-expect-error - residencePermit is not typed
-      profile?.residencePermit,
-      // @ts-expect-error - addressProof is not typed
-      profile?.addressProof,
-    ].filter((d): d is NonNullable<typeof d> => Boolean(d));
+      if (profile?.identityPicture) {
+        // @ts-expect-error - identityPicture is not typed
+        const identityPicture = profile.identityPicture as UserDocument;
+        const documentId = await ctx.db.insert('documents', {
+          type: DocumentType.IdentityPhoto,
+          status: documentStatusMapping[identityPicture.status] || DocumentStatus.Pending,
+          ownerId: profileId || userId,
+          ownerType: profileId ? OwnerType.Profile : OwnerType.User,
+          fileUrl: identityPicture.fileUrl,
+          fileName: identityPicture.fileUrl?.split('/').pop() || 'document',
+          fileType: identityPicture.fileType || 'image/png',
+          fileSize: undefined,
+          version: 1,
+          validations: [],
+          metadata: identityPicture.metadata
+            ? (identityPicture.metadata as Record<string, any>)
+            : {},
+        });
 
-    // 3. Importer les documents
-    if (profileDocuments && profileDocuments.length > 0) {
-      for (const doc of profileDocuments) {
-        if (!doc) {
-          continue;
-        }
-        try {
-          await ctx.db.insert('documents', {
-            type: (documentTypeMapping[doc.type] || DocumentType.Other) as
-              | DocumentType.Passport
-              | DocumentType.IdentityCard
-              | DocumentType.BirthCertificate
-              | DocumentType.ResidencePermit
-              | DocumentType.ProofOfAddress
-              | DocumentType.MarriageCertificate
-              | DocumentType.DivorceDecree
-              | DocumentType.NationalityCertificate
-              | DocumentType.Other
-              | DocumentType.VisaPages
-              | DocumentType.EmploymentProof
-              | DocumentType.NaturalizationDecree
-              | DocumentType.IdentityPhoto
-              | DocumentType.ConsularCard
-              | DocumentType.DeathCertificate,
-            status: documentStatusMapping[doc.status] || DocumentStatus.Pending,
-            ownerId: profileId || userId,
-            ownerType: profileId ? OwnerType.Profile : OwnerType.User,
-            fileUrl: doc.fileUrl,
-            fileName: doc.fileUrl?.split('/').pop() || 'document',
-            fileType: doc.fileType || 'application/pdf',
-            fileSize: undefined,
-            version: 1,
-            validations: [],
-            issuedAt: doc.issuedAt ? new Date(doc.issuedAt).getTime() : undefined,
-            expiresAt: doc.expiresAt ? new Date(doc.expiresAt).getTime() : undefined,
-            metadata: doc.metadata ? (doc.metadata as Record<string, any>) : {},
-          });
-          recordCount++;
-        } catch (error) {
-          console.error(`Erreur import document ${doc.type}:`, error);
-        }
+        await ctx.db.patch(profileId, {
+          documents: {
+            identityPicture: {
+              id: documentId,
+              fileUrl: identityPicture.fileUrl,
+            },
+          },
+        });
+        recordCount++;
+      }
+
+      // @ts-expect-error - identityPicture is not typed
+      if (profile?.passport) {
+        // @ts-expect-error - identityPicture is not typed
+        const passport = profile.passport as UserDocument;
+        const documentId = await ctx.db.insert('documents', {
+          type: DocumentType.Passport,
+          status: documentStatusMapping[passport.status] || DocumentStatus.Pending,
+          ownerId: profileId || userId,
+          ownerType: profileId ? OwnerType.Profile : OwnerType.User,
+          fileUrl: passport.fileUrl,
+          fileName: passport.fileUrl?.split('/').pop() || 'document',
+          fileType: passport.fileType || 'application/pdf',
+          fileSize: undefined,
+          issuedAt: passport.issuedAt ? new Date(passport.issuedAt).getTime() : undefined,
+          expiresAt: passport.expiresAt
+            ? new Date(passport.expiresAt).getTime()
+            : undefined,
+          version: 1,
+          validations: [],
+          metadata: passport.metadata ? (passport.metadata as Record<string, any>) : {},
+        });
+
+        await ctx.db.patch(profileId, {
+          documents: {
+            passport: {
+              id: documentId,
+              fileUrl: passport.fileUrl,
+            },
+          },
+        });
+        recordCount++;
+      }
+
+      // @ts-expect-error - identityPicture is not typed
+      if (profile?.birthCertificate) {
+        // @ts-expect-error - identityPicture is not typed
+        const birthCertificate = profile.birthCertificate as UserDocument;
+        const documentId = await ctx.db.insert('documents', {
+          type: DocumentType.BirthCertificate,
+          status:
+            documentStatusMapping[birthCertificate.status] || DocumentStatus.Pending,
+          ownerId: profileId,
+          ownerType: OwnerType.Profile,
+          fileUrl: birthCertificate.fileUrl,
+          fileName: birthCertificate.fileUrl?.split('/').pop() || 'document',
+          fileType: birthCertificate.fileType || 'application/pdf',
+          fileSize: undefined,
+          version: 1,
+          validations: [],
+          metadata: birthCertificate.metadata
+            ? (birthCertificate.metadata as Record<string, any>)
+            : {},
+        });
+
+        await ctx.db.patch(profileId, {
+          documents: {
+            birthCertificate: {
+              id: documentId,
+              fileUrl: birthCertificate.fileUrl,
+            },
+          },
+        });
+        recordCount++;
+      }
+
+      // @ts-expect-error - identityPicture is not typed
+      if (profile?.residencePermit) {
+        // @ts-expect-error - identityPicture is not typed
+        const residencePermit = profile.residencePermit as UserDocument;
+        const documentId = await ctx.db.insert('documents', {
+          type: DocumentType.ResidencePermit,
+          status: documentStatusMapping[residencePermit.status] || DocumentStatus.Pending,
+          ownerId: profileId,
+          ownerType: OwnerType.Profile,
+          fileUrl: residencePermit.fileUrl,
+          fileName: residencePermit.fileUrl?.split('/').pop() || 'document',
+          fileType: residencePermit.fileType || 'application/pdf',
+          fileSize: undefined,
+          version: 1,
+          validations: [],
+          metadata: residencePermit.metadata
+            ? (residencePermit.metadata as Record<string, any>)
+            : {},
+        });
+
+        await ctx.db.patch(profileId, {
+          documents: {
+            residencePermit: {
+              id: documentId,
+              fileUrl: residencePermit.fileUrl,
+            },
+          },
+        });
+        recordCount++;
+      }
+
+      // @ts-expect-error - identityPicture is not typed
+      if (profile?.addressProof) {
+        // @ts-expect-error - identityPicture is not typed
+        const addressProof = profile.addressProof as UserDocument;
+        const documentId = await ctx.db.insert('documents', {
+          type: DocumentType.ProofOfAddress,
+          status: documentStatusMapping[addressProof.status] || DocumentStatus.Pending,
+          ownerId: profileId,
+          ownerType: OwnerType.Profile,
+          fileUrl: addressProof.fileUrl,
+          fileName: addressProof.fileUrl?.split('/').pop() || 'document',
+          fileType: addressProof.fileType || 'application/pdf',
+          fileSize: undefined,
+          version: 1,
+          validations: [],
+          metadata: addressProof.metadata
+            ? (addressProof.metadata as Record<string, any>)
+            : {},
+        });
+
+        await ctx.db.patch(profileId, {
+          documents: {
+            addressProof: {
+              id: documentId,
+              fileUrl: addressProof.fileUrl,
+            },
+          },
+        });
+        recordCount++;
       }
     }
 
@@ -1163,16 +1265,15 @@ export const importUserWithData = mutation({
               .filter((a) => a !== undefined),
           );
 
-          const [service, requester, profile, organization, assigee] = await Promise.all([
+          const [service, profileData, organization, assigee] = await Promise.all([
             ctx.db.get(serviceId!),
-            ctx.db.get(profileId!),
             ctx.db.get(profileId!),
             ctx.db.get(organizationId!),
             ctx.db.get(assignedAgentId!),
           ]);
 
-          if (serviceId) {
-            await ctx.db.insert('requests', {
+          if (serviceId && profileData) {
+            const requestId = await ctx.db.insert('requests', {
               number: `REQ-${req.id.substring(0, 8).toUpperCase()}`,
               status:
                 requestStatusMapping[req.status as PrismaRequestStatus] ||
@@ -1182,8 +1283,8 @@ export const importUserWithData = mutation({
                   ? RequestPriority.Urgent
                   : RequestPriority.Normal,
               serviceId: service!._id,
-              requesterId: requester!._id,
-              profileId: profile!._id,
+              requesterId: profileData._id,
+              profileId: profileData._id,
               formData: req.formData || {},
               documentIds: [],
               notes: req.notes.map((n: Note) => ({
@@ -1215,20 +1316,20 @@ export const importUserWithData = mutation({
                       logo: organization.logo,
                     }
                   : undefined,
-                requester: requester
+                requester: profile
                   ? {
-                      firstName: requester.personal?.firstName,
-                      lastName: requester.personal?.lastName,
-                      email: requester.contacts?.email,
-                      phoneNumber: requester.contacts?.phone,
+                      firstName: profileData.personal?.firstName,
+                      lastName: profileData.personal?.lastName,
+                      email: profileData.contacts?.email,
+                      phoneNumber: profileData.contacts?.phone,
                     }
                   : undefined,
                 profile: profile
                   ? {
-                      firstName: profile.personal?.firstName,
-                      lastName: profile.personal?.lastName,
-                      email: profile.contacts?.email,
-                      phoneNumber: profile.contacts?.phone,
+                      firstName: profileData.personal?.firstName,
+                      lastName: profileData.personal?.lastName,
+                      email: profileData.contacts?.email,
+                      phoneNumber: profileData.contacts?.phone,
                     }
                   : undefined,
                 service: service
@@ -1257,6 +1358,13 @@ export const importUserWithData = mutation({
               },
               generatedDocuments: [],
             });
+
+            if (profile?.validationRequestId === req.id && profileData?._id) {
+              await ctx.db.patch(profileData._id, {
+                registrationRequest: requestId,
+              });
+            }
+
             recordCount++;
           }
         } catch (error) {
@@ -1517,8 +1625,8 @@ export const importParentalAuthority = mutation({
           : undefined,
       },
       personal: {
-        firstName: args.parentalAuthority.profile.firstName || undefined,
-        lastName: args.parentalAuthority.profile.lastName || undefined,
+        firstName: args.parentalAuthority.profile.firstName || '',
+        lastName: args.parentalAuthority.profile.lastName || '',
         birthDate: args.parentalAuthority.profile.birthDate
           ? new Date(args.parentalAuthority.profile.birthDate).getTime()
           : undefined,
@@ -1542,63 +1650,159 @@ export const importParentalAuthority = mutation({
             args.parentalAuthority.profile.passportIssueAuthority || undefined,
         },
       },
+      documents: {},
     });
 
-    const documents = [
-      args.parentalAuthority.profile.passport,
-      args.parentalAuthority.profile.birthCertificate,
-      args.parentalAuthority.profile.residencePermit,
-      args.parentalAuthority.profile.addressProof,
-      args.parentalAuthority.profile.identityPicture,
-    ].filter(Boolean);
+    if (args.parentalAuthority.profile.identityPicture) {
+      const identityPicture = args.parentalAuthority.profile
+        .identityPicture as UserDocument;
+      const documentId = await ctx.db.insert('documents', {
+        type: DocumentType.IdentityPhoto,
+        status: documentStatusMapping[identityPicture.status] || DocumentStatus.Pending,
+        ownerId: childProfileId,
+        ownerType: OwnerType.ChildProfile,
+        fileUrl: identityPicture.fileUrl,
+        fileName: identityPicture.fileUrl?.split('/').pop() || 'document',
+        fileType: identityPicture.fileType || 'image/png',
+        fileSize: undefined,
+        version: 1,
+        validations: [],
+        metadata: identityPicture.metadata
+          ? (identityPicture.metadata as Record<string, any>)
+          : {},
+      });
 
-    for (const doc of documents) {
-      if (!doc) {
-        continue;
-      }
-      try {
-        await ctx.db.insert('documents', {
-          type: (documentTypeMapping[doc.type as PrismaDocumentType] ||
-            DocumentType.Other) as
-            | DocumentType.Passport
-            | DocumentType.IdentityCard
-            | DocumentType.BirthCertificate
-            | DocumentType.ResidencePermit
-            | DocumentType.ProofOfAddress
-            | DocumentType.MarriageCertificate
-            | DocumentType.DivorceDecree
-            | DocumentType.NationalityCertificate
-            | DocumentType.Other
-            | DocumentType.VisaPages
-            | DocumentType.EmploymentProof
-            | DocumentType.NaturalizationDecree
-            | DocumentType.IdentityPhoto
-            | DocumentType.ConsularCard
-            | DocumentType.DeathCertificate,
-          status: documentStatusMapping[doc.status] || DocumentStatus.Pending,
-          ownerId: childProfileId,
-          ownerType: OwnerType.ChildProfile,
-          fileUrl: doc.fileUrl,
-          fileName: doc.fileUrl?.split('/').pop() || 'document',
-          fileType: doc.fileType || 'application/pdf',
-          fileSize: undefined,
-          version: 1,
-          validations: [],
-          issuedAt: doc.issuedAt ? new Date(doc.issuedAt).getTime() : undefined,
-          expiresAt: doc.expiresAt ? new Date(doc.expiresAt).getTime() : undefined,
-          metadata: doc.metadata || {},
-        });
-      } catch (error) {
-        console.error(`Erreur import document`, error);
-      }
+      await ctx.db.patch(childProfileId, {
+        documents: {
+          identityPicture: {
+            id: documentId,
+            fileUrl: identityPicture.fileUrl,
+          },
+        },
+      });
+    }
+
+    if (args.parentalAuthority.profile.passport) {
+      const passport = args.parentalAuthority.profile.passport as UserDocument;
+      const documentId = await ctx.db.insert('documents', {
+        type: DocumentType.Passport,
+        status: documentStatusMapping[passport.status] || DocumentStatus.Pending,
+        ownerId: childProfileId,
+        ownerType: OwnerType.ChildProfile,
+        fileUrl: passport.fileUrl,
+        fileName: passport.fileUrl?.split('/').pop() || 'document',
+        fileType: passport.fileType || 'application/pdf',
+        fileSize: undefined,
+        issuedAt: passport.issuedAt ? new Date(passport.issuedAt).getTime() : undefined,
+        expiresAt: passport.expiresAt
+          ? new Date(passport.expiresAt).getTime()
+          : undefined,
+        version: 1,
+        validations: [],
+        metadata: passport.metadata ? (passport.metadata as Record<string, any>) : {},
+      });
+
+      await ctx.db.patch(childProfileId, {
+        documents: {
+          passport: {
+            id: documentId,
+            fileUrl: passport.fileUrl,
+          },
+        },
+      });
+    }
+
+    if (args.parentalAuthority.profile.birthCertificate) {
+      const birthCertificate = args.parentalAuthority.profile
+        .birthCertificate as UserDocument;
+      const documentId = await ctx.db.insert('documents', {
+        type: DocumentType.BirthCertificate,
+        status: documentStatusMapping[birthCertificate.status] || DocumentStatus.Pending,
+        ownerId: childProfileId,
+        ownerType: OwnerType.ChildProfile,
+        fileUrl: birthCertificate.fileUrl,
+        fileName: birthCertificate.fileUrl?.split('/').pop() || 'document',
+        fileType: birthCertificate.fileType || 'application/pdf',
+        fileSize: undefined,
+        version: 1,
+        validations: [],
+        metadata: birthCertificate.metadata
+          ? (birthCertificate.metadata as Record<string, any>)
+          : {},
+      });
+
+      await ctx.db.patch(childProfileId, {
+        documents: {
+          birthCertificate: {
+            id: documentId,
+            fileUrl: birthCertificate.fileUrl,
+          },
+        },
+      });
+    }
+
+    if (args.parentalAuthority.profile.residencePermit) {
+      const residencePermit = args.parentalAuthority.profile
+        .residencePermit as UserDocument;
+      const documentId = await ctx.db.insert('documents', {
+        type: DocumentType.ResidencePermit,
+        status: documentStatusMapping[residencePermit.status] || DocumentStatus.Pending,
+        ownerId: childProfileId,
+        ownerType: OwnerType.ChildProfile,
+        fileUrl: residencePermit.fileUrl,
+        fileName: residencePermit.fileUrl?.split('/').pop() || 'document',
+        fileType: residencePermit.fileType || 'application/pdf',
+        fileSize: undefined,
+        version: 1,
+        validations: [],
+        metadata: residencePermit.metadata
+          ? (residencePermit.metadata as Record<string, any>)
+          : {},
+      });
+
+      await ctx.db.patch(childProfileId, {
+        documents: {
+          residencePermit: {
+            id: documentId,
+            fileUrl: residencePermit.fileUrl,
+          },
+        },
+      });
+    }
+
+    if (args.parentalAuthority.profile.addressProof) {
+      const addressProof = args.parentalAuthority.profile.addressProof as UserDocument;
+      const documentId = await ctx.db.insert('documents', {
+        type: DocumentType.ProofOfAddress,
+        status: documentStatusMapping[addressProof.status] || DocumentStatus.Pending,
+        ownerId: childProfileId,
+        ownerType: OwnerType.ChildProfile,
+        fileUrl: addressProof.fileUrl,
+        fileName: addressProof.fileUrl?.split('/').pop() || 'document',
+        fileType: addressProof.fileType || 'application/pdf',
+        fileSize: undefined,
+        version: 1,
+        validations: [],
+        metadata: addressProof.metadata
+          ? (addressProof.metadata as Record<string, any>)
+          : {},
+      });
+
+      await ctx.db.patch(childProfileId, {
+        documents: {
+          addressProof: {
+            id: documentId,
+            fileUrl: addressProof.fileUrl,
+          },
+        },
+      });
     }
 
     // 4. Importer les demandes (requests)
     if (
       childProfileId &&
       args.parentalAuthority.profile.validationRequestId &&
-      args.request &&
-      args.request.length > 0
+      args.request
     ) {
       const serviceId = await findConvexServiceByLegacyId(ctx, args.request.serviceId);
       const requesterId = await findConvexUserByLegacyId(ctx, args.request.submittedById);
@@ -1628,7 +1832,7 @@ export const importParentalAuthority = mutation({
         ]);
 
         const activities = await Promise.all(
-          args.request.actions.map(async (a: RequestAction) => {
+          args.request?.actions?.map(async (a: RequestAction) => {
             const actorId = await findConvexUserByLegacyId(ctx, a.userId);
             if (!actorId) {
               console.warn(`Utilisateur ${a.userId} introuvable`);

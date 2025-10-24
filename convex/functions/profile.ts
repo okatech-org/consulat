@@ -46,34 +46,19 @@ export const createProfile = mutation({
       userId: args.userId,
       status: ProfileStatus.Draft,
       residenceCountry: args.residenceCountry,
-      consularCard: {
-        cardNumber: undefined,
-        cardIssuedAt: undefined,
-        cardExpiresAt: undefined,
-      },
+      consularCard: {},
       contacts: {
         email: args.email,
         phone: args.phone,
-        address: undefined,
       },
       personal: {
         firstName: args.firstName,
         lastName: args.lastName,
       },
-      family: {
-        father: undefined,
-        mother: undefined,
-        spouse: undefined,
-      },
+      family: {},
       emergencyContacts: [],
-      professionSituation: {
-        workStatus: undefined,
-        profession: undefined,
-        employer: undefined,
-        employerAddress: undefined,
-        cv: undefined,
-      },
-      registrationRequest: undefined,
+      professionSituation: {},
+      documents: {},
     });
 
     await ctx.db.patch(args.userId, {
@@ -524,7 +509,7 @@ export const getProfilesListEnriched = query({
       email: profile.contacts?.email || '',
       gender: profile.personal?.gender || '',
       status: profile.status,
-      cardPin: profile.consularCard?.cardNumber || '',
+      nipCode: profile.personal?.nipCode || '',
       cardIssuedAt: profile.consularCard?.cardIssuedAt
         ? new Date(profile.consularCard.cardIssuedAt).toLocaleDateString()
         : '',
@@ -532,10 +517,10 @@ export const getProfilesListEnriched = query({
         ? new Date(profile.consularCard.cardExpiresAt).toLocaleDateString()
         : '',
       createdAt: new Date(profile._creationTime).toLocaleString(),
-      IDPictureUrl: '',
-      IDPictureFileName: '',
-      IDPicturePath: '',
-      shareUrl: `/listing/profiles/${profile._id}`,
+      IDPictureUrl: profile.documents?.identityPicture?.fileUrl || '',
+      IDPictureFileName: `${profile.personal?.firstName}_${profile.personal?.lastName}_${profile.consularCard?.cardNumber}`,
+      shareUrl: `${process.env.PUBLIC_APP_URL}/listing/profiles/${profile._id}`,
+      registrationRequest: profile.registrationRequest,
     }));
 
     return {

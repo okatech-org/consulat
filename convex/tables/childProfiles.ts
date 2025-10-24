@@ -42,6 +42,39 @@ export const childProfiles = defineTable({
   registrationRequest: v.optional(v.id('requests')),
 
   parents: v.array(parentalAuthorityValidator),
+
+  documents: v.object({
+    passport: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    birthCertificate: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    residencePermit: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    addressProof: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    identityPicture: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+  }),
 })
   .index('by_user', ['authorUserId'])
   .index('by_status', ['status'])

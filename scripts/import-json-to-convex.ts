@@ -11,6 +11,7 @@ import type {
   ServiceExport,
   UserCentricDataExport,
 } from './export-prisma-to-json';
+import type { CountryCode } from '@/convex/lib/constants';
 
 const EXPORT_DIR = './data/exports';
 const TRACKING_FILE = path.join(EXPORT_DIR, 'migrated-ids.json');
@@ -143,7 +144,7 @@ async function importCountries() {
       countries: countriesToImport.map((country) => ({
         id: country.id,
         name: country.name,
-        code: country.code,
+        code: country.code as CountryCode,
         status: country.status,
         flag: country.flag,
         createdAt: country.createdAt,
@@ -283,7 +284,7 @@ async function importNonUsersAccounts() {
         roles: acc.roles || [],
         organizationId: acc.organizationId ?? null,
         assignedOrganizationId: acc.assignedOrganizationId ?? null,
-        assignedCountries: (acc.linkedCountries || []).map((c) => c.code),
+        assignedCountries: (acc.linkedCountries || []).map((c) => c.code as CountryCode),
         notifications: (acc.notifications || []).map((n) => ({
           id: n.id,
           type: n.type,
@@ -401,10 +402,13 @@ async function importParentalAuthorities() {
   });
 
   const items = Object.entries(parentalAuthoritiesGroupedByProfileId).map(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ([profileId, authorities]) => {
-      const request = parentalAuthorities.requests.find(
-        (r) => r.requestedForId === profileId,
-      );
+      const requestId = authorities[0]?.profile.validationRequestId;
+
+      const request = requestId
+        ? parentalAuthorities.requests.find((r) => r.id === requestId)
+        : undefined;
       return {
         parentalAuthority: {
           id: authorities[0]?.id ?? '',

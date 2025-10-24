@@ -84,6 +84,39 @@ export const profiles = defineTable({
   }),
 
   registrationRequest: v.optional(v.id('requests')),
+
+  documents: v.object({
+    passport: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    birthCertificate: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    residencePermit: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    addressProof: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    identityPicture: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+  }),
 })
   .index('by_user', ['userId'])
   .index('by_status', ['status'])

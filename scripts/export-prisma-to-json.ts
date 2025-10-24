@@ -8,6 +8,7 @@ const prisma = new PrismaClient({
 });
 
 const userEmail: string | undefined = undefined;
+const userLimit: number | undefined = 50;
 
 interface ExportStats {
   entity: string;
@@ -325,6 +326,7 @@ async function exportUserCentricData() {
       },
     },
     orderBy: { createdAt: 'asc' },
+    ...(userLimit && { take: userLimit }),
   });
 
   const filePath = path.join(EXPORT_DIR, 'users-data.json');

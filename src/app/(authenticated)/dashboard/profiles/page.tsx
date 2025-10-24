@@ -27,7 +27,6 @@ declare global {
 }
 
 import { PageContainer } from '@/components/layouts/page-container';
-import type { ProfilesArrayItem, ProfilesFilters } from '@/components/profile/types';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
@@ -39,7 +38,13 @@ import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { ROUTES } from '@/schemas/routes';
 import { Avatar, AvatarImage } from '@radix-ui/react-avatar';
 import { FileText, Edit, Download, FolderOpen, Eye } from 'lucide-react';
-import { ProfileStatus, ProfileCategory, Gender, UserRole } from '@/convex/lib/constants';
+import {
+  ProfileStatus,
+  ProfileCategory,
+  Gender,
+  UserRole,
+  RequestStatus,
+} from '@/convex/lib/constants';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
@@ -85,6 +90,20 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import { useProfilesList, useUpdateProfileStatus } from '@/hooks/use-profiles';
 import { useRouter } from 'next/navigation';
 import type { Id } from '@/convex/_generated/dataModel';
+import type { ProfileListItem } from '@/convex/lib/types';
+
+export type ProfilesFilters = {
+  search?: string;
+  status?: RequestStatus[];
+  gender?: Gender[];
+  organizationId?: Id<'organizations'>[];
+  page?: number;
+  limit?: number;
+  sort?: {
+    field: keyof ProfileListItem;
+    order: 'asc' | 'desc';
+  };
+};
 
 function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
   const params = {
@@ -92,11 +111,6 @@ function adaptSearchParams(searchParams: URLSearchParams): ProfilesFilters {
     ...(searchParams.get('status') && {
       status: searchParams.get('status')?.split(',').filter(Boolean) as
         | string[]
-        | undefined,
-    }),
-    ...(searchParams.get('category') && {
-      category: searchParams.get('category')?.split(',').filter(Boolean) as
-        | ProfileCategory[]
         | undefined,
     }),
     ...(searchParams.get('gender') && {
@@ -126,13 +140,12 @@ export default function ProfilesPage() {
     handleParamsChange,
     handlePaginationChange,
     handleSortingChange,
-  } = useTableSearchParams<ProfilesArrayItem, ProfilesFilters>(adaptSearchParams);
+  } = useTableSearchParams<ProfileListItem, ProfilesFilters>(adaptSearchParams);
 
   const { profiles, total, isLoading } = useProfilesList({
     search: params.search,
-    status: params.status as string[],
-    category: params.category as string[],
-    gender: params.gender as string[],
+    status: params.status,
+    gender: params.gender,
     page: pagination.page,
     limit: pagination.limit,
   });
@@ -169,8 +182,8 @@ export default function ProfilesPage() {
     [t],
   );
 
-  const generateColumns = (): ColumnDef<ProfilesArrayItem>[] => {
-    const baseColumns: ColumnDef<ProfilesArrayItem>[] = [
+  const generateColumns = () => {
+    const baseColumns: ColumnDef<ProfileListItem>[] = [
       {
         id: 'id',
         header: ({ table }) => (
@@ -309,39 +322,6 @@ export default function ProfilesPage() {
           );
         },
       },
-
-      {
-        accessorKey: 'category',
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={t('inputs.profileCategory.label')}
-            sortHandler={(direction) =>
-              handleSortingChange({
-                field: 'category',
-                order: direction,
-              })
-            }
-            labels={{ asc: 'A-Z', desc: 'Z-A' }}
-          />
-        ),
-        cell: ({ row }) => {
-          const category = categories.find((cat) => cat.value === row.original.category);
-
-          if (!category) {
-            return null;
-          }
-
-          return (
-            <div className="flex items-center">
-              <Badge variant={'outline'}>{category.label}</Badge>
-            </div>
-          );
-        },
-        filterFn: (row, id, value) => {
-          return value.includes(row.original.category);
-        },
-      },
       {
         accessorKey: 'status',
         header: ({ column }) => (
@@ -472,21 +452,6 @@ export default function ProfilesPage() {
         },
       },
       {
-        accessorKey: 'IDPicturePath',
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={'Nom du fichier'} />
-        ),
-        cell: ({ row }) => {
-          return (
-            <div className="flex items-center">
-              <span className="max-w-[200px] truncate">
-                {row.original.IDPicturePath || '-'}
-              </span>
-            </div>
-          );
-        },
-      },
-      {
         id: 'actions',
         header: ({ table }) => (
           <DataTableBulkActions
@@ -517,7 +482,7 @@ export default function ProfilesPage() {
         ),
         cell: ({ row }) => (
           <div className="flex items-center gap-1">
-            {row.original.validationRequestId && (
+            {row.original.registrationRequest && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
@@ -527,7 +492,7 @@ export default function ProfilesPage() {
                     }
                     onClick={(e) => e.stopPropagation()}
                     href={ROUTES.dashboard.service_requests(
-                      row.original.validationRequestId,
+                      row.original.registrationRequest,
                     )}
                   >
                     <FileText className="size-icon" />
@@ -600,7 +565,7 @@ export default function ProfilesPage() {
           if (column.id === 'actions') {
             return {
               ...column,
-              cell: ({ row }: { row: { original: ProfilesArrayItem } }) => (
+              cell: ({ row }: { row: { original: ProfileListItem } }) => (
                 <div className="flex items-center gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -626,12 +591,12 @@ export default function ProfilesPage() {
     return baseColumns;
   };
 
-  const columns = useMemo<ColumnDef<ProfilesArrayItem>[]>(
+  const columns = useMemo<ColumnDef<ProfileListItem>[]>(
     () => generateColumns(),
     [handleSortingChange, t, categories, statuses, genders, router, isIntelAgent],
   );
 
-  const filters = useMemo<FilterOption<ProfilesArrayItem>[]>(
+  const filters = useMemo<FilterOption<ProfileListItem>[]>(
     () => [
       {
         type: 'search',
@@ -648,19 +613,7 @@ export default function ProfilesPage() {
         options: statuses,
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange('status', value);
-          }
-        },
-      },
-      {
-        type: 'checkbox',
-        property: 'category',
-        label: t('inputs.profileCategory.label'),
-        defaultValue: params.category || [],
-        options: categories,
-        onChange: (value) => {
-          if (Array.isArray(value)) {
-            handleParamsChange('category', value);
+            handleParamsChange('status', value as RequestStatus[]);
           }
         },
       },
@@ -672,7 +625,7 @@ export default function ProfilesPage() {
         options: genders,
         onChange: (value) => {
           if (Array.isArray(value)) {
-            handleParamsChange('gender', value);
+            handleParamsChange('gender', value as Gender[]);
           }
         },
       },
@@ -726,7 +679,7 @@ const quickEditSchema = z.object({
 type QuickEditFormData = z.infer<typeof quickEditSchema>;
 
 type QuickEditFormProps = {
-  profile: ProfilesArrayItem;
+  profile: ProfileListItem;
   onSuccess: () => void;
 };
 
@@ -811,7 +764,7 @@ const statusChangeSchema = z.object({
 });
 type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
 type StatusChangeFormProps = {
-  selectedRows: ProfilesArrayItem[];
+  selectedRows: ProfileListItem[];
   onSuccess: () => void;
 };
 function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
@@ -898,7 +851,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
 
 // Bulk export with directory selection form for profiles
 type ExportWithDirectoryFormProps = {
-  selectedRows: ProfilesArrayItem[];
+  selectedRows: ProfileListItem[];
   onSuccess: () => void;
 };
 

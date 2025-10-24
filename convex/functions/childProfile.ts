@@ -44,22 +44,10 @@ export const createChildProfile = mutation({
       authorUserId: args.authorUserId,
       status: ProfileStatus.Draft,
       residenceCountry: args.residenceCountry,
-      consularCard: {
-        cardNumber: undefined,
-        cardIssuedAt: undefined,
-        cardExpiresAt: undefined,
-      },
+      consularCard: {},
       personal: {
         firstName: args.firstName,
         lastName: args.lastName,
-        birthDate: undefined,
-        birthPlace: undefined,
-        birthCountry: undefined,
-        gender: undefined,
-        nationality: undefined,
-        acquisitionMode: undefined,
-        passportInfos: undefined,
-        nipCode: undefined,
       },
       parents: [
         {
@@ -75,7 +63,7 @@ export const createChildProfile = mutation({
           address: currentUserProfile.contacts?.address,
         },
       ],
-      registrationRequest: undefined,
+      documents: {},
     });
 
     return childProfileId;
