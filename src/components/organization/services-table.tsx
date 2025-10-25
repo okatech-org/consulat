@@ -9,7 +9,7 @@ import { getOrganizationIdFromUser } from '@/lib/utils';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { ROUTES } from '@/schemas/routes';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef, Table, Row, Column } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { DataTable } from '@/components/data-table/data-table';
@@ -32,7 +32,7 @@ interface SearchParams {
   search?: string;
   category?: ServiceCategory[];
   organizationId?: string[];
-  isActive?: boolean[];
+  isActive?: ServiceStatus[];
 }
 
 function adaptSearchParams(searchParams: URLSearchParams): SearchParams {
@@ -42,7 +42,8 @@ function adaptSearchParams(searchParams: URLSearchParams): SearchParams {
       | ServiceCategory[]
       | undefined,
     organizationId: searchParams.get('organizationId')?.split(',').filter(Boolean),
-    isActive: searchParams.get('isActive') === 'true' ? [true] : undefined,
+    isActive:
+      searchParams.get('isActive') === 'active' ? [ServiceStatus.Active] : undefined,
   };
 }
 
@@ -62,7 +63,7 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
   const { params, pagination, handleParamsChange, handlePaginationChange } =
     useTableSearchParams<Service, SearchParams>(adaptSearchParams);
 
-  const filterOrgId = isSuperAdmin ? params.organizationId?.[0] : (organizationId as any);
+  const filterOrgId = isSuperAdmin ? params.organizationId?.[0] : organizationId;
 
   const {
     services,
@@ -72,7 +73,7 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
   } = useServices({
     search: params.search,
     organizationId: filterOrgId,
-    status: params.isActive?.[0] ? ServiceStatus.Active : undefined,
+    status: params.isActive?.[0],
     page: pagination.page,
     limit: pagination.limit,
   });
@@ -106,7 +107,7 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
       [
         {
           id: 'select',
-          header: ({ table }) => (
+          header: ({ table }: { table: Table<Service> }) => (
             <Checkbox
               checked={
                 table.getIsAllPageRowsSelected() ||
@@ -117,7 +118,7 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
               className="translate-y-[2px]"
             />
           ),
-          cell: ({ row }) => (
+          cell: ({ row }: { row: Row<Service> }) => (
             <Checkbox
               checked={row.getIsSelected()}
               onCheckedChange={(value) => row.toggleSelected(!!value)}
@@ -130,26 +131,28 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
         },
         {
           accessorKey: 'code',
-          header: ({ column }) => (
+          header: ({ column }: { column: Column<Service, unknown> }) => (
             <DataTableColumnHeader column={column} title={t_inputs('code')} />
           ),
-          cell: ({ row }) => (
+          cell: ({ row }: { row: Row<Service> }) => (
             <div className="font-medium">{String(row.getValue('code'))}</div>
           ),
         },
         {
           accessorKey: 'name',
-          header: ({ column }) => (
+          header: ({ column }: { column: Column<Service, unknown> }) => (
             <DataTableColumnHeader column={column} title={t_inputs('name')} />
           ),
-          cell: ({ row }) => <div>{String(row.getValue('name'))}</div>,
+          cell: ({ row }: { row: Row<Service> }) => (
+            <div>{String(row.getValue('name'))}</div>
+          ),
         },
         {
           accessorKey: 'category',
-          header: ({ column }) => (
+          header: ({ column }: { column: Column<Service, unknown> }) => (
             <DataTableColumnHeader column={column} title={t('category')} />
           ),
-          cell: ({ row }) => (
+          cell: ({ row }: { row: Row<Service> }) => (
             <Badge variant="outline">{t(`categories.${row.getValue('category')}`)}</Badge>
           ),
         },
@@ -157,13 +160,13 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
           ? [
               {
                 accessorKey: 'organizationId',
-                header: ({ column }) => (
+                header: ({ column }: { column: Column<Service, unknown> }) => (
                   <DataTableColumnHeader
                     column={column}
                     title={t_common('organization')}
                   />
                 ),
-                cell: ({ row }) => (
+                cell: ({ row }: { row: Row<Service> }) => (
                   <div>{getOrganizationName(String(row.getValue('organizationId')))}</div>
                 ),
               } as ColumnDef<Service>,
@@ -171,23 +174,25 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
           : []),
         {
           accessorKey: 'status',
-          header: ({ column }) => (
+          header: ({ column }: { column: Column<Service, unknown> }) => (
             <DataTableColumnHeader column={column} title={t_common('status')} />
           ),
-          cell: ({ row }) => (
+          cell: ({ row }: { row: Row<Service> }) => (
             <Badge
               variant={
                 row.getValue('status') === ServiceStatus.Active ? 'default' : 'secondary'
               }
             >
-              {row.getValue('status') === ServiceStatus.Active ? 'Active' : 'Inactive'}
+              {row.getValue('status') === ServiceStatus.Active
+                ? t_inputs('organization.status.options.active')
+                : t_inputs('organization.status.options.inactive')}
             </Badge>
           ),
         },
         {
           id: 'actions',
           header: t_common('actions'),
-          cell: ({ row }) => {
+          cell: ({ row }: { row: Row<Service> }) => {
             const service = row.original;
             return (
               <div className="flex gap-2">
@@ -228,12 +233,15 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
         property: 'isActive',
         label: t_common('status'),
         options: [
-          { value: 'true', label: 'Active' },
-          { value: 'false', label: 'Inactive' },
+          { value: 'active', label: t_inputs('organization.status.options.active') },
+          { value: 'inactive', label: t_inputs('organization.status.options.inactive') },
         ],
-        defaultValue: params.isActive ? ['true'] : [],
+        defaultValue: params.isActive?.includes(ServiceStatus.Active) ? ['active'] : [],
         onChange: (value: string[]) => {
-          handleParamsChange('isActive', value.length > 0 ? ['true'] : ['false']);
+          handleParamsChange(
+            'isActive',
+            value.length > 0 ? [ServiceStatus.Active] : undefined,
+          );
         },
       },
       ...(isSuperAdmin

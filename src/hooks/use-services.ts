@@ -13,7 +13,7 @@ import type { ServiceStep } from '@/convex/lib/types';
  */
 export function useServices(options?: {
   search?: string;
-  organizationId?: Id<'organizations'>;
+  organizationId?: Id<'organizations'> | string;
   status?: string;
   category?: string;
   page?: number;
@@ -36,7 +36,9 @@ export function useServices(options?: {
     // Filter by organizationId
     if (options?.organizationId) {
       result = result.filter(
-        (service) => service.organizationId === options.organizationId,
+        (service) =>
+          service.organizationId === options.organizationId ||
+          String(service.organizationId) === String(options.organizationId),
       );
     }
 
@@ -92,7 +94,7 @@ export function useServices(options?: {
     category: ServiceCategory;
     status?: ServiceStatus;
     countries: string[];
-    organizationId: Id<'organizations'>;
+    organizationId: Id<'organizations'> | string;
     steps: ServiceStep[];
     processing: any;
     delivery: any;
@@ -173,7 +175,7 @@ export function useServices(options?: {
 /**
  * Hook pour récupérer les services actifs (pour les formulaires)
  */
-export function useActiveServices(organizationId?: Id<'organizations'>) {
+export function useActiveServices(organizationId?: Id<'organizations'> | string) {
   const services = useQuery(api.functions.service.getAllServices, {});
 
   const activeServices = useMemo(() => {
@@ -182,7 +184,11 @@ export function useActiveServices(organizationId?: Id<'organizations'>) {
     let result = services.filter((s) => s.status === 'active');
 
     if (organizationId) {
-      result = result.filter((s) => s.organizationId === organizationId);
+      result = result.filter(
+        (s) =>
+          s.organizationId === organizationId ||
+          String(s.organizationId) === String(organizationId),
+      );
     }
 
     return result;
