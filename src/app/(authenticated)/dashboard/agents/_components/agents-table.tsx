@@ -234,20 +234,21 @@ export function AgentsTable({ organizations, defaultOrganizationId }: AgentsTabl
         type: 'checkbox' as const,
         property: 'linkedCountries',
         label: 'Pays',
-        options: activeCountries?.map((c) => ({
-          value: c.code,
-          label: c.name || c.code,
-        })),
-        defaultValue: params.linkedCountries,
+        options:
+          activeCountries?.map((c) => ({
+            value: c.code,
+            label: c.name || c.code,
+          })) || [],
+        defaultValue: (params.linkedCountries as string[]) || [],
         onChange: (value: string[]) =>
           handleParamsChange('linkedCountries', value as CountryCode[]),
       },
       {
-        type: 'checkbox' as const,
+        type: 'radio' as const,
         property: 'assignedServices',
         label: 'Services',
         options: services?.map((s) => ({ value: s._id, label: s.name || s._id })) || [],
-        defaultValue: params.assignedServices,
+        defaultValue: (params.assignedServices as string) || '',
         onChange: (value: string) =>
           handleParamsChange('assignedServices', value as Id<'services'>),
       },
@@ -257,11 +258,13 @@ export function AgentsTable({ organizations, defaultOrganizationId }: AgentsTabl
               type: 'radio' as const,
               property: 'assignedOrganizationId',
               label: 'Organisation',
-              options: organizations.map((o) => ({
-                value: o?._id,
-                label: o?.name || o?._id,
-              })),
-              defaultValue: params.assignedOrganizationId,
+              options: organizations
+                .filter((o) => o && o._id && o.name)
+                .map((o) => ({
+                  value: o!._id as string,
+                  label: o!.name as string,
+                })),
+              defaultValue: (params.assignedOrganizationId as string) || '',
               onChange: (value: string) =>
                 handleParamsChange(
                   'assignedOrganizationId',
@@ -277,8 +280,11 @@ export function AgentsTable({ organizations, defaultOrganizationId }: AgentsTabl
               property: 'managedByUserId',
               label: 'Géré par',
               options:
-                managers?.map((m) => ({ value: m._id, label: m.name || m._id })) || [],
-              defaultValue: params.managedByUserId,
+                managers
+                  ?.filter((m) => m._id && m.name)
+                  .map((m) => ({ value: m._id as string, label: m.name as string })) ||
+                [],
+              defaultValue: (params.managedByUserId as string) || '',
               onChange: (value: string) =>
                 handleParamsChange('managedByUserId', value as Id<'memberships'>),
             },
