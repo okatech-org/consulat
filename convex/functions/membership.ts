@@ -409,13 +409,11 @@ export const getOrganizationAgents = query({
       .filter((q) => q.eq(q.field('status'), MembershipStatus.Active))
       .collect();
 
-    const agents = await Promise.all(
-      memberships.map(async (membership) => {
-        const user = await ctx.db.get(membership.userId);
-        return user ? { ...user, roles: user.roles, membership } : null;
-      }),
-    );
-
-    return agents.filter(Boolean);
+    return memberships.map((membership) => ({
+      _id: membership._id,
+      firstName: membership.firstName,
+      lastName: membership.lastName,
+      role: membership.role,
+    }));
   },
 });

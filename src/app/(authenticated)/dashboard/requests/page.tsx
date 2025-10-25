@@ -67,8 +67,9 @@ import { useRouter } from 'next/navigation';
 
 // Types pour les agents
 type Agent = {
-  id: string;
-  name: string;
+  _id: Id<'memberships'>;
+  firstName?: string;
+  lastName?: string;
   email?: string;
 };
 
@@ -563,8 +564,8 @@ export default function RequestsPageClient() {
         label: t('requests.filters.assigned_to'),
         defaultValue: params.assignedToId || [],
         options: agents.map((agent) => ({
-          value: agent.id,
-          label: agent.name || '-',
+          value: agent._id,
+          label: agent.firstName + ' ' + agent.lastName || '-',
         })),
         onChange: (value) => {
           if (Array.isArray(value)) {
@@ -788,8 +789,8 @@ function AssignToChangeForm({
                     </FormControl>
                     <SelectContent>
                       {agents.map((agent) => (
-                        <SelectItem key={agent.id} value={agent.id}>
-                          {agent.name}
+                        <SelectItem key={agent._id} value={agent._id}>
+                          {agent.firstName} {agent.lastName}
                         </SelectItem>
                       ))}
                     </SelectContent>

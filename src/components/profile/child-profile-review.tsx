@@ -2,64 +2,99 @@
 
 import { useTranslations } from 'next-intl';
 import { Suspense, useState } from 'react';
-import { RequestStatus } from '@prisma/client';
+import { RequestStatus, UserRole } from '@/convex/lib/constants';
 import { Textarea } from '@/components/ui/textarea';
 import {
   useDateLocale,
-  tryCatch,
   calculateChildProfileCompletion,
   getChildProfileFieldsStatus,
 } from '@/lib/utils';
 import { ProfileCompletion } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-completion';
 import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-status-badge';
-import { ReviewNotes } from '../requests/review-notes';
 import { Label } from '@/components/ui/label';
 import CardContainer from '@/components/layouts/card-container';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  updateConsularRegistrationStatus,
-  validateConsularRegistration,
-} from '@/actions/consular-registration';
-import { StatusTimeline } from '@/components/consular/status-timeline';
-import { canSwitchTo, STATUS_ORDER } from '@/lib/validations/status-transitions';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { ChildProfileTabs } from '@/app/(authenticated)/my-space/children/_components/profile-tabs';
-import type { RequestDetails } from '@/server/api/routers/requests/types';
-import { api } from '@/trpc/react';
 import { LoadingSkeleton } from '../ui/loading-skeleton';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { hasRole } from '@/lib/permissions/utils';
 
 interface ChildProfileReviewProps {
-  request: NonNullable<RequestDetails>;
+  request: NonNullable<Doc<'requests'>>;
 }
 
 export function ChildProfileReviewBase({ request }: ChildProfileReviewProps) {
-  const t = useTranslations();
-  const { data: profile } = api.profile.getById.useQuery({
-    id: request.requestedFor?.id ?? '',
-  });
+  const { user: currentUser } = useCurrentUser();
+  const cantUpdateRequest =
+    hasRole(currentUser, UserRole.Agent) &&
+    request.assignedAgentId !== currentUser?.membership?._id;
 
-  const user = request.submittedBy;
+  const t = useTranslations();
+
+  // Fetch child profile data using Convex
+  const profile = useQuery(
+    api.functions.childProfile.getChildProfile,
+    request.profileId ? { childProfileId: request.profileId as Id<'childProfiles'> } : 'skip',
+  );
+
   const [isLoading, setIsLoading] = useState(false);
   const { formatDate } = useDateLocale();
-  const [selectedStatus, setSelectedStatus] = useState<RequestStatus>(request.status);
+  const [selectedStatus, setSelectedStatus] = useState<string>(request.status);
   const [validationNotes, setValidationNotes] = useState('');
+  const router = useRouter();
 
-  if (!profile || !user) {
-    return null;
+  // Convex mutations
+  const updateRequestStatus = useMutation(api.functions.request.updateRequestStatus);
+  const addNoteMutation = useMutation(api.functions.request.addRequestNote);
+
+  if (!profile) {
+    return <LoadingSkeleton variant="form" />;
   }
 
-  const completionRate = calculateChildProfileCompletion(profile);
-  const fieldStatus = getChildProfileFieldsStatus(profile);
+  const completionRate = calculateChildProfileCompletion(profile as any);
+  const fieldStatus = getChildProfileFieldsStatus(profile as any);
 
-  const statusOptions = STATUS_ORDER.map((item) => {
-    return { value: item, label: t(`common.status.${item}`) };
-  });
+  const statusOptions = Object.values(RequestStatus).map((status) => ({
+    value: status,
+    label: t(`common.status.${status}`),
+  }));
 
-  function isStatusCompleted(status: RequestStatus) {
-    return STATUS_ORDER.indexOf(status) <= STATUS_ORDER.indexOf(request.status);
-  }
+  const handleStatusUpdate = async (newStatus: string) => {
+    setIsLoading(true);
+    try {
+      await updateRequestStatus({
+        requestId: request._id,
+        status: newStatus as RequestStatus,
+      });
+
+      if (validationNotes && currentUser?.membership?._id) {
+        await addNoteMutation({
+          requestId: request._id,
+          note: {
+            type: 'internal',
+            content: validationNotes,
+          },
+          addedById: currentUser.membership._id,
+        });
+      }
+
+      toast.success('Statut mis à jour avec succès');
+      router.refresh();
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour du statut');
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -68,152 +103,115 @@ export function ChildProfileReviewBase({ request }: ChildProfileReviewProps) {
         <div className="flex items-start gap-4">
           <Avatar className="size-14 md:size-24">
             <AvatarImage
-              src={profile.identityPicture?.fileUrl ?? ''}
-              alt={profile.firstName ?? ''}
+              src={profile.documents?.identityPicture?.fileUrl ?? ''}
+              alt={profile.personal?.firstName ?? ''}
             />
             <AvatarFallback>
-              {profile.firstName?.[0]}
-              {profile.lastName?.[0]}
+              {profile.personal?.firstName?.[0]}
+              {profile.personal?.lastName?.[0]}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 space-y-1">
             <h2 className="text-xl md:text-2xl flex items-center gap-2 font-semibold">
-              {profile.firstName} {profile.lastName}{' '}
+              {profile.personal?.firstName} {profile.personal?.lastName}{' '}
               <ProfileStatusBadge
-                status={request.status}
+                status={request.status as any}
                 label={t(`common.status.${request.status}`)}
               />
             </h2>
-            {profile.user?.email && (
+            {request.metadata.requester?.email && (
               <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
                 <Mail className="size-4" />
-                {profile.user.email}
+                {request.metadata.requester.email}
               </div>
             )}
-            {profile.user?.phoneNumber && (
+            {request.metadata.requester?.phoneNumber && (
               <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
                 <Phone className="size-4" />
-                {profile.user.phoneNumber}
+                {request.metadata.requester.phoneNumber}
               </div>
             )}
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
                 {t('admin.registrations.review.submitted_on')}:{' '}
-                {formatDate(request.createdAt ?? '')}
+                {request.submittedAt
+                  ? formatDate(new Date(request.submittedAt))
+                  : formatDate(new Date(request._creationTime))}
               </span>
             </div>
           </div>
         </div>
       </CardContainer>
-      <CardContainer>
-        <StatusTimeline currentStatus={request.status} />
-      </CardContainer>
 
       {/* Contenu principal */}
       <div className="grid gap-6 md:grid-cols-3">
         <div className="space-y-6 md:col-span-2">
-          {request.appointments[0] && (
-            <CardContainer title={t('admin.registrations.review.appointment.title')}>
-              <div className="space-y-2">
-                <Label>{t('admin.registrations.review.appointment.date')}</Label>
-                <p>{formatDate(request.appointments[0].date)}</p>
-              </div>
-            </CardContainer>
-          )}
-          <ChildProfileTabs profile={profile} />
+          <ChildProfileTabs profile={profile as any} />
         </div>
 
         {/* Panneau latéral pour les notes et validations */}
         <div className="space-y-4 col-span-1">
-          <ProfileCompletion completionRate={completionRate} fieldStatus={fieldStatus} />
+          <ProfileCompletion
+            completionRate={typeof completionRate === 'number' ? completionRate : completionRate.percentage}
+            fieldStatus={fieldStatus}
+          />
           <CardContainer
             title={t('admin.registrations.review.validation.title')}
             contentClass="space-y-4"
           >
             <div className="space-y-2">
               <Label>{t('admin.registrations.review.validation.status')}</Label>
-              <MultiSelect<RequestStatus>
+              <MultiSelect<string>
                 type="single"
                 selected={selectedStatus}
-                onChange={(value) => setSelectedStatus(value as RequestStatus)}
+                onChange={(value) => value && setSelectedStatus(value)}
                 placeholder={t('admin.registrations.review.validation.status')}
-                options={statusOptions.map((option) => {
-                  const { can, reason } = canSwitchTo(
-                    option.value as RequestStatus,
-                    request,
-                    profile,
-                    true,
-                  );
-
-                  const isCompleted = isStatusCompleted(option.value as RequestStatus);
-
-                  let label = option.label;
-                  if (!isCompleted && reason) {
-                    label += ` (${t(`admin.registrations.review.transitions.${reason}`)})`;
-                  }
-                  if (isCompleted) {
-                    label += ` (${t('common.status.COMPLETED')})`;
-                  }
-
-                  return { value: option.value, label: label, disabled: !can };
-                })}
+                options={statusOptions}
               />
             </div>
-            {selectedStatus === RequestStatus.VALIDATED &&
-              RequestStatus.VALIDATED !== request.status && (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>{t('admin.registrations.review.validation.notes')}</Label>
-                    <Textarea
-                      value={validationNotes}
-                      onChange={(e) => setValidationNotes(e.target.value)}
-                      placeholder={t(
-                        'admin.registrations.review.validation.notes_placeholder',
-                      )}
-                    />
-                  </div>
-                  <Button
-                    loading={isLoading}
-                    className="w-full"
-                    onClick={async () => {
-                      setIsLoading(true);
-                      await tryCatch(
-                        validateConsularRegistration(
-                          request.id,
-                          profile.id,
-                          profile.residenceCountyCode,
-                          'VALIDATED',
-                          3,
-                          validationNotes,
-                        ),
-                      );
-                      setIsLoading(false);
-                    }}
-                  >
-                    {t('admin.registrations.review.validation.validate')}
-                  </Button>
+
+            {selectedStatus === RequestStatus.Validated && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>{t('admin.registrations.review.validation.notes')}</Label>
+                  <Textarea
+                    value={validationNotes}
+                    onChange={(e) => setValidationNotes(e.target.value)}
+                    placeholder={t('admin.registrations.review.validation.notes_placeholder')}
+                  />
                 </div>
-              )}
-            {selectedStatus !== RequestStatus.VALIDATED && (
-              <Button
-                className="w-full"
-                loading={isLoading}
-                disabled={selectedStatus === request.status}
-                onClick={async () => {
-                  setIsLoading(true);
-                  await updateConsularRegistrationStatus(
-                    request.id,
-                    profile.id,
-                    selectedStatus,
-                  );
-                  setIsLoading(false);
-                }}
-              >
-                {t('admin.registrations.review.validation.validate')}
-              </Button>
+              </div>
+            )}
+
+            <Button
+              className="w-full"
+              loading={isLoading}
+              disabled={selectedStatus === request.status || cantUpdateRequest}
+              onClick={() => handleStatusUpdate(selectedStatus)}
+            >
+              {t('admin.registrations.review.validation.validate')}
+            </Button>
+          </CardContainer>
+
+          {/* Activity History */}
+          <CardContainer title="Historique" contentClass="space-y-3">
+            {request.metadata.activities.length > 0 ? (
+              request.metadata.activities
+                .slice()
+                .reverse()
+                .slice(0, 5)
+                .map((activity, index) => (
+                  <div key={index} className="border-b pb-3 last:border-0">
+                    <p className="text-sm font-medium">{activity.type}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(new Date(activity.timestamp), 'PPp')}
+                    </p>
+                  </div>
+                ))
+            ) : (
+              <p className="text-sm text-muted-foreground">Aucune activité</p>
             )}
           </CardContainer>
-          <ReviewNotes requestId={request.id} notes={request.notes} />
         </div>
       </div>
     </div>

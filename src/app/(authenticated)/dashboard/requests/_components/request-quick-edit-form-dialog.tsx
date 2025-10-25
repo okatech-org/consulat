@@ -18,83 +18,66 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  TradFormMessage,
+  FormMessage,
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { updateServiceRequest } from '@/actions/service-requests';
 import { useRouter } from 'next/navigation';
-import { toast } from '@/hooks/use-toast';
-import { RequestStatus, ServicePriority } from '@prisma/client';
+import { toast } from 'sonner';
+import { RequestStatus, RequestPriority } from '@/convex/lib/constants';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { filterUneditedKeys } from '@/lib/utils';
-import type { RequestDetails } from '@/server/api/routers/requests/misc';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 // Schéma de validation pour le formulaire
 const formSchema = z.object({
-  assignedToId: z.string().min(1, 'Required'),
-  priority: z.nativeEnum(ServicePriority, {
-    required_error: 'messages.errors.field_required',
-    invalid_type_error: 'messages.errors.invalid_priority_value',
-  }),
-  status: z.nativeEnum(RequestStatus, {
-    required_error: 'messages.errors.field_required',
-    invalid_type_error: 'messages.errors.invalid_status_value',
-  }),
+  assignedAgentId: z.string().min(1, 'Required'),
+  priority: z.string().min(1, 'Required'),
+  status: z.string().min(1, 'Required'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface RequestQuickEditFormDialogProps {
-  request: NonNullable<RequestDetails>;
+  request: NonNullable<Doc<'requests'>>;
 }
 
 export function RequestQuickEditFormDialog({ request }: RequestQuickEditFormDialogProps) {
   const t = useTranslations();
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
+
+  const updateRequest = useMutation(api.functions.request.updateRequest);
+
+  // Get agents from organization
+  const agents = useQuery(api.functions.membership.getOrganizationAgents, {
+    organizationId: request.organizationId,
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      assignedToId: request.assignedToId || '',
+      assignedAgentId: request.assignedAgentId || '',
       priority: request.priority,
       status: request.status,
     },
   });
 
   const onSubmit = async (values: FormValues) => {
-    setIsLoading(true);
     try {
-      filterUneditedKeys(values, form.formState.dirtyFields);
-      const result = await updateServiceRequest({
-        id: request.id,
-        ...values,
+      await updateRequest({
+        requestId: request._id,
+        assignedAgentId: values.assignedAgentId as Id<'memberships'>,
+        priority: values.priority as RequestPriority,
+        status: values.status as RequestStatus,
       });
 
-      toast({
-        title: t('messages.success.update'),
-        description: t('messages.requests.assign.success'),
-      });
+      toast.success(t('messages.success.update'));
       setOpen(false);
       router.refresh();
-
-      if (result.error) {
-        toast({
-          variant: 'destructive',
-          title: t('messages.errors.update'),
-          description: t('messages.requests.assign.error'),
-        });
-      }
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t('messages.errors.update'),
-        description: t('messages.requests.assign.error'),
-      });
+      toast.error(t('messages.errors.update'));
       console.error(error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -114,20 +97,20 @@ export function RequestQuickEditFormDialog({ request }: RequestQuickEditFormDial
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="assignedToId"
+              name="assignedAgentId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('inputs.agent.assigned_to')}</FormLabel>
                   <MultiSelect
-                    options={request.organization?.agents.map((agent) => ({
-                      label: `${agent.name}`,
-                      value: agent.id,
+                    options={agents?.map((agent) => ({
+                      label: `${agent.firstName} ${agent.lastName}`,
+                      value: agent._id,
                     }))}
                     onChange={field.onChange}
                     selected={field.value}
                     type="single"
                   />
-                  <TradFormMessage />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -137,16 +120,26 @@ export function RequestQuickEditFormDialog({ request }: RequestQuickEditFormDial
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('inputs.priority.label')}</FormLabel>
-                  <MultiSelect<ServicePriority>
+                  <MultiSelect
                     options={[
-                      { value: 'STANDARD', label: t('common.priority.STANDARD') },
-                      { value: 'URGENT', label: t('common.priority.URGENT') },
+                      {
+                        value: RequestPriority.Normal,
+                        label: t(`inputs.priority.options.${RequestPriority.Normal}`),
+                      },
+                      {
+                        value: RequestPriority.Urgent,
+                        label: t(`inputs.priority.options.${RequestPriority.Urgent}`),
+                      },
+                      {
+                        value: RequestPriority.Critical,
+                        label: t(`inputs.priority.options.${RequestPriority.Critical}`),
+                      },
                     ]}
                     onChange={field.onChange}
                     selected={field.value}
                     type="single"
                   />
-                  <TradFormMessage />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -156,31 +149,16 @@ export function RequestQuickEditFormDialog({ request }: RequestQuickEditFormDial
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('inputs.status.label')}</FormLabel>
-                  <MultiSelect<RequestStatus>
-                    options={[
-                      { value: 'SUBMITTED', label: t('common.status.SUBMITTED') },
-                      { value: 'PENDING', label: t('common.status.PENDING') },
-                      {
-                        value: 'PENDING_COMPLETION',
-                        label: t('common.status.PENDING_COMPLETION'),
-                      },
-                      {
-                        value: 'APPOINTMENT_SCHEDULED',
-                        label: t('common.status.APPOINTMENT_SCHEDULED'),
-                      },
-                      {
-                        value: 'READY_FOR_PICKUP',
-                        label: t('common.status.READY_FOR_PICKUP'),
-                      },
-                      { value: 'VALIDATED', label: t('common.status.VALIDATED') },
-                      { value: 'REJECTED', label: t('common.status.REJECTED') },
-                      { value: 'COMPLETED', label: t('common.status.COMPLETED') },
-                    ]}
+                  <MultiSelect
+                    options={Object.values(RequestStatus).map((status) => ({
+                      value: status,
+                      label: t(`inputs.requestStatus.options.${status}`),
+                    }))}
                     onChange={field.onChange}
                     selected={field.value}
                     type="single"
                   />
-                  <TradFormMessage />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -189,12 +167,14 @@ export function RequestQuickEditFormDialog({ request }: RequestQuickEditFormDial
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
-                disabled={isLoading}
+                disabled={form.formState.isSubmitting}
               >
                 {t('common.actions.cancel')}
               </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? t('common.actions.saving') : t('common.actions.save')}
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting
+                  ? t('common.actions.saving')
+                  : t('common.actions.save')}
               </Button>
             </div>
           </form>

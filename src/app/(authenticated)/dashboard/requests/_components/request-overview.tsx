@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Clock, User, Calendar, MapPin, ClipboardList } from 'lucide-react';
+import { FileText, Clock, User, Calendar, ClipboardList } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
 import { useDateLocale } from '@/lib/utils';
 import { hasAnyRole } from '@/lib/permissions/utils';
@@ -15,12 +15,14 @@ import { Separator } from '@/components/ui/separator';
 import { CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
-import type { RequestDetails } from '@/server/api/routers/requests/misc';
+import type { Doc } from '@/convex/_generated/dataModel';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { UserRole } from '@/convex/lib/constants';
+import { UserRole, ActivityType } from '@/convex/lib/constants';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 interface RequestOverviewProps {
-  request: NonNullable<RequestDetails>;
+  request: NonNullable<Doc<'requests'>>;
 }
 
 export function RequestOverview({ request }: RequestOverviewProps) {
@@ -28,23 +30,36 @@ export function RequestOverview({ request }: RequestOverviewProps) {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
 
+  // Fetch service data
+  const service = useQuery(api.functions.service.getService, {
+    serviceId: request.serviceId,
+  });
+
   const isAdmin = hasAnyRole(user, [UserRole.Admin, UserRole.Manager]);
 
   const getActionButton = () => {
-    const isSubmitted = request.status === 'SUBMITTED';
+    const isSubmitted = request.status === 'submitted';
     const label = isSubmitted
       ? t('requests.actions.start_processing')
       : t('requests.actions.continue_processing');
 
     return (
       <Button asChild>
-        <Link href={ROUTES.dashboard.service_request_review(request.id)}>
+        <Link href={ROUTES.dashboard.service_request_review(request._id)}>
           <FileText className="size-4" />
           {label}
         </Link>
       </Button>
     );
   };
+
+  // Get assignee info from metadata
+  const assigneeName = request.metadata.assignee
+    ? `${request.metadata.assignee.firstName} ${request.metadata.assignee.lastName}`
+    : null;
+
+  const lastAction =
+    request?.metadata?.activities?.[request?.metadata?.activities?.length - 1];
 
   return (
     <div className="flex flex-col gap-4">
@@ -57,13 +72,13 @@ export function RequestOverview({ request }: RequestOverviewProps) {
           <CardContainer title={t('requests.view.request_info')} contentClass="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Badge variant={request.status === 'SUBMITTED' ? 'outline' : 'default'}>
-                  {t(`common.status.${request.status}`)}
+                <Badge variant={request.status === 'submitted' ? 'outline' : 'default'}>
+                  {t(`inputs.requestStatus.options.${request.status}`)}
                 </Badge>
                 <Badge
-                  variant={request.priority === 'URGENT' ? 'destructive' : 'outline'}
+                  variant={request.priority === 'urgent' ? 'destructive' : 'outline'}
                 >
-                  {t(`common.priority.${request.priority}`)}
+                  {t(`inputs.priority.options.${request.priority}`)}
                 </Badge>
               </div>
             </div>
@@ -72,19 +87,21 @@ export function RequestOverview({ request }: RequestOverviewProps) {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="size-4" />
                 {t('requests.view.submitted_at')}:{' '}
-                {formatDate(request.submittedAt || request.createdAt, 'PPP')}
+                {request.submittedAt
+                  ? formatDate(new Date(request.submittedAt), 'PPP')
+                  : '-'}
               </div>
-              {request.assignedTo && (
+              {assigneeName && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <User className="size-4" />
-                  {t('requests.view.assigned_to')}: {request.assignedTo.name}
+                  {t('requests.view.assigned_to')}: {assigneeName}
                 </div>
               )}
-              {request.lastActionAt && (
+              {lastAction && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="size-4" />
                   {t('requests.view.last_action')}:{' '}
-                  {formatDate(request.lastActionAt, 'PPP')}
+                  {formatDate(new Date(lastAction.timestamp), 'PPP')}
                 </div>
               )}
             </div>
@@ -94,62 +111,34 @@ export function RequestOverview({ request }: RequestOverviewProps) {
             contentClass="space-y-2"
           >
             <h3 className="font-medium">
-              {request.requestedFor?.firstName} {request.requestedFor?.lastName}
+              {request.metadata.profile?.firstName} {request.metadata.profile?.lastName}
             </h3>
-            <p className="text-sm text-muted-foreground">{request.requestedFor?.email}</p>
+            <p className="text-sm text-muted-foreground">
+              {request.metadata.profile?.email}
+            </p>
 
             <div className="flex gap-4 flex-col md:w-max">
-              {request.requestedFor && (
-                <ProfileLookupSheet profileId={request.requestedFor.id} />
+              {request.profileId && (
+                <ProfileLookupSheet
+                  profileId={request.profileId as any}
+                  triggerLabel="Voir le profil"
+                />
               )}
-              {request.requestedFor?.category === 'MINOR' && (
+              {request.requesterId !== request.profileId && (
                 <div className="flex gap-2 flex-col">
                   <p>
                     <span className="font-medium">Demande effectuée par :</span>{' '}
-                    {request.submittedBy.name}
+                    {request.metadata.requester?.firstName}{' '}
+                    {request.metadata.requester?.lastName}
                   </p>
-                  {request.submittedBy.profileId && (
-                    <ProfileLookupSheet
-                      profileId={request.submittedBy.profileId}
-                      triggerLabel={'Voir le profil du demandeur'}
-                    />
-                  )}
+                  <ProfileLookupSheet
+                    profileId={request.requesterId}
+                    triggerLabel={'Voir le profil du demandeur'}
+                  />
                 </div>
               )}
             </div>
           </CardContainer>
-          {/* Appointment Info if exists */}
-          {request.appointments && request.appointments.length > 0 && (
-            <div className="space-y-4">
-              <CardTitle className="text-xl">{t('requests.view.appointment')}</CardTitle>
-              {request.appointments.map((appointment) => (
-                <CardContainer
-                  key={appointment.id}
-                  className="border-l-4 border-l-primary"
-                  contentClass="space-y-2 p-4!"
-                >
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="size-4" />
-                    {formatDate(appointment.date, 'PPP')}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="size-4" />
-                    {t('common.duration.in_minutes', {
-                      minutes: appointment.duration,
-                    })}
-                  </div>
-                  {appointment.location && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="size-4" />
-                      <span>
-                        {`${appointment.location.firstLine}, ${appointment.location.secondLine}, ${appointment.location.zipCode} ${appointment.location.city}`}
-                      </span>
-                    </div>
-                  )}
-                </CardContainer>
-              ))}
-            </div>
-          )}
         </div>
         <CardContainer
           className="col-span-full md:col-span-4"
@@ -161,8 +150,8 @@ export function RequestOverview({ request }: RequestOverviewProps) {
               <h4 className="font-medium">
                 {t('requests.view.actions.edit_assigned_agent')}
               </h4>
-              {request.assignedTo && (
-                <p className="text-sm text-muted-foreground">{request.assignedTo.name}</p>
+              {assigneeName && (
+                <p className="text-sm text-muted-foreground">{assigneeName}</p>
               )}
               <RequestQuickEditFormDialog request={request} />
               <Separator className="my-4" />
@@ -172,13 +161,12 @@ export function RequestOverview({ request }: RequestOverviewProps) {
           <div className="space-y-4">
             <CardTitle className="text-xl">{t('requests.view.service_info')}</CardTitle>
             <div>
-              <h4 className="font-medium">{request.service.name}</h4>
-              <p className="text-sm text-muted-foreground">
-                {request.service.description}
-              </p>
+              <h4 className="font-medium">{request.metadata.service?.name}</h4>
+              <p className="text-sm text-muted-foreground">{service?.description}</p>
             </div>
             <Badge variant="outline">
-              {t(`inputs.serviceCategory.options.${request.serviceCategory}`)}
+              {request.metadata.service?.category &&
+                t(`inputs.serviceCategory.options.${request.metadata.service.category}`)}
             </Badge>
             <Separator className="my-4" />
           </div>
@@ -188,17 +176,17 @@ export function RequestOverview({ request }: RequestOverviewProps) {
             <h4 className="font-medium mb-3">{t('requests.view.history')}</h4>
             <ScrollArea className="h-full pr-4">
               <Timeline>
-                {request.actions
+                {request.metadata.activities
+                  .slice()
                   .reverse()
                   .slice(0, 4)
-                  .map((action) => (
+                  .map((activity, index) => (
                     <Timeline.Item
-                      key={action.id}
+                      key={index}
                       icon={<ClipboardList className="size-4" />}
-                      time={formatDate(action.createdAt, 'Pp')}
-                      title={t(`inputs.requestAction.options.${action.type}`)}
-                      // @ts-expect-error - action.data.agentId is a string
-                      description={`De ${action.data?.name ?? action.data?.agentId ?? '-'}`}
+                      time={formatDate(new Date(activity.timestamp), 'Pp')}
+                      title={getActivityTitle(activity.type)}
+                      description={getActivityDescription(activity)}
                     />
                   ))}
               </Timeline>
@@ -208,4 +196,32 @@ export function RequestOverview({ request }: RequestOverviewProps) {
       </div>
     </div>
   );
+}
+
+// Helper function to get activity title
+function getActivityTitle(type: string): string {
+  const activityTypeMap: Record<string, string> = {
+    [ActivityType.RequestCreated]: 'Demande créée',
+    [ActivityType.RequestSubmitted]: 'Demande soumise',
+    [ActivityType.RequestAssigned]: 'Demande assignée',
+    [ActivityType.StatusChanged]: 'Statut modifié',
+    [ActivityType.DocumentUploaded]: 'Document ajouté',
+    [ActivityType.CommentAdded]: 'Commentaire ajouté',
+    [ActivityType.RequestCompleted]: 'Demande terminée',
+  };
+  return activityTypeMap[type] || type;
+}
+
+// Helper function to get activity description
+function getActivityDescription(activity: { type: string; data?: Record<string, unknown> }): string {
+  if (activity.type === ActivityType.StatusChanged) {
+    return `De ${activity.data?.from || '-'} à ${activity.data?.to || '-'}`;
+  }
+  if (activity.type === ActivityType.RequestAssigned) {
+    const assignee = activity.data?.assignee as { firstName?: string; lastName?: string } | undefined;
+    if (assignee && assignee.firstName && assignee.lastName) {
+      return `Assigné à ${assignee.firstName} ${assignee.lastName}`;
+    }
+  }
+  return '-';
 }

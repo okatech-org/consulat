@@ -3,35 +3,26 @@
 import { Suspense, useState } from 'react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { hasRole, hasAnyRole } from '@/lib/permissions/utils';
-import { UserRole, RequestStatus, ServicePriority } from '@prisma/client';
+import { UserRole, RequestStatus, RequestPriority } from '@/convex/lib/constants';
 import { useDateLocale } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Clock, XCircle, CheckCircle2, User as UserIcon } from 'lucide-react';
-import {
-  updateServiceRequestStatus,
-  updateServiceRequest,
-  assignServiceRequest,
-} from '@/actions/service-requests';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { RoleGuard } from '@/lib/permissions/utils';
-import { tryCatch } from '@/lib/utils';
 import { toast } from 'sonner';
 import CardContainer from '@/components/layouts/card-container';
-import { StatusTimeline } from '@/components/consular/status-timeline';
-import { ReviewNotes } from '@/components/requests/review-notes';
-import useServiceReview from '@/hooks/use-service-review';
 import { AircallCallButton } from '@/components/requests/aircall-call-button';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
-import type { RequestDetails } from '@/server/api/routers/requests/misc';
 import { NotFoundComponent } from '@/components/ui/not-found';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 interface ServiceRequestReviewProps {
-  request: RequestDetails;
+  request: Doc<'requests'>;
 }
 
 export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps) {
@@ -44,27 +35,49 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
   }
 
   const cantUpdateRequest =
-    hasRole(user, UserRole.AGENT) && request.assignedToId !== user?.id;
+    hasRole(user, UserRole.Agent) &&
+    request.assignedAgentId !== user?.membership?._id;
 
   const { formatDate } = useDateLocale();
   const t_common = useTranslations('common');
   const [notes, setNotes] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<RequestStatus>(request.status);
-  const { currentTab, tabs, setCurrentTab } = useServiceReview(request);
+  const [selectedStatus, setSelectedStatus] = useState<RequestStatus>(
+    request.status as RequestStatus,
+  );
+
+  // Fetch organization agents
+  const agents = useQuery(
+    api.functions.membership.getOrganizationAgents,
+    request.organizationId ? { organizationId: request.organizationId } : 'skip',
+  );
+
+  const updateRequestStatus = useMutation(api.functions.request.updateRequestStatus);
+  const updateRequestMutation = useMutation(api.functions.request.updateRequest);
+  const assignRequestMutation = useMutation(api.functions.request.assignRequestToAgent);
+  const addNoteMutation = useMutation(api.functions.request.addRequestNote);
 
   const handleStatusUpdate = async (newStatus: RequestStatus) => {
     setIsUpdating(true);
     try {
-      const result = await tryCatch(
-        updateServiceRequestStatus(request.id, newStatus, notes || undefined),
-      );
+      await updateRequestStatus({
+        requestId: request._id,
+        status: newStatus,
+      });
 
-      if (result.error) {
-        toast.error(result.error.message);
-      } else {
-        toast.success('La demande a été mise à jour avec succès');
+      if (notes && user?.membership?._id) {
+        await addNoteMutation({
+          requestId: request._id,
+          note: {
+            type: 'internal',
+            content: notes,
+          },
+          addedById: user.membership._id,
+        });
       }
+
+      toast.success('La demande a été mise à jour avec succès');
+      setNotes('');
     } catch (error) {
       toast.error(String(error));
     } finally {
@@ -73,8 +86,8 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
   };
 
   // Récupérer le numéro de téléphone de l'utilisateur
-  const phoneNumber = request.submittedBy.phoneNumber;
-  const userDisplayName = request.submittedBy.name;
+  const phoneNumber = request.metadata.requester?.phoneNumber;
+  const userDisplayName = `${request.metadata.requester?.firstName} ${request.metadata.requester?.lastName}`;
 
   return (
     <div className="space-y-6 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -84,28 +97,29 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
           <div className="flex items-start gap-4">
             <div className="flex-1 space-y-1">
               <h2 className="text-xl md:text-2xl flex items-center gap-2 font-semibold">
-                {request.service.name}{' '}
-                <Badge variant="secondary">{t_common(`status.${request.status}`)}</Badge>
-                <Badge
-                  variant={request.priority === 'URGENT' ? 'destructive' : 'outline'}
-                >
+                {request.metadata.service?.name}{' '}
+                <Badge variant="secondary">
+                  {t_common(`requestStatus.options.${request.status}`)}
+                </Badge>
+                <Badge variant={request.priority === 'urgent' ? 'destructive' : 'outline'}>
                   {t_common(`priority.${request.priority}`)}
                 </Badge>
               </h2>
-              {request.submittedBy && (
+              {request.metadata.requester && (
                 <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
                   <UserIcon className="size-4" />
-                  {request.submittedBy.name}
+                  {request.metadata.requester.firstName} {request.metadata.requester.lastName}
                   {phoneNumber && (
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      {phoneNumber}
-                    </span>
+                    <span className="ml-2 text-xs text-muted-foreground">{phoneNumber}</span>
                   )}
                 </div>
               )}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
-                  Soumis le {formatDate(request.submittedAt ?? '')}
+                  Soumis le{' '}
+                  {request.submittedAt
+                    ? formatDate(new Date(request.submittedAt), 'PPP')
+                    : '-'}
                 </span>
               </div>
             </div>
@@ -116,7 +130,7 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
                 <AircallCallButton
                   phoneNumber={phoneNumber}
                   userDisplayName={userDisplayName ?? ''}
-                  requestId={request.id}
+                  requestId={request._id}
                   config={{
                     enabled: true,
                     workspaceSize: 'big',
@@ -138,11 +152,11 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
                 />
               )}
 
-              {request.status === 'SUBMITTED' && (
+              {request.status === 'submitted' && (
                 <>
                   <Button
                     variant="outline"
-                    onClick={() => handleStatusUpdate('PENDING')}
+                    onClick={() => handleStatusUpdate(RequestStatus.Pending)}
                     disabled={isUpdating}
                   >
                     <Clock className="mr-2 size-4" />
@@ -150,7 +164,7 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
                   </Button>
                   <Button
                     variant="destructive"
-                    onClick={() => handleStatusUpdate('REJECTED')}
+                    onClick={() => handleStatusUpdate(RequestStatus.Rejected)}
                     disabled={isUpdating}
                   >
                     <XCircle className="mr-2 size-4" />
@@ -158,10 +172,10 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
                   </Button>
                 </>
               )}
-              {request.status === 'PENDING' && (
+              {request.status === 'pending' && (
                 <Button
                   variant="default"
-                  onClick={() => handleStatusUpdate('COMPLETED')}
+                  onClick={() => handleStatusUpdate(RequestStatus.Completed)}
                   disabled={isUpdating}
                 >
                   <CheckCircle2 className="mr-2 size-4" />
@@ -172,31 +186,30 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
           </div>
         </CardContainer>
 
-        {/* Timeline du statut */}
-        <CardContainer contentClass="!p-3">
-          {request.requestedFor ? (
-            <StatusTimeline currentStatus={request.status} />
-          ) : (
-            <div className="text-center py-4 text-muted-foreground">
-              Aucun profil associé à cette demande
+        {/* Request Details */}
+        <CardContainer title="Détails de la demande" contentClass="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <p className="text-sm text-muted-foreground">Numéro de demande</p>
+              <p className="font-medium">{request.number}</p>
             </div>
-          )}
+            <div>
+              <p className="text-sm text-muted-foreground">Pays</p>
+              <p className="font-medium">{request.countryCode}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Service</p>
+              <p className="font-medium">{request.metadata.service?.name}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Catégorie</p>
+              <p className="font-medium">
+                {request.metadata.service?.category &&
+                  t_common(`serviceCategory.${request.metadata.service.category}`)}
+              </p>
+            </div>
+          </div>
         </CardContainer>
-
-        <Tabs value={currentTab} onValueChange={setCurrentTab} className="col-span-2">
-          <TabsList>
-            {tabs.map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value}>
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {tabs.map((tab) => (
-            <TabsContent key={tab.value} value={tab.value}>
-              {tab.component}
-            </TabsContent>
-          ))}
-        </Tabs>
       </div>
 
       <div className="space-y-4">
@@ -205,18 +218,28 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
           {/* Priorité */}
           <div className="space-y-2">
             <Label>Priorité</Label>
-            <MultiSelect<ServicePriority>
+            <MultiSelect<string>
               type="single"
               options={[
-                { value: 'STANDARD', label: t_common('priority.STANDARD') },
-                { value: 'URGENT', label: t_common('priority.URGENT') },
+                {
+                  value: RequestPriority.Normal,
+                  label: t_common(`priority.${RequestPriority.Normal}`),
+                },
+                {
+                  value: RequestPriority.Urgent,
+                  label: t_common(`priority.${RequestPriority.Urgent}`),
+                },
+                {
+                  value: RequestPriority.Critical,
+                  label: t_common(`priority.${RequestPriority.Critical}`),
+                },
               ]}
               selected={request.priority}
               onChange={async (value) => {
                 if (value) {
-                  await updateServiceRequest({
-                    id: request.id,
-                    priority: value,
+                  await updateRequestMutation({
+                    requestId: request._id,
+                    priority: value as RequestPriority,
                   });
                 }
               }}
@@ -225,54 +248,40 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
           </div>
 
           {/* Assign to (ADMIN, MANAGER, SUPER_ADMIN) */}
-          <RoleGuard roles={['ADMIN', 'MANAGER', 'SUPER_ADMIN']}>
+          {hasAnyRole(user, [UserRole.Admin, UserRole.Manager, UserRole.SuperAdmin]) && (
             <div className="space-y-2">
               <Label>Assigner à</Label>
               <MultiSelect<string>
                 type="single"
-                options={request.organization?.agents.map((agent) => ({
-                  value: agent.id,
-                  label: `${agent.name}`,
-                }))}
-                selected={request.assignedToId ?? undefined}
+                options={
+                  agents?.map((agent) => ({
+                    value: agent._id,
+                    label: `${agent.firstName} ${agent.lastName}`,
+                  })) || []
+                }
+                selected={request.assignedAgentId ?? undefined}
                 onChange={async (value) => {
                   if (value) {
-                    await assignServiceRequest(request.id, value);
+                    await assignRequestMutation({
+                      requestId: request._id,
+                      agentId: value as Id<'memberships'>,
+                    });
                   }
                 }}
                 placeholder="Sélectionner un agent"
               />
             </div>
-          </RoleGuard>
+          )}
 
           {/* Request status */}
           <div className="space-y-2">
             <Label>Statut de la demande</Label>
-            <MultiSelect<RequestStatus>
+            <MultiSelect<string>
               type="single"
-              options={[
-                { value: 'SUBMITTED', label: t_common('status.SUBMITTED') },
-                { value: 'PENDING', label: t_common('status.PENDING') },
-                {
-                  value: 'PENDING_COMPLETION',
-                  label: t_common('status.PENDING_COMPLETION'),
-                },
-                {
-                  value: 'DOCUMENT_IN_PRODUCTION',
-                  label: t_common('status.DOCUMENT_IN_PRODUCTION'),
-                },
-                {
-                  value: 'APPOINTMENT_SCHEDULED',
-                  label: t_common('status.APPOINTMENT_SCHEDULED'),
-                },
-                {
-                  value: 'READY_FOR_PICKUP',
-                  label: t_common('status.READY_FOR_PICKUP'),
-                },
-                { value: 'VALIDATED', label: t_common('status.VALIDATED') },
-                { value: 'REJECTED', label: t_common('status.REJECTED') },
-                { value: 'COMPLETED', label: t_common('status.COMPLETED') },
-              ]}
+              options={Object.values(RequestStatus).map((status) => ({
+                value: status,
+                label: t_common(`requestStatus.options.${status}`),
+              }))}
               selected={selectedStatus}
               onChange={(value) => {
                 if (value) {
@@ -281,8 +290,8 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
               }}
               placeholder="Sélectionner un statut"
               disabled={
-                request.status === 'COMPLETED' &&
-                !hasAnyRole(user, ['ADMIN', 'SUPER_ADMIN', 'MANAGER'])
+                request.status === 'completed' &&
+                !hasAnyRole(user, [UserRole.Admin, UserRole.SuperAdmin, UserRole.Manager])
               }
             />
           </div>
@@ -301,9 +310,7 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
           {/* Update button */}
           <Button
             className="w-full"
-            disabled={
-              isUpdating || selectedStatus === request.status || cantUpdateRequest
-            }
+            disabled={isUpdating || selectedStatus === request.status || cantUpdateRequest}
             onClick={async () => {
               await handleStatusUpdate(selectedStatus);
             }}
@@ -311,15 +318,45 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
             Mettre à jour le statut
           </Button>
         </CardContainer>
-        {/* Notes historiques */}
-        <ReviewNotes
-          requestId={request.id}
-          notes={request.notes}
-          canUpdate={!cantUpdateRequest}
-        />
+
+        {/* Activity History */}
+        <CardContainer title="Historique d'activité" contentClass="space-y-3">
+          {request.metadata.activities.length > 0 ? (
+            request.metadata.activities
+              .slice()
+              .reverse()
+              .slice(0, 5)
+              .map((activity, index) => (
+                <div key={index} className="border-b pb-3 last:border-0">
+                  <p className="text-sm font-medium">
+                    {getActivityLabel(activity.type)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDate(new Date(activity.timestamp), 'PPp')}
+                  </p>
+                </div>
+              ))
+          ) : (
+            <p className="text-sm text-muted-foreground">Aucune activité</p>
+          )}
+        </CardContainer>
       </div>
     </div>
   );
+}
+
+// Helper function to get activity label
+function getActivityLabel(type: string): string {
+  const labels: Record<string, string> = {
+    request_created: 'Demande créée',
+    request_submitted: 'Demande soumise',
+    request_assigned: 'Demande assignée',
+    status_changed: 'Statut modifié',
+    document_uploaded: 'Document ajouté',
+    comment_added: 'Commentaire ajouté',
+    request_completed: 'Demande terminée',
+  };
+  return labels[type] || type;
 }
 
 export function ServiceRequestReview({ request }: ServiceRequestReviewProps) {

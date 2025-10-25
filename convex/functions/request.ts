@@ -619,9 +619,6 @@ export const addRequestNote = mutation({
   },
 });
 
-/**
- * Get enriched requests list with filtering, sorting, and pagination
- */
 export const getRequestsListEnriched = query({
   args: {
     search: v.optional(v.string()),
@@ -753,9 +750,6 @@ export const getRequestsListEnriched = query({
   },
 });
 
-/**
- * Update status for a single request
- */
 export const updateRequestStatus = mutation({
   args: {
     requestId: v.id('requests'),
@@ -792,9 +786,6 @@ export const updateRequestStatus = mutation({
   },
 });
 
-/**
- * Assign a request to an agent
- */
 export const assignRequestToAgent = mutation({
   args: {
     requestId: v.id('requests'),

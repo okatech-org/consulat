@@ -9,6 +9,7 @@ import {
   addressValidator,
   deliveryStatusValidator,
   activityValidator,
+  serviceCategoryValidator,
 } from '../lib/validators';
 
 export const requests = defineTable({
@@ -81,6 +82,7 @@ export const requests = defineTable({
         lastName: v.string(),
         email: v.optional(v.string()),
         phoneNumber: v.optional(v.string()),
+        isChildProfile: v.optional(v.boolean()),
       }),
     ),
     assignee: v.optional(
@@ -92,7 +94,7 @@ export const requests = defineTable({
     service: v.optional(
       v.object({
         name: v.string(),
-        category: v.string(),
+        category: serviceCategoryValidator,
       }),
     ),
   }),
