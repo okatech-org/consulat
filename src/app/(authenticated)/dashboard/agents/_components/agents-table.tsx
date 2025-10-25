@@ -1,21 +1,10 @@
 'use client';
 
-import {
-  type AgentListItem,
-  type AgentsListRequestOptions,
-  type AgentsListResult,
-  getAgentsList,
-} from '@/actions/agents';
-import {
-  type Sorting,
-  type Pagination,
-  useTableSearchParams,
-} from '@/hooks/use-table-search-params';
+import { useTableSearchParams } from '@/hooks/use-table-search-params';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import type { OrganizationListingItem } from '@/types/organization';
-import { type User, UserRole } from '@prisma/client';
-import { useEffect, useState, useMemo } from 'react';
-import { getOrganizationIdFromUser, tryCatch } from '@/lib/utils';
+import type { Organization } from '@/convex/lib/types';
+import { UserRole, CountryStatus } from '@/convex/lib/constants';
+import { useMemo } from 'react';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { ROUTES } from '@/schemas/routes';
@@ -26,63 +15,57 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { DataTable } from '@/components/data-table/data-table';
-import type { ConsularServiceListingItem } from '@/types/consular-service';
-import type { SessionUser } from '@/types';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { api } from '@/trpc/react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
+import { CountryCode } from '@/convex/lib/constants';
+import type { AgentListItem } from '@/convex/lib/types';
 
 type AgentsTablesProps = {
-  services: ConsularServiceListingItem[];
-  organizations: OrganizationListingItem[];
-  managers: User[];
+  organizations: Organization[];
+  defaultOrganizationId?: Id<'organizations'>;
 };
 
 interface SearchParams {
   search?: string;
-  linkedCountries?: string[];
-  assignedServices?: string[];
-  assignedOrganizationId?: string[];
-  managedByUserId?: string[];
+  linkedCountries?: CountryCode[];
+  assignedServices?: Id<'services'>;
+  assignedOrganizationId?: Id<'organizations'>;
+  managedByUserId?: Id<'memberships'>;
 }
 
-export function AgentsTable({ services, organizations, managers }: AgentsTablesProps) {
-  const { data: activeCountries } = api.countries.getActive.useQuery();
-  const [isLoading, setIsLoading] = useState(false);
+export function AgentsTable({ organizations, defaultOrganizationId }: AgentsTablesProps) {
   const { user: currentUser } = useCurrentUser();
-  const organizationId = getOrganizationIdFromUser(currentUser as SessionUser);
 
-  const defaultValues: SearchParams = useMemo(
-    () => ({
-      ...(organizationId ? { assignedOrganizationId: [organizationId] } : {}),
-      ...(currentUser?.roles.includes('MANAGER')
-        ? { managedByUserId: [currentUser.id] }
-        : {}),
-    }),
-    [organizationId, currentUser],
-  );
-
-  const [data, setData] = useState<AgentsListResult>({
-    items: [],
-    total: 0,
-  });
-
-  const { params, pagination, sorting, handleParamsChange, handlePaginationChange } =
+  const { params, pagination, handleParamsChange, handlePaginationChange } =
     useTableSearchParams<AgentListItem, SearchParams>(adaptSearchParams);
 
-  useEffect(() => {
-    const options = buildQueryOptions(params, pagination, sorting, defaultValues);
+  const agentsResult = useQuery(api.functions.membership.getAgentsList, {
+    organizationId: defaultOrganizationId || params.assignedOrganizationId,
+    search: params.search,
+    linkedCountries: params.linkedCountries,
+    assignedServices: params.assignedServices,
+    page: pagination.page,
+    limit: pagination.limit,
+  });
 
-    async function fetchItems() {
-      setIsLoading(true);
-      const result = await tryCatch(getAgentsList(options));
+  const activeCountries = useQuery(api.functions.country.getAllCountries, {
+    status: CountryStatus.Active,
+  });
 
-      if (result.data) setData(result.data);
+  const services = useQuery(api.functions.service.getAllServices, {
+    organizationId: defaultOrganizationId ?? undefined,
+  });
 
-      setIsLoading(false);
-    }
+  const managers = useQuery(
+    api.functions.membership.getManagersForFilter,
+    defaultOrganizationId ? { organizationId: defaultOrganizationId } : 'skip',
+  );
 
-    fetchItems();
-  }, [params, pagination, sorting, currentUser, defaultValues]);
+  const data = agentsResult?.agents || [];
+  const total = agentsResult?.total || 0;
+  const isLoading = agentsResult === undefined;
 
   // Colonnes du tableau
   const columns = useMemo<ColumnDef<AgentListItem>[]>(
@@ -142,15 +125,15 @@ export function AgentsTable({ services, organizations, managers }: AgentsTablesP
           const user = row.original;
           if (!user.roles) return '-';
 
-          if (user.roles.includes(UserRole.MANAGER)) {
+          if (user.roles.includes(UserRole.Manager)) {
             return <Badge>Manager</Badge>;
-          } else if (user.roles.includes(UserRole.AGENT)) {
+          } else if (user.roles.includes(UserRole.Agent)) {
             return <Badge variant="secondary">Agent</Badge>;
           }
           return '-';
         },
       },
-      ...(currentUser?.roles.includes('SUPER_ADMIN')
+      ...(currentUser?.roles.includes(UserRole.SuperAdmin)
         ? [
             {
               accessorKey: 'assignedOrganizationId',
@@ -159,7 +142,7 @@ export function AgentsTable({ services, organizations, managers }: AgentsTablesP
               ),
               cell: ({ row }: { row: Row<AgentListItem> }) => {
                 const org = organizations.find(
-                  (item) => item.id === row.original.assignedOrganizationId,
+                  (item) => item?._id === row.original.assignedOrganizationId,
                 );
                 return org?.name || '-';
               },
@@ -197,13 +180,11 @@ export function AgentsTable({ services, organizations, managers }: AgentsTablesP
                   </TooltipTrigger>
                   <TooltipContent>
                     <div className="space-y-1">
-                      {row.original.assignedServices.map(
-                        (s: { name: string; id: string }) => (
-                          <div key={s.id} className="text-xs">
-                            {s.name}
-                          </div>
-                        ),
-                      )}
+                      {row.original.assignedServices.map((s) => (
+                        <div key={s?._id} className="text-xs">
+                          {s?.name}
+                        </div>
+                      ))}
                     </div>
                   </TooltipContent>
                 </Tooltip>
@@ -213,7 +194,7 @@ export function AgentsTable({ services, organizations, managers }: AgentsTablesP
             '-'
           ),
       },
-      ...(!currentUser?.roles.includes('MANAGER')
+      ...(!currentUser?.roles.includes(UserRole.Manager)
         ? [
             {
               accessorKey: 'managedByUserId',
@@ -221,10 +202,7 @@ export function AgentsTable({ services, organizations, managers }: AgentsTablesP
                 <DataTableColumnHeader column={column} title="Géré par" />
               ),
               cell: ({ row }: { row: Row<AgentListItem> }) => {
-                const manager = managers.find(
-                  (item) => item.id === row.original.managedByUserId,
-                );
-                return manager?.name || '-';
+                return row.original.managerName || '-';
               },
             },
           ]
@@ -242,7 +220,7 @@ export function AgentsTable({ services, organizations, managers }: AgentsTablesP
     [currentUser, organizations, managers],
   );
 
-  // Définir les filtres disponibles (à adapter selon les besoins)
+  // Définir les filtres disponibles
   const filters: FilterOption<AgentListItem>[] = useMemo(
     () => [
       {
@@ -260,39 +238,49 @@ export function AgentsTable({ services, organizations, managers }: AgentsTablesP
           value: c.code,
           label: c.name || c.code,
         })),
-        defaultValue: params.linkedCountries as string[],
-        onChange: (value: string[]) => handleParamsChange('linkedCountries', value),
+        defaultValue: params.linkedCountries,
+        onChange: (value: string[]) =>
+          handleParamsChange('linkedCountries', value as CountryCode[]),
       },
       {
         type: 'checkbox' as const,
         property: 'assignedServices',
         label: 'Services',
-        options: services.map((s) => ({ value: s.id, label: s.name || s.id })),
-        defaultValue: params.assignedServices as string[],
-        onChange: (value: string[]) => handleParamsChange('assignedServices', value),
+        options: services?.map((s) => ({ value: s._id, label: s.name || s._id })) || [],
+        defaultValue: params.assignedServices,
+        onChange: (value: string) =>
+          handleParamsChange('assignedServices', value as Id<'services'>),
       },
-      ...(currentUser?.roles.includes('SUPER_ADMIN')
+      ...(currentUser?.roles.includes(UserRole.SuperAdmin)
         ? [
             {
-              type: 'checkbox' as const,
+              type: 'radio' as const,
               property: 'assignedOrganizationId',
               label: 'Organisation',
-              options: organizations.map((o) => ({ value: o.id, label: o.name || o.id })),
-              defaultValue: params.assignedOrganizationId as string[],
-              onChange: (value: string[]) =>
-                handleParamsChange('assignedOrganizationId', value),
+              options: organizations.map((o) => ({
+                value: o?._id,
+                label: o?.name || o?._id,
+              })),
+              defaultValue: params.assignedOrganizationId,
+              onChange: (value: string) =>
+                handleParamsChange(
+                  'assignedOrganizationId',
+                  value as Id<'organizations'>,
+                ),
             },
           ]
         : []),
-      ...(!currentUser?.roles.includes('MANAGER')
+      ...(!currentUser?.roles.includes(UserRole.Manager)
         ? [
             {
-              type: 'checkbox' as const,
+              type: 'radio' as const,
               property: 'managedByUserId',
               label: 'Géré par',
-              options: managers.map((m) => ({ value: m.id, label: m.name || m.id })),
-              defaultValue: params.managedByUserId as string[],
-              onChange: (value: string[]) => handleParamsChange('managedByUserId', value),
+              options:
+                managers?.map((m) => ({ value: m._id, label: m.name || m._id })) || [],
+              defaultValue: params.managedByUserId,
+              onChange: (value: string) =>
+                handleParamsChange('managedByUserId', value as Id<'memberships'>),
             },
           ]
         : []),
@@ -312,14 +300,13 @@ export function AgentsTable({ services, organizations, managers }: AgentsTablesP
     <DataTable
       isLoading={isLoading}
       columns={columns}
-      data={data.items}
+      data={data}
       filters={filters}
-      totalCount={data.total}
+      totalCount={total}
       pageIndex={pagination.page - 1}
       pageSize={pagination.limit}
       onPageChange={(page) => handlePaginationChange('page', page + 1)}
       onLimitChange={(limit) => handlePaginationChange('limit', limit)}
-      activeSorting={sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined}
     />
   );
 }
@@ -345,7 +332,10 @@ function adaptSearchParams(urlSearchParams: URLSearchParams): SearchParams {
       ) {
         const arr = value.split(',');
         if (arr.length > 0 && arr[0] !== '') {
-          params[key] = arr;
+          params[key] = arr as Id<'services'> &
+            CountryCode[] &
+            Id<'organizations'> &
+            Id<'memberships'>;
         }
       } else {
         params[key] = value;
@@ -354,46 +344,4 @@ function adaptSearchParams(urlSearchParams: URLSearchParams): SearchParams {
   });
 
   return params;
-}
-
-function buildQueryOptions(
-  params: SearchParams,
-  pagination: Pagination,
-  sorting: Sorting<AgentListItem>,
-  defaultValues: SearchParams,
-) {
-  const options: AgentsListRequestOptions = {
-    ...defaultValues,
-    page: pagination.page ?? 1,
-    limit: pagination.limit ?? 10,
-  };
-
-  if (sorting.field) {
-    options.sortBy = {
-      field: sorting.field as 'assignedServices' | 'country' | 'organizationId',
-      direction: sorting.order,
-    };
-  }
-
-  if (params.search) {
-    options.search = params.search;
-  }
-
-  if (params.linkedCountries) {
-    options.linkedCountries = params.linkedCountries;
-  }
-
-  if (params.assignedServices) {
-    options.assignedServices = params.assignedServices;
-  }
-
-  if (params.assignedOrganizationId) {
-    options.assignedOrganizationId = params.assignedOrganizationId;
-  }
-
-  if (params.managedByUserId) {
-    options.managedByUserId = params.managedByUserId;
-  }
-
-  return options;
 }

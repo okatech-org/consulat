@@ -1,14 +1,31 @@
 'use client';
 
-// @ts-nocheck
-// TODO: Ce composant nécessite une refactorisation complète pour supporter les types dynamiques avec tRPC
-// Les erreurs TypeScript sont dues aux chemins de formulaire dynamiques (metadata.${country.code}.settings.*)
-// qui ne sont pas compatibles avec le système de types strict de React Hook Form + Zod
-
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
+import { useMutation, useQuery } from 'convex/react';
+import { Trash, Plus } from 'lucide-react';
+import { toast } from 'sonner';
+
+import { api } from '@/convex/_generated/api';
+import type { Organization } from '@/convex/lib/types';
+import {
+  CountryStatus,
+  OrganizationStatus,
+  OrganizationType,
+  UserRole,
+} from '@/convex/lib/constants';
+import type { CountryCode } from '@/lib/autocomplete-datas';
+import { weekDays } from '@/lib/utils';
+
+import {
+  organizationSettingsSchema,
+  getDefaultValues,
+  type OrganizationSettingsFormData,
+  type CountrySettings,
+} from '@/schemas/organization';
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,91 +37,158 @@ import {
   FormMessage,
   TradFormMessage,
 } from '@/components/ui/form';
-import {
-  generateOrganizationSettingsSchema,
-  getDefaultValues,
-  type OrganizationSettingsFormData,
-} from '@/schemas/organization';
 import { Input } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
-import { Trash } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
-import { filterUneditedKeys, weekDays } from '@/lib/utils';
-import CardContainer from '@/components/layouts/card-container';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { OrganizationStatus, OrganizationType } from '@prisma/client';
-import { useTabs } from '@/hooks/use-tabs';
+import { FileInput } from '@/components/ui/file-input';
+import CardContainer from '@/components/layouts/card-container';
 import { RoleGuard } from '@/lib/permissions/utils';
 import { DaySchedule } from './day-schedule';
-import { updateOrganizationSettings } from '@/actions/organizations';
-import type { CountryCode } from '@/lib/autocomplete-datas';
-import { tryCatch } from '@/lib/utils';
-
-import { FileInput } from '@/components/ui/file-input';
 import { useFile } from '@/hooks/use-file';
-import type { OrganizationDetails } from '@/server/api/routers/organizations/types';
-import { api } from '@/trpc/react';
+import { useTabs } from '@/hooks/use-tabs';
 
 interface OrganizationSettingsProps {
-  organization: OrganizationDetails;
+  organization: Organization;
 }
 
 export function OrganizationSettings({ organization }: OrganizationSettingsProps) {
-  const { data: activeCountries } = api.countries.getActive.useQuery();
-  const { handleFileUpload, handleFileDelete, isLoading: fileLoading } = useFile();
-  const schema = generateOrganizationSettingsSchema(organization.countries);
   const t = useTranslations('organization');
   const t_common = useTranslations();
   const t_countries = useTranslations('countries');
   const t_messages = useTranslations('messages');
-  const { handleTabChange, currentTab } = useTabs(
-    'country',
-    organization.countries[0]?.code ?? '',
+  const t_inputs = useTranslations('inputs');
+
+  if (!organization) {
+    return null;
+  }
+
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  // Fetch active countries for the multiselect
+  const allCountries = useQuery(api.functions.country.getAllCountries, {
+    status: CountryStatus.Active,
+  });
+
+  // Get organization's selected countries
+  const organizationCountries = React.useMemo(
+    () => allCountries?.filter((c) => organization.countryCodes.includes(c.code)) || [],
+    [allCountries, organization.countryCodes],
   );
 
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { handleTabChange, currentTab } = useTabs<string>(
+    'country',
+    organizationCountries[0]?.code ?? '',
+  );
+
+  const { handleFileUpload, handleFileDelete, isLoading: fileLoading } = useFile();
+  const updateMutation = useMutation(api.functions.organization.updateOrganization);
 
   const form = useForm<OrganizationSettingsFormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(organizationSettingsSchema),
     defaultValues: getDefaultValues(organization),
   });
+
+  // Watch countryCodes to sync settings array
+  const watchedCountryCodes = form.watch('countryCodes');
+
+  React.useEffect(() => {
+    const currentSettings = form.getValues('settings');
+    const currentCountryCodes = currentSettings.map((s) => s.countryCode);
+
+    // Add new countries
+    const newCountries = watchedCountryCodes.filter(
+      (code) => !currentCountryCodes.includes(code),
+    );
+
+    if (newCountries.length > 0) {
+      const defaultSchedule = {
+        isOpen: false,
+        slots: [{ start: '09:00', end: '17:00' }],
+      };
+
+      const newSettings: CountrySettings[] = newCountries.map((code) => ({
+        countryCode: code,
+        contact: undefined,
+        schedule: {
+          monday: defaultSchedule,
+          tuesday: defaultSchedule,
+          wednesday: defaultSchedule,
+          thursday: defaultSchedule,
+          friday: defaultSchedule,
+          saturday: defaultSchedule,
+          sunday: defaultSchedule,
+        },
+        holidays: [],
+        closures: [],
+        consularCard: undefined,
+      }));
+
+      form.setValue('settings', [...currentSettings, ...newSettings]);
+    }
+
+    // Remove deleted countries
+    const removedCountries = currentCountryCodes.filter(
+      (code) => !watchedCountryCodes.includes(code),
+    );
+
+    if (removedCountries.length > 0) {
+      const filteredSettings = currentSettings.filter(
+        (s) => !removedCountries.includes(s.countryCode),
+      );
+      form.setValue('settings', filteredSettings);
+    }
+  }, [watchedCountryCodes, form]);
 
   const onSubmit = async (data: OrganizationSettingsFormData) => {
     setIsLoading(true);
 
-    filterUneditedKeys(data, form.formState.dirtyFields);
+    try {
+      // Transform form data to match Convex structure
+      const transformedSettings = data.settings.map((countrySetting) => ({
+        countryCode: countrySetting.countryCode,
+        contact: countrySetting.contact,
+        schedule: countrySetting.schedule,
+        // Convert holidays from date/name objects to timestamps
+        holidays: countrySetting.holidays.map((h) => new Date(h.date).getTime()),
+        // Convert closures from date/reason objects to timestamps
+        closures: countrySetting.closures.map((c) => new Date(c.start).getTime()),
+        consularCard: countrySetting.consularCard,
+      }));
 
-    const { data: result, error } = await tryCatch(
-      updateOrganizationSettings(organization.id, data),
-    );
-
-    if (error) {
-      toast({
-        title: t_messages('errors.update'),
-        description: t_messages(`errors.${error.message}`),
-        variant: 'destructive',
+      await updateMutation({
+        organizationId: organization._id,
+        name: data.name,
+        logo: data.logo,
+        type: data.type,
+        status: data.status,
+        countryCodes: data.countryCodes,
+        settings: transformedSettings,
       });
-    }
 
-    if (result) {
-      toast({
-        title: t_messages('success.update'),
+      toast.success(t_messages('success.update'), {
         description: t('messages.updateSuccess'),
       });
+    } catch (error) {
+      toast.error(t_messages('errors.update'), {
+        description: error instanceof Error ? error.message : 'Error',
+      });
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    setIsLoading(false);
+  const getSettingsIndexForCountry = (countryCode: string): number => {
+    return form.getValues('settings').findIndex((s) => s.countryCode === countryCode);
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Section Informations Générales */}
+        {/* General Information Section */}
         <CardContainer title={t('title')}>
-          <div className={'space-y-4'}>
+          <div className="space-y-4">
+            {/* Logo */}
             <FormField
               control={form.control}
               name="logo"
@@ -117,7 +201,9 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                     }
                   }}
                   onDeleteAction={() => {
-                    handleFileDelete(field.value ?? '');
+                    if (field.value) {
+                      handleFileDelete(field.value);
+                    }
                     field.onChange('');
                   }}
                   accept="image/*"
@@ -127,7 +213,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
               )}
             />
 
-            {/* Nom */}
+            {/* Name */}
             <FormField
               control={form.control}
               name="name"
@@ -145,7 +231,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
               )}
             />
 
-            <RoleGuard roles={['SUPER_ADMIN']} fallback={<></>}>
+            <RoleGuard roles={[UserRole.SuperAdmin]} fallback={<></>}>
               {/* Type */}
               <FormField
                 control={form.control}
@@ -161,7 +247,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                         }))}
                         selected={field.value}
                         onChange={field.onChange}
-                        type={'single'}
+                        type="single"
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -185,7 +271,7 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                         }))}
                         selected={field.value}
                         onChange={field.onChange}
-                        type={'single'}
+                        type="single"
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -194,25 +280,23 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                 )}
               />
 
-              {/* Pays */}
+              {/* Countries */}
               <FormField
                 control={form.control}
-                name="countryIds"
+                name="countryCodes"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('form.countries.label')}</FormLabel>
                     <FormControl>
-                      <MultiSelect<CountryCode>
+                      <MultiSelect<string>
                         type="multiple"
                         options={
-                          activeCountries?.map(
-                            (item: { code: string; name: string }) => ({
-                              label: t_countries(item.code as CountryCode),
-                              value: item.code as CountryCode,
-                            }),
-                          ) || []
+                          allCountries?.map((country) => ({
+                            label: t_countries(country.code as CountryCode),
+                            value: country.code,
+                          })) || []
                         }
-                        selected={field.value as CountryCode[]}
+                        selected={field.value}
                         onChange={field.onChange}
                         disabled={isLoading}
                       />
@@ -225,203 +309,333 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
           </div>
         </CardContainer>
 
+        {/* Country-Specific Settings Tabs */}
         <Tabs value={currentTab} onValueChange={handleTabChange}>
           <TabsList>
-            {organization.countries.map((country) => (
-              <TabsTrigger key={country.id} value={country.code}>
-                {country.name}
+            {organizationCountries.map((country) => (
+              <TabsTrigger key={country._id} value={country.code}>
+                {t_countries(country.code as CountryCode)}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {organization.countries.map((country) => (
-            <TabsContent key={country.id} value={country.code} className={'space-y-4'}>
-              <CardContainer
-                title={t('settings.configForCountry', {
-                  country: t_countries(country.code as CountryCode),
-                })}
-              >
-                <div className={'space-y-6'}>
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">{t('settings.contact.title')}</h3>
-                    <div className="grid gap-4 lg:grid-cols-2">
-                      {/* Email */}
-                      <FormField
-                        control={form.control}
-                        name={`metadata.${country.code}.settings.contact.email`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('settings.general.email')}</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="email"
-                                {...field}
-                                placeholder="contact@example.com"
-                              />
-                            </FormControl>
-                            <TradFormMessage />
-                          </FormItem>
-                        )}
-                      />
+          {organizationCountries.map((country) => {
+            const settingsIndex = getSettingsIndexForCountry(country.code);
 
-                      {/* Téléphone */}
-                      <FormField
-                        control={form.control}
-                        name={`metadata.${country.code}.settings.contact.phone`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('settings.general.phone')}</FormLabel>
-                            <FormControl>
-                              <Input type={'tel'} {...field} />
-                            </FormControl>
-                            <TradFormMessage />
-                          </FormItem>
-                        )}
-                      />
+            if (settingsIndex === -1) return null;
 
-                      {/* Site web */}
-                      <FormField
-                        control={form.control}
-                        name={`metadata.${country.code}.settings.contact.website`}
-                        render={({ field }) => (
-                          <FormItem className={'lg:col-span-2'}>
-                            <FormLabel>{t('settings.general.website')}</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type={'url'}
-                                placeholder="https://www.example.com"
-                              />
-                            </FormControl>
-                            <TradFormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      {/* Adresse */}
-                      <div className="grid grid-cols-2 gap-4 lg:col-span-2">
+            return (
+              <TabsContent key={country._id} value={country.code} className="space-y-4">
+                <CardContainer
+                  title={t('settings.configForCountry', {
+                    country: t_countries(country.code as CountryCode),
+                  })}
+                >
+                  <div className="space-y-6">
+                    {/* Contact Section */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">
+                        {t('settings.contact.title')}
+                      </h3>
+                      <div className="grid gap-4 lg:grid-cols-2">
+                        {/* Email */}
                         <FormField
                           control={form.control}
-                          name={`metadata.${country.code}.settings.contact.address.firstLine`}
+                          name={`settings.${settingsIndex}.contact.email`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('settings.general.address_line1')}</FormLabel>
+                              <FormLabel>{t_inputs('email.label')}</FormLabel>
                               <FormControl>
-                                <Input {...field} />
+                                <Input
+                                  type="email"
+                                  {...field}
+                                  placeholder={t_inputs('email.placeholder')}
+                                />
                               </FormControl>
                               <TradFormMessage />
                             </FormItem>
                           )}
                         />
 
+                        {/* Phone */}
                         <FormField
                           control={form.control}
-                          name={`metadata.${country.code}.settings.contact.address.secondLine`}
+                          name={`settings.${settingsIndex}.contact.phone`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('settings.general.address_line2')}</FormLabel>
+                              <FormLabel>{t_inputs('phone.label')}</FormLabel>
                               <FormControl>
-                                <Input {...field} />
+                                <Input
+                                  type="tel"
+                                  {...field}
+                                  placeholder={t_inputs('phone.placeholder')}
+                                />
                               </FormControl>
                               <TradFormMessage />
                             </FormItem>
                           )}
                         />
 
+                        {/* Website */}
                         <FormField
                           control={form.control}
-                          name={`metadata.${country.code}.settings.contact.address.city`}
+                          name={`settings.${settingsIndex}.contact.website`}
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t('settings.general.city')}</FormLabel>
+                            <FormItem className="lg:col-span-2">
+                              <FormLabel>{t('settings.general.website')}</FormLabel>
                               <FormControl>
-                                <Input {...field} />
+                                <Input
+                                  {...field}
+                                  type="url"
+                                  placeholder="https://www.example.com"
+                                />
                               </FormControl>
                               <TradFormMessage />
                             </FormItem>
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name={`metadata.${country.code}.settings.contact.address.zipCode`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t('settings.general.zip_code')}</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <TradFormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        {/* Address */}
+                        <div className="grid grid-cols-2 gap-4 lg:col-span-2">
+                          <FormField
+                            control={form.control}
+                            name={`settings.${settingsIndex}.contact.address.street`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t_inputs('address.street.label')}</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder={t_inputs('address.street.placeholder')}
+                                  />
+                                </FormControl>
+                                <TradFormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`settings.${settingsIndex}.contact.address.complement`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t_inputs('address.complement.label')}</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder={t_inputs('address.complement.placeholder')}
+                                  />
+                                </FormControl>
+                                <TradFormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`settings.${settingsIndex}.contact.address.city`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t_inputs('address.city.label')}</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder={t_inputs('address.city.placeholder')}
+                                  />
+                                </FormControl>
+                                <TradFormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`settings.${settingsIndex}.contact.address.postalCode`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t_inputs('address.postalCode.label')}</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder={t_inputs('address.postalCode.placeholder')}
+                                  />
+                                </FormControl>
+                                <TradFormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <Separator />
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">
-                      {t('settings.schedule.title')}
-                    </h3>
 
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-                      {weekDays.map((day) => (
-                        <DaySchedule
-                          key={day}
-                          day={day}
-                          countryCode={country.code}
-                          form={form}
-                          t={t_common}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <Separator />
+                    <Separator />
 
-                  {/* Section Jours fériés */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
+                    {/* Schedule Section */}
+                    <div className="space-y-4">
                       <h3 className="text-lg font-medium">
-                        {t('settings.holidays.title')}
+                        {t('settings.schedule.title')}
                       </h3>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          const holidays =
-                            form.getValues(
-                              `metadata.${country.code}.settings.holidays`,
-                            ) || [];
-                          form.setValue(`metadata.${country.code}.settings.holidays`, [
-                            ...holidays,
-                            { date: '', name: '' },
-                          ]);
-                        }}
-                      >
-                        {t('settings.holidays.add')}
-                      </Button>
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {weekDays.map((day) => (
+                          <DaySchedule
+                            key={day}
+                            day={day}
+                            countryCode={country.code}
+                            form={form}
+                            t={t_common}
+                            fieldName={`settings.${settingsIndex}.schedule.${day}`}
+                          />
+                        ))}
+                      </div>
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                      {form
-                        .watch(`metadata.${country.code}.settings.holidays`)
-                        ?.map((_: never, index: React.Key | null | undefined) => (
-                          <CardContainer key={index} contentClass={'!p-4 relative'}>
-                            <div className="grid gap-4">
-                              <div className="flex items-start justify-between">
-                                <div className="grid flex-1 gap-4">
+                    <Separator />
+
+                    {/* Holidays Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-medium">
+                          {t('settings.holidays.title')}
+                        </h3>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const currentHolidays =
+                              form.getValues(`settings.${settingsIndex}.holidays`) || [];
+                            const today = new Date().toISOString().split('T')[0];
+                            form.setValue(`settings.${settingsIndex}.holidays`, [
+                              ...currentHolidays,
+                              { date: today || '', name: '' },
+                            ]);
+                          }}
+                        >
+                          <Plus className="mr-2 size-4" />
+                          {t('settings.holidays.add')}
+                        </Button>
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                        {form
+                          .watch(`settings.${settingsIndex}.holidays`)
+                          ?.map((_, index) => (
+                            <CardContainer key={index} contentClass="!p-4 relative">
+                              <div className="grid gap-4">
+                                <FormField
+                                  control={form.control}
+                                  name={`settings.${settingsIndex}.holidays.${index}.date`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t('settings.holidays.date')}</FormLabel>
+                                      <FormControl>
+                                        <DatePicker
+                                          date={
+                                            field.value
+                                              ? new Date(field.value)
+                                              : new Date()
+                                          }
+                                          onSelect={(date) =>
+                                            field.onChange(
+                                              date?.toISOString().split('T')[0],
+                                            )
+                                          }
+                                        />
+                                      </FormControl>
+                                      <TradFormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name={`settings.${settingsIndex}.holidays.${index}.name`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t('settings.holidays.name')}</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} />
+                                      </FormControl>
+                                      <TradFormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute right-2 top-2"
+                                  onClick={() => {
+                                    const holidays = form.getValues(
+                                      `settings.${settingsIndex}.holidays`,
+                                    );
+                                    form.setValue(
+                                      `settings.${settingsIndex}.holidays`,
+                                      holidays.filter((_, i) => i !== index),
+                                    );
+                                  }}
+                                >
+                                  <Trash className="size-4" />
+                                </Button>
+                              </div>
+                            </CardContainer>
+                          ))}
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Closures Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-medium">
+                          {t('settings.closures.title')}
+                        </h3>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const currentClosures =
+                              form.getValues(`settings.${settingsIndex}.closures`) || [];
+                            const today = new Date().toISOString().split('T')[0];
+                            form.setValue(`settings.${settingsIndex}.closures`, [
+                              ...currentClosures,
+                              { start: today || '', end: today || '', reason: '' },
+                            ]);
+                          }}
+                        >
+                          <Plus className="mr-2 size-4" />
+                          {t('settings.closures.add')}
+                        </Button>
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {form
+                          .watch(`settings.${settingsIndex}.closures`)
+                          ?.map((_, index) => (
+                            <CardContainer key={index} contentClass="!p-4 relative">
+                              <div className="grid gap-4">
+                                <div className="grid grid-cols-2 gap-4">
                                   <FormField
                                     control={form.control}
-                                    name={`metadata.${country.code}.settings.holidays.${index}.date`}
+                                    name={`settings.${settingsIndex}.closures.${index}.start`}
                                     render={({ field }) => (
                                       <FormItem>
                                         <FormLabel>
-                                          {t('settings.holidays.date')}
+                                          {t('settings.closures.start_date')}
                                         </FormLabel>
                                         <FormControl>
                                           <DatePicker
-                                            date={field.value || new Date()}
-                                            onSelect={(date) => field.onChange(date)}
+                                            date={
+                                              field.value
+                                                ? new Date(field.value)
+                                                : new Date()
+                                            }
+                                            onSelect={(date) =>
+                                              field.onChange(
+                                                date?.toISOString().split('T')[0],
+                                              )
+                                            }
                                           />
                                         </FormControl>
                                         <TradFormMessage />
@@ -431,219 +645,140 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
 
                                   <FormField
                                     control={form.control}
-                                    name={`metadata.${country.code}.settings.holidays.${index}.name`}
+                                    name={`settings.${settingsIndex}.closures.${index}.end`}
                                     render={({ field }) => (
                                       <FormItem>
                                         <FormLabel>
-                                          {t('settings.holidays.name')}
+                                          {t('settings.closures.end_date')}
                                         </FormLabel>
                                         <FormControl>
-                                          <Input {...field} />
+                                          <DatePicker
+                                            date={
+                                              field.value
+                                                ? new Date(field.value)
+                                                : new Date()
+                                            }
+                                            onSelect={(date) =>
+                                              field.onChange(
+                                                date?.toISOString().split('T')[0],
+                                              )
+                                            }
+                                          />
                                         </FormControl>
                                         <TradFormMessage />
                                       </FormItem>
                                     )}
                                   />
                                 </div>
+
+                                <FormField
+                                  control={form.control}
+                                  name={`settings.${settingsIndex}.closures.${index}.reason`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>
+                                        {t('settings.closures.reason')}
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input {...field} />
+                                      </FormControl>
+                                      <TradFormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   size="icon"
-                                  className={'absolute right-2 top-2'}
+                                  className="absolute right-2 top-2"
                                   onClick={() => {
-                                    const holidays = form.getValues(
-                                      `metadata.${country.code}.settings.holidays`,
+                                    const closures = form.getValues(
+                                      `settings.${settingsIndex}.closures`,
                                     );
                                     form.setValue(
-                                      `metadata.${country.code}.settings.holidays`,
-                                      // eslint-disable-next-line
-                                      holidays.filter((_: any, i: any) => i !== index),
+                                      `settings.${settingsIndex}.closures`,
+                                      closures.filter((_, i) => i !== index),
                                     );
                                   }}
                                 >
                                   <Trash className="size-4" />
                                 </Button>
                               </div>
-                            </div>
-                          </CardContainer>
-                        ))}
+                            </CardContainer>
+                          ))}
+                      </div>
                     </div>
-                  </div>
-                  <Separator />
 
-                  {/* Section Fermetures exceptionnelles */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
+                    <Separator />
+
+                    {/* Consular Card Templates Section */}
+                    <div className="space-y-4">
                       <h3 className="text-lg font-medium">
-                        {t('settings.closures.title')}
+                        {t('settings.consularCard.title')}
                       </h3>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          const closures =
-                            form.getValues(
-                              `metadata.${country.code}.settings.closures`,
-                            ) || [];
-                          form.setValue(`metadata.${country.code}.settings.closures`, [
-                            ...closures,
-                            { start: '', end: '', reason: '' },
-                          ]);
-                        }}
-                      >
-                        {t('settings.closures.add')}
-                      </Button>
-                    </div>
+                      <p className="text-sm text-muted-foreground">
+                        {t('settings.consularCard.description')}
+                      </p>
 
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {form
-                        .watch(`metadata.${country.code}.settings.closures`)
-                        ?.map((_: never, index: React.Key | null | undefined) => (
-                          <CardContainer key={index} contentClass={'!p-4 relative'}>
-                            <div className="grid gap-4">
-                              <div className="flex items-start justify-between">
-                                <div className="grid flex-1 gap-4">
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                      control={form.control}
-                                      name={`metadata.${country.code}.settings.closures.${index}.start`}
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel>
-                                            {t('settings.closures.start_date')}
-                                          </FormLabel>
-                                          <FormControl>
-                                            <DatePicker
-                                              date={field.value || new Date()}
-                                              onSelect={(date) => field.onChange(date)}
-                                            />
-                                          </FormControl>
-                                          <TradFormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
+                      <div className="grid gap-6 sm:grid-cols-2">
+                        <FormField
+                          control={form.control}
+                          name={`settings.${settingsIndex}.consularCard.rectoModelUrl`}
+                          render={({ field }) => (
+                            <FileInput
+                              onChangeAction={async (file) => {
+                                const fileUrl = await handleFileUpload(file);
+                                if (fileUrl) {
+                                  field.onChange(fileUrl);
+                                }
+                              }}
+                              onDeleteAction={() => {
+                                if (field.value) {
+                                  handleFileDelete(field.value);
+                                }
+                                field.onChange('');
+                              }}
+                              fileUrl={field.value}
+                              accept="image/*"
+                              loading={fileLoading}
+                            />
+                          )}
+                        />
 
-                                    <FormField
-                                      control={form.control}
-                                      name={`metadata.${country.code}.settings.closures.${index}.end`}
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel>
-                                            {t('settings.closures.end_date')}
-                                          </FormLabel>
-                                          <FormControl>
-                                            <DatePicker
-                                              date={field.value || new Date()}
-                                              onSelect={(date) => field.onChange(date)}
-                                            />
-                                          </FormControl>
-                                          <TradFormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
-                                  </div>
-
-                                  <FormField
-                                    control={form.control}
-                                    name={`metadata.${country.code}.settings.closures.${index}.reason`}
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>
-                                          {t('settings.closures.reason')}
-                                        </FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <TradFormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className={'absolute right-2 top-2'}
-                                  leftIcon={<Trash className="size-4" />}
-                                  onClick={() => {
-                                    const closures = form.getValues(
-                                      `metadata.${country.code}.settings.closures`,
-                                    );
-                                    form.setValue(
-                                      `metadata.${country.code}.settings.closures`,
-
-                                      closures.filter(
-                                        (_: never, i: number) => i !== index,
-                                      ),
-                                    );
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          </CardContainer>
-                        ))}
+                        <FormField
+                          control={form.control}
+                          name={`settings.${settingsIndex}.consularCard.versoModelUrl`}
+                          render={({ field }) => (
+                            <FileInput
+                              onChangeAction={async (file) => {
+                                const fileUrl = await handleFileUpload(file);
+                                if (fileUrl) {
+                                  field.onChange(fileUrl);
+                                }
+                              }}
+                              onDeleteAction={() => {
+                                if (field.value) {
+                                  handleFileDelete(field.value);
+                                }
+                                field.onChange('');
+                              }}
+                              fileUrl={field.value}
+                              accept="image/*"
+                              loading={fileLoading}
+                            />
+                          )}
+                        />
+                      </div>
                     </div>
                   </div>
-                  <Separator />
-
-                  {/* Section Modèles de Carte Consulaire */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">
-                      {t('settings.consularCard.title')}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {t('settings.consularCard.description')}
-                    </p>
-
-                    <div className="grid gap-6 sm:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name={`metadata.${country.code}.settings.consularCard.rectoModelUrl`}
-                        render={({ field }) => (
-                          <FileInput
-                            onChangeAction={async (file) => {
-                              const fileUrl = await handleFileUpload(file);
-                              if (fileUrl) {
-                                field.onChange(fileUrl);
-                              }
-                            }}
-                            onDeleteAction={() => {
-                              handleFileDelete(field.value);
-                            }}
-                            fileUrl={field.value}
-                            accept="image/*"
-                            loading={fileLoading}
-                          />
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`metadata.${country.code}.settings.consularCard.versoModelUrl`}
-                        render={({ field }) => (
-                          <FileInput
-                            onChangeAction={async (file) => {
-                              const fileUrl = await handleFileUpload(file);
-                              if (fileUrl) {
-                                field.onChange(fileUrl);
-                              }
-                            }}
-                            onDeleteAction={() => {
-                              handleFileDelete(field.value);
-                            }}
-                            fileUrl={field.value}
-                            accept="image/*"
-                            loading={fileLoading}
-                          />
-                        )}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContainer>
-            </TabsContent>
-          ))}
+                </CardContainer>
+              </TabsContent>
+            );
+          })}
         </Tabs>
+
+        {/* Submit Button */}
         <div className="actions py-4">
           <Button type="submit" loading={isLoading}>
             {isLoading

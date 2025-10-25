@@ -1,10 +1,7 @@
 import { z } from 'zod';
-import { Organization } from '@/types/organization';
-import { OrganizationType, OrganizationStatus } from '@prisma/client';
-import { Country } from '@/types/country';
-import { EmailSchema, PhoneSchema, PictureFileSchema } from '@/schemas/inputs';
-import { CountryCode } from '@/lib/autocomplete-datas';
-import { AircallConfigSchema } from '@/schemas/aircall';
+import { Organization } from '@/convex/lib/types';
+import { OrganizationType, OrganizationStatus } from '@/convex/lib/constants';
+import { EmailSchema, PhoneSchema } from '@/schemas/inputs';
 
 export const organizationSchema = z.object({
   name: z.string().min(1, 'messages.errors.name_required'),
@@ -22,120 +19,102 @@ export const updateOrganizationSchema = organizationSchema
 
 export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>;
 
-const TimeSlotSchema = z
-  .object({
-    start: z
-      .string()
-      .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'messages.errors.invalid_time_format')
-      .min(1, 'messages.errors.required'),
-    end: z
-      .string()
-      .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'messages.errors.invalid_time_format')
-      .min(1, 'messages.errors.required'),
-  })
-  .optional();
-
-const DayScheduleSchema = z
-  .object({
-    isOpen: z.boolean().default(false),
-    slots: z.array(TimeSlotSchema).default([]),
-  })
-  .optional();
-
-const ScheduleSchema = z
-  .object({
-    monday: DayScheduleSchema,
-    tuesday: DayScheduleSchema,
-    wednesday: DayScheduleSchema,
-    thursday: DayScheduleSchema,
-    friday: DayScheduleSchema,
-    saturday: DayScheduleSchema,
-    sunday: DayScheduleSchema,
-  })
-  .optional();
-
-const AddressSchema = z
-  .object({
-    firstLine: z.string().min(1, 'messages.errors.address_line_required').optional(),
-    secondLine: z.string().optional(),
-    city: z.string().min(1, 'messages.errors.city_required').optional(),
-    zipCode: z.string().min(1, 'messages.errors.zipcode_required').optional(),
-    country: z.string().min(1, 'messages.errors.country_required').optional(),
-  })
-  .optional();
-
-const ContactSchema = z
-  .object({
-    address: AddressSchema,
-    phone: PhoneSchema.optional(),
-    email: EmailSchema.optional(),
-    website: z.string().url('messages.errors.invalid_url').optional(),
-  })
-  .optional();
-
-const HolidaySchema = z
-  .object({
-    date: z.string().min(1, 'messages.errors.date_required').optional(),
-    name: z.string().min(1, 'messages.errors.name_required').optional(),
-  })
-  .optional();
-
-const ClosureSchema = z
-  .object({
-    start: z.string().min(1, 'messages.errors.start_date_required').optional(),
-    end: z.string().min(1, 'messages.errors.end_date_required').optional(),
-    reason: z.string().min(1, 'messages.errors.reason_required').optional(),
-  })
-  .optional();
-
-const CountrySettingsSchema = z.object({
-  settings: z
-    .object({
-      logo: z.string().optional(),
-      contact: ContactSchema,
-      schedule: ScheduleSchema,
-      holidays: z.array(HolidaySchema).optional().default([]),
-      closures: z.array(ClosureSchema).optional().default([]),
-      consularCard: z
-        .object({
-          rectoModelUrl: z.string().optional(),
-          versoModelUrl: z.string().optional(),
-        })
-        .optional(),
-      aircall: AircallConfigSchema.optional(),
-    })
-    .optional(),
+// Time slot for schedule
+const TimeSlotSchema = z.object({
+  start: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'messages.errors.invalid_time_format')
+    .min(1, 'messages.errors.required'),
+  end: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'messages.errors.invalid_time_format')
+    .min(1, 'messages.errors.required'),
 });
 
-export function generateOrganizationSettingsSchema(countries: Country[]) {
-  const metadataShape: Record<CountryCode, typeof CountrySettingsSchema> = {} as Record<
-    CountryCode,
-    typeof CountrySettingsSchema
-  >;
+// Day schedule
+const DayScheduleSchema = z.object({
+  isOpen: z.boolean().default(false),
+  slots: z.array(TimeSlotSchema).default([]),
+});
 
-  countries.forEach((country) => {
-    metadataShape[country.code as CountryCode] = CountrySettingsSchema;
-  });
+// Weekly schedule
+const ScheduleSchema = z.object({
+  monday: DayScheduleSchema,
+  tuesday: DayScheduleSchema,
+  wednesday: DayScheduleSchema,
+  thursday: DayScheduleSchema,
+  friday: DayScheduleSchema,
+  saturday: DayScheduleSchema,
+  sunday: DayScheduleSchema,
+});
 
-  return z.object({
-    name: z.string().min(1, 'messages.errors.name_required'),
-    logo: z.string().optional(),
-    type: z.nativeEnum(OrganizationType).optional(),
-    status: z.nativeEnum(OrganizationStatus).optional(),
-    countryIds: z.array(z.string()).min(1, 'messages.errors.countries_required'),
-    metadata: z.object(metadataShape).optional(),
-  });
-}
+// Address
+const AddressSchema = z.object({
+  street: z.string().optional(),
+  complement: z.string().optional(),
+  city: z.string().optional(),
+  postalCode: z.string().optional(),
+  country: z.string().optional(),
+});
 
-// Type pour les données du formulaire
-export type OrganizationSettingsFormData = z.infer<
-  ReturnType<typeof generateOrganizationSettingsSchema>
->;
+// Contact info
+const ContactSchema = z.object({
+  address: AddressSchema.optional(),
+  phone: PhoneSchema.optional(),
+  email: EmailSchema.optional(),
+  website: z.string().url('messages.errors.invalid_url').optional().or(z.literal('')),
+});
 
+// Holiday (stored as object in form, converted to timestamp on submit)
+const HolidaySchema = z.object({
+  date: z.string().min(1, 'messages.errors.date_required'),
+  name: z.string().min(1, 'messages.errors.name_required'),
+});
+
+// Closure (stored as object in form, converted to timestamp on submit)
+const ClosureSchema = z.object({
+  start: z.string().min(1, 'messages.errors.start_date_required'),
+  end: z.string().min(1, 'messages.errors.end_date_required'),
+  reason: z.string().min(1, 'messages.errors.reason_required'),
+});
+
+// Consular card configuration
+const ConsularCardSchema = z.object({
+  rectoModelUrl: z.string().optional(),
+  versoModelUrl: z.string().optional(),
+});
+
+// Country-specific settings (matches Convex structure)
+const CountrySettingsSchema = z.object({
+  countryCode: z.string(),
+  contact: ContactSchema.optional(),
+  schedule: ScheduleSchema.optional(),
+  holidays: z.array(HolidaySchema).default([]),
+  closures: z.array(ClosureSchema).default([]),
+  consularCard: ConsularCardSchema.optional(),
+});
+
+// Main organization settings form schema
+export const organizationSettingsSchema = z.object({
+  name: z.string().min(1, 'messages.errors.name_required'),
+  logo: z.string().optional(),
+  type: z.nativeEnum(OrganizationType),
+  status: z.nativeEnum(OrganizationStatus),
+  countryCodes: z.array(z.string()).min(1, 'messages.errors.countries_required'),
+  settings: z.array(CountrySettingsSchema),
+});
+
+export type OrganizationSettingsFormData = z.infer<typeof organizationSettingsSchema>;
+
+// Helper function to get default values from organization
 export function getDefaultValues(
-  organization: Organization,
+  organization: Organization | null,
 ): OrganizationSettingsFormData {
-  const defaultSchedule = {
+  if (!organization) {
+    throw new Error('Organization is required');
+  }
+
+  const defaultSchedule: z.infer<typeof DayScheduleSchema> = {
     isOpen: false,
     slots: [
       {
@@ -145,68 +124,73 @@ export function getDefaultValues(
     ],
   };
 
-  const defaultMetadata = organization.countries.reduce(
-    (acc, country) => {
-      // Récupérer les données existantes pour ce pays
-      const existingCountryData = organization.metadata?.[country.code]?.settings;
+  const defaultWeeklySchedule: z.infer<typeof ScheduleSchema> = {
+    monday: defaultSchedule,
+    tuesday: defaultSchedule,
+    wednesday: defaultSchedule,
+    thursday: defaultSchedule,
+    friday: defaultSchedule,
+    saturday: defaultSchedule,
+    sunday: defaultSchedule,
+  };
 
-      acc[country.code] = {
-        settings: {
-          logo: existingCountryData?.logo ?? undefined,
-          contact: {
-            address: {
-              firstLine: existingCountryData?.contact?.address?.firstLine ?? undefined,
-              secondLine: existingCountryData?.contact?.address?.secondLine ?? undefined,
-              city: existingCountryData?.contact?.address?.city ?? undefined,
-              zipCode: existingCountryData?.contact?.address?.zipCode ?? undefined,
-              country: country.name.toLowerCase(),
-            },
-            phone: existingCountryData?.contact?.phone ?? undefined,
-            email: existingCountryData?.contact?.email ?? undefined,
-            website: existingCountryData?.contact?.website ?? undefined,
-          },
-          schedule: {
-            monday: existingCountryData?.schedule?.monday || defaultSchedule,
-            tuesday: existingCountryData?.schedule?.tuesday || defaultSchedule,
-            wednesday: existingCountryData?.schedule?.wednesday || defaultSchedule,
-            thursday: existingCountryData?.schedule?.thursday || defaultSchedule,
-            friday: existingCountryData?.schedule?.friday || defaultSchedule,
-            saturday: existingCountryData?.schedule?.saturday || defaultSchedule,
-            sunday: existingCountryData?.schedule?.sunday || defaultSchedule,
-          },
-          holidays: existingCountryData?.holidays || [],
-          closures: existingCountryData?.closures || [],
-          consularCard: existingCountryData?.consularCard ?? undefined,
-          aircall: existingCountryData?.aircall ?? undefined,
-        },
-      };
-      return acc;
-    },
-    {} as Record<string, unknown>,
-  );
+  // Transform settings from Convex format to form format
+  const settings = (organization.countryCodes || []).map((countryCode) => {
+    const existingSettings = organization.settings?.find((s) => s.countryCode === countryCode);
+
+    return {
+      countryCode: countryCode as string,
+      contact: existingSettings?.contact
+        ? {
+            address: existingSettings.contact.address
+              ? {
+                  street: existingSettings.contact.address.street,
+                  complement: existingSettings.contact.address.complement,
+                  city: existingSettings.contact.address.city,
+                  postalCode: existingSettings.contact.address.postalCode,
+                  country: existingSettings.contact.address.country as string,
+                }
+              : undefined,
+            phone: existingSettings.contact.phone,
+            email: existingSettings.contact.email,
+            website: existingSettings.contact.website,
+          }
+        : undefined,
+      schedule: existingSettings?.schedule || defaultWeeklySchedule,
+      // Convert timestamps back to date/name objects for holidays
+      holidays:
+        existingSettings?.holidays?.map((timestamp) => {
+          const date = new Date(timestamp);
+          return {
+            date: date.toISOString().split('T')[0] || '',
+            name: '', // We don't store names in the new structure, so default to empty
+          };
+        }) || [],
+      // Convert timestamps back to date/reason objects for closures
+      closures:
+        existingSettings?.closures?.map((timestamp) => {
+          const date = new Date(timestamp);
+          return {
+            start: date.toISOString().split('T')[0] || '',
+            end: date.toISOString().split('T')[0] || '',
+            reason: '', // We don't store reasons in the new structure, so default to empty
+          };
+        }) || [],
+      consularCard: existingSettings?.consularCard,
+    };
+  });
 
   return {
-    name: organization.name ?? undefined,
-    logo: organization.logo ?? undefined,
-    logoFile: undefined,
-    countryIds: organization.countries.map((c) => c.code) ?? [],
+    name: organization.name,
+    logo: organization.logo,
     type: organization.type,
     status: organization.status,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    metadata: defaultMetadata as any,
+    countryCodes: organization.countryCodes || [],
+    settings,
   };
 }
 
-export interface OrganizationMetadataTimeSlot {
-  start: string;
-  end: string;
-}
-
-export interface OrganizationMetadataDaySchedule {
-  isOpen: boolean;
-  slots?: OrganizationMetadataTimeSlot[];
-}
-
+// Type exports for use in components
 export type WeekDay =
   | 'monday'
   | 'tuesday'
@@ -216,88 +200,9 @@ export type WeekDay =
   | 'saturday'
   | 'sunday';
 
-export type OrganizationMetadataSchedule = Record<
-  WeekDay,
-  OrganizationMetadataDaySchedule
->;
-
-export interface OrganizationMetadataHoliday {
-  date: string;
-  name: string;
-}
-
-export interface OrganizationMetadataAddress {
-  firstLine: string;
-  city: string;
-  zipCode: string;
-  country: string;
-}
-
-export interface OrganizationMetadataContact {
-  address: OrganizationMetadataAddress;
-  phone: string;
-  email: string;
-  website: string;
-}
-
-export interface OrganizationMetadataSettings {
-  logo: string | null;
-  contact: OrganizationMetadataContact;
-  schedule: OrganizationMetadataSchedule;
-  holidays: OrganizationMetadataHoliday[];
-  consularCard: {
-    rectoModelUrl?: string;
-    versoModelUrl?: string;
-  } | null;
-  aircall?: {
-    enabled: boolean;
-    apiKey?: string;
-    apiId?: string;
-    integrationName?: string;
-    workspaceSize: 'small' | 'medium' | 'big';
-    events: {
-      onLogin: boolean;
-      onLogout: boolean;
-      onCallStart: boolean;
-      onCallEnd: boolean;
-      onCallAnswer: boolean;
-    };
-    permissions: {
-      canMakeOutboundCalls: boolean;
-      canReceiveInboundCalls: boolean;
-      canTransferCalls: boolean;
-      canRecordCalls: boolean;
-    };
-  };
-}
-
-export interface CountryMetadataCurrency {
-  code: string;
-  symbol: string;
-  format: string;
-  symbolPosition: 'before' | 'after';
-}
-
-export interface CountryMetadataLanguage {
-  defaultLocale: string;
-  locales: string[];
-}
-
-export interface CountryMetadata {
-  currency: CountryMetadataCurrency;
-  language: CountryMetadataLanguage;
-  dateFormat: string;
-  timeFormat: '12h' | '24h';
-  timeZone: string;
-  holidays?: OrganizationMetadataHoliday[];
-}
-
-export interface OrganizationMetadata {
-  [countryCode: string]: {
-    settings: OrganizationMetadataSettings;
-  };
-}
-
-export interface OrganizationCountryInfos extends Organization {
-  settings: OrganizationMetadataSettings;
-}
+export type TimeSlot = z.infer<typeof TimeSlotSchema>;
+export type DaySchedule = z.infer<typeof DayScheduleSchema>;
+export type WeeklySchedule = z.infer<typeof ScheduleSchema>;
+export type Holiday = z.infer<typeof HolidaySchema>;
+export type Closure = z.infer<typeof ClosureSchema>;
+export type CountrySettings = z.infer<typeof CountrySettingsSchema>;

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { User } from 'lucide-react';
+import type { Doc } from '@/convex/_generated/dataModel';
 import {
   Form,
   FormControl,
@@ -22,7 +23,6 @@ import { useToast } from '@/hooks/use-toast';
 
 import { createNewAgent } from '@/actions/organizations';
 import { updateAgent } from '@/actions/agents';
-import { type Organization } from '@/types/organization';
 import { tryCatch } from '@/lib/utils';
 import {
   Select,
@@ -38,7 +38,7 @@ import { PhoneInput } from '../ui/phone-input';
 
 interface AgentFormProps {
   initialData?: Partial<AgentFormData>;
-  countries: Organization['countries'];
+  countries: Doc<'countries'>[];
   services: { id: string; name: string }[];
   managers?: { id: string; name: string }[];
   agents?: { id: string; name: string }[];
@@ -381,7 +381,7 @@ export function AgentForm({
                       placeholder={t_inputs('country.select_placeholder')}
                       options={countries.map((country) => ({
                         label: country.name,
-                        value: country.id,
+                        value: country._id,
                       }))}
                       selected={field.value || []}
                       onChange={field.onChange}

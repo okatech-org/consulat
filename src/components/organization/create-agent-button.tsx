@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { AgentForm } from './agent-form'; // Import AgentForm
@@ -13,54 +13,36 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { type Organization } from '@/types/organization';
-
-import { getServicesForOrganization } from '@/actions/agents';
-import {
-  getOrganizationManagers,
-  getAvailableAgentsForManager,
-} from '@/actions/organizations';
-import { tryCatch } from '@/lib/utils';
+import type { Id } from '@/convex/_generated/dataModel';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Doc } from '@/convex/_generated/dataModel';
 
 interface CreateAgentButtonProps {
   initialData?: Partial<AgentFormData>;
-  countries: Organization['countries'];
+  countries: Doc<'countries'>[];
 }
 
 export function CreateAgentButton({ initialData, countries }: CreateAgentButtonProps) {
   const [open, setOpen] = useState(false);
-  const [services, setServices] = useState<{ id: string; name: string }[]>([]);
-  const [managers, setManagers] = useState<{ id: string; name: string }[]>([]);
-  const [agents, setAgents] = useState<{ id: string; name: string }[]>([]);
 
-  useEffect(() => {
-    async function loadData() {
-      if (initialData?.assignedOrganizationId) {
-        const [servicesResult, managersResult, agentsResult] = await Promise.all([
-          tryCatch(getServicesForOrganization(initialData.assignedOrganizationId)),
-          tryCatch(getOrganizationManagers(initialData.assignedOrganizationId)),
-          tryCatch(getAvailableAgentsForManager(initialData.assignedOrganizationId)),
-        ]);
+  const organizationId = initialData?.assignedOrganizationId as
+    | Id<'organizations'>
+    | undefined;
 
-        if (servicesResult.data) {
-          setServices(servicesResult.data);
-        }
-        if (managersResult.data) {
-          const validManagers = managersResult.data?.filter(
-            (m): m is { id: string; name: string } => m.name !== null,
-          );
-          setManagers(validManagers);
-        }
-        if (agentsResult.data) {
-          const validAgents = agentsResult.data?.filter(
-            (a): a is { id: string; name: string } => a.name !== null,
-          );
-          setAgents(validAgents);
-        }
-      }
-    }
-    loadData();
-  }, [initialData?.assignedOrganizationId]);
+  const servicesData = useQuery(
+    api.functions.service.getAllServices,
+    organizationId ? { organizationId } : 'skip',
+  );
+
+  const managersData = useQuery(
+    api.functions.membership.getManagersForFilter,
+    organizationId ? { organizationId } : 'skip',
+  );
+
+  const services = servicesData?.map((s) => ({ id: s._id, name: s.name })) || [];
+  const managers = managersData?.map((m) => ({ id: m._id!, name: m.name || '' })) || [];
+  const agents: { id: string; name: string }[] = [];
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>

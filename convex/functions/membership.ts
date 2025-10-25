@@ -170,8 +170,8 @@ export const getAgentsList = query({
     organizationId: v.optional(v.id('organizations')),
     search: v.optional(v.string()),
     linkedCountries: v.optional(v.array(countryCodeValidator)),
-    assignedServices: v.optional(v.array(v.id('services'))),
-    managerId: v.optional(v.id('users')),
+    assignedServices: v.optional(v.id('services')),
+    managerId: v.optional(v.id('memberships')),
     page: v.optional(v.number()),
     limit: v.optional(v.number()),
   },
@@ -197,7 +197,7 @@ export const getAgentsList = query({
 
     // Filter by manager
     if (args.managerId) {
-      query = query.filter((q) => q.eq(q.field('managerId'), args.managerId));
+      query = query.filter((q) => q.eq(q.field('_id'), args.managerId));
     }
 
     const allMemberships = await query.collect();
@@ -217,9 +217,7 @@ export const getAgentsList = query({
     // Filter by assigned services
     if (args.assignedServices && args.assignedServices.length > 0) {
       filteredMemberships = filteredMemberships.filter((membership) =>
-        args.assignedServices!.some((service) =>
-          membership.assignedServices.includes(service),
-        ),
+        membership.assignedServices?.some((service) => service === args.assignedServices),
       );
     }
 
@@ -293,6 +291,7 @@ export const getAgentsList = query({
           _id: membership._id,
           id: user?._id || membership._id,
           name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
+          phoneNumber: user?.phoneNumber || '',
           email: user?.email || '',
           roles: user?.roles || [],
           linkedCountries: countriesList.filter(Boolean),
@@ -303,9 +302,7 @@ export const getAgentsList = query({
           managerName: manager
             ? `${manager.firstName || ''} ${manager.lastName || ''}`.trim()
             : undefined,
-          _count: {
-            assignedRequests: activeRequests.length,
-          },
+          assignedRequests: activeRequests.length,
           completedRequests: completedRequests.length,
           createdAt: membership.joinedAt,
         };
@@ -397,5 +394,28 @@ export const getMembershipWithOrganizationByUserId = query({
       ...membership,
       organization,
     };
+  },
+});
+
+export const getOrganizationAgents = query({
+  args: {
+    organizationId: v.id('organizations'),
+  },
+  returns: v.array(v.any()),
+  handler: async (ctx, args) => {
+    const memberships = await ctx.db
+      .query('memberships')
+      .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
+      .filter((q) => q.eq(q.field('status'), MembershipStatus.Active))
+      .collect();
+
+    const agents = await Promise.all(
+      memberships.map(async (membership) => {
+        const user = await ctx.db.get(membership.userId);
+        return user ? { ...user, roles: user.roles, membership } : null;
+      }),
+    );
+
+    return agents.filter(Boolean);
   },
 });

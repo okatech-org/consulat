@@ -1,16 +1,16 @@
 export default {
   title: 'Gestion des Organismes',
   types: {
-    EMBASSY: 'Ambassade',
-    CONSULATE: 'Consulat',
-    GENERAL_CONSULATE: 'Consulat général',
-    HONORARY_CONSULATE: 'Consulat honoraire',
-    OTHER: 'Autre',
+    embassy: 'Ambassade',
+    consulate: 'Consulat',
+    general_consulate: 'Consulat général',
+    honorary_consulate: 'Consulat honoraire',
+    third_party: 'Autre',
   },
   status: {
-    ACTIVE: 'Actif',
-    INACTIVE: 'Inactif',
-    SUSPENDED: 'Suspendu',
+    active: 'Actif',
+    inactive: 'Inactif',
+    suspended: 'Suspendu',
   },
   actions: {
     create: 'Ajouter un organisme',

@@ -146,3 +146,12 @@ export type ChildProfileSearchResult = FunctionReturnType<
   typeof api.functions.childProfile.getChildProfilesListEnriched
 >;
 export type ChildProfileListItem = ChildProfileSearchResult['items'][number];
+
+export type Organization = FunctionReturnType<
+  typeof api.functions.organization.getOrganization
+>;
+
+export type AgentsListResult = FunctionReturnType<
+  typeof api.functions.membership.getAgentsList
+>;
+export type AgentListItem = AgentsListResult['agents'][number];
