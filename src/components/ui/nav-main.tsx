@@ -1,7 +1,5 @@
 'use client';
 
-import { MessageSquareIcon, PlusCircleIcon } from 'lucide-react';
-
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -13,7 +11,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { NavMainItem } from '@/hooks/use-navigation';
 import { ROUTES } from '@/schemas/routes';
-import { ChatToggle } from '../chat/chat-toggle';
 
 export function NavMain({ items }: { items: NavMainItem[] }) {
   const pathname = usePathname();
@@ -32,8 +29,8 @@ export function NavMain({ items }: { items: NavMainItem[] }) {
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
+          {items.map((item, index) => (
+            <SidebarMenuItem key={index + item.title}>
               <SidebarMenuButton
                 tooltip={item.title}
                 isActive={isActive(item.url)}

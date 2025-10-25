@@ -302,11 +302,11 @@ export function OrganizationsTable() {
           handleParamsChange('type', value as OrganizationType[]),
         options: Object.values(OrganizationType).map((type) => ({
           value: type,
-          label: t_common(`organization_types.${type}`),
+          label: t_inputs(`organization.type.options.${type.toLowerCase()}`),
         })),
       },
     ],
-    [t, t_common, tableParams, handleParamsChange],
+    [t, t_inputs, tableParams, handleParamsChange],
   );
 
   return (

@@ -92,6 +92,7 @@ export default {
         general_consulate: 'Consulat général',
         honorary_consulate: 'Consulat honoraire',
         other: 'Autre',
+        third_party: 'Externe',
       },
     },
     country: {
