@@ -2,9 +2,9 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { ProfileListItem } from '@/convex/lib/types';
 import { MapPin } from 'lucide-react';
 import Link from 'next/link';
-import type { ProfilesListItem } from '@/server/api/routers/profiles/types';
 
 // Helper function to get initials from a name
 function getInitials(name: string): string {
@@ -17,7 +17,7 @@ function getInitials(name: string): string {
 }
 
 interface ProfilesListProps {
-  profiles: ProfilesListItem[];
+  profiles: ProfileListItem[];
 }
 
 export default function ProfilesList({ profiles }: ProfilesListProps) {
@@ -59,10 +59,10 @@ export default function ProfilesList({ profiles }: ProfilesListProps) {
                   ans
                 </p>
               )}
-              {profile.residenceCountyCode && (
+              {profile.countryCode && (
                 <div className="flex items-center gap-2 text-sm">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span>{profile.residenceCountyCode}</span>
+                  <span>{profile.countryCode}</span>
                 </div>
               )}
             </CardContent>

@@ -12,11 +12,12 @@ import { RequestsSection } from './sections/requests-section';
 import { MobileProfileNavigation } from './mobile-profile-navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Fragment, useState } from 'react';
-import type { Doc } from '@/convex/_generated/dataModel';
 import { BasicInfoDisplay } from './sections/basic-info-display';
 import { ProfessionalInfoDisplay } from './sections/professional-info-display';
 import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '@/components/documents/user-document';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 type AdditionalTab = {
   id: string;
   title: string;
@@ -25,14 +26,14 @@ type AdditionalTab = {
 
 type ProfileTabsProps = {
   profile?: CompleteProfile;
-  requests?: Doc<'requests'>[];
+  showRequests?: boolean;
   noTabs?: boolean;
   additionalTabs?: AdditionalTab[];
 };
 
 export function ProfileTabs({
   profile,
-  requests,
+  showRequests = false,
   noTabs,
   additionalTabs,
 }: ProfileTabsProps) {
@@ -47,6 +48,15 @@ export function ProfileTabs({
   if (!profile) {
     return undefined;
   }
+
+  const requests = useQuery(
+    api.functions.request.getAllRequests,
+    showRequests
+      ? {
+          profileId: profile._id,
+        }
+      : 'skip',
+  );
 
   const profileTabs = [
     {

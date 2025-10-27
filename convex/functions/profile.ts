@@ -507,21 +507,21 @@ export const getProfilesListEnriched = query({
     // Enrich with formatted data
     const enrichedProfiles = paginatedProfiles.map((profile) => ({
       id: profile._id,
-      cardNumber: profile.consularCard?.cardNumber || '',
-      firstName: profile.personal?.firstName || '',
-      lastName: profile.personal?.lastName || '',
-      email: profile.contacts?.email || '',
-      gender: profile.personal?.gender || '',
+      cardNumber: profile.consularCard?.cardNumber,
+      firstName: profile.personal?.firstName,
+      lastName: profile.personal?.lastName,
+      email: profile.contacts?.email,
+      gender: profile.personal?.gender,
       status: profile.status,
-      nipCode: profile.personal?.nipCode || '',
+      nipCode: profile.personal?.nipCode,
       cardIssuedAt: profile.consularCard?.cardIssuedAt
         ? new Date(profile.consularCard.cardIssuedAt).toLocaleDateString()
-        : '',
+        : undefined,
       cardExpiresAt: profile.consularCard?.cardExpiresAt
         ? new Date(profile.consularCard.cardExpiresAt).toLocaleDateString()
-        : '',
+        : undefined,
       createdAt: new Date(profile._creationTime).toLocaleString(),
-      IDPictureUrl: profile.documents?.identityPicture?.fileUrl || '',
+      IDPictureUrl: profile.documents?.identityPicture?.fileUrl,
       IDPictureFileName: `${profile.personal?.firstName}_${profile.personal?.lastName}_${profile.consularCard?.cardNumber}`,
       shareUrl: `${process.env.PUBLIC_APP_URL}/listing/profiles/${profile._id}`,
       registrationRequest: profile.registrationRequest,

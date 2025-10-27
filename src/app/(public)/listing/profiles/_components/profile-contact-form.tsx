@@ -18,6 +18,7 @@ import { useSendMessage } from '@/hooks/use-public-profiles';
 import { Input } from '@/components/ui/input';
 import CardContainer from '@/components/layouts/card-container';
 import { Loader2 } from 'lucide-react';
+import type { Id } from '@/convex/_generated/dataModel';
 
 const contactFormSchema = z.object({
   contact: z.string().min(1, 'Le contact est obligatoire'),
@@ -31,7 +32,7 @@ const contactFormSchema = z.object({
 type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 interface ProfileContactFormProps {
-  userId: string;
+  userId: Id<'users'>;
   recipientName: string;
   recipientEmail: string;
 }

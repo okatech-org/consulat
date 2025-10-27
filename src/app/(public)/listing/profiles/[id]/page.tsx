@@ -1,8 +1,6 @@
 'use client';
 
-import { usePublicProfile } from '@/hooks/use-public-profiles';
 import { useParams, useRouter } from 'next/navigation';
-import type { CompleteProfile } from '@/types/profile';
 import { ProfileView } from '../_components/profile-view';
 import { ProfileContactForm } from '../_components/profile-contact-form';
 import type { ServiceRequest } from '@prisma/client';
@@ -10,31 +8,21 @@ import { PageContainer } from '@/components/layouts/page-container';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
-import { ROUTES } from '@/schemas/routes';
+import type { Id } from '@/convex/_generated/dataModel';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { UserRole } from '@/convex/lib/constants';
+import type { CompleteProfile } from '@/convex/lib/types';
 
 export default function ProfilePage() {
-  const params = useParams<{ id: string }>();
-  const { data: profile, isLoading, error } = usePublicProfile(params.id);
+  const params = useParams<{ id: Id<'profiles'> }>();
+  const data = useQuery(api.functions.profile.getCurrentProfile, {
+    profileId: params.id,
+  });
   const { user } = useCurrentUser();
   const router = useRouter();
-  if (error) {
-    <PageContainer
-      title={`Profile Consulaires publique`}
-      className="container py-8 max-w-screen-xl flex flex-col items-center justify-center gap-4"
-    >
-      <p>Profile non trouvé ou non accessible publiquement</p>
-      <Button
-        variant="outline"
-        onClick={() => {
-          router.push(ROUTES.listing.profiles);
-        }}
-      >
-        Retour à la liste des profiles
-      </Button>
-    </PageContainer>;
-  }
 
-  if (isLoading) {
+  if (data === undefined) {
     return (
       <PageContainer
         title={`Profile Consulaires publique`}
@@ -45,7 +33,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (!profile) {
+  if (data === null) {
     return (
       <PageContainer
         title={`Profile Consulaires publique`}
@@ -65,13 +53,13 @@ export default function ProfilePage() {
   }
 
   const hasFullAccess =
-    user?.roles?.includes('SUPER_ADMIN') ||
-    (user?.roles?.some((role) => ['ADMIN', 'MANAGER', 'AGENT'].includes(role)) &&
-      user?.countryCode === profile.residenceCountyCode);
+    user?.roles?.includes(UserRole.SuperAdmin) ||
+    (user?.roles?.some((role) =>
+      [UserRole.Admin, UserRole.Manager, UserRole.Agent].includes(role),
+    ) &&
+      user?.countryCode === data.residenceCountry);
 
   const canContact = !!user;
-
-  const requests = undefined;
 
   return (
     <PageContainer
@@ -79,7 +67,7 @@ export default function ProfilePage() {
       className="container py-8 max-w-screen-xl"
     >
       <ProfileDetailsView
-        profile={profile as CompleteProfile}
+        profile={data}
         hasFullAccess={hasFullAccess ?? false}
         canContact={canContact}
         requests={requests}
@@ -92,25 +80,23 @@ interface ProfileDetailsViewProps {
   profile: CompleteProfile;
   hasFullAccess: boolean;
   canContact: boolean;
-  requests?: ServiceRequest[];
 }
 
 export function ProfileDetailsView({
   profile,
   hasFullAccess,
   canContact,
-  requests,
 }: ProfileDetailsViewProps) {
   return (
     <>
-      <ProfileView profile={profile} hasFullAccess={hasFullAccess} requests={requests} />
+      <ProfileView profile={profile} hasFullAccess={hasFullAccess} showRequests={true} />
 
       {canContact && (
         <div className="mt-8">
           <ProfileContactForm
-            userId={profile.userId ?? profile.user?.id ?? ''}
-            recipientEmail={profile.user?.email ?? ''}
-            recipientName={`${profile.firstName} ${profile.lastName}`}
+            userId={profile.userId}
+            recipientEmail={profile.contacts?.email ?? ''}
+            recipientName={`${profile.personal?.firstName} ${profile.personal?.lastName}`}
           />
         </div>
       )}

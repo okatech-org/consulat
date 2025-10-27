@@ -61,8 +61,8 @@ export default function LegalNotice() {
             La plateforme Consulat.ga est hébergée en France par :
           </p>
           <div className="pl-6 mb-6 text-gray-600 dark:text-gray-300">
-            <p>[Nom de l'hébergeur]</p>
-            <p>[Adresse de l'hébergeur]</p>
+            <p>[Nom de l&apos;hébergeur]</p>
+            <p>[Adresse de l&apos;hébergeur]</p>
             <p>Certifications : ISO 27001, HDS</p>
           </div>
         </section>

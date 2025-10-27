@@ -52,7 +52,9 @@ export default function PrivacyPolicy() {
           </p>
           <ul className="list-disc pl-6 mb-6 text-gray-600 dark:text-gray-300">
             <li>Les données sont hébergées en France sur des serveurs sécurisés</li>
-            <li>Chaque administration dispose d'un environnement isolé et sécurisé</li>
+            <li>
+              Chaque administration dispose d&apos;un environnement isolé et sécurisé
+            </li>
             <li>Les données sont chiffrées au repos et en transit</li>
             <li>Des sauvegardes automatiques sont effectuées quotidiennement</li>
           </ul>
@@ -66,10 +68,10 @@ export default function PrivacyPolicy() {
             Dans le cadre de son fonctionnement, la plateforme collecte et traite :
           </p>
           <ul className="list-disc pl-6 mb-6 text-gray-600 dark:text-gray-300">
-            <li>Données d'identification (nom, prénom, date de naissance)</li>
-            <li>Documents d'identité et justificatifs</li>
+            <li>Données d&apos;identification (nom, prénom, date de naissance)</li>
+            <li>Documents d&apos;identité et justificatifs</li>
             <li>Coordonnées de contact</li>
-            <li>Données de connexion et journaux d'activité</li>
+            <li>Données de connexion et journaux d&apos;activité</li>
             <li>Données biométriques (uniquement pour les services concernés)</li>
           </ul>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
@@ -100,12 +102,12 @@ export default function PrivacyPolicy() {
             Conformément à la réglementation, vous disposez des droits suivants :
           </p>
           <ul className="list-disc pl-6 mb-6 text-gray-600 dark:text-gray-300">
-            <li>Droit d'accès à vos données</li>
+            <li>Droit d&apos;accès à vos données</li>
             <li>Droit de rectification</li>
-            <li>Droit à l'effacement</li>
+            <li>Droit à l&apos;effacement</li>
             <li>Droit à la limitation du traitement</li>
             <li>Droit à la portabilité des données</li>
-            <li>Droit d'opposition</li>
+            <li>Droit d&apos;opposition</li>
           </ul>
         </section>
 

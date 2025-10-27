@@ -91,12 +91,12 @@ export function RequestsSection({ requests }: RequestsSectionProps) {
             <div className="space-y-3">
               {/* Informations de base */}
               <div className="flex items-center gap-4 text-sm text-gray-600">
-                {request.metadata?.submittedAt && (
+                {request.submittedAt && (
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     <span>
                       Soumise le{' '}
-                      {format(new Date(request.metadata.submittedAt), 'dd/MM/yyyy', {
+                      {format(new Date(request.submittedAt), 'dd/MM/yyyy', {
                         locale: fr,
                       })}
                     </span>
