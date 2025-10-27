@@ -203,9 +203,9 @@ export function useNavigation() {
     },
     {
       title: t('settings'),
-      url: ROUTES.user.settings,
+      url: ROUTES.dashboard.settings,
       icon: Settings,
-      roles: [UserRole.Admin, UserRole.Agent, UserRole.Manager, UserRole.IntelAgent],
+      roles: [UserRole.Admin, UserRole.Agent, UserRole.Manager],
     },
   ] as const;
 
