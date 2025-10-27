@@ -80,7 +80,6 @@ export function useAdminFeedbackList(params: {
     data,
     isLoading: data === undefined,
     error: null,
-    refetch: () => {}, // Convex auto-refetches
   };
 }
 

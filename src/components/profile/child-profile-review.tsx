@@ -4,11 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Suspense, useState } from 'react';
 import { RequestStatus, UserRole } from '@/convex/lib/constants';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  useDateLocale,
-  calculateChildProfileCompletion,
-  getChildProfileFieldsStatus,
-} from '@/lib/utils';
+import { useDateLocale, calculateChildProfileCompletion } from '@/lib/utils';
 import { ProfileCompletion } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-completion';
 import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-status-badge';
 import { Label } from '@/components/ui/label';
@@ -42,7 +38,9 @@ export function ChildProfileReviewBase({ request }: ChildProfileReviewProps) {
   // Fetch child profile data using Convex
   const profile = useQuery(
     api.functions.childProfile.getChildProfile,
-    request.profileId ? { childProfileId: request.profileId as Id<'childProfiles'> } : 'skip',
+    request.profileId
+      ? { childProfileId: request.profileId as Id<'childProfiles'> }
+      : 'skip',
   );
 
   const [isLoading, setIsLoading] = useState(false);
@@ -59,8 +57,7 @@ export function ChildProfileReviewBase({ request }: ChildProfileReviewProps) {
     return <LoadingSkeleton variant="form" />;
   }
 
-  const completionRate = calculateChildProfileCompletion(profile as any);
-  const fieldStatus = getChildProfileFieldsStatus(profile as any);
+  const completionRate = calculateChildProfileCompletion(profile);
 
   const statusOptions = Object.values(RequestStatus).map((status) => ({
     value: status,
@@ -151,10 +148,7 @@ export function ChildProfileReviewBase({ request }: ChildProfileReviewProps) {
 
         {/* Panneau latéral pour les notes et validations */}
         <div className="space-y-4 col-span-1">
-          <ProfileCompletion
-            completionRate={typeof completionRate === 'number' ? completionRate : completionRate.percentage}
-            fieldStatus={fieldStatus}
-          />
+          <ProfileCompletion completion={completionRate} />
           <CardContainer
             title={t('admin.registrations.review.validation.title')}
             contentClass="space-y-4"
@@ -177,7 +171,9 @@ export function ChildProfileReviewBase({ request }: ChildProfileReviewProps) {
                   <Textarea
                     value={validationNotes}
                     onChange={(e) => setValidationNotes(e.target.value)}
-                    placeholder={t('admin.registrations.review.validation.notes_placeholder')}
+                    placeholder={t(
+                      'admin.registrations.review.validation.notes_placeholder',
+                    )}
                   />
                 </div>
               </div>

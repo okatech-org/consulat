@@ -6,15 +6,15 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import type { Id } from '@/convex/_generated/dataModel';
-import { UserRole } from '@/convex/lib/constants';
+import { CountryCode, UserRole } from '@/convex/lib/constants';
 
 // Types for the hooks
 export interface AgentFilters {
   search?: string;
-  linkedCountries?: string[];
-  assignedServices?: string[];
-  assignedOrganizationId?: string[];
-  managedByUserId?: string[];
+  linkedCountries?: CountryCode[];
+  assignedServices?: Id<'services'>[];
+  assignedOrganizationId?: Id<'organizations'>[];
+  managedByUserId?: Id<'memberships'>[];
   page?: number;
   limit?: number;
   sortBy?: {
@@ -28,20 +28,20 @@ export interface CreateAgentData {
   lastName: string;
   email: string;
   phoneNumber?: string;
-  countryCodes: string[];
-  serviceIds: string[];
-  assignedOrganizationId: string;
+  countryCodes: CountryCode[];
+  serviceIds: Id<'services'>[];
+  assignedOrganizationId: Id<'organizations'>;
   role?: UserRole;
-  managedByUserId?: string;
+  managedByUserId?: Id<'memberships'>;
 }
 
 export interface UpdateAgentData {
   name?: string;
   email?: string;
   phoneNumber?: string;
-  countryCodes?: string[];
-  serviceIds?: string[];
-  managedByUserId?: string | null;
+  countryCodes?: CountryCode[];
+  serviceIds?: Id<'services'>[];
+  managedByUserId?: Id<'memberships'>;
   role?: UserRole;
 }
 
@@ -56,16 +56,14 @@ export function useAgents(filters: AgentFilters = {}) {
     ? (filters.assignedOrganizationId[0] as Id<'organizations'>)
     : undefined;
 
-  const managerId = filters.managedByUserId?.[0]
-    ? (filters.managedByUserId[0] as Id<'users'>)
-    : undefined;
+  const managerId = filters.managedByUserId?.[0] ? filters.managedByUserId[0] : undefined;
 
   // Query pour la liste des agents
   const agentsData = useQuery(api.functions.membership.getAgentsList, {
     organizationId,
     search: filters.search,
     linkedCountries: filters.linkedCountries,
-    assignedServices: (filters.assignedServices as Id<'services'>[]) || undefined,
+    assignedServices: filters.assignedServices || [],
     managerId,
     page: filters.page || 1,
     limit: filters.limit || 10,
@@ -140,7 +138,8 @@ export function useAgents(filters: AgentFilters = {}) {
 }
 
 /**
- * Hook pour récupérer un agent spécifique avec ses détails complets
+ * Hook pour récupérer un agent (user) avec ses détails de base
+ * @deprecated Use useAgentDetails instead for full agent details including membership info
  */
 export function useAgent(id: Id<'users'>) {
   const agentData = useQuery(api.functions.user.getUser, { userId: id });
@@ -173,54 +172,37 @@ export function useAgent(id: Id<'users'>) {
     isUpdating: false,
   };
 }
-
 /**
- * Hook pour récupérer les agents disponibles pour un service/pays
+ * Hook pour récupérer les managers d'une organisation
  */
-export function useAvailableAgents(
-  organizationId: string,
-  countryCode: string,
-  serviceId: string,
-  enabled = true,
-) {
-  const availableAgents = useQuery(
-    api.functions.membership.getAgentsList,
-    enabled && organizationId && countryCode && serviceId
-      ? {
-          organizationId: organizationId as Id<'organizations'>,
-          linkedCountries: [countryCode],
-          assignedServices: [serviceId as Id<'services'>],
-          limit: 1000,
-        }
-      : 'skip',
-  );
+export function useManagers(organizationId?: Id<'organizations'>) {
+  const managersData = useQuery(api.functions.membership.getManagersForFilter, {
+    organizationId,
+  });
 
   return {
-    availableAgents: availableAgents?.agents || [],
-    isLoading: availableAgents === undefined,
+    managers: managersData || [],
+    isLoading: managersData === undefined,
     error: null,
   };
 }
 
 /**
- * Hook pour récupérer les statistiques globales des agents
+ * Hook pour récupérer les agents d'une organisation
  */
-export function useAgentsStats(
-  organizationId?: Id<'organizations'>,
-  managerId?: Id<'users'>,
-) {
-  const statsData = useQuery(api.functions.membership.getAgentsList, {
-    organizationId,
-    managerId,
-    limit: 1000,
-  });
+export function useOrganizationAgents(organizationId?: Id<'organizations'>) {
+  const agentsData = useQuery(
+    api.functions.membership.getOrganizationAgents,
+    organizationId ? { organizationId } : 'skip',
+  );
 
   return {
-    agentsStats: {
-      total: statsData?.total || 0,
-      agents: statsData?.agents || [],
-    },
-    isLoading: statsData === undefined,
+    agents:
+      agentsData?.map((agent) => ({
+        id: agent._id,
+        name: `${agent.firstName || ''} ${agent.lastName || ''}`.trim(),
+      })) || [],
+    isLoading: agentsData === undefined,
     error: null,
   };
 }

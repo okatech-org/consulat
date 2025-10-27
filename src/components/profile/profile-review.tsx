@@ -4,11 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Suspense, useState } from 'react';
 import { RequestStatus, UserRole } from '@/convex/lib/constants';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  calculateProfileCompletion,
-  useDateLocale,
-  getProfileFieldsStatus,
-} from '@/lib/utils';
+import { calculateProfileCompletion, useDateLocale } from '@/lib/utils';
 import { ProfileCompletion } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-completion';
 import { ProfileStatusBadge } from '@/app/(authenticated)/my-space/profile/_utils/components/profile-status-badge';
 import { Label } from '@/components/ui/label';
@@ -28,7 +24,7 @@ import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
 
 interface ProfileReviewProps {
-  request: NonNullable<Doc<'requests'>>;
+  request: Doc<'requests'>;
 }
 
 export function ProfileReviewBase({ request }: ProfileReviewProps) {
@@ -40,7 +36,7 @@ export function ProfileReviewBase({ request }: ProfileReviewProps) {
 
   // Fetch profile data using Convex
   const profile = useQuery(
-    api.functions.profile.getProfile,
+    api.functions.profile.getCurrentProfile,
     request.profileId ? { profileId: request.profileId as Id<'profiles'> } : 'skip',
   );
 
@@ -58,8 +54,7 @@ export function ProfileReviewBase({ request }: ProfileReviewProps) {
     return <LoadingSkeleton variant="form" />;
   }
 
-  const completionRate = calculateProfileCompletion(profile as any);
-  const fieldStatus = getProfileFieldsStatus(profile as any);
+  const completion = calculateProfileCompletion(profile);
 
   const statusOptions = Object.values(RequestStatus).map((status) => ({
     value: status,
@@ -113,7 +108,7 @@ export function ProfileReviewBase({ request }: ProfileReviewProps) {
             <div className="flex-1 space-y-1">
               <h2 className="text-lg md:text-xl flex flex-col items-start gap-2 font-semibold">
                 <ProfileStatusBadge
-                  status={request.status as any}
+                  status={profile.status}
                   label={t(`inputs.requestStatus.options.${request.status}`)}
                 />
                 {profile.personal?.firstName} {profile.personal?.lastName}{' '}
@@ -142,17 +137,14 @@ export function ProfileReviewBase({ request }: ProfileReviewProps) {
           </div>
         </CardContainer>
         <div className="col-span-2">
-          <ProfileCompletion
-            completionRate={typeof completionRate === 'number' ? completionRate : completionRate.percentage}
-            fieldStatus={fieldStatus}
-          />
+          <ProfileCompletion completion={completion} />
         </div>
       </div>
 
       {/* Contenu principal */}
       <div className="grid gap-6 md:grid-cols-3">
         <div className="space-y-6 md:col-span-2">
-          <ProfileTabs profile={profile as any} />
+          <ProfileTabs profile={profile} />
         </div>
 
         {/* Panneau latéral pour les notes et validations */}
@@ -179,7 +171,9 @@ export function ProfileReviewBase({ request }: ProfileReviewProps) {
                   <Textarea
                     value={validationNotes}
                     onChange={(e) => setValidationNotes(e.target.value)}
-                    placeholder={t('admin.registrations.review.validation.notes_placeholder')}
+                    placeholder={t(
+                      'admin.registrations.review.validation.notes_placeholder',
+                    )}
                   />
                 </div>
               </div>
@@ -204,7 +198,9 @@ export function ProfileReviewBase({ request }: ProfileReviewProps) {
                 .slice(0, 5)
                 .map((activity, index) => (
                   <div key={index} className="border-b pb-3 last:border-0">
-                    <p className="text-sm font-medium">{activity.type}</p>
+                    <p className="text-sm font-medium">
+                      {t(`inputs.activityType.options.${activity.type}`)}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {formatDate(new Date(activity.timestamp), 'PPp')}
                     </p>

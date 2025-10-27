@@ -212,7 +212,7 @@ export function useFormStorage() {
   };
 }
 
-interface ProfileCompletionResult {
+export interface ProfileCompletionResult {
   overall: number;
   sections: Array<{
     name: string;

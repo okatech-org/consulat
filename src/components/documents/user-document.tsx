@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
-import { CheckCircle2, Info } from 'lucide-react';
+import { BadgeCheck, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -397,7 +397,7 @@ export function UserDocument({
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
 
-      <div className={'relative w-full'}>
+      <div className={`relative max-w-full ${hasAdminRole ? 'mb-[3.5rem]' : ''}`}>
         {document?.fileUrl && (
           <div className="mb-4">
             <FileDisplay
@@ -411,7 +411,7 @@ export function UserDocument({
                   ? 'aspect-square w-full max-w-[250px]'
                   : 'aspect-document w-full max-w-[250px]'
               }
-              showActions={allowEdit}
+              showActions={allowEdit && hasAdminRole}
               onDelete={
                 allowEdit
                   ? () => {
@@ -457,21 +457,16 @@ export function UserDocument({
           />
         )}
 
-        {document && (
-          <div className="absolute right-0 bottom-0 translate-y-[120%] flex items-center gap-1">
-            {hasAdminRole && (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsDialogOpen(true)}
-                  disabled={disabled || isLoading}
-                  leftIcon={<CheckCircle2 className="size-icon" />}
-                >
-                  <span>Validation</span>
-                </Button>
-              </div>
-            )}
+        {document && hasAdminRole && (
+          <div className="absolute left-0 bottom-0 translate-y-[120%] flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDialogOpen(true)}
+              disabled={disabled || isLoading}
+            >
+              <BadgeCheck className="size-icon" />
+            </Button>
           </div>
         )}
       </div>

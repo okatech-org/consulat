@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getAgentDetails, type AgentDetails } from '@/actions/agents';
 import { PageContainer } from '@/components/layouts/page-container';
 import CardContainer from '@/components/layouts/card-container';
 import { StatsCard } from '@/components/ui/stats-card';
@@ -12,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/data-table/data-table';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
-import { tryCatch, useDateLocale } from '@/lib/utils';
+import { useDateLocale } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import {
   Sheet,
@@ -42,37 +41,46 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { ROUTES } from '@/schemas/routes';
 import Link from 'next/link';
 import {
-  type Country,
   RequestStatus,
   ServiceCategory,
-  ServicePriority,
-  type User,
+  RequestPriority,
   UserRole,
-} from '@prisma/client';
+} from '@/convex/lib/constants';
 import { AgentForm } from '@/components/organization/agent-form';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
-import type { ConsularServiceListingItem } from '@/types/consular-service';
-import type { OrganizationListingItem } from '@/types/organization';
-import { getActiveCountries } from '@/actions/countries';
-import {
-  getOrganizations,
-  getOrganizationManagers,
-  getOrganizationAgents,
-} from '@/actions/organizations';
-import { getServices } from '../../(superadmin)/_utils/actions/services';
+import { useManagers, useOrganizationAgents } from '@/hooks/use-agents';
+import { useCountries } from '@/hooks/use-countries';
+import { useServices } from '@/hooks/use-services';
+import type { Id } from '@/convex/_generated/dataModel';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 interface RequestFilters {
   search?: string;
   status?: RequestStatus[];
   serviceCategory?: ServiceCategory[];
-  priority?: ServicePriority[];
+  priority?: RequestPriority[];
 }
 
-// Type pour les agents managés du AgentDetails
-type ManagedAgent = NonNullable<AgentDetails['managedAgents']>[0];
+// Types for the agent details from Convex
+type ManagedAgent = {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  assignedRequests: any[];
+  completedRequests: number;
+  averageProcessingTime: number;
+};
 
-// Type pour les demandes assignées du AgentDetails
-type AssignedRequest = NonNullable<AgentDetails['assignedRequests']>[0];
+type AssignedRequest = {
+  id: string;
+  serviceCategory?: ServiceCategory;
+  status: RequestStatus;
+  priority: RequestPriority;
+  createdAt: number;
+  assignedAt?: number;
+};
 
 // Simple component for managed agents list
 function ManagedAgentsList({ agents }: { agents: ManagedAgent[] }) {
@@ -123,12 +131,17 @@ function AssignedRequestsTable({
   sorting,
 }: {
   requests: AssignedRequest[];
-  onParamsChange: (key: string, value: any) => void;
-  onSortingChange: (sorting: { field: string; order: 'asc' | 'desc' }) => void;
-  onPaginationChange: (key: string, value: number) => void;
+  onParamsChange: <K extends keyof RequestFilters>(
+    key: K,
+    value: RequestFilters[K],
+  ) => void;
+  onSortingChange: (
+    sorting: Partial<{ field?: keyof AssignedRequest; order?: 'asc' | 'desc' }>,
+  ) => void;
+  onPaginationChange: (key: 'page' | 'limit', value: number) => void;
   tableParams: RequestFilters;
   pagination: { page: number; limit: number };
-  sorting: { field?: string; order?: 'asc' | 'desc' };
+  sorting: { field?: keyof AssignedRequest; order?: 'asc' | 'desc' };
 }) {
   const t = useTranslations();
   const { formatDate } = useDateLocale();
@@ -179,12 +192,12 @@ function AssignedRequestsTable({
         property: 'priority',
         label: t('requests.filters.priority'),
         defaultValue: (tableParams.priority as string[]) || [],
-        options: Object.values(ServicePriority).map((priority) => ({
+        options: Object.values(RequestPriority).map((priority) => ({
           value: priority,
           label: t(`common.priority.${priority}`),
         })),
         onChange: (value: string[]) =>
-          onParamsChange('priority', value as ServicePriority[]),
+          onParamsChange('priority', value as RequestPriority[]),
       },
     ],
     [t, tableParams, statuses, onParamsChange],
@@ -255,13 +268,13 @@ function AssignedRequestsTable({
           return (
             <Badge
               variant={
-                row.original.status === 'COMPLETED'
+                row.original.status === RequestStatus.Completed
                   ? 'default'
                   : [
-                        'VALIDATED',
-                        'CARD_IN_PRODUCTION',
-                        'READY_FOR_PICKUP',
-                        'APPOINTMENT_SCHEDULED',
+                        RequestStatus.Validated,
+                        RequestStatus.InProduction,
+                        RequestStatus.ReadyForPickup,
+                        RequestStatus.AppointmentScheduled,
                       ].includes(row.original.status)
                     ? 'default'
                     : 'secondary'
@@ -287,7 +300,11 @@ function AssignedRequestsTable({
           />
         ),
         cell: ({ row }) => (
-          <Badge variant={row.original.priority === 'URGENT' ? 'destructive' : 'outline'}>
+          <Badge
+            variant={
+              row.original.priority === RequestPriority.Urgent ? 'destructive' : 'outline'
+            }
+          >
             {t(`inputs.priority.options.${row.original.priority}`)}
           </Badge>
         ),
@@ -371,8 +388,10 @@ function AssignedRequestsTable({
 
     // Apply service category filter
     if (tableParams.serviceCategory && tableParams.serviceCategory.length > 0) {
-      filtered = filtered.filter((request) =>
-        tableParams.serviceCategory!.includes(request.serviceCategory),
+      filtered = filtered.filter(
+        (request) =>
+          request.serviceCategory &&
+          tableParams.serviceCategory!.includes(request.serviceCategory),
       );
     }
 
@@ -418,34 +437,36 @@ function AssignedRequestsTable({
       pageSize={pagination.limit}
       onPageChange={(page) => onPaginationChange('page', page + 1)}
       onLimitChange={(limit) => onPaginationChange('limit', limit)}
-      activeSorting={sorting.field ? [sorting.field, sorting.order || 'asc'] : undefined}
+      activeSorting={
+        sorting.field
+          ? [sorting.field as keyof AssignedRequest, sorting.order || 'asc']
+          : undefined
+      }
     />
   );
 }
 
 export default function AgentDetailPage() {
-  const params = useParams();
+  const params = useParams<{
+    id: Id<'memberships'>;
+  }>();
   const router = useRouter();
   const { user: currentUser } = useCurrentUser();
-  const agentId = params.id as string;
 
-  const [agent, setAgent] = useState<AgentDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
-  const [formListDatas, setFormListDatas] = useState<{
-    countries: Country[];
-    services: ConsularServiceListingItem[];
-    organizations: OrganizationListingItem[];
-    managers: {
-      id: string;
-      name: string;
-    }[];
-    agents: {
-      id: string;
-      name: string;
-    }[];
-  }>({ countries: [], services: [], organizations: [], managers: [], agents: [] });
+
+  // Fetch agent details using Convex
+  const agent = useQuery(api.functions.membership.getAgentDetails, {
+    agentId: params.id,
+  });
+
+  // Fetch form data for the edit form
+  const { countries } = useCountries();
+  const { services } = useServices({
+    organizationId: agent?.assignedOrganizationId,
+  });
+  const { managers } = useManagers(agent?.assignedOrganizationId);
+  const { agents } = useOrganizationAgents(agent?.assignedOrganizationId);
 
   // Table state management
   const {
@@ -483,7 +504,7 @@ export default function AgentDetailPage() {
     if (priority) {
       const priorityArray = priority.split(',').filter(Boolean);
       if (priorityArray.length > 0) {
-        filters.priority = priorityArray as ServicePriority[];
+        filters.priority = priorityArray as RequestPriority[];
       }
     }
 
@@ -499,55 +520,11 @@ export default function AgentDetailPage() {
       .slice(0, 2);
   };
 
-  const isSuperAdmin = currentUser?.roles?.includes('SUPER_ADMIN');
-  const canManageAgent = isSuperAdmin || currentUser?.roles?.includes('ADMIN');
-  const isManager = agent?.roles?.includes(UserRole.MANAGER);
+  const isSuperAdmin = currentUser?.roles?.includes(UserRole.SuperAdmin);
+  const canManageAgent = isSuperAdmin || currentUser?.roles?.includes(UserRole.Admin);
+  const isManager = agent?.roles?.includes(UserRole.Manager);
 
-  useEffect(() => {
-    async function fetchAgentDetails() {
-      if (!agentId) return;
-
-      setIsLoading(true);
-      const result = await tryCatch(getAgentDetails(agentId));
-
-      if (result.error) {
-        setError(result.error.message || 'Failed to fetch agent details');
-      } else if (result.data) {
-        setAgent(result.data);
-      }
-
-      const [countriesData, services, organizations, managers, agents] =
-        await Promise.all([
-          getActiveCountries(result.data?.assignedOrganizationId ?? undefined),
-          getServices(result.data?.assignedOrganizationId ?? undefined),
-          getOrganizations(result.data?.assignedOrganizationId ?? undefined),
-          getOrganizationManagers(result.data?.assignedOrganizationId ?? undefined),
-          getOrganizationAgents(result.data?.assignedOrganizationId ?? ''),
-        ]);
-
-      setFormListDatas({
-        countries: countriesData ?? [],
-        services: services ?? [],
-        organizations: organizations ?? [],
-        managers:
-          managers.data?.map((manager) => ({
-            id: manager.id,
-            name: manager.name || '',
-          })) || [],
-        agents:
-          agents.data?.map((agent) => ({
-            id: agent.id,
-            name: agent.name || '',
-          })) || [],
-      });
-
-      setIsLoading(false);
-    }
-
-    fetchAgentDetails();
-  }, [agentId]);
-
-  if (isLoading) {
+  if (agent === undefined) {
     return (
       <PageContainer title="Chargement...">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -557,7 +534,7 @@ export default function AgentDetailPage() {
     );
   }
 
-  if (error || !agent) {
+  if (agent === null) {
     return (
       <PageContainer title="Erreur">
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -578,22 +555,27 @@ export default function AgentDetailPage() {
   // Calculer les statistiques
   const pendingRequests =
     agent.assignedRequests?.filter((r) =>
-      ['SUBMITTED', 'PENDING', 'PENDING_COMPLETION'].includes(r.status),
+      [
+        RequestStatus.Submitted,
+        RequestStatus.Pending,
+        RequestStatus.PendingCompletion,
+      ].includes(r.status),
     ).length || 0;
 
   const processingRequests =
     agent.assignedRequests?.filter((r) =>
       [
-        'VALIDATED',
-        'CARD_IN_PRODUCTION',
-        'READY_FOR_PICKUP',
-        'APPOINTMENT_SCHEDULED',
+        RequestStatus.Validated,
+        RequestStatus.InProduction,
+        RequestStatus.ReadyForPickup,
+        RequestStatus.AppointmentScheduled,
       ].includes(r.status),
     ).length || 0;
 
   const completedRequests =
-    agent.assignedRequests?.filter((r) => r.status === 'COMPLETED').length || 0;
-  const averageProcessingTime = agent.averageProcessingTime || 0;
+    agent.assignedRequests?.filter((r) => r.status === RequestStatus.Completed).length ||
+    0;
+  const averageProcessingTime = agent?.averageProcessingTime || 0;
 
   return (
     <PageContainer
@@ -660,12 +642,18 @@ export default function AgentDetailPage() {
                           lastName: agent.name?.split(' ').slice(1).join(' ') || '',
                           email: agent.email || '',
                           phoneNumber: agent.phoneNumber || '',
-                          countryIds: agent.linkedCountries?.map((c) => c.id) || [],
-                          serviceIds: agent.assignedServices?.map((s) => s.id) || [],
+                          countryCodes:
+                            agent.linkedCountries
+                              ?.filter((c) => '_id' in c)
+                              .map((c) => c.code) || [],
+                          serviceIds:
+                            agent.assignedServices
+                              ?.filter((s) => s !== null)
+                              .map((s) => s!._id) || [],
                           assignedOrganizationId: agent.assignedOrganizationId || '',
-                          role: agent.roles.includes(UserRole.MANAGER)
-                            ? UserRole.MANAGER
-                            : UserRole.AGENT,
+                          roles: agent.roles.includes(UserRole.Manager)
+                            ? ['MANAGER' as const]
+                            : ['AGENT' as const],
                           managedByUserId: agent.managedByUserId || undefined,
                           managedAgentIds: agent.managedAgents?.map((a) => a.id) || [],
                         }}
@@ -675,10 +663,22 @@ export default function AgentDetailPage() {
                           setIsEditSheetOpen(false);
                           router.refresh();
                         }}
-                        countries={formListDatas.countries}
-                        services={formListDatas.services}
-                        managers={formListDatas.managers}
-                        agents={formListDatas.agents}
+                        countries={countries || []}
+                        services={
+                          services
+                            ?.filter((s) => s !== null)
+                            .map((s) => ({
+                              id: s._id,
+                              name: s.name,
+                            })) || []
+                        }
+                        managers={
+                          managers?.map((m) => ({
+                            id: m._id || m.id || '',
+                            name: m.name,
+                          })) || []
+                        }
+                        agents={agents || []}
                       />
                     </div>
                   </SheetContent>
@@ -713,11 +713,13 @@ export default function AgentDetailPage() {
                   <span>Services assignés</span>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  {agent.assignedServices.map((service) => (
-                    <Badge key={service.id} variant="outline">
-                      {service.name}
-                    </Badge>
-                  ))}
+                  {agent.assignedServices
+                    .filter((s) => s !== null)
+                    .map((service) => (
+                      <Badge key={service._id} variant="outline">
+                        {service.name}
+                      </Badge>
+                    ))}
                 </div>
               </div>
             )}

@@ -5,7 +5,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { useRespondToFeedback, useUpdateFeedbackStatus, useAdminFeedbackList } from '@/hooks/use-feedback';
+import {
+  useRespondToFeedback,
+  useUpdateFeedbackStatus,
+  useAdminFeedbackList,
+} from '@/hooks/use-feedback';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
   Form,
@@ -67,7 +71,7 @@ export function TicketActionSheet({
     limit: 100,
   });
 
-  const ticket = tickets?.find((f) => f._id === ticketId);
+  const ticket = tickets?.items.find((f) => f._id === ticketId);
 
   const form = useForm<ActionFormValues>({
     resolver: zodResolver(actionSchema),
@@ -101,8 +105,8 @@ export function TicketActionSheet({
               ticketId: ticket._id as any,
               response: data.response,
             },
-            { onError: () => {} }
-          )
+            { onError: () => {} },
+          ),
         );
       }
 
@@ -114,8 +118,8 @@ export function TicketActionSheet({
               ticketId: ticket._id as any,
               status: data.newStatus as any,
             },
-            { onError: () => {} }
-          )
+            { onError: () => {} },
+          ),
         );
       }
 
@@ -131,7 +135,7 @@ export function TicketActionSheet({
       onSuccess();
       onOpenChange(false);
     } catch (error) {
-      toast.error('Erreur lors de l\'action');
+      toast.error("Erreur lors de l'action");
       console.error('Error submitting ticket action:', error);
     } finally {
       setIsSubmitting(false);

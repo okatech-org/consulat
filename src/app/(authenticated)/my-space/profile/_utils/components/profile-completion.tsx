@@ -6,19 +6,15 @@ import { AlertCircle, CheckCircle, ChevronDown, ChevronRight } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
-import { cn, ProfileFieldStatus } from '@/lib/utils';
+import { cn, type ProfileCompletionResult } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import CardContainer from '@/components/layouts/card-container';
 
 interface ProfileCompletionProps {
-  completionRate: number;
-  fieldStatus: ProfileFieldStatus;
+  completion: ProfileCompletionResult;
 }
 
-export function ProfileCompletion({
-  completionRate,
-  fieldStatus,
-}: ProfileCompletionProps) {
+export function ProfileCompletion({ completion }: ProfileCompletionProps) {
   const t = useTranslations('profile');
 
   const getCompletionColor = (rate: number) => {
@@ -35,27 +31,43 @@ export function ProfileCompletion({
           <span className="text-sm text-muted-foreground">
             {t('completion.progress')}
           </span>
-          <span className={`font-medium ${getCompletionColor(completionRate)}`}>
-            {completionRate}%
+          <span className={`font-medium ${getCompletionColor(completion.overall)}`}>
+            {completion.overall}%
           </span>
         </div>
-        <Progress value={completionRate} />
+        <Progress value={completion.overall} />
         {/* Informations requises */}
         <FieldsSection
           title={t('completion.required_information')}
-          fields={fieldStatus.required.fields.filter((f) => !f.completed)}
-          completed={fieldStatus.required.completed}
-          total={fieldStatus.required.total}
+          fields={completion.sections
+            .filter((s) => s.name === 'required')
+            .map((s) => s.missingFields)
+            .flat()}
+          completed={completion.sections
+            .filter((s) => s.name === 'required')
+            .reduce((acc, s) => acc + s.completed, 0)}
+          total={completion.sections
+            .filter((s) => s.name === 'required')
+            .reduce((acc, s) => acc + s.total, 0)}
           type="required"
         />
 
         {/* Informations optionnelles */}
-        {fieldStatus.optional.total > 0 && (
+        {completion.sections
+          .filter((s) => s.name === 'optional')
+          .reduce((acc, s) => acc + s.total, 0) > 0 && (
           <FieldsSection
             title={t('completion.optional_information')}
-            fields={fieldStatus.optional.fields}
-            completed={fieldStatus.optional.completed}
-            total={fieldStatus.optional.total}
+            fields={completion.sections
+              .filter((s) => s.name === 'optional')
+              .map((s) => s.missingFields)
+              .flat()}
+            completed={completion.sections
+              .filter((s) => s.name === 'optional')
+              .reduce((acc, s) => acc + s.completed, 0)}
+            total={completion.sections
+              .filter((s) => s.name === 'optional')
+              .reduce((acc, s) => acc + s.total, 0)}
             type="optional"
           />
         )}
@@ -70,7 +82,7 @@ const FieldsList = ({
   type,
   toShowCount = 2,
 }: {
-  fields: ProfileFieldStatus['required']['fields'];
+  fields: string[];
   isExpanded: boolean;
   toShowCount?: number;
   type: 'required' | 'optional';
@@ -82,14 +94,14 @@ const FieldsList = ({
     <ul className="space-y-2">
       {visibleFields.map((field) => (
         <motion.li
-          key={field.key}
+          key={field}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           className="flex items-center justify-between text-sm"
         >
           <div className="flex items-center gap-2">
-            {field.completed ? (
+            {fields.includes(field) ? (
               <CheckCircle className="text-success size-icon" />
             ) : (
               <AlertCircle
@@ -116,7 +128,7 @@ const FieldsSection = ({
   type,
 }: {
   title: string;
-  fields: ProfileFieldStatus['required']['fields'];
+  fields: string[];
   completed: number;
   total: number;
   type: 'required' | 'optional';

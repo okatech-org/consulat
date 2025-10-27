@@ -126,10 +126,7 @@ export default function TicketsPage() {
   const [showActionSheet, setShowActionSheet] = useState(false);
 
   // Requête pour récupérer la liste des tickets
-  const {
-    data: ticketsData,
-    isLoading,
-  } = useAdminFeedbackList({
+  const { data: ticketsData, isLoading } = useAdminFeedbackList({
     page: pagination.page,
     limit: pagination.limit,
     status: (params.status?.[0] as any) || undefined,
@@ -140,23 +137,19 @@ export default function TicketsPage() {
   // Options pour les filtres
   const statuses = useMemo(
     () =>
-      (['pending', 'in_review', 'resolved', 'closed'] as const).map(
-        (status) => ({
-          value: status,
-          label: t(`feedback.admin.tickets.list.status.${status}`),
-        }),
-      ),
+      (['pending', 'in_review', 'resolved', 'closed'] as const).map((status) => ({
+        value: status,
+        label: t(`feedback.admin.tickets.list.status.${status}`),
+      })),
     [t],
   );
 
   const categories = useMemo(
     () =>
-      (['bug', 'feature', 'improvement', 'other'] as const).map(
-        (category) => ({
-          value: category,
-          label: t(`inputs.feedback.categories.options.${category.toUpperCase()}`),
-        }),
-      ),
+      (['bug', 'feature', 'improvement', 'other'] as const).map((category) => ({
+        value: category,
+        label: t(`inputs.feedback.categories.options.${category.toUpperCase()}`),
+      })),
     [t],
   );
 
@@ -204,7 +197,8 @@ export default function TicketsPage() {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <span className="uppercase">{row.original._id}</span> (cliquez pour copier)
+                <span className="uppercase">{row.original._id}</span> (cliquez pour
+                copier)
               </TooltipContent>
             </Tooltip>
           </label>
@@ -354,7 +348,7 @@ export default function TicketsPage() {
             title={t('feedback.admin.tickets.list.columns.createdAt')}
             sortHandler={(direction) =>
               handleSortingChange({
-                field: 'createdAt',
+                field: '_creationTime',
                 order: direction,
               })
             }
@@ -453,9 +447,9 @@ export default function TicketsPage() {
       <DataTable
         isLoading={isLoading}
         columns={columns}
-        data={ticketsData || []}
+        data={ticketsData?.items || []}
         filters={filters}
-        totalCount={ticketsData?.length || 0}
+        totalCount={ticketsData?.pagination.total || 0}
         pageIndex={pagination.page - 1}
         pageSize={pagination.limit}
         onPageChange={(page) => handlePaginationChange('page', page + 1)}
@@ -513,7 +507,7 @@ function BulkStatusChangeForm({ selectedRows, onSuccess }: BulkStatusChangeFormP
             ticketId: row._id as any,
             status: data.status as any,
           },
-          { onError: () => {} }
+          { onError: () => {} },
         );
       });
 
@@ -522,7 +516,7 @@ function BulkStatusChangeForm({ selectedRows, onSuccess }: BulkStatusChangeFormP
       toast.success(
         t('feedback.admin.tickets.bulk.statusUpdate.success', {
           count: selectedRows.length,
-        })
+        }),
       );
       onSuccess();
       setOpen(false);

@@ -12,38 +12,19 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useAgents, type AgentFilters } from '@/hooks/use-agents';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useTableSearchParams } from '@/hooks/use-table-search-params';
-import { getOrganizationIdFromUser } from '@/lib/utils';
 import { ROUTES } from '@/schemas/routes';
-import { UserRole } from '@/convex/lib/constants';
+import { CountryCode, UserRole } from '@/convex/lib/constants';
 import Link from 'next/link';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-
-interface AgentListItem {
-  _id: Id<'memberships'>;
-  id: Id<'users'>;
-  name: string;
-  email: string;
-  roles: string[];
-  linkedCountries: any[];
-  assignedServices: any[];
-  assignedOrganizationId: Id<'organizations'>;
-  organizationName?: string;
-  managedByUserId?: Id<'users'>;
-  managerName?: string;
-  _count: {
-    assignedRequests: number;
-  };
-  completedRequests: number;
-  createdAt?: number;
-}
+import type { AgentListItem } from '@/convex/lib/types';
 
 export default function AgentsPageClient() {
   const { user: currentUser } = useCurrentUser();
-  const organizationId = getOrganizationIdFromUser(currentUser);
+  const organizationId = currentUser?.membership?.organizationId;
   const isSuperAdmin = currentUser?.roles.includes(UserRole.SuperAdmin);
 
   // État pour les filtres
@@ -75,8 +56,12 @@ export default function AgentsPageClient() {
     }
 
     // Les managers ne voient que leurs agents
-    if (currentUser?.roles.includes(UserRole.Manager) && !currentUser.roles.includes(UserRole.SuperAdmin)) {
-      filters.managedByUserId = [currentUser.id];
+    if (
+      currentUser?.roles.includes(UserRole.Manager) &&
+      !currentUser.roles.includes(UserRole.SuperAdmin) &&
+      currentUser.membership?._id
+    ) {
+      filters.managedByUserId = [currentUser.membership?._id];
     }
 
     // Ajouter les filtres de la table
@@ -98,13 +83,20 @@ export default function AgentsPageClient() {
 
   // Fetch filter data
   const countries = useQuery(api.functions.membership.getCountriesForFilter) || [];
-  const services = useQuery(api.functions.membership.getServicesForFilter, {
-    organizationId: organizationId ? (organizationId as Id<'organizations'>) : undefined,
-  }) || [];
-  const organizations = useQuery(api.functions.organization.getAllOrganizations) || [];
-  const managers = useQuery(api.functions.membership.getManagersForFilter, {
-    organizationId: organizationId ? (organizationId as Id<'organizations'>) : undefined,
-  }) || [];
+  const services =
+    useQuery(api.functions.membership.getServicesForFilter, {
+      organizationId: organizationId
+        ? (organizationId as Id<'organizations'>)
+        : undefined,
+    }) || [];
+  const organizations =
+    useQuery(api.functions.organization.getAllOrganizations, {}) || [];
+  const managers =
+    useQuery(api.functions.membership.getManagersForFilter, {
+      organizationId: organizationId
+        ? (organizationId as Id<'organizations'>)
+        : undefined,
+    }) || [];
 
   // Fonction pour adapter les paramètres de recherche
   function adaptSearchParams(urlSearchParams: URLSearchParams): AgentFilters {
@@ -115,22 +107,30 @@ export default function AgentsPageClient() {
 
     const linkedCountries = urlSearchParams.get('linkedCountries');
     if (linkedCountries) {
-      filters.linkedCountries = linkedCountries.split(',').filter(Boolean);
+      filters.linkedCountries = linkedCountries
+        .split(',')
+        .filter(Boolean) as CountryCode[];
     }
 
     const assignedServices = urlSearchParams.get('assignedServices');
     if (assignedServices) {
-      filters.assignedServices = assignedServices.split(',').filter(Boolean);
+      filters.assignedServices = assignedServices
+        .split(',')
+        .filter(Boolean) as Id<'services'>[];
     }
 
     const assignedOrganizationId = urlSearchParams.get('assignedOrganizationId');
     if (assignedOrganizationId) {
-      filters.assignedOrganizationId = assignedOrganizationId.split(',').filter(Boolean);
+      filters.assignedOrganizationId = assignedOrganizationId
+        .split(',')
+        .filter(Boolean) as Id<'organizations'>[];
     }
 
     const managedByUserId = urlSearchParams.get('managedByUserId');
     if (managedByUserId) {
-      filters.managedByUserId = managedByUserId.split(',').filter(Boolean);
+      filters.managedByUserId = managedByUserId
+        .split(',')
+        .filter(Boolean) as Id<'memberships'>[];
     }
 
     return filters;
@@ -231,8 +231,8 @@ export default function AgentsPageClient() {
           row.original.assignedServices && row.original.assignedServices.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {row.original.assignedServices.slice(0, 1).map((service) => (
-                <Badge key={service._id} variant="outline" className="text-xs">
-                  <span className="truncate max-w-[80px]">{service.name}</span>
+                <Badge key={service?._id} variant="outline" className="text-xs">
+                  <span className="truncate max-w-[80px]">{service?.name}</span>
                 </Badge>
               ))}
               {row.original.assignedServices.length > 2 && (
@@ -245,7 +245,7 @@ export default function AgentsPageClient() {
                   <TooltipContent>
                     <div className="space-y-1">
                       {row.original.assignedServices.slice(2).map((service) => (
-                        <div key={service._id}>{service.name}</div>
+                        <div key={service?._id}>{service?.name}</div>
                       ))}
                     </div>
                   </TooltipContent>
@@ -271,7 +271,7 @@ export default function AgentsPageClient() {
           />
         ),
         cell: ({ row }) => (
-          <Badge variant="outline">{row.original._count.assignedRequests}</Badge>
+          <Badge variant="outline">{row.original.assignedRequests || 0}</Badge>
         ),
       },
       {
@@ -309,7 +309,7 @@ export default function AgentsPageClient() {
         header: 'Actions',
         cell: ({ row }) => (
           <Button asChild variant="outline" size="sm">
-            <Link href={`${ROUTES.dashboard.agents}/${row.original.id}`}>Consulter</Link>
+            <Link href={ROUTES.dashboard.agent_detail(row.original._id)}>Consulter</Link>
           </Button>
         ),
       },
@@ -336,15 +336,20 @@ export default function AgentsPageClient() {
           label: c.name || c.code,
         })),
         defaultValue: tableParams.linkedCountries as string[],
-        onChange: (value: string[]) => handleParamsChange('linkedCountries', value),
+        onChange: (value: string[]) =>
+          handleParamsChange('linkedCountries', value as CountryCode[]),
       },
       {
         type: 'checkbox',
         property: 'assignedServices',
         label: 'Services',
-        options: (services || []).map((s) => ({ value: s._id, label: s.name || s._id })),
+        options: (services || []).map((s) => ({
+          value: s._id.toString(),
+          label: s.name || s._id.toString(),
+        })),
         defaultValue: tableParams.assignedServices as string[],
-        onChange: (value: string[]) => handleParamsChange('assignedServices', value),
+        onChange: (value: string[]) =>
+          handleParamsChange('assignedServices', value as Id<'services'>[]),
       },
       ...(isSuperAdmin
         ? [
@@ -353,27 +358,32 @@ export default function AgentsPageClient() {
               property: 'assignedOrganizationId' as keyof AgentListItem,
               label: 'Organisation',
               options: (organizations || []).map((o) => ({
-                value: o._id,
-                label: o.name || o._id,
+                value: o._id.toString(),
+                label: o.name || o._id.toString(),
               })),
               defaultValue: tableParams.assignedOrganizationId as string[],
               onChange: (value: string[]) =>
-                handleParamsChange('assignedOrganizationId', value),
+                handleParamsChange(
+                  'assignedOrganizationId',
+                  value as Id<'organizations'>[],
+                ),
             },
           ]
         : []),
-      ...(!currentUser?.roles.includes(UserRole.Manager) || currentUser?.roles.includes(UserRole.SuperAdmin)
+      ...(!currentUser?.roles.includes(UserRole.Manager) ||
+      currentUser?.roles.includes(UserRole.SuperAdmin)
         ? [
             {
               type: 'checkbox' as const,
               property: 'managedByUserId' as keyof AgentListItem,
               label: 'Géré par',
               options: (managers || []).map((m) => ({
-                value: m.id,
-                label: m.name || m.id,
+                value: m.id?.toString() || '',
+                label: m.name || m.email || 'Manager',
               })),
               defaultValue: tableParams.managedByUserId as string[],
-              onChange: (value: string[]) => handleParamsChange('managedByUserId', value),
+              onChange: (value: string[]) =>
+                handleParamsChange('managedByUserId', value as Id<'memberships'>[]),
             },
           ]
         : []),

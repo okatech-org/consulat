@@ -170,17 +170,11 @@ export const getAgentsList = query({
     organizationId: v.optional(v.id('organizations')),
     search: v.optional(v.string()),
     linkedCountries: v.optional(v.array(countryCodeValidator)),
-    assignedServices: v.optional(v.id('services')),
+    assignedServices: v.optional(v.array(v.id('services'))),
     managerId: v.optional(v.id('memberships')),
     page: v.optional(v.number()),
     limit: v.optional(v.number()),
   },
-  returns: v.object({
-    agents: v.array(v.any()),
-    total: v.number(),
-    page: v.number(),
-    limit: v.number(),
-  }),
   handler: async (ctx, args) => {
     const page = args.page || 1;
     const limit = args.limit || 10;
@@ -217,7 +211,9 @@ export const getAgentsList = query({
     // Filter by assigned services
     if (args.assignedServices && args.assignedServices.length > 0) {
       filteredMemberships = filteredMemberships.filter((membership) =>
-        membership.assignedServices?.some((service) => service === args.assignedServices),
+        membership.assignedServices?.some((service) =>
+          args.assignedServices!.some((serviceId) => serviceId === service),
+        ),
       );
     }
 
@@ -289,7 +285,7 @@ export const getAgentsList = query({
 
         return {
           _id: membership._id,
-          id: user?._id || membership._id,
+          userId: user?._id,
           name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
           phoneNumber: user?.phoneNumber || '',
           email: user?.email || '',
@@ -415,5 +411,194 @@ export const getOrganizationAgents = query({
       lastName: membership.lastName,
       role: membership.role,
     }));
+  },
+});
+
+// Get detailed agent information with all related data
+export const getAgentDetails = query({
+  args: {
+    agentId: v.id('memberships'),
+  },
+  returns: v.union(v.null(), v.any()),
+  handler: async (ctx, args) => {
+    const membership = await ctx.db.get(args.agentId);
+
+    if (!membership) {
+      return null;
+    }
+
+    // Get user details
+    const user = await ctx.db.get(membership.userId);
+    if (!user) {
+      return null;
+    }
+
+    // Get organization
+    const organization = await ctx.db.get(membership.organizationId);
+
+    // Get linked countries details
+    const linkedCountries = await Promise.all(
+      membership.assignedCountries.map(async (countryCode) => {
+        const country = await ctx.db
+          .query('countries')
+          .withIndex('by_code', (q) => q.eq('code', countryCode))
+          .first();
+        return country || { code: countryCode, name: countryCode };
+      }),
+    );
+
+    // Get assigned services details
+    const assignedServices = await Promise.all(
+      membership.assignedServices.map(async (serviceId) => {
+        const service = await ctx.db.get(serviceId);
+        return service;
+      }),
+    );
+
+    // Get manager details if exists
+    let manager = null;
+    if (membership.managerId) {
+      const managerMembership = await ctx.db.get(membership.managerId);
+      if (managerMembership) {
+        manager = {
+          id: managerMembership._id,
+          name: `${managerMembership.firstName || ''} ${managerMembership.lastName || ''}`.trim(),
+        };
+      }
+    }
+
+    // Get managed agents if this is a manager
+    const managedAgents: Array<{
+      id: string;
+      name: string;
+      email: string;
+      phoneNumber: string;
+      assignedRequests: any[];
+      completedRequests: number;
+      averageProcessingTime: number;
+    }> = [];
+    if (membership.role === UserRole.Manager) {
+      const managedMemberships = await ctx.db
+        .query('memberships')
+        .withIndex('by_manager', (q) => q.eq('managerId', membership.managerId))
+        .filter((q) => q.eq(q.field('status'), MembershipStatus.Active))
+        .collect();
+
+      const enrichedManagedAgents = await Promise.all(
+        managedMemberships.map(async (managedMembership) => {
+          const managedUser = await ctx.db.get(managedMembership.userId);
+
+          // Count requests for this managed agent
+          const activeRequests = await ctx.db
+            .query('requests')
+            .withIndex('by_assignee_status', (q) =>
+              q.eq('assignedAgentId', managedMembership._id),
+            )
+            .filter((q) => q.neq(q.field('status'), RequestStatus.Completed))
+            .filter((q) => q.neq(q.field('status'), RequestStatus.Cancelled))
+            .filter((q) => q.neq(q.field('status'), RequestStatus.Rejected))
+            .collect();
+
+          const completedRequests = await ctx.db
+            .query('requests')
+            .withIndex('by_assignee_status', (q) =>
+              q.eq('assignedAgentId', managedMembership._id),
+            )
+            .filter((q) => q.eq(q.field('status'), RequestStatus.Completed))
+            .collect();
+
+          // Calculate average processing time for managed agent
+          let averageProcessingTime = 0;
+          if (completedRequests.length > 0) {
+            const processingTimes = completedRequests
+              .filter((r) => r.submittedAt && r.completedAt)
+              .map((r) => {
+                const days = Math.floor(
+                  (r.completedAt! - r.submittedAt!) / (1000 * 60 * 60 * 24),
+                );
+                return days;
+              });
+
+            if (processingTimes.length > 0) {
+              averageProcessingTime = Math.round(
+                processingTimes.reduce((a, b) => a + b, 0) / processingTimes.length,
+              );
+            }
+          }
+
+          return {
+            id: managedMembership._id,
+            name:
+              `${managedMembership.firstName || ''} ${managedMembership.lastName || ''}`.trim() ||
+              `${managedUser?.firstName || ''} ${managedUser?.lastName || ''}`.trim(),
+            email: managedUser?.email || '',
+            phoneNumber: managedUser?.phoneNumber || '',
+            assignedRequests: activeRequests,
+            completedRequests: completedRequests.length,
+            averageProcessingTime,
+          };
+        }),
+      );
+
+      managedAgents.push(...enrichedManagedAgents);
+    }
+
+    // Get assigned requests details
+    const assignedRequests = await ctx.db
+      .query('requests')
+      .withIndex('by_assignee', (q) => q.eq('assignedAgentId', args.agentId))
+      .collect();
+
+    // Enrich requests with service details
+    const enrichedRequests = await Promise.all(
+      assignedRequests.map(async (request) => {
+        const service = await ctx.db.get(request.serviceId);
+        return {
+          id: request._id,
+          serviceCategory: service?.category,
+          status: request.status,
+          priority: request.priority,
+          createdAt: request.submittedAt || request._creationTime,
+          assignedAt: request.assignedAt,
+        };
+      }),
+    );
+
+    // Calculate average processing time
+    const completedRequests = assignedRequests.filter(
+      (r) => r.status === RequestStatus.Completed && r.submittedAt && r.completedAt,
+    );
+
+    let averageProcessingTime = 0;
+    if (completedRequests.length > 0) {
+      const processingTimes = completedRequests.map((r) => {
+        const days = Math.floor(
+          (r.completedAt! - r.submittedAt!) / (1000 * 60 * 60 * 24),
+        );
+        return days;
+      });
+
+      averageProcessingTime = Math.round(
+        processingTimes.reduce((a, b) => a + b, 0) / processingTimes.length,
+      );
+    }
+
+    return {
+      id: membership._id,
+      name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+      email: user.email || '',
+      phoneNumber: user.phoneNumber || '',
+      roles: [membership.role],
+      linkedCountries: linkedCountries.filter(Boolean),
+      assignedServices: assignedServices.filter(Boolean),
+      assignedOrganizationId: membership.organizationId,
+      organizationName: organization?.name,
+      managedByUserId: membership.managerId,
+      manager,
+      managedAgents,
+      assignedRequests: enrichedRequests,
+      averageProcessingTime,
+      availability: null, // Not implemented in schema yet
+    };
   },
 });

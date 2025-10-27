@@ -519,11 +519,6 @@
   .pb-safe {
     padding-bottom: var(--safe-bottom);
   }
-
-  .btn-mobile {
-    @apply h-8 w-8 p-0 md:h-9 md:w-auto md:px-3;
-  }
-
   /* Grilles adaptatives */
   .grid-adaptive {
     @apply grid-cols-2 md:grid-cols-4;
@@ -894,21 +889,6 @@
 
 .sidebar-link .notification-badge {
   margin-left: 0.5rem;
-}
-
-/* Styles pour les hover cards */
-.hover-card-content {
-  width: 320px;
-  padding: 1rem;
-  background-color: hsl(var(--popover));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  box-shadow: 0 2px 4px hsl(0 0 0 / 0.1);
-}
-
-.hover-card-content p {
-  margin: 0;
-  line-height: 1.4;
 }
 
 /* Custom scrollbar styles pour Webkit */
