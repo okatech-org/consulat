@@ -7,8 +7,6 @@ import {
   type NotificationResponse,
 } from '@/types/notifications';
 import { sendNotification } from './notification-service';
-import { sendSMSOTP } from '@/actions/email';
-import { sendOTPEmail } from './providers/emails';
 
 /**
  * Fonction simplifiée pour créer et envoyer une notification
@@ -126,32 +124,4 @@ export async function notifyAppointment(
     scheduledFor: options?.scheduledFor,
     expiresAt: options?.expiresAt,
   });
-}
-
-/**
- * Fonction utilitaire pour envoyer un code de validation
- */
-
-export async function notifyValidationCode(
-  message: string,
-  options?: Partial<
-    Omit<NotificationRequest, 'type' | 'title' | 'message' | 'recipient' | 'actions'>
-  > & {
-    email?: string;
-    phoneNumber?: string;
-  },
-): Promise<boolean> {
-  if (options?.email) {
-    await sendOTPEmail(options?.email, message);
-
-    return true;
-  }
-
-  if (options?.phoneNumber) {
-    await sendSMSOTP(options?.phoneNumber, message);
-
-    return true;
-  }
-
-  return false;
 }

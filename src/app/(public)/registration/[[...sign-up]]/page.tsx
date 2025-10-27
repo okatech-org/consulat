@@ -1,26 +1,26 @@
+'use client';
+
 import { BetaBanner } from '@/components/ui/beta-banner';
 import { PageContainer } from '@/components/layouts/page-container';
-import { getCurrentUser } from '@/lib/auth/utils';
 import { redirect } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import { RegistrationSync } from '@/components/auth/registration-sync';
 import Image from 'next/image';
 import { env } from '@/env';
-import { getTranslations } from 'next-intl/server';
-import { auth } from '@clerk/nextjs/server';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useTranslations } from 'next-intl';
 
 const appLogo = env.NEXT_PUBLIC_ORG_LOGO;
 
-export default async function RegistrationPage() {
-  const { userId } = await auth();
-  const currentUser = await getCurrentUser();
-  const t = await getTranslations('auth.signup');
+export default function RegistrationPage() {
+  const { user } = useCurrentUser();
+  const t = useTranslations('auth.signup');
 
-  if (!userId) {
+  if (!user) {
     redirect(ROUTES.auth.signup);
   }
 
-  if (currentUser) {
+  if (user.profileId) {
     redirect(ROUTES.user.profile_form);
   }
 

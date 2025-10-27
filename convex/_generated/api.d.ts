@@ -8,7 +8,6 @@
  * @module
  */
 
-import type * as functions_admin from "../functions/admin.js";
 import type * as functions_analytics from "../functions/analytics.js";
 import type * as functions_appointment from "../functions/appointment.js";
 import type * as functions_childProfile from "../functions/childProfile.js";
@@ -68,7 +67,6 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  "functions/admin": typeof functions_admin;
   "functions/analytics": typeof functions_analytics;
   "functions/appointment": typeof functions_appointment;
   "functions/childProfile": typeof functions_childProfile;
