@@ -1,6 +1,12 @@
 'use client';
 
 import { api } from '@/trpc/react';
+import {
+  useIntelligenceDashboardStats as useConvexIntelligenceDashboardStats,
+  useIntelligenceProfilesMap as useConvexIntelligenceProfilesMap,
+  useIntelligenceNotes as useConvexIntelligenceNotes,
+  useIntelligenceProfiles as useConvexIntelligenceProfiles,
+} from './use-intelligence';
 
 /**
  * Hook optimisé pour les pays actifs avec cache longue durée
@@ -19,19 +25,12 @@ export function useActiveCountries(organizationId?: string) {
 }
 
 /**
- * Hook optimisé pour les stats du dashboard intelligence 
+ * Hook optimisé pour les stats du dashboard intelligence
  * Cache de 5 minutes pour équilibrer fraîcheur et performance
+ * MIGRATED TO CONVEX
  */
 export function useIntelligenceDashboardStats(period: 'day' | 'week' | 'month' | 'year' = 'month') {
-  return api.intelligence.getDashboardStats.useQuery(
-    { period },
-    {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes en mémoire
-      refetchOnWindowFocus: false,
-      refetchInterval: 5 * 60 * 1000, // Actualiser toutes les 5 minutes en arrière-plan
-    }
-  );
+  return useConvexIntelligenceDashboardStats(period);
 }
 
 /**
@@ -53,52 +52,26 @@ export function useNotificationCount() {
 /**
  * Hook optimisé pour la carte des profils intelligence
  * Cache agressif car les données géographiques changent peu
+ * MIGRATED TO CONVEX
  */
 export function useIntelligenceProfilesMap(filters?: any) {
-  return api.intelligence.getProfilesMap.useQuery(
-    { filters },
-    {
-      staleTime: 10 * 60 * 1000, // 10 minutes
-      gcTime: 20 * 60 * 1000, // 20 minutes en mémoire
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      // Éviter les requêtes redondantes pendant Fast Refresh
-      refetchOnMount: false,
-    }
-  );
+  return useConvexIntelligenceProfilesMap(filters);
 }
 
 /**
  * Hook optimisé pour les profils avec notes intelligence
  * Cache modéré car les données changent régulièrement
+ * MIGRATED TO CONVEX
  */
 export function useIntelligenceProfilesWithNotes(filters?: any) {
-  // Remplacement: la procédure getProfilesWithNotes n'existe pas côté routeur.
-  // Utiliser getProfiles avec une pagination minimale et un filtre hasNotes.
-  return api.intelligence.getProfiles.useQuery(
-    { page: 1, limit: 20, filters: { ...(filters || {}), hasNotes: true } },
-    {
-      staleTime: 3 * 60 * 1000, // 3 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes en mémoire
-      refetchOnWindowFocus: false,
-      // éviter les requêtes supplémentaires au montage en dev (Fast Refresh)
-      refetchOnMount: false,
-    }
-  );
+  return useConvexIntelligenceProfiles(1, 20, { ...(filters || {}), hasNotes: true });
 }
 
 /**
  * Hook optimisé pour les notes intelligence
  * Cache court car les notes sont mises à jour fréquemment
+ * MIGRATED TO CONVEX
  */
 export function useIntelligenceNotes(filters?: any) {
-  return api.intelligence.getIntelligenceNotes.useQuery(
-    { filters },
-    {
-      staleTime: 2 * 60 * 1000, // 2 minutes
-      gcTime: 5 * 60 * 1000, // 5 minutes en mémoire
-      refetchOnWindowFocus: false,
-      refetchInterval: 3 * 60 * 1000, // Actualiser toutes les 3 minutes
-    }
-  );
+  return useConvexIntelligenceNotes(filters);
 }

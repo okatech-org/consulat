@@ -12,6 +12,8 @@ import { notifications } from './tables/notifications';
 import { countries } from './tables/countries';
 import { tickets } from './tables/tickets';
 import { childProfiles } from './tables/childProfiles';
+import { intelligenceNotes, intelligenceNoteHistory } from './tables/intelligenceNotes';
+import { associations, associationMembers } from './tables/associations';
 
 export default defineSchema({
   users,
@@ -26,4 +28,8 @@ export default defineSchema({
   countries,
   tickets,
   childProfiles,
+  intelligenceNotes,
+  intelligenceNoteHistory,
+  associations,
+  associationMembers,
 });

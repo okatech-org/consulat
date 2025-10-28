@@ -4,11 +4,15 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { api } from '@/trpc/react';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import {
   useIntelligenceDashboardStats,
   useIntelligenceNotes,
 } from '@/hooks/use-optimized-queries';
+import {
+  useCreateIntelligenceNote,
+  useIntelligenceProfiles,
+} from '@/hooks/use-intelligence';
 import {
   createIntelligenceNoteSchema,
   type CreateIntelligenceNoteInput,
@@ -113,26 +117,15 @@ export default function NotesPage() {
       : undefined,
   );
 
+  const { user } = useCurrentUser();
   const { data: dashboardStats, isLoading: statsLoading } = useIntelligenceDashboardStats(
     filters.period,
   );
-  const { data: profiles } = api.intelligence.getProfiles.useQuery({
-    page: 1,
-    limit: 100,
-  });
+  const profilesData = useIntelligenceProfiles(1, 100, {});
+  const profiles = profilesData?.profiles || [];
 
   // Mutations
-  const createNoteMutation = api.intelligence.createNote.useMutation({
-    onSuccess: () => {
-      toast.success('Note créée avec succès');
-      setShowCreateModal(false);
-      refetch();
-      form.reset();
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Erreur lors de la création de la note');
-    },
-  });
+  const createNoteMutation = useCreateIntelligenceNote();
 
   // Form pour créer une note
   const form = useForm<CreateIntelligenceNoteInput>({
@@ -148,9 +141,24 @@ export default function NotesPage() {
 
   // Handlers
   const handleCreateNote = async (data: CreateIntelligenceNoteInput) => {
-    const { error } = await tryCatch(() => createNoteMutation.mutateAsync(data));
+    if (!user?.id) {
+      toast.error('Utilisateur non authentifié');
+      return;
+    }
+
+    const { error } = await tryCatch(() =>
+      createNoteMutation({
+        ...data,
+        authorId: user.id as any,
+      }),
+    );
+
     if (error) {
       toast.error('Erreur lors de la création de la note');
+    } else {
+      toast.success('Note créée avec succès');
+      setShowCreateModal(false);
+      form.reset();
     }
   };
 
@@ -692,9 +700,9 @@ export default function NotesPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {profiles?.profiles?.map((profile) => (
+                          {profiles?.map((profile: any) => (
                             <SelectItem key={profile.id} value={profile.id}>
-                              {profile.firstName} {profile.lastName}
+                              {profile.personal.firstName} {profile.personal.lastName}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -815,20 +823,10 @@ export default function NotesPage() {
                   </Button>
                   <Button
                     type="submit"
-                    disabled={createNoteMutation.isPending}
                     className="bg-blue-500 hover:bg-blue-600 text-white"
                   >
-                    {createNoteMutation.isPending ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Création...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Créer la note
-                      </>
-                    )}
+                    <Plus className="h-4 w-4 mr-2" />
+                    Créer la note
                   </Button>
                 </DialogFooter>
               </form>

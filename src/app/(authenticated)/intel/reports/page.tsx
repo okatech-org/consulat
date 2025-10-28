@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
-import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
-import { useToast } from '@/hooks/use-toast';
+import { useReportMetrics, useMonthlyTrends } from '@/hooks/use-reports';
+import { toast } from 'sonner';
 import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +33,6 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function RapportsPage() {
-  const t = useTranslations('intelligence.reports');
   const [period, setPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
   const [reportType, setReportType] = useState<
     'summary' | 'detailed' | 'geographic' | 'security'
@@ -46,33 +44,26 @@ export default function RapportsPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { success, error, info } = useToast();
-  const {
-    data: dashboardStats,
-    isLoading: statsLoading,
-    error: statsError,
-  } = useIntelligenceDashboardStats(
-    period === 'month' ? 'month' : period === 'week' ? 'week' : 'year',
-  );
+  // Load data from Convex
+  const reportMetricsRaw = useReportMetrics(period);
+  const monthlyTrendsRaw = useMonthlyTrends();
 
-  // Données simulées pour les rapports (remplacer par vraies données)
-  const reportMetrics = {
-    totalProfiles: dashboardStats?.totalProfiles || 2847,
-    activeProfiles: 1234,
-    notesGenerated: dashboardStats?.notesThisPeriod || 156,
-    reportsGenerated: 47,
-    averageProcessingTime: '2.4h',
-    efficiencyRate: 94.5,
-    geographicCoverage: 89,
-    dataQuality: 96.8,
+  // Use Convex data or fallback
+  const reportMetrics = reportMetricsRaw || {
+    totalProfiles: 0,
+    activeProfiles: 0,
+    notesGenerated: 0,
+    reportsGenerated: 0,
+    averageProcessingTime: '0h',
+    efficiencyRate: 0,
+    geographicCoverage: 0,
+    dataQuality: 0,
   };
 
-  const monthlyTrends = [
-    { month: 'Jan', profiles: 2650, notes: 142, efficiency: 91 },
-    { month: 'Fév', profiles: 2720, notes: 158, efficiency: 93 },
-    { month: 'Mar', profiles: 2790, notes: 165, efficiency: 94 },
-    { month: 'Avr', profiles: 2847, notes: 156, efficiency: 95 },
-  ];
+  const monthlyTrends = monthlyTrendsRaw || [];
+
+  const statsLoading = reportMetricsRaw === undefined;
+  const statsError = null; // Convex handles errors differently
 
   const recentReports = [
     {
@@ -150,7 +141,7 @@ export default function RapportsPage() {
     if (isGenerating) return;
 
     setIsGenerating(true);
-    info(`Génération du rapport ${reportType} en cours...`);
+    toast.info(`Génération du rapport ${reportType} en cours...`);
 
     try {
       // Simuler la génération de rapport (remplacer par vraie API)
@@ -164,7 +155,7 @@ export default function RapportsPage() {
       //   classification
       // });
 
-      success(`Rapport ${reportType} généré avec succès !`);
+      toast.success(`Rapport ${reportType} généré avec succès !`);
 
       // Simuler le téléchargement
       const link = document.createElement('a');
@@ -173,42 +164,33 @@ export default function RapportsPage() {
       // link.click();
     } catch (err) {
       console.error('Erreur génération rapport:', err);
-      error('Erreur lors de la génération du rapport');
+      toast.error('Erreur lors de la génération du rapport');
     } finally {
       setIsGenerating(false);
     }
-  }, [
-    reportType,
-    period,
-    exportFormat,
-    classification,
-    isGenerating,
-    info,
-    success,
-    error,
-  ]);
+  }, [reportType, period, exportFormat, classification, isGenerating]);
 
   const handleRefreshReports = useCallback(async () => {
     if (isRefreshing) return;
 
     setIsRefreshing(true);
-    info('Actualisation des rapports...');
+    toast.info('Actualisation des rapports...');
 
     try {
       // Ici, recharger les données des rapports
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      success('Rapports actualisés');
+      toast.success('Rapports actualisés');
     } catch (err) {
       console.error('Erreur actualisation:', err);
-      error("Erreur lors de l'actualisation");
+      toast.error("Erreur lors de l'actualisation");
     } finally {
       setIsRefreshing(false);
     }
-  }, [isRefreshing, info, success, error]);
+  }, [isRefreshing]);
 
   const handleDownloadReport = useCallback(
-    async (reportId: string, reportTitle: string) => {
-      info(`Téléchargement de ${reportTitle}...`);
+    async (_reportId: string, reportTitle: string) => {
+      toast.info(`Téléchargement de ${reportTitle}...`);
 
       try {
         // Simuler le téléchargement
@@ -217,29 +199,29 @@ export default function RapportsPage() {
         // Ici, appeler l'API pour télécharger le rapport
         // const blob = await api.intelligence.downloadReport.mutate({ reportId });
 
-        success(`${reportTitle} téléchargé`);
+        toast.success(`${reportTitle} téléchargé`);
 
         // Simuler le téléchargement du fichier
         const link = document.createElement('a');
         link.href = '#'; // Remplacer par l'URL réelle
-        link.download = `${reportId}.pdf`;
+        link.download = `${_reportId}.pdf`;
         // link.click();
       } catch (err) {
         console.error('Erreur téléchargement:', err);
-        error('Erreur lors du téléchargement');
+        toast.error('Erreur lors du téléchargement');
       }
     },
-    [info, success, error],
+    [],
   );
 
   const handleViewReport = useCallback(
-    (reportId: string, reportTitle: string) => {
-      info(`Ouverture de ${reportTitle}...`);
+    (_reportId: string, reportTitle: string) => {
+      toast.info(`Ouverture de ${reportTitle}...`);
       // Ici, ouvrir le rapport dans une nouvelle fenêtre ou modal
       // window.open(`/api/reports/${reportId}/view`, '_blank');
-      success(`${reportTitle} ouvert`);
+      toast.success(`${reportTitle} ouvert`);
     },
-    [info, success],
+    [],
   );
 
   // Gestion des erreurs
@@ -545,7 +527,7 @@ export default function RapportsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {monthlyTrends.map((trend, index) => (
+                {monthlyTrends.map((trend: any) => (
                   <div key={trend.month} className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span

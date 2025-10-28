@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { api } from '@/trpc/react';
+import { useQuery } from 'convex/react';
+import { api as convexApi } from '@/convex/_generated/api';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
+import { useCreateIntelligenceNote } from '@/hooks/use-intelligence';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,7 +15,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { createIntelligenceNote } from '@/actions/intelligence';
 import { IntelligenceNoteType, IntelligenceNotePriority } from '@prisma/client';
 import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Loader2 } from 'lucide-react';
@@ -205,42 +207,24 @@ export default function ProfilesPage() {
     ...adaptIntelligenceFilters(intelligenceFilters),
   };
 
-  // Récupérer les données avec les paramètres de recherche
-  const {
-    data: profilesResponse,
-    isLoading,
-    error,
-    refetch,
-  } = api.profile.getList.useQuery({
+  const { user } = useCurrentUser();
+
+  // Récupérer les données avec Convex
+  const profilesResponse = useQuery(convexApi.functions.profile.getList, {
     page: Math.max(1, safePagination.pageIndex + 1),
     limit: safePagination.pageSize,
-    sort: { field: 'createdAt', order: 'desc' },
-    search: combinedFilters?.search || undefined,
-    status: combinedFilters?.status || undefined,
-    category: combinedFilters?.category || undefined,
-    gender: combinedFilters?.gender || undefined,
-    organizationId: combinedFilters?.organizationId || undefined,
+    sort: { field: 'createdAt' as const, order: 'desc' as const },
+    filters: {
+      search: combinedFilters?.search || undefined,
+    },
   });
 
+  const isLoading = profilesResponse === undefined;
+  const error = null;
+  const refetch = () => {}; // Convex handles refetching automatically
+
   // Mutation pour créer une note d'intelligence
-  const createNoteMutation =
-    api.intelligence.createNote?.useMutation?.({
-      onSuccess: () => {
-        toast.success("Note d'intelligence ajoutée avec succès");
-        setNoteDialogOpen(false);
-        setNewNote({
-          title: '',
-          content: '',
-          type: 'GENERAL' as any,
-          priority: 'MEDIUM' as any,
-        });
-        setSelectedProfileForNote(null);
-        refetch(); // Rafraîchir les données
-      },
-      onError: (error) => {
-        toast.error("Erreur lors de l'ajout de la note: " + error.message);
-      },
-    }) || null;
+  const createNoteMutation = useCreateIntelligenceNote();
 
   const { data: dashboardStats } = useIntelligenceDashboardStats('month');
 
@@ -382,36 +366,31 @@ export default function ProfilesPage() {
       return;
     }
 
+    if (!user?.id) {
+      toast.error('Utilisateur non authentifié');
+      return;
+    }
+
     setIsAddingNote(true);
     try {
-      if (createNoteMutation) {
-        await createNoteMutation.mutateAsync({
-          profileId: selectedProfileForNote,
-          title: newNote.title,
-          content: newNote.content,
-          type: newNote.type,
-          priority: newNote.priority,
-        });
-      } else {
-        // Fallback à l'action serveur si la mutation n'est pas disponible
-        await createIntelligenceNote({
-          profileId: selectedProfileForNote,
-          title: newNote.title,
-          content: newNote.content,
-          type: newNote.type,
-          priority: newNote.priority,
-        });
-        toast.success("Note d'intelligence ajoutée avec succès");
-        setNoteDialogOpen(false);
-        setNewNote({
-          title: '',
-          content: '',
-          type: 'GENERAL' as any,
-          priority: 'MEDIUM' as any,
-        });
-        setSelectedProfileForNote(null);
-        refetch();
-      }
+      await createNoteMutation({
+        profileId: selectedProfileForNote as any,
+        title: newNote.title,
+        content: newNote.content,
+        type: newNote.type as any,
+        priority: newNote.priority as any,
+        authorId: user.id as any,
+      });
+
+      toast.success("Note d'intelligence ajoutée avec succès");
+      setNoteDialogOpen(false);
+      setNewNote({
+        title: '',
+        content: '',
+        type: 'GENERAL' as any,
+        priority: 'MEDIUM' as any,
+      });
+      setSelectedProfileForNote(null);
     } catch (error: any) {
       toast.error(
         "Erreur lors de l'ajout de la note: " + (error?.message || 'Erreur inconnue'),

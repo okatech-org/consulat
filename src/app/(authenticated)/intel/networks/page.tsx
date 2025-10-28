@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { useNetworkData } from '@/hooks/use-networks';
 import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,102 +14,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import {
   Network,
   Search,
   Filter,
-  Download,
-  RefreshCw,
   Users,
   TrendingUp,
   Target,
   Eye,
   Building2,
   Link,
-  Zap,
-  Brain,
-  Globe,
   MapPin,
-  BarChart3,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-// Données simplifiées du réseau
-const networkNodes = [
-  {
-    id: 'prof-001',
-    name: 'ASSARI Ulrich',
-    type: 'profile',
-    influence: 95,
-    connections: 234,
-    riskLevel: 'low',
-    location: 'Paris',
-  },
-  {
-    id: 'prof-002',
-    name: 'TCHIBANGA Marie',
-    type: 'profile',
-    influence: 87,
-    connections: 156,
-    riskLevel: 'medium',
-    location: 'Lyon',
-  },
-  {
-    id: 'asso-001',
-    name: 'Association Gabonais Amiens',
-    type: 'association',
-    influence: 78,
-    connections: 89,
-    riskLevel: 'medium',
-    location: 'Amiens',
-  },
-];
-
-const clusters = [
-  {
-    id: 'cluster-001',
-    name: 'Réseau Entrepreneurial Paris',
-    nodes: 3,
-    influence: 'high',
-    connections: 23,
-  },
-  {
-    id: 'cluster-002',
-    name: 'Communauté Humanitaire Nord',
-    nodes: 5,
-    influence: 'medium',
-    connections: 15,
-  },
-];
-
 export default function ReseauxInfluencePage() {
-  const t = useTranslations('intelligence.networks');
   const router = useRouter();
-  const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedInfluence, setSelectedInfluence] = useState<string>('all');
+  const [selectedInfluence, setSelectedInfluence] = useState<'all' | 'high' | 'medium' | 'low'>('all');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const filteredNodes = useMemo(() => {
-    return networkNodes.filter((node) => {
-      const matchesSearch =
-        !searchTerm || node.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesInfluence =
-        selectedInfluence === 'all' ||
-        (selectedInfluence === 'high' && node.influence >= 80) ||
-        (selectedInfluence === 'medium' && node.influence < 80);
-      return matchesSearch && matchesInfluence;
-    });
-  }, [searchTerm, selectedInfluence]);
+  // Load network data from Convex
+  const networkDataRaw = useNetworkData({
+    search: searchTerm || undefined,
+    influenceLevel: selectedInfluence,
+  });
+
+  // Use Convex data or fallback
+  const networkData = networkDataRaw || {
+    nodes: [],
+    clusters: [],
+    stats: { totalNodes: 0, totalConnections: 0, averageInfluence: 0, totalClusters: 0 },
+  };
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success('Analyse terminée', `${clusters.length} communautés détectées`);
-    } catch (error) {
+      toast.success(`Analyse terminée - ${networkData.clusters.length} communautés détectées`);
+    } catch {
       toast.error("Erreur d'analyse");
     } finally {
       setIsAnalyzing(false);
@@ -117,15 +61,8 @@ export default function ReseauxInfluencePage() {
   };
 
   const handleExport = () => {
-    if (selectedNodes.length === 0) {
-      toast.error('Veuillez sélectionner des nœuds');
-      return;
-    }
-    toast.success(`${selectedNodes.length} nœuds exportés`);
+    toast.success('Export disponible prochainement');
   };
-
-  const totalInfluence = filteredNodes.reduce((sum, n) => sum + n.influence, 0);
-  const averageInfluence = totalInfluence / filteredNodes.length || 0;
 
   return (
     <>
@@ -136,25 +73,25 @@ export default function ReseauxInfluencePage() {
           {[
             {
               title: 'Nœuds du réseau',
-              value: filteredNodes.length,
+              value: networkData.stats.totalNodes,
               icon: Network,
               color: 'blue',
             },
             {
               title: 'Connexions totales',
-              value: filteredNodes.reduce((sum, n) => sum + n.connections, 0),
+              value: networkData.stats.totalConnections,
               icon: Link,
               color: 'green',
             },
             {
               title: 'Influence moyenne',
-              value: Math.round(averageInfluence),
+              value: networkData.stats.averageInfluence,
               icon: TrendingUp,
               color: 'orange',
             },
             {
               title: 'Clusters détectés',
-              value: clusters.length,
+              value: networkData.stats.totalClusters,
               icon: Target,
               color: 'red',
             },
@@ -237,9 +174,8 @@ export default function ReseauxInfluencePage() {
                 <Button
                   size="sm"
                   onClick={handleExport}
-                  disabled={selectedNodes.length === 0}
                 >
-                  Export ({selectedNodes.length})
+                  Exporter
                 </Button>
               </div>
             </div>
@@ -255,9 +191,12 @@ export default function ReseauxInfluencePage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Select value={selectedInfluence} onValueChange={setSelectedInfluence}>
+              <Select
+                value={selectedInfluence}
+                onValueChange={(value) => setSelectedInfluence(value as 'all' | 'high' | 'medium' | 'low')}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Niveau d'influence" />
+                  <SelectValue placeholder="Niveau d&apos;influence" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous niveaux</SelectItem>
@@ -280,7 +219,7 @@ export default function ReseauxInfluencePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Network className="h-5 w-5" />
-              Graphique du Réseau d'Influence
+              Graphique du Réseau d&apos;Influence
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -291,7 +230,7 @@ export default function ReseauxInfluencePage() {
               <div className="text-center">
                 <Network className="h-16 w-16 mx-auto mb-4 opacity-20" />
                 <p style={{ color: 'var(--text-muted)' }}>
-                  Graphique du réseau d'influence
+                  Graphique du réseau d&apos;influence
                 </p>
                 <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>
                   Visualisation interactive des connexions (D3.js/vis.js)
@@ -301,10 +240,7 @@ export default function ReseauxInfluencePage() {
                   size="sm"
                   className="mt-4"
                   onClick={() =>
-                    toast.info(
-                      'Graphique réseau',
-                      'Activation de la visualisation interactive',
-                    )
+                    toast.info('Graphique réseau - Activation de la visualisation interactive')
                   }
                 >
                   <Network className="h-4 w-4 mr-2" />
@@ -326,12 +262,12 @@ export default function ReseauxInfluencePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5" />
-              Clusters d'Influence Détectés
+              Clusters d&apos;Influence Détectés
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {clusters.map((cluster) => (
+              {networkData.clusters.map((cluster: { id: string; name: string; nodes: number; influence: string; connections: number }) => (
                 <div
                   key={cluster.id}
                   className="p-4 rounded-lg cursor-pointer transition-all duration-200"
@@ -340,10 +276,7 @@ export default function ReseauxInfluencePage() {
                     border: '1px solid var(--border-glass-secondary)',
                   }}
                   onClick={() =>
-                    toast.info(
-                      `Cluster ${cluster.name}`,
-                      `${cluster.nodes} nœuds, ${cluster.connections} connexions`,
-                    )
+                    toast.info(`Cluster ${cluster.name} - ${cluster.nodes} nœuds, ${cluster.connections} connexions`)
                   }
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -391,7 +324,7 @@ export default function ReseauxInfluencePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {filteredNodes.map((node, index) => (
+              {networkData.nodes.map((node: { id: string; name: string; type: string; influence: number; connections: number; riskLevel: string; location: string }, index: number) => (
                 <div
                   key={node.id}
                   className="flex items-center gap-4 p-3 rounded-lg cursor-pointer"
@@ -403,7 +336,7 @@ export default function ReseauxInfluencePage() {
                     if (node.type === 'profile') {
                       router.push(`/dashboard/profiles/${node.id}`);
                     } else {
-                      toast.info(`Association ${node.name}`, "Détails de l'association");
+                      toast.info(`Association ${node.name} - Détails de l'association`);
                     }
                   }}
                 >

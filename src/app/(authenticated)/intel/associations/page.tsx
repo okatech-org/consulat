@@ -33,11 +33,8 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import {
-  associations as dgssAssociations,
-  associationStats,
-  type Association,
-} from '@/data/dgss-associations';
+import { useAssociations, useAssociationsMapData, useAssociationsStatistics } from '@/hooks/use-associations';
+import type { Association } from '@/data/dgss-associations';
 import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 
 // Import dynamique du composant de carte pour éviter les erreurs SSR
@@ -56,21 +53,7 @@ const AssociationsMapSimple = dynamic(
   },
 );
 
-// Transformation des données pour le format attendu par le composant carte
-const transformAssociationsForMap = (associations: Association[]) => {
-  return associations.map((asso) => ({
-    id: asso.id,
-    name: asso.name,
-    category: asso.category,
-    city: asso.city,
-    riskLevel: asso.riskLevel,
-    memberCount: asso.memberCount,
-    zone: asso.zone,
-    status: asso.monitoringStatus,
-    activities: asso.activities,
-    influence: asso.influence,
-  }));
-};
+// Transformation des données déplacée dans mapData useMemo
 
 export default function AssociationsMapPage() {
   const router = useRouter();
@@ -89,43 +72,79 @@ export default function AssociationsMapPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'map' | 'list' | 'grid'>('map');
 
-  // Filtrage des associations
+  // Récupérer les données avec Convex
+  const associationsDataRaw = useAssociations({
+    search: searchTerm || undefined,
+    category: selectedCategory !== 'all' ? selectedCategory : undefined,
+    zone: selectedZone !== 'all' ? selectedZone : undefined,
+    riskLevel: selectedRiskLevel !== 'all' ? (selectedRiskLevel as any) : undefined,
+    monitoringStatus: selectedStatus !== 'all' ? (selectedStatus as any) : undefined,
+  });
+
+  const mapDataRaw = useAssociationsMapData({
+    search: searchTerm || undefined,
+    category: selectedCategory !== 'all' ? selectedCategory : undefined,
+    zone: selectedZone !== 'all' ? selectedZone : undefined,
+    riskLevel: selectedRiskLevel !== 'all' ? selectedRiskLevel : undefined,
+    monitoringStatus: selectedStatus !== 'all' ? selectedStatus : undefined,
+  });
+
+  const statsDataRaw = useAssociationsStatistics();
+
+  const isLoadingData = associationsDataRaw === undefined || mapDataRaw === undefined;
+
+  // Adapter les données Convex au format attendu
   const filteredAssociations = useMemo(() => {
-    return dgssAssociations.filter((asso) => {
-      const matchesSearch =
-        searchTerm === '' ||
-        asso.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        asso.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        asso.category.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!associationsDataRaw) return [];
 
-      const matchesCategory =
-        selectedCategory === 'all' || asso.category === selectedCategory;
-      const matchesZone = selectedZone === 'all' || asso.zone.includes(selectedZone);
-      const matchesRisk =
-        selectedRiskLevel === 'all' || asso.riskLevel === selectedRiskLevel;
-      const matchesStatus =
-        selectedStatus === 'all' || asso.monitoringStatus === selectedStatus;
-
-      return (
-        matchesSearch && matchesCategory && matchesZone && matchesRisk && matchesStatus
-      );
-    });
-  }, [searchTerm, selectedCategory, selectedZone, selectedRiskLevel, selectedStatus]);
+    return associationsDataRaw.map((asso: any) => ({
+      id: asso.id,
+      name: asso.name,
+      category: asso.category,
+      zone: asso.zone,
+      city: asso.city,
+      coordinates: asso.coordinates ? [asso.coordinates.latitude, asso.coordinates.longitude] : undefined,
+      website: asso.website,
+      logo: asso.logo,
+      memberCount: asso.memberCount,
+      riskLevel: asso.riskLevel,
+      monitoringStatus: asso.monitoringStatus,
+      lastActivity: asso.lastActivity ? new Date(asso.lastActivity) : undefined,
+      description: asso.description,
+      activities: asso.activities,
+      funding: asso.funding,
+      influence: asso.influence,
+    })) as Association[];
+  }, [associationsDataRaw]);
 
   // Statistiques filtrées
   const filteredStats = useMemo(() => {
-    const byCategory: Record<string, number> = {};
-    const byZone: Record<string, number> = {};
-    const byRisk: Record<string, number> = {};
+    if (!statsDataRaw) {
+      return { byCategory: {}, byZone: {}, byRisk: {} };
+    }
 
-    filteredAssociations.forEach((asso) => {
-      byCategory[asso.category] = (byCategory[asso.category] || 0) + 1;
-      byZone[asso.zone] = (byZone[asso.zone] || 0) + 1;
-      byRisk[asso.riskLevel] = (byRisk[asso.riskLevel] || 0) + 1;
-    });
+    // Si on a des filtres actifs, recalculer sur les données filtrées
+    if (searchTerm || selectedCategory !== 'all' || selectedZone !== 'all' || selectedRiskLevel !== 'all' || selectedStatus !== 'all') {
+      const byCategory: Record<string, number> = {};
+      const byZone: Record<string, number> = {};
+      const byRisk: Record<string, number> = {};
 
-    return { byCategory, byZone, byRisk };
-  }, [filteredAssociations]);
+      filteredAssociations.forEach((asso) => {
+        byCategory[asso.category] = (byCategory[asso.category] || 0) + 1;
+        byZone[asso.zone] = (byZone[asso.zone] || 0) + 1;
+        byRisk[asso.riskLevel] = (byRisk[asso.riskLevel] || 0) + 1;
+      });
+
+      return { byCategory, byZone, byRisk };
+    }
+
+    // Sinon utiliser les stats globales
+    return {
+      byCategory: statsDataRaw.byCategory,
+      byZone: statsDataRaw.byZone,
+      byRisk: statsDataRaw.byRiskLevel,
+    };
+  }, [filteredAssociations, statsDataRaw, searchTerm, selectedCategory, selectedZone, selectedRiskLevel, selectedStatus]);
 
   // Gestionnaires
   const handleSelectAll = () => {
@@ -204,10 +223,38 @@ export default function AssociationsMapPage() {
   };
 
   // Transformation des données pour la carte
-  const mapData = useMemo(
-    () => transformAssociationsForMap(filteredAssociations),
-    [filteredAssociations],
-  );
+  const mapData = useMemo(() => {
+    if (!mapDataRaw) return [];
+
+    return mapDataRaw.map((asso: any) => ({
+      id: asso.id,
+      name: asso.name,
+      category: asso.category,
+      city: asso.city,
+      riskLevel: asso.riskLevel,
+      memberCount: asso.memberCount,
+      zone: asso.zone,
+      status: asso.status,
+      activities: asso.activities,
+      influence: asso.influence,
+    }));
+  }, [mapDataRaw]);
+
+  // Stats pour les cards (utiliser statsDataRaw ou calculer à partir de filteredAssociations)
+  const displayStats = useMemo(() => {
+    if (!statsDataRaw) {
+      return {
+        total: 0,
+        byZone: {},
+        byRiskLevel: { faible: 0, moyen: 0, eleve: 0, critique: 0 },
+        byCategory: {},
+        byInfluence: {},
+        activeCount: 0,
+        totalMembers: 0,
+      };
+    }
+    return statsDataRaw;
+  }, [statsDataRaw]);
 
   return (
     <>
@@ -220,7 +267,7 @@ export default function AssociationsMapPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Associations</p>
-                  <p className="text-2xl font-bold">{associationStats.total}</p>
+                  <p className="text-2xl font-bold">{displayStats.total}</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {filteredAssociations.length} affichées
                   </p>
@@ -236,12 +283,12 @@ export default function AssociationsMapPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Zone 1 (Paris)</p>
                   <p className="text-2xl font-bold">
-                    {associationStats.byZone['Zone 1']}
+                    {displayStats.byZone['Zone 1'] || 0}
                   </p>
                   <Badge variant="outline" className="mt-1">
-                    {Math.round(
-                      (associationStats.byZone['Zone 1'] / associationStats.total) * 100,
-                    )}
+                    {displayStats.total > 0
+                      ? Math.round(((displayStats.byZone['Zone 1'] || 0) / displayStats.total) * 100)
+                      : 0}
                     %
                   </Badge>
                 </div>
@@ -256,8 +303,8 @@ export default function AssociationsMapPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Risque Élevé</p>
                   <p className="text-2xl font-bold text-orange-600">
-                    {associationStats.byRiskLevel.eleve +
-                      associationStats.byRiskLevel.critique}
+                    {(displayStats.byRiskLevel.eleve || 0) +
+                      (displayStats.byRiskLevel.critique || 0)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     Surveillance active
@@ -274,7 +321,7 @@ export default function AssociationsMapPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Humanitaires</p>
                   <p className="text-2xl font-bold">
-                    {associationStats.byCategory['Social / Humanitaire']}
+                    {displayStats.byCategory['Social / Humanitaire']}
                   </p>
                   <Badge className="mt-1" variant="secondary">
                     Principal
@@ -292,7 +339,7 @@ export default function AssociationsMapPage() {
                   <p className="text-sm text-muted-foreground">Entrepreneurs</p>
                   <p className="text-2xl font-bold">
                     {
-                      associationStats.byCategory[
+                      displayStats.byCategory[
                         'Education - Réseautage / Entrepreneurs'
                       ]
                     }
@@ -367,9 +414,9 @@ export default function AssociationsMapPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Toutes les catégories</SelectItem>
-                    {Object.keys(associationStats.byCategory).map((cat) => (
+                    {Object.keys(displayStats.byCategory).map((cat) => (
                       <SelectItem key={cat} value={cat}>
-                        {cat} ({associationStats.byCategory[cat]})
+                        {cat} ({displayStats.byCategory[cat]})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -385,19 +432,19 @@ export default function AssociationsMapPage() {
                   <SelectContent>
                     <SelectItem value="all">Toutes les zones</SelectItem>
                     <SelectItem value="Zone 1">
-                      Zone 1 : Paris IDF ({associationStats.byZone['Zone 1']})
+                      Zone 1 : Paris IDF ({displayStats.byZone['Zone 1']})
                     </SelectItem>
                     <SelectItem value="Zone 2">
-                      Zone 2 : Nord-Ouest ({associationStats.byZone['Zone 2']})
+                      Zone 2 : Nord-Ouest ({displayStats.byZone['Zone 2']})
                     </SelectItem>
                     <SelectItem value="Zone 3">
-                      Zone 3 : Nord-Est ({associationStats.byZone['Zone 3']})
+                      Zone 3 : Nord-Est ({displayStats.byZone['Zone 3']})
                     </SelectItem>
                     <SelectItem value="Zone 4">
-                      Zone 4 : Sud-Est ({associationStats.byZone['Zone 4']})
+                      Zone 4 : Sud-Est ({displayStats.byZone['Zone 4']})
                     </SelectItem>
                     <SelectItem value="Zone 5">
-                      Zone 5 : Sud-Ouest ({associationStats.byZone['Zone 5']})
+                      Zone 5 : Sud-Ouest ({displayStats.byZone['Zone 5']})
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -414,25 +461,25 @@ export default function AssociationsMapPage() {
                     <SelectItem value="faible">
                       <span className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-500" />
-                        Faible ({associationStats.byRiskLevel.faible})
+                        Faible ({displayStats.byRiskLevel.faible})
                       </span>
                     </SelectItem>
                     <SelectItem value="moyen">
                       <span className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                        Moyen ({associationStats.byRiskLevel.moyen})
+                        Moyen ({displayStats.byRiskLevel.moyen})
                       </span>
                     </SelectItem>
                     <SelectItem value="eleve">
                       <span className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-orange-500" />
-                        Élevé ({associationStats.byRiskLevel.eleve})
+                        Élevé ({displayStats.byRiskLevel.eleve})
                       </span>
                     </SelectItem>
                     <SelectItem value="critique">
                       <span className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-red-500" />
-                        Critique ({associationStats.byRiskLevel.critique})
+                        Critique ({displayStats.byRiskLevel.critique})
                       </span>
                     </SelectItem>
                   </SelectContent>

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { api } from '@/trpc/react';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useQuery } from 'convex/react';
+import { api as convexApi } from '@/convex/_generated/api';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
 import { usePrefetchIntelData, usePrefetchPage } from '@/hooks/use-prefetch-intel';
 import DashboardCompactMap from '@/components/intelligence/dashboard-compact-map';
@@ -45,30 +45,27 @@ export default function IntelAgentDashboardContent() {
 
   const { data: dashboardStats } = useIntelligenceDashboardStats('month');
 
-  const { data: profilesData, isLoading: profilesLoading } = api.profile.getList.useQuery(
-    {
-      page: 1,
-      limit: 10,
-      sort: { field: 'createdAt', order: 'desc' },
-    },
-    {
-      staleTime: 2 * 60 * 1000,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-    },
-  );
+  // Récupérer les données avec Convex
+  const profilesResponse = useQuery(convexApi.functions.intelligence.getProfiles, {
+    page: 1,
+    limit: 10,
+    filters: {},
+  });
 
-  const { data: mapData, isLoading: mapLoading } =
-    api.intelligence.getProfilesMap.useQuery(
-      {
-        filters: undefined,
-      },
-      {
-        staleTime: 5 * 60 * 1000,
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
-      },
-    );
+  const profilesData = profilesResponse
+    ? {
+        items: profilesResponse.profiles,
+        total: profilesResponse.pagination.total,
+      }
+    : undefined;
+  const profilesLoading = profilesResponse === undefined;
+
+  const mapDataResponse = useQuery(convexApi.functions.intelligence.getProfilesMap, {
+    filters: undefined,
+  });
+
+  const mapData = mapDataResponse;
+  const mapLoading = mapDataResponse === undefined;
 
   const handleQuickAction = async (index: number, title: string, path?: string) => {
     if (isNavigating) return;
@@ -329,6 +326,10 @@ export default function IntelAgentDashboardContent() {
               ...p,
               firstName: p.firstName || '',
               lastName: p.lastName || '',
+              intelligenceNotes: p.intelligenceNotes.map((note) => ({
+                ...note,
+                createdAt: new Date(note.createdAt),
+              })),
             }))}
             isLoading={mapLoading}
             className="h-[500px] md:h-[600px]"
@@ -427,6 +428,10 @@ export default function IntelAgentDashboardContent() {
                 ...p,
                 firstName: p.firstName || '',
                 lastName: p.lastName || '',
+                intelligenceNotes: p.intelligenceNotes.map((note) => ({
+                  ...note,
+                  createdAt: new Date(note.createdAt),
+                })),
               }))}
               isLoading={mapLoading}
             />

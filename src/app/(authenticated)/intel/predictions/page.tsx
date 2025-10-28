@@ -1,9 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
-import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
+import { useState, useEffect } from 'react';
+import { useAIModels, useAIPredictions } from '@/hooks/use-predictions';
 import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +19,6 @@ import { toast } from 'sonner';
 import {
   Brain,
   Search,
-  Filter,
   Download,
   RefreshCw,
   Loader2,
@@ -33,147 +30,13 @@ import {
   Play,
   Pause,
   Settings,
-  BarChart3,
-  Calendar,
-  Clock,
   Zap,
-  Activity,
-  Globe,
-  Users,
-  MapPin,
-  Building2,
-  FileText,
   Cpu,
+  FileText,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
-// Modèles d'IA pour les prédictions
-const aiModels = {
-  migrationPredictor: {
-    name: 'Prédicteur de Migrations',
-    type: 'LSTM Neural Network',
-    accuracy: 89.3,
-    lastTraining: '2024-12-15',
-    dataPoints: 15420,
-    version: 'v2.1.3',
-    status: 'active',
-    description: 'Prédit les flux migratoires basés sur les patterns historiques',
-  },
-  riskAssessment: {
-    name: 'Évaluateur de Risques',
-    type: 'Random Forest',
-    accuracy: 92.7,
-    lastTraining: '2024-12-18',
-    dataPoints: 8934,
-    version: 'v1.8.2',
-    status: 'active',
-    description: 'Évalue le niveau de risque des profils et associations',
-  },
-  networkAnalyzer: {
-    name: 'Analyseur de Réseaux',
-    type: 'Graph Neural Network',
-    accuracy: 85.1,
-    lastTraining: '2024-12-10',
-    dataPoints: 12678,
-    version: 'v1.5.1',
-    status: 'training',
-    description: 'Analyse les connexions et influence dans les réseaux sociaux',
-  },
-  behaviorPredictor: {
-    name: 'Prédicteur Comportemental',
-    type: 'Transformer',
-    accuracy: 76.8,
-    lastTraining: '2024-12-05',
-    dataPoints: 6789,
-    version: 'v1.2.0',
-    status: 'experimental',
-    description: "Prédit les comportements futurs basés sur l'historique d'activité",
-  },
-};
-
-// Prédictions générées par l'IA
-const aiPredictions = [
-  {
-    id: 'pred-001',
-    model: 'migrationPredictor',
-    type: 'migration',
-    title: 'Pic de retours au Gabon - Fin 2024',
-    description:
-      'Augmentation prévue de 34% des retours temporaires vers le Gabon entre décembre 2024 et janvier 2025',
-    confidence: 91.2,
-    timeframe: 'Court terme (1-3 mois)',
-    impact: 'high',
-    probability: 0.89,
-    factors: ['Vacances scolaires', "Fêtes de fin d'année", 'Taux de change favorable'],
-    riskLevel: 'medium',
-    createdAt: '2024-12-19T09:30:00Z',
-    validUntil: '2025-01-31T23:59:59Z',
-    status: 'active',
-  },
-  {
-    id: 'pred-002',
-    model: 'riskAssessment',
-    type: 'risk',
-    title: 'Augmentation du risque - Réseau Entrepreneurial',
-    description:
-      "Le réseau entrepreneurial parisien présente des signaux d'activité suspecte nécessitant une surveillance renforcée",
-    confidence: 87.5,
-    timeframe: 'Moyen terme (3-6 mois)',
-    impact: 'high',
-    probability: 0.82,
-    factors: [
-      'Activités financières inhabituelles',
-      'Nouvelles connexions internationales',
-      'Augmentation des réunions',
-    ],
-    riskLevel: 'high',
-    createdAt: '2024-12-19T08:15:00Z',
-    validUntil: '2025-06-19T23:59:59Z',
-    status: 'monitoring',
-  },
-  {
-    id: 'pred-003',
-    model: 'networkAnalyzer',
-    type: 'network',
-    title: "Formation d'un nouveau cluster - Marseille",
-    description:
-      "Détection d'un nouveau cluster social en formation dans la région PACA avec 15 nouveaux membres",
-    confidence: 78.9,
-    timeframe: 'Moyen terme (3-6 mois)',
-    impact: 'medium',
-    probability: 0.75,
-    factors: ['Nouveaux arrivants', 'Événements culturels', 'Proximité géographique'],
-    riskLevel: 'low',
-    createdAt: '2024-12-19T07:45:00Z',
-    validUntil: '2025-06-19T23:59:59Z',
-    status: 'active',
-  },
-  {
-    id: 'pred-004',
-    model: 'behaviorPredictor',
-    type: 'behavior',
-    title: 'Changement de comportement - Leaders Communautaires',
-    description:
-      'Modification des patterns de communication chez 3 leaders communautaires clés',
-    confidence: 82.1,
-    timeframe: 'Court terme (1-3 mois)',
-    impact: 'medium',
-    probability: 0.79,
-    factors: [
-      'Changement de fréquence de communication',
-      'Nouveaux contacts',
-      'Modification des lieux de rencontre',
-    ],
-    riskLevel: 'medium',
-    createdAt: '2024-12-19T10:00:00Z',
-    validUntil: '2025-03-19T23:59:59Z',
-    status: 'alert',
-  },
-];
 
 export default function PredictionsAIPage() {
-  const t = useTranslations('intelligence.predictions');
-  const router = useRouter();
   const [selectedModel, setSelectedModel] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('all');
@@ -185,53 +48,46 @@ export default function PredictionsAIPage() {
   const [selectedPredictions, setSelectedPredictions] = useState<string[]>([]);
   const [realTimeMode, setRealTimeMode] = useState(false);
 
-  // Filtrer les prédictions
-  const filteredPredictions = useMemo(() => {
-    return aiPredictions.filter((prediction) => {
-      const matchesSearch =
-        !searchTerm ||
-        prediction.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        prediction.description.toLowerCase().includes(searchTerm.toLowerCase());
+  // Load AI models and predictions from Convex
+  const aiModelsRaw = useAIModels();
+  const predictionsRaw = useAIPredictions({
+    model: selectedModel !== 'all' ? selectedModel : undefined,
+    type: selectedType !== 'all' ? selectedType : undefined,
+    timeframe: selectedTimeframe !== 'all' ? selectedTimeframe : undefined,
+    status: selectedStatus !== 'all' ? selectedStatus : undefined,
+    minConfidence: confidenceThreshold[0],
+  });
 
-      const matchesModel = selectedModel === 'all' || prediction.model === selectedModel;
-      const matchesType = selectedType === 'all' || prediction.type === selectedType;
-      const matchesTimeframe =
-        selectedTimeframe === 'all' || prediction.timeframe.includes(selectedTimeframe);
-      const matchesStatus =
-        selectedStatus === 'all' || prediction.status === selectedStatus;
-      const matchesConfidence = prediction.confidence >= confidenceThreshold[0];
+  // Use Convex data or fallback
+  const aiModels = aiModelsRaw || {
+    migrationPredictor: { name: '', type: '', accuracy: 0, lastTraining: '', dataPoints: 0, version: '', status: 'active' as const, description: '' },
+    riskAssessment: { name: '', type: '', accuracy: 0, lastTraining: '', dataPoints: 0, version: '', status: 'active' as const, description: '' },
+    networkAnalyzer: { name: '', type: '', accuracy: 0, lastTraining: '', dataPoints: 0, version: '', status: 'active' as const, description: '' },
+    behaviorPredictor: { name: '', type: '', accuracy: 0, lastTraining: '', dataPoints: 0, version: '', status: 'active' as const, description: '' },
+  };
 
-      return (
-        matchesSearch &&
-        matchesModel &&
-        matchesType &&
-        matchesTimeframe &&
-        matchesStatus &&
-        matchesConfidence
-      );
-    });
-  }, [
-    searchTerm,
-    selectedModel,
-    selectedType,
-    selectedTimeframe,
-    selectedStatus,
-    confidenceThreshold,
-  ]);
+  const allPredictions = predictionsRaw || [];
+
+  // Client-side search filter (search is not handled server-side)
+  const filteredPredictions = searchTerm
+    ? allPredictions.filter(
+        (prediction: any) =>
+          prediction.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          prediction.description.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : allPredictions;
 
   const handleGeneratePredictions = async () => {
     setIsGenerating(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 4000));
-      toast.success(
-        'Nouvelles prédictions générées',
-        `${Math.floor(Math.random() * 3) + 2} nouvelles prédictions créées`,
-      );
-    } catch (error) {
-      toast.error(
-        'Erreur de génération',
-        'Impossible de générer de nouvelles prédictions',
-      );
+      toast.success('Nouvelles prédictions générées', {
+        description: `${Math.floor(Math.random() * 3) + 2} nouvelles prédictions créées`,
+      });
+    } catch {
+      toast.error('Erreur de génération', {
+        description: 'Impossible de générer de nouvelles prédictions',
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -242,12 +98,13 @@ export default function PredictionsAIPage() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 5000));
       const model = aiModels[modelKey as keyof typeof aiModels];
-      toast.success(
-        `Modèle ${model.name} entraîné`,
-        `Nouvelle précision: ${(model.accuracy + Math.random() * 2).toFixed(1)}%`,
-      );
-    } catch (error) {
-      toast.error("Erreur d'entraînement", "Impossible d'entraîner le modèle");
+      toast.success(`Modèle ${model.name} entraîné`, {
+        description: `Nouvelle précision: ${(model.accuracy + Math.random() * 2).toFixed(1)}%`,
+      });
+    } catch {
+      toast.error("Erreur d'entraînement", {
+        description: "Impossible d'entraîner le modèle",
+      });
     } finally {
       setIsTraining(false);
     }
@@ -255,21 +112,25 @@ export default function PredictionsAIPage() {
 
   const handleExportPredictions = async () => {
     if (selectedPredictions.length === 0) {
-      toast.error('Sélection requise', 'Veuillez sélectionner au moins une prédiction');
+      toast.error('Sélection requise', {
+        description: 'Veuillez sélectionner au moins une prédiction',
+      });
       return;
     }
 
-    const selectedData = filteredPredictions.filter((p) =>
+    const selectedData: typeof filteredPredictions = filteredPredictions.filter((p: any) =>
       selectedPredictions.includes(p.id),
     );
     const csvContent = exportPredictionsToCSV(selectedData);
     downloadCSV(csvContent, 'predictions_ia_dgss.csv');
 
-    toast.success('Export réussi', `${selectedPredictions.length} prédictions exportées`);
+    toast.success('Export réussi', {
+      description: `${selectedPredictions.length} prédictions exportées`,
+    });
     setSelectedPredictions([]);
   };
 
-  const exportPredictionsToCSV = (data: any[]) => {
+  const exportPredictionsToCSV = (data: typeof filteredPredictions) => {
     const headers = [
       'ID',
       'Modèle',
@@ -282,7 +143,7 @@ export default function PredictionsAIPage() {
       'Niveau Risque',
       'Statut',
     ];
-    const rows = data.map((pred) => [
+    const rows = data.map((pred: any) => [
       pred.id,
       pred.model,
       pred.type,
@@ -295,7 +156,7 @@ export default function PredictionsAIPage() {
       pred.status,
     ]);
 
-    return [headers, ...rows].map((row) => row.join(',')).join('\n');
+    return [headers, ...rows].map((row: any) => row.join(',')).join('\n');
   };
 
   const downloadCSV = (content: string, filename: string) => {
@@ -376,10 +237,9 @@ export default function PredictionsAIPage() {
         const randomPrediction =
           filteredPredictions[Math.floor(Math.random() * filteredPredictions.length)];
         if (randomPrediction) {
-          toast.info(
-            'Mise à jour IA',
-            `Confiance mise à jour: ${randomPrediction.title} → ${(randomPrediction.confidence + Math.random() * 2 - 1).toFixed(1)}%`,
-          );
+          toast.info('Mise à jour IA', {
+            description: `Confiance mise à jour: ${randomPrediction.title} → ${(randomPrediction.confidence + Math.random() * 2 - 1).toFixed(1)}%`,
+          });
         }
       }, 8000);
       return () => clearInterval(interval);
@@ -388,15 +248,15 @@ export default function PredictionsAIPage() {
 
   // Statistiques des prédictions
   const averageConfidence =
-    filteredPredictions.reduce((sum, p) => sum + p.confidence, 0) /
+    filteredPredictions.reduce((sum: number, p: any) => sum + p.confidence, 0) /
       filteredPredictions.length || 0;
   const highConfidencePredictions = filteredPredictions.filter(
-    (p) => p.confidence >= 85,
+    (p: any) => p.confidence >= 85,
   ).length;
   const activePredictions = filteredPredictions.filter(
-    (p) => p.status === 'active',
+    (p: any) => p.status === 'active',
   ).length;
-  const alertPredictions = filteredPredictions.filter((p) => p.status === 'alert').length;
+  const alertPredictions = filteredPredictions.filter((p: any) => p.status === 'alert').length;
 
   return (
     <>
@@ -510,7 +370,9 @@ export default function PredictionsAIPage() {
                   size="sm"
                   onClick={() => {
                     setRealTimeMode(!realTimeMode);
-                    toast.info('Mode temps réel', realTimeMode ? 'Désactivé' : 'Activé');
+                    toast.info('Mode temps réel', {
+                      description: realTimeMode ? 'Désactivé' : 'Activé',
+                    });
                   }}
                 >
                   {realTimeMode ? (
@@ -562,7 +424,7 @@ export default function PredictionsAIPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous modèles</SelectItem>
-                  {Object.entries(aiModels).map(([key, model]) => (
+                  {Object.entries(aiModels).map(([key, model]: [string, any]) => (
                     <SelectItem key={key} value={key}>
                       {model.name}
                     </SelectItem>
@@ -651,12 +513,12 @@ export default function PredictionsAIPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Cpu className="h-5 w-5" />
-              Modèles d'Intelligence Artificielle
+              Modèles d&apos;Intelligence Artificielle
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(aiModels).map(([key, model]) => (
+              {Object.entries(aiModels).map(([key, model]: [string, any]) => (
                 <div
                   key={key}
                   className="p-4 rounded-lg transition-all duration-200"
@@ -711,7 +573,9 @@ export default function PredictionsAIPage() {
                         className="text-lg font-bold"
                         style={{ color: 'var(--accent-warning)' }}
                       >
-                        {model.dataPoints.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
+                        {model.dataPoints
+                          .toString()
+                          .replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
                       </div>
                       <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
                         Points de données
@@ -740,10 +604,9 @@ export default function PredictionsAIPage() {
                       variant="outline"
                       size="sm"
                       onClick={() =>
-                        toast.info(
-                          `Modèle ${model.name}`,
-                          `Dernière formation: ${model.lastTraining}`,
-                        )
+                        toast.info(`Modèle ${model.name}`, {
+                          description: `Dernière formation: ${model.lastTraining}`,
+                        })
                       }
                     >
                       <Eye className="h-4 w-4" />
@@ -767,7 +630,7 @@ export default function PredictionsAIPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Brain className="h-5 w-5" />
-                Prédictions Générées par l'IA
+                Prédictions Générées par l&apos;IA
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Badge className="bg-blue-500/20 text-blue-500">
@@ -783,7 +646,7 @@ export default function PredictionsAIPage() {
                       }
                       onChange={(e) =>
                         setSelectedPredictions(
-                          e.target.checked ? filteredPredictions.map((p) => p.id) : [],
+                          e.target.checked ? filteredPredictions.map((p: any) => p.id) : [],
                         )
                       }
                       className="rounded"
@@ -798,11 +661,20 @@ export default function PredictionsAIPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {filteredPredictions.map((prediction) => {
+              {filteredPredictions.map((prediction: any) => {
                 const confidenceBadge = getConfidenceBadge(prediction.confidence);
                 const impactBadge = getImpactBadge(prediction.impact);
                 const statusBadge = getStatusBadge(prediction.status);
-                const model = aiModels[prediction.model as keyof typeof aiModels];
+                const model = aiModels[prediction.model as keyof typeof aiModels] || {
+                  name: 'Modèle Inconnu',
+                  type: 'Inconnu',
+                  accuracy: 0,
+                  lastTraining: 'N/A',
+                  dataPoints: 0,
+                  version: 'N/A',
+                  status: 'unknown',
+                  description: 'Modèle non trouvé',
+                };
 
                 return (
                   <div
@@ -818,10 +690,9 @@ export default function PredictionsAIPage() {
                             : '#10b981',
                     }}
                     onClick={() => {
-                      toast.info(
-                        `Prédiction ${prediction.title}`,
-                        'Analyse détaillée en développement',
-                      );
+                      toast.info(`Prédiction ${prediction.title}`, {
+                        description: 'Analyse détaillée en développement',
+                      });
                     }}
                   >
                     <div className="flex items-start gap-4">
@@ -945,10 +816,10 @@ export default function PredictionsAIPage() {
                             className="text-xs mb-2"
                             style={{ color: 'var(--text-muted)' }}
                           >
-                            Facteurs d'influence:
+                            Facteurs d&apos;influence:
                           </div>
                           <div className="flex flex-wrap gap-1">
-                            {prediction.factors.slice(0, 3).map((factor, idx) => (
+                            {prediction.factors.slice(0, 3).map((factor: string, idx: number) => (
                               <Badge key={idx} variant="outline" className="text-xs">
                                 {factor}
                               </Badge>
@@ -989,10 +860,9 @@ export default function PredictionsAIPage() {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              toast.info(
-                                'Validation prédiction',
-                                `Marquer comme ${prediction.status === 'active' ? 'archivée' : 'active'}`,
-                              );
+                              toast.info('Validation prédiction', {
+                                description: `Marquer comme ${prediction.status === 'active' ? 'archivée' : 'active'}`,
+                              });
                             }}
                           >
                             {prediction.status === 'active' ? (

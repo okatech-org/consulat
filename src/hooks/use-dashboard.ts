@@ -2,10 +2,10 @@
 
 import { getOrganizationIdFromUser } from '@/lib/utils';
 import { api } from '@/trpc/react';
-import { useMemo } from 'react';
 import { useCurrentUser } from './use-current-user';
 import type { TRPCClientErrorLike } from '@trpc/client';
 import type { InferrableClientTypes } from '@trpc/server/unstable-core-do-not-import';
+import { UserRole } from '@/convex/lib/constants';
 
 // Hook principal pour le dashboard - détecte automatiquement le rôle
 export function useDashboard<T>(options?: {
@@ -18,7 +18,6 @@ export function useDashboard<T>(options?: {
   data: T;
   isLoading: boolean;
   error: TRPCClientErrorLike<InferrableClientTypes> | null;
-  dashboardType: string;
   userRoles: UserRole[];
   refresh: () => void;
 } {
@@ -26,15 +25,6 @@ export function useDashboard<T>(options?: {
 
   const userRoles = user?.roles || [];
   const organizationId = getOrganizationIdFromUser(user || null);
-
-  // Déterminer quel type de dashboard utiliser
-  const dashboardType = useMemo(() => {
-    if (userRoles.includes(UserRole.SUPER_ADMIN)) return 'superadmin';
-    if (userRoles.includes(UserRole.ADMIN)) return 'admin';
-    if (userRoles.includes(UserRole.MANAGER)) return 'manager';
-    if (userRoles.includes(UserRole.AGENT)) return 'agent';
-    return 'user';
-  }, [userRoles]);
 
   const enabled = options?.enabled !== false;
 
@@ -46,7 +36,9 @@ export function useDashboard<T>(options?: {
       endDate: options?.endDate,
     },
     {
-      enabled: enabled && ['admin', 'superadmin'].includes(dashboardType),
+      enabled:
+        (enabled && userRoles.includes(UserRole.Admin)) ||
+        (enabled && userRoles.includes(UserRole.SuperAdmin)),
       refetchInterval: 30000, // Actualiser toutes les 30 secondes
     },
   );
@@ -58,7 +50,7 @@ export function useDashboard<T>(options?: {
       endDate: options?.endDate,
     },
     {
-      enabled: enabled && dashboardType === 'agent',
+      enabled: enabled && userRoles.includes(UserRole.Agent),
       refetchInterval: 30000,
     },
   );
@@ -70,38 +62,38 @@ export function useDashboard<T>(options?: {
       endDate: options?.endDate,
     },
     {
-      enabled: enabled && dashboardType === 'manager',
+      enabled: enabled && userRoles.includes(UserRole.Manager),
       refetchInterval: 30000,
     },
   );
 
   const superAdminStats = api.dashboard.getSuperAdminStats.useQuery(undefined, {
-    enabled: enabled && dashboardType === 'superadmin',
+    enabled: enabled && userRoles.includes(UserRole.SuperAdmin),
     refetchInterval: 30000,
   });
 
   // Retourner les données appropriées selon le rôle
   const getCurrentStats = () => {
-    switch (dashboardType) {
-      case 'superadmin':
+    switch (userRoles[0]) {
+      case UserRole.SuperAdmin:
         return {
           data: superAdminStats.data,
           isLoading: superAdminStats.isLoading,
           error: superAdminStats.error,
         };
-      case 'admin':
+      case UserRole.Admin:
         return {
           data: adminStats.data,
           isLoading: adminStats.isLoading,
           error: adminStats.error,
         };
-      case 'manager':
+      case UserRole.Manager:
         return {
           data: managerStats.data,
           isLoading: managerStats.isLoading,
           error: managerStats.error,
         };
-      case 'agent':
+      case UserRole.Agent:
         return {
           data: agentStats.data,
           isLoading: agentStats.isLoading,
@@ -124,20 +116,19 @@ export function useDashboard<T>(options?: {
 
   return {
     ...currentStats,
-    dashboardType,
     userRoles,
     refresh: () => {
-      switch (dashboardType) {
-        case 'superadmin':
+      switch (userRoles[0]) {
+        case UserRole.SuperAdmin:
           superAdminStats.refetch();
           break;
-        case 'admin':
+        case UserRole.Admin:
           adminStats.refetch();
           break;
-        case 'manager':
+        case UserRole.Manager:
           managerStats.refetch();
           break;
-        case 'agent':
+        case UserRole.Agent:
           agentStats.refetch();
           break;
       }

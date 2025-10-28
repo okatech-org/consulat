@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { api } from '@/trpc/react';
+import { useIntelligenceProfileDetails } from '@/hooks/use-intelligence';
+import type { Id } from '@/convex/_generated/dataModel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,9 +41,9 @@ export function ProfileIntelligenceDetailsPage({
   const [isProfileViewed, setIsProfileViewed] = useState(false);
   const [lastActivity] = useState<Date>(new Date());
 
-  const { data: profile, isLoading } = api.intelligence.getProfileDetails.useQuery({
-    profileId,
-  });
+  const profileData = useIntelligenceProfileDetails(profileId as Id<'profiles'>);
+  const profile = profileData;
+  const isLoading = profileData === undefined;
 
   useEffect(() => {
     if (profile && !isProfileViewed) {
