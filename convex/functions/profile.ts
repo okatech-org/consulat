@@ -1011,3 +1011,43 @@ export const updateContacts = mutation({
     return args.profileId;
   },
 });
+
+export const getProfilesMapData = query({
+  handler: async (ctx) => {
+    const profiles = await ctx.db
+      .query('profiles')
+      .filter((q) => q.not(q.eq(q.field('status'), ProfileStatus.Draft)))
+      .filter((q) => q.not(q.eq(q.field('contacts.address'), undefined)))
+      .collect();
+
+    const childProfiles = await ctx.db
+      .query('childProfiles')
+      .filter((q) => q.not(q.eq(q.field('status'), ProfileStatus.Draft)))
+      .collect();
+
+    const profilesMapData = profiles
+      .filter((profile) => profile.contacts.address)
+      .map((profile) => {
+        return {
+          id: profile._id,
+          firstName: profile.personal.firstName,
+          lastName: profile.personal.lastName,
+          address: profile.contacts.address,
+          status: profile.status,
+        };
+      });
+
+    const childProfilesMapData = childProfiles.map((profile) => {
+      const [parent1, parent2] = profile.parents;
+      return {
+        id: profile._id,
+        firstName: profile.personal.firstName,
+        lastName: profile.personal.lastName,
+        address: parent1.address || parent2.address,
+        status: profile.status,
+      };
+    });
+
+    return [...profilesMapData, ...childProfilesMapData];
+  },
+});

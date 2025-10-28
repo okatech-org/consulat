@@ -157,3 +157,8 @@ export type AgentsListResult = FunctionReturnType<
   typeof api.functions.membership.getAgentsList
 >;
 export type AgentListItem = AgentsListResult['agents'][number];
+
+export type ProfilesMapData = FunctionReturnType<
+  typeof api.functions.profile.getProfilesMapData
+>;
+export type ProfilesMapDataItem = ProfilesMapData[number];
