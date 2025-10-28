@@ -2,10 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import type { ProfilesGeographicData } from '@/server/api/routers/dashboard/types';
+
+interface ProfileMapData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  address: {
+    city: string;
+    country: string;
+  } | null;
+  intelligenceNotes: Array<{
+    type: string;
+    priority: string;
+    createdAt: number;
+  }>;
+}
 
 interface LeafletDashboardWrapperProps {
-  data: ProfilesGeographicData;
+  data: ProfileMapData[];
   height?: string;
 }
 

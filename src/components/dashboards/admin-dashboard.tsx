@@ -1,36 +1,52 @@
 'use client';
 
 import { StatsCard } from '@/components/ui/stats-card';
-import { format } from 'date-fns';
-import { ArrowRight, Calendar, CheckCircle, Clock, FileText, Users } from 'lucide-react';
+import { ArrowRight, CheckCircle, Clock, FileText, Users } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { Button } from '@/components/ui/button';
 import { PageContainer } from '@/components/layouts/page-container';
-import { LeafletDashboardWrapper } from '@/components/dashboards/leaflet-dashboard-wrapper';
 import { useTranslations } from 'next-intl';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import CardContainer from '../layouts/card-container';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useDashboard } from '@/hooks/use-dashboard';
-import type { AdminStats } from '@/server/api/routers/dashboard/types';
+import { LeafletDashboardWrapper } from './leaflet-dashboard-wrapper';
 
 export default function AdminDashboard() {
-  const { data: adminStats } = useDashboard<AdminStats>();
   const { user } = useCurrentUser();
-  const profilesGeographicData = useQuery(
-    api.functions.intelligence.getProfilesMap,
-    user.organizationId ? {} : 'skip',
+
+  const dashboardStats = useQuery(
+    api.functions.analytics.getDashboardStats,
+    user ? undefined : 'skip',
   );
+
+  const profilesMapData = useQuery(
+    api.functions.intelligence.getProfilesMap,
+    user ? {} : 'skip',
+  );
+
   const t = useTranslations('admin.dashboard');
   const t_appointments = useTranslations('admin.appointments');
+
+  if (!user) {
+    return null;
+  }
+
+  const adminStats = {
+    stats: {
+      completedRequests: dashboardStats?.requests?.byStatus?.completed || 0,
+      processingRequests: dashboardStats?.requests?.byStatus?.submitted || 0,
+      pendingRequests: dashboardStats?.requests?.byStatus?.pending || 0,
+      totalProfiles: dashboardStats?.profiles?.total || 0,
+    },
+  };
 
   return (
     <PageContainer
       title={t('title')}
       description={`${t('welcome', {
-        name: user.name || '',
+        name: user.firstName || user.lastName || '',
       })} ${t('subtitle')}`}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -79,10 +95,10 @@ export default function AdminDashboard() {
       <CardContainer title="Répartition géographique" className="mb-6">
         <div className="mb-4">
           <p className="text-sm text-muted-foreground">
-            Visualisation des concentrations de profils par ville
+            Visualisation des concentrations de profils
           </p>
         </div>
-        <LeafletDashboardWrapper data={profilesGeographicData || []} height="600px" />
+        <LeafletDashboardWrapper data={profilesMapData || []} height="600px" />
       </CardContainer>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -107,42 +123,11 @@ export default function AdminDashboard() {
             </Button>
           }
         >
-          {adminStats?.recentData?.upcomingAppointments &&
-          adminStats.recentData.upcomingAppointments.length > 0 ? (
-            <div className="space-y-4">
-              {adminStats.recentData.upcomingAppointments.map((appointment) => (
-                <div
-                  key={appointment.id}
-                  className="flex items-start space-x-3 border-b pb-3 last:border-0"
-                >
-                  <div className="rounded-md bg-primary/10 p-2">
-                    <Calendar className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium">
-                      {appointment.request?.service?.name || t_appointments('title')}
-                    </p>
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      <Clock className="mr-1 h-3 w-3" />
-                      <span>
-                        {format(new Date(appointment.date), 'dd MMM yyyy')} -{' '}
-                        {format(new Date(appointment.date), 'HH:mm')}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {appointment.attendee?.name}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-6">
-              <p className="text-muted-foreground">
-                {t_appointments('calendar_placeholder')}
-              </p>
-            </div>
-          )}
+          <div className="text-center py-6">
+            <p className="text-muted-foreground">
+              {t_appointments('calendar_placeholder')}
+            </p>
+          </div>
         </CardContainer>
       </div>
     </PageContainer>

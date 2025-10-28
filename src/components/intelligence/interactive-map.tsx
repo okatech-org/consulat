@@ -39,7 +39,11 @@ interface InteractiveMapProps {
   className?: string;
 }
 
-export default function InteractiveMap({ profiles, onProfileClick, className }: InteractiveMapProps) {
+export default function InteractiveMap({
+  profiles,
+  onProfileClick,
+  className,
+}: InteractiveMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any>(null);
@@ -65,12 +69,16 @@ export default function InteractiveMap({ profiles, onProfileClick, className }: 
       });
 
       // Ajouter les tuiles de carte avec gestion d'erreur
-      const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '',
-        errorTileUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iI2Y0ZjRmNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSI+Q2hhcmdlbWVudC4uLjwvdGV4dD48L3N2Zz4=',
-      });
-      
+      const tileLayer = L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+          maxZoom: 18,
+          attribution: '',
+          errorTileUrl:
+            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iI2Y0ZjRmNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSI+Q2hhcmdlbWVudC4uLjwvdGV4dD48L3N2Zz4=',
+        },
+      );
+
       tileLayer.addTo(map);
 
       // Initialiser et ajouter le groupe de marqueurs
@@ -80,7 +88,7 @@ export default function InteractiveMap({ profiles, onProfileClick, className }: 
       mapInstanceRef.current = map;
       setIsLoading(false);
     } catch (error) {
-      console.warn('Erreur lors de l\'initialisation de la carte:', error);
+      console.warn("Erreur lors de l'initialisation de la carte:", error);
       setIsLoading(false);
     }
 
@@ -121,14 +129,17 @@ export default function InteractiveMap({ profiles, onProfileClick, className }: 
         iconAnchor: [profile.hasNotes ? 10 : 8, profile.hasNotes ? 10 : 8],
       });
 
-        const marker = L.marker([profile.latitude, profile.longitude], { icon })
-          .bindPopup(`
+      const marker = L.marker([profile.latitude, profile.longitude], { icon })
+        .bindPopup(
+          `
           <div style="min-width: 140px; font-family: system-ui, -apple-system, sans-serif;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
               <div style="font-size: 13px; font-weight: 600; color: #1f2937; line-height: 1.2;">
                 ${profile.name}
               </div>
-              ${profile.hasNotes ? `
+              ${
+                profile.hasNotes
+                  ? `
                 <span style="
                   background: rgba(239, 68, 68, 0.2); 
                   color: #ef4444; 
@@ -140,7 +151,9 @@ export default function InteractiveMap({ profiles, onProfileClick, className }: 
                 ">
                   • ${profile.notesCount}
                 </span>
-              ` : ''}
+              `
+                  : ''
+              }
             </div>
             <div style="font-size: 11px; color: #6b7280; margin-bottom: 6px; line-height: 1.2;">
               ${profile.city || 'Ville inconnue'}, ${profile.country || 'Pays inconnu'}
@@ -162,7 +175,8 @@ export default function InteractiveMap({ profiles, onProfileClick, className }: 
               → Profil
             </button>
           </div>
-        `)
+        `,
+        )
         .on('click', () => {
           onProfileClick?.(profile.id);
         });
@@ -180,7 +194,6 @@ export default function InteractiveMap({ profiles, onProfileClick, className }: 
     (window as any).profileClick = (profileId: string) => {
       onProfileClick?.(profileId);
     };
-
   }, [profiles, onProfileClick, isLoading]);
 
   return (
@@ -189,11 +202,13 @@ export default function InteractiveMap({ profiles, onProfileClick, className }: 
         <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span style={{ color: 'var(--text-secondary)' }}>Chargement de la carte...</span>
+            <span style={{ color: 'var(--text-secondary)' }}>
+              Chargement de la carte...
+            </span>
           </div>
         </div>
       )}
-      
+
       {/* Indicateurs */}
       <div className="absolute top-4 right-4 z-[1000] space-y-2">
         <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
@@ -212,13 +227,13 @@ export default function InteractiveMap({ profiles, onProfileClick, className }: 
         </div>
       </div>
 
-      <div 
-        ref={mapRef} 
+      <div
+        ref={mapRef}
         className="w-full h-full rounded-lg"
         style={{ minHeight: '400px' }}
       />
-      
-      <style jsx>{`
+
+      <style>{`
         @keyframes pulse {
           0%, 100% { 
             opacity: 1; 
