@@ -329,8 +329,8 @@ export default function SmartInteractiveMap({
                 }}
               >
                 <Popup>
-                  <div className="p-2">
-                    <p className="font-semibold text-base mb-1">{profile.name}</p>
+                  <div className="p-0">
+                    <p className="font-semibold text-base">{profile.name}</p>
                     <p className="text-sm text-muted-foreground">
                       {profile.city || ''}
                       {profile.city && profile.country ? ', ' : ''}

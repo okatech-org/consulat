@@ -608,12 +608,6 @@ export default function SuperAdminDashboard() {
         {/* Profiles Map */}
         <TabsContent value="profiles" className="space-y-6">
           <Card className="border-primary/10">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">
-                {t('profilesMap.title')}
-              </CardTitle>
-              <CardDescription>{t('profilesMap.subtitle')}</CardDescription>
-            </CardHeader>
             <CardContent>
               <SmartInteractiveMap profiles={profilesMapData || []} />
             </CardContent>
