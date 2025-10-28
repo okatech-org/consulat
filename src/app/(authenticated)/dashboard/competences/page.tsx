@@ -74,16 +74,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
-// WorkStatus type definition (from Convex schema)
-type WorkStatus =
-  | 'EMPLOYEE'
-  | 'SELF_EMPLOYED'
-  | 'ENTREPRENEUR'
-  | 'STUDENT'
-  | 'RETIRED'
-  | 'UNEMPLOYED'
-  | 'OTHER';
+import { WorkStatus } from '@/convex/lib/constants';
 
 // Types pour les catégories de compétences
 type SkillCategory =
@@ -139,13 +130,13 @@ const levelLabels: Record<ExpertiseLevel, string> = {
 
 // Labels français pour les statuts
 const workStatusLabels: Record<WorkStatus, string> = {
-  EMPLOYEE: 'Employé',
-  SELF_EMPLOYED: 'Travailleur indépendant',
-  ENTREPRENEUR: 'Entrepreneur',
-  STUDENT: 'Étudiant',
-  RETIRED: 'Retraité',
-  UNEMPLOYED: "Ressortissant gabonais à la recherche d'emploi",
-  OTHER: 'Autre',
+  employee: 'Employé',
+  self_employed: 'Travailleur indépendant',
+  entrepreneur: 'Entrepreneur',
+  student: 'Étudiant',
+  retired: 'Retraité',
+  unemployed: "Ressortissant gabonais à la recherche d'emploi",
+  other: 'Autre',
 };
 
 export default function CompetencesDirectoryPage() {
@@ -196,7 +187,7 @@ export default function CompetencesDirectoryPage() {
   useEffect(() => {
     switch (activeTab) {
       case 'jobSeekers':
-        setSelectedWorkStatus('UNEMPLOYED');
+        setSelectedWorkStatus(WorkStatus.Unemployed);
         break;
       case 'employed':
         // Réinitialiser pour montrer tous sauf UNEMPLOYED
@@ -433,7 +424,7 @@ export default function CompetencesDirectoryPage() {
 
   if (error) {
     return (
-      <IntelAgentLayout>
+      <IntelAgentLayout title="Annuaire des Compétences DGSS" currentPage="competences">
         <div className="flex items-center justify-center min-h-[60vh]">
           <Card className="max-w-md w-full">
             <CardContent className="pt-6">

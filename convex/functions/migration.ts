@@ -1390,16 +1390,16 @@ export const importUserWithData = mutation({
             ? await findConvexRequestByLegacyId(ctx, apt.requestId)
             : undefined;
           const agentId = apt.agentId
-            ? await findConvexUserByLegacyId(ctx, apt.agentId)
+            ? await findConvexMembershipByLegacyId(ctx, apt.agentId)
             : undefined;
 
           const participants: Array<{
-            userId: Id<'users'>;
+            id: Id<'profiles'> | Id<'memberships'>;
             role: ParticipantRole;
             status: ParticipantStatus;
           }> = [
             {
-              userId: userId,
+              id: profileId!,
               role: ParticipantRole.Attendee,
               status: ParticipantStatus.Confirmed,
             },
@@ -1407,7 +1407,7 @@ export const importUserWithData = mutation({
 
           if (agentId) {
             participants.push({
-              userId: agentId,
+              id: agentId!,
               role: ParticipantRole.Agent,
               status: ParticipantStatus.Confirmed,
             });

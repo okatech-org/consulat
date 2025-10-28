@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import IAstedButton from '../ui/mr-ray-button-fixed';
 import { ModernChatWindow } from './modern-chat-window';
-import { getGeminiChatCompletion, getUserContextData } from '@/lib/ai/actions';
+import { useAction } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useLocale } from 'next-intl';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -23,24 +24,24 @@ export function ChatToggle({ customIcon }: { customIcon?: React.ReactNode }) {
   const { user } = useCurrentUser();
   const locale = useLocale();
 
+  const getChatCompletion = useAction(api.functions.ai.getChatCompletion);
+
   const handleSendMessage = async (message: string): Promise<string> => {
-    if (!message.trim()) return '';
+    if (!message.trim() || !user?._id) return '';
 
     try {
-      // Get user context
-      const contextData = await getUserContextData(user?.id, locale);
-
-      // Get AI response
-      const aiResponse = await getGeminiChatCompletion(
-        [
+      // Get AI response using Convex action
+      const aiResponse = await getChatCompletion({
+        messages: [
           ...messages.map((msg) => ({
             role: msg.role,
             content: msg.content,
           })),
           { role: 'user', content: message },
         ],
-        contextData,
-      );
+        userId: user._id,
+        locale,
+      });
 
       if (aiResponse) {
         return aiResponse.content;

@@ -1,8 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Skeleton } from '@/components/ui/skeleton';
-
+-
 // Chargement dynamique de la carte pour éviter les erreurs SSR
 const SmartInteractiveMap = dynamic(
   () => import('./smart-interactive-map'),

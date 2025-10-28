@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { PageContainer } from '@/components/layouts/page-container';

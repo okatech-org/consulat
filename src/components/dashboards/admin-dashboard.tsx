@@ -11,17 +11,18 @@ import { LeafletDashboardWrapper } from '@/components/dashboards/leaflet-dashboa
 import { useTranslations } from 'next-intl';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import CardContainer from '../layouts/card-container';
-import { api } from '@/trpc/react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { useDashboard } from '@/hooks/use-dashboard';
 import type { AdminStats } from '@/server/api/routers/dashboard/types';
 
 export default function AdminDashboard() {
   const { data: adminStats } = useDashboard<AdminStats>();
   const { user } = useCurrentUser();
-  const { data: profilesGeographicData } =
-    api.dashboard.getProfilesGeographicData.useQuery({
-      organizationId: user.organizationId || undefined,
-    });
+  const profilesGeographicData = useQuery(
+    api.functions.intelligence.getProfilesMap,
+    user.organizationId ? {} : 'skip',
+  );
   const t = useTranslations('admin.dashboard');
   const t_appointments = useTranslations('admin.appointments');
 

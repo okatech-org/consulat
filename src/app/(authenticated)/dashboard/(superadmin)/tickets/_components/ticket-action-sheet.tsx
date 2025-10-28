@@ -177,7 +177,7 @@ export function TicketActionSheet({
       <SheetContent className="w-full min-w-2xl overflow-y-auto">
         <SheetHeader className="text-left border-b pb-4 mb-6 sticky top-0 bg-background">
           <SheetTitle>
-            Ticket #{ticket.id.slice(-8)} - {ticket.subject}
+            Ticket #{ticket._id.slice(-8)} - {ticket.subject}
           </SheetTitle>
         </SheetHeader>
 
@@ -207,10 +207,12 @@ export function TicketActionSheet({
                 </label>
                 <div className="flex items-center gap-2 mt-1 text-sm">
                   <Calendar className="h-4 w-4" />
-                  <span>{format(new Date(ticket.createdAt), 'PPP', { locale: fr })}</span>
+                  <span>
+                    {format(new Date(ticket._creationTime), 'PPP', { locale: fr })}
+                  </span>
                   <span className="text-muted-foreground">
                     (
-                    {formatDistanceToNow(new Date(ticket.createdAt), {
+                    {formatDistanceToNow(new Date(ticket._creationTime), {
                       addSuffix: true,
                       locale: fr,
                     })}
@@ -239,7 +241,7 @@ export function TicketActionSheet({
               <div className="mt-2 space-y-2">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  <span>{ticket.user?.name || 'Utilisateur anonyme'}</span>
+                  <span>{ticket.user?.firstName || 'Utilisateur anonyme'}</span>
                 </div>
 
                 {hasEmail && (
@@ -277,7 +279,7 @@ export function TicketActionSheet({
                 <div className="mt-2 space-y-2">
                   <div className="text-sm text-muted-foreground">
                     {t('feedback.admin.tickets.details.respondedBy')}{' '}
-                    {ticket.respondedBy.name}
+                    {ticket.respondedBy.firstName} {ticket.respondedBy.lastName}
                     {ticket.respondedAt && (
                       <span className="ml-2">
                         le {format(new Date(ticket.respondedAt), 'PPP', { locale: fr })}

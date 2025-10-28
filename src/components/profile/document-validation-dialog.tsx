@@ -11,11 +11,11 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { DocumentStatus } from '@prisma/client';
 import { toast } from 'sonner';
-
-import { validateDocument } from '@/actions/documents';
-import { tryCatch } from '@/lib/utils';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { DocumentStatus } from '@/convex/lib/constants';
+import type { Id } from '@/convex/_generated/dataModel';
 
 interface DocumentValidationDialogProps {
   documentId: string;
@@ -33,34 +33,32 @@ export function DocumentValidationDialog({
   onValidated,
 }: DocumentValidationDialogProps) {
   const t = useTranslations('admin.registrations.review.documents');
-  const { toast } = useToast();
   const [notes, setNotes] = useState('');
-  const [status, setStatus] = useState<DocumentStatus>(DocumentStatus.PENDING);
+  const [status, setStatus] = useState<DocumentStatus>(DocumentStatus.Pending);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (status: DocumentStatus) => {
-    const result = await tryCatch(
-      validateDocument({ documentId, status, notes: notes.trim() || undefined }),
-    );
+  const validateDocumentMutation = useMutation(api.functions.document.validateDocument);
 
-    if (result.error) {
-      toast({
-        title: t('validation.error.title'),
-        description: t('validation.error.description'),
-        variant: 'destructive',
-      });
-    } else {
+  const handleSubmit = async (status: DocumentStatus) => {
+    try {
       setIsSubmitting(true);
       setStatus(status);
 
-      toast({
-        title: t('validation.success.title'),
-        description: t('validation.success.description'),
-        variant: 'success',
+      await validateDocumentMutation({
+        documentId: documentId as Id<'documents'>,
+        validatorId: '' as Id<'users'>,
+        status: status as string,
+        comments: notes.trim() || undefined,
       });
 
+      toast.success(t('validation.success.description'));
       onValidated();
       onClose();
+    } catch (error) {
+      toast.error(t('validation.error.description'));
+      console.error('Error validating document:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -86,15 +84,15 @@ export function DocumentValidationDialog({
           </Button>
           <Button
             variant="destructive"
-            onClick={() => handleSubmit(DocumentStatus.REJECTED)}
-            loading={isSubmitting && status === DocumentStatus.REJECTED}
+            onClick={() => handleSubmit(DocumentStatus.Rejected)}
+            loading={isSubmitting && status === DocumentStatus.Rejected}
           >
             {t('validation.reject')}
           </Button>
           <Button
             variant="success"
-            onClick={() => handleSubmit(DocumentStatus.VALIDATED)}
-            loading={isSubmitting && status === DocumentStatus.VALIDATED}
+            onClick={() => handleSubmit(DocumentStatus.Validated)}
+            loading={isSubmitting && status === DocumentStatus.Validated}
           >
             {t('validation.validate')}
           </Button>

@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { PageContainer } from '@/components/layouts/page-container';
 import { useState } from 'react';
@@ -58,16 +58,12 @@ export default function AdminAccountPage() {
         lastName,
       });
 
-      toast({
-        title: t('profile_updated'),
-        variant: 'success',
-      });
+      toast.success(t('profile_updated'), {});
     } catch (error) {
-      console.error(error);
-      toast({
-        title: t('profile_update_error'),
-        variant: 'destructive',
+      toast.error(t('profile_update_error'), {
+        description: t('profile_update_error_description'),
       });
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -198,16 +194,14 @@ export default function AdminAccountPage() {
                     setIsLoading(true);
                     try {
                       // Here you would save the preferences
-                      toast({
-                        title: t_messages('success.update'),
-                        variant: 'success',
+                      toast.success(t_messages('success.update'), {
+                        description: t_messages('success.update_description'),
                       });
                     } catch (error) {
-                      console.error(error);
-                      toast({
-                        title: t_messages('errors.update'),
-                        variant: 'destructive',
+                      toast.error(t_messages('errors.update'), {
+                        description: t_messages('errors.update_description'),
                       });
+                      console.error(error);
                     } finally {
                       setIsLoading(false);
                     }

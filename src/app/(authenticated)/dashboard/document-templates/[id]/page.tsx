@@ -1,4 +1,3 @@
-import { getDocumentTemplateById } from '@/actions/document-generation';
 import EditionForm from '@/components/document-generation/forms';
 import { PageContainer } from '@/components/layouts/page-container';
 import { ErrorCard } from '@/components/ui/error-card';
@@ -24,7 +23,7 @@ export default async function DocumentTemplatePage({
     );
   }
 
-  const template = await getDocumentTemplateById(modelId);
+  const template = undefined;
 
   if (!template) {
     return (
@@ -36,7 +35,7 @@ export default async function DocumentTemplatePage({
   }
 
   return (
-    <PageContainer title={template.name}>
+    <PageContainer title={template?.name ?? 'Modèle de document'}>
       <EditionForm template={template} />
     </PageContainer>
   );

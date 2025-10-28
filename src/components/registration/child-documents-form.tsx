@@ -12,11 +12,12 @@ import {
   FormItem,
   FormControl,
 } from '@/components/ui/form';
-import { analyzeDocuments } from '@/actions/documents';
 import { toast } from 'sonner';
 import { DocumentType, OwnerType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
-import type { Doc } from '@/convex/_generated/dataModel';
+import { useAction } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -56,6 +57,7 @@ export function ChildDocumentsForm({
   onPrevious,
   onAnalysisComplete,
 }: Readonly<ChildDocumentsFormProps>) {
+  const analyzeDocuments = useAction(api.functions.ai.analyzeMultipleDocuments);
   const t = useTranslations('registration');
   const t_errors = useTranslations('messages.errors');
   const [isLoading, setIsLoading] = useState(false);
@@ -66,8 +68,8 @@ export function ChildDocumentsForm({
   const form = useForm<ChildDocumentsFormData>({
     resolver: zodResolver(ChildDocumentsSchema),
     defaultValues: {
-      birthCertificate: profile.birthCertificate,
-      passport: profile.passport,
+      birthCertificate: profile?.birthCertificate,
+      passport: profile?.passport,
     },
     reValidateMode: 'onBlur',
   });
@@ -79,8 +81,8 @@ export function ChildDocumentsForm({
       const doc = documents.find((d) => d.id === key);
       if (document && doc) {
         const userDoc = document;
-        if (userDoc?.fileUrl) {
-          documentsToAnalyze[doc.expectedType] = userDoc.fileUrl;
+        if (userDoc?.storageId) {
+          documentsToAnalyze[doc.expectedType] = userDoc.storageId as Id<'_storage'>;
         }
       }
     });
@@ -95,7 +97,14 @@ export function ChildDocumentsForm({
     setAnalysingState('analyzing');
 
     try {
-      const results = await analyzeDocuments(documentsToAnalyze);
+      const results = await analyzeDocuments({
+        documents: Object.entries(documentsToAnalyze).map(
+          ([documentType, documentUrl]) => ({
+            storageId: documentUrl as Id<'_storage'>,
+            documentType,
+          }),
+        ),
+      });
 
       if (results.success && results.mergedData) {
         setAnalysingState('success');

@@ -1,28 +1,40 @@
-import { getAppointment } from '@/actions/appointments';
+'use client';
+
 import { ErrorCard } from '@/components/ui/error-card';
-import { getTranslations } from 'next-intl/server';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Clock, MapPin, User } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
 import { cn } from '@/lib/utils';
 import { PageContainer } from '@/components/layouts/page-container';
+import { api } from '@/convex/_generated/api';
+import { useQuery } from 'convex/react';
+import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import type { Id } from '@/convex/_generated/dataModel';
+import { DisplayAddress } from '@/components/ui/display-address';
+import { ProfileLookupSheet } from '@/components/profile/profile-lookup-sheet';
+import { ParticipantRole } from '@/convex/lib/constants';
 
-interface AppointmentPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default async function AppointmentPage({ params }: AppointmentPageProps) {
-  const awaitedParams = await params;
-  const t = await getTranslations('appointments');
-  const commonT = await getTranslations('common');
-  const appointment = await getAppointment(awaitedParams.id);
+export default function AppointmentPage() {
+  const params = useParams<{ id: Id<'appointments'> }>();
+  const t = useTranslations('appointments');
+  const commonT = useTranslations('common');
+  const appointment = useQuery(api.functions.appointment.getAppointment, {
+    appointmentId: params.id,
+  });
+  const service = useQuery(
+    api.functions.service.getService,
+    appointment?.serviceId ? { serviceId: appointment.serviceId } : 'skip',
+  );
+  const organization = useQuery(
+    api.functions.organization.getOrganization,
+    appointment?.organizationId ? { organizationId: appointment.organizationId } : 'skip',
+  );
 
   if (!appointment) {
     return (
@@ -52,13 +64,17 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
     }
   };
 
+  const attendee = appointment.participants.find(
+    (p) => p.role === ParticipantRole.Attendee,
+  );
+
   return (
     <PageContainer
       title={t('details.title')}
       description={
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">
-            {t('details.subtitle', { id: appointment.id })}
+            {t('details.subtitle', { id: appointment._id })}
           </p>
           <Badge
             variant="secondary"
@@ -85,47 +101,28 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h3 className="font-semibold">{appointment.service?.name}</h3>
-              <p className="text-sm text-muted-foreground">
-                {appointment.organization.name}
-              </p>
+              <h3 className="font-semibold">{service?.name}</h3>
+              <p className="text-sm text-muted-foreground">{organization?.name}</p>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline">{t(`type.options.${appointment.type}`)}</Badge>
               <Badge variant="outline">
-                {t('details.duration', { duration: appointment.duration })}
+                {t('details.duration', { duration: appointment.startAt })}
               </Badge>
             </div>
-            {appointment.instructions && (
-              <div className="rounded-lg border p-4">
-                <p className="text-sm">{appointment.instructions}</p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('details.attendee')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <User className="size-4 text-muted-foreground" />
-              <div className="flex flex-col gap-2">
-                <p className="font-medium">{appointment.attendee.name}</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" asChild>
-              <Link
-                href={`${ROUTES.listing.profiles}/${appointment.attendee.profileId}`}
-                target="_blank"
-              >
-                <User className="size-4" />
-                <span>Consulter le profil</span>
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        {attendee && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('details.attendee')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ProfileLookupSheet profileId={attendee.id as Id<'profiles'>} />
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
@@ -135,7 +132,7 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
             <div className="flex items-center gap-4">
               <Calendar className="size-4 text-muted-foreground" />
               <p>
-                {format(new Date(appointment.date), 'EEEE d MMMM yyyy', {
+                {format(new Date(appointment.startAt), 'EEEE d MMMM yyyy', {
                   locale: fr,
                 })}
               </p>
@@ -143,8 +140,8 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
             <div className="flex items-center gap-4">
               <Clock className="size-4 text-muted-foreground" />
               <p>
-                {format(appointment.startTime, 'HH:mm')} -{' '}
-                {format(appointment.endTime, 'HH:mm')}
+                {format(appointment.startAt, 'HH:mm')} -{' '}
+                {format(appointment.endAt, 'HH:mm')}
               </p>
             </div>
           </CardContent>
@@ -157,7 +154,7 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
               <MapPin className="size-4 text-muted-foreground" />
-              <p>{appointment.organization.name}</p>
+              <DisplayAddress address={appointment.location} />
             </div>
           </CardContent>
         </Card>

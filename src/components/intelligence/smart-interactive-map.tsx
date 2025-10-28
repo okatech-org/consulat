@@ -4,18 +4,18 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  ZoomIn, 
-  ZoomOut, 
-  RotateCcw, 
-  MapPin, 
-  Users, 
+import {
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  MapPin,
+  Users,
   Eye,
   Filter,
   Target,
   Layers,
   Navigation,
-  Home
+  Home,
 } from 'lucide-react';
 
 // Import dynamique de Leaflet pour éviter les erreurs SSR
@@ -53,10 +53,10 @@ interface SmartInteractiveMapProps {
   className?: string;
 }
 
-export default function SmartInteractiveMap({ 
-  profiles, 
-  onProfileClick, 
-  className 
+export default function SmartInteractiveMap({
+  profiles,
+  onProfileClick,
+  className,
 }: SmartInteractiveMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -65,39 +65,49 @@ export default function SmartInteractiveMap({
   const [currentView, setCurrentView] = useState<'global' | 'country'>('global');
   const [selectedCountry, setSelectedCountry] = useState<string>('');
   const [clusteringEnabled, setClusteringEnabled] = useState(true);
-  const [heatmapEnabled, setHeatmapEnabled] = useState(false);
 
   // Calcul des statistiques par pays
   const countryStats = useMemo((): CountryStats[] => {
-    const statsMap = new Map<string, { count: number; withNotes: number; coordinates: [number, number][] }>();
-    
-    profiles.forEach(profile => {
+    const statsMap = new Map<
+      string,
+      { count: number; withNotes: number; coordinates: [number, number][] }
+    >();
+
+    profiles.forEach((profile) => {
       if (!profile.country) return;
-      
-      const current = statsMap.get(profile.country) || { 
-        count: 0, 
-        withNotes: 0, 
-        coordinates: [] 
+
+      const current = statsMap.get(profile.country) || {
+        count: 0,
+        withNotes: 0,
+        coordinates: [],
       };
-      
+
       current.count++;
       if (profile.hasNotes) current.withNotes++;
       current.coordinates.push([profile.latitude, profile.longitude]);
-      
+
       statsMap.set(profile.country, current);
     });
 
     return Array.from(statsMap.entries())
       .map(([country, data]) => {
         // Calculer le centre géographique du pays
-        const avgLat = data.coordinates.reduce((sum, coord) => sum + coord[0], 0) / data.coordinates.length;
-        const avgLng = data.coordinates.reduce((sum, coord) => sum + coord[1], 0) / data.coordinates.length;
-        
+        const avgLat =
+          data.coordinates.reduce((sum, coord) => sum + coord[0], 0) /
+          data.coordinates.length;
+        const avgLng =
+          data.coordinates.reduce((sum, coord) => sum + coord[1], 0) /
+          data.coordinates.length;
+
         // Déterminer le niveau de zoom basé sur la dispersion
-        const latRange = Math.max(...data.coordinates.map(c => c[0])) - Math.min(...data.coordinates.map(c => c[0]));
-        const lngRange = Math.max(...data.coordinates.map(c => c[1])) - Math.min(...data.coordinates.map(c => c[1]));
+        const latRange =
+          Math.max(...data.coordinates.map((c) => c[0])) -
+          Math.min(...data.coordinates.map((c) => c[0]));
+        const lngRange =
+          Math.max(...data.coordinates.map((c) => c[1])) -
+          Math.min(...data.coordinates.map((c) => c[1]));
         const maxRange = Math.max(latRange, lngRange);
-        
+
         let zoom = 8;
         if (maxRange > 10) zoom = 5;
         else if (maxRange > 5) zoom = 6;
@@ -146,13 +156,17 @@ export default function SmartInteractiveMap({
       });
 
       // Couche de tuiles avec fallback hors ligne
-      const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '',
-        subdomains: 'abc',
-        errorTileUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iIzJkM2E0ZiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk0YTNiOCI+Q2FydGUgaG9ycyBsaWduZTwvdGV4dD48L3N2Zz4=',
-      });
-      
+      const tileLayer = L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+          maxZoom: 19,
+          attribution: '',
+          subdomains: 'abc',
+          errorTileUrl:
+            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iIzJkM2E0ZiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk0YTNiOCI+Q2FydGUgaG9ycyBsaWduZTwvdGV4dD48L3N2Zz4=',
+        },
+      );
+
       tileLayer.addTo(map);
 
       // Initialiser le groupe de clustering
@@ -165,7 +179,7 @@ export default function SmartInteractiveMap({
           iconCreateFunction: (cluster: any) => {
             const count = cluster.getChildCount();
             const size = count < 10 ? 'small' : count < 100 ? 'medium' : 'large';
-            
+
             return L.divIcon({
               html: `<div class="cluster-marker cluster-${size}">
                 <span class="cluster-count">${count}</span>
@@ -199,9 +213,8 @@ export default function SmartInteractiveMap({
           mapRef.current.style.cursor = '';
         }
       });
-
     } catch (error) {
-      console.error('Erreur lors de l\'initialisation de la carte:', error);
+      console.error("Erreur lors de l'initialisation de la carte:", error);
       setIsLoading(false);
     }
 
@@ -242,7 +255,9 @@ export default function SmartInteractiveMap({
             box-shadow: 0 3px 10px rgba(0,0,0,0.4);
             position: relative;
           ">
-            ${profile.hasNotes ? `
+            ${
+              profile.hasNotes
+                ? `
               <div style="
                 position: absolute;
                 top: -8px;
@@ -259,21 +274,28 @@ export default function SmartInteractiveMap({
                 font-weight: bold;
                 color: white;
               ">${profile.notesCount}</div>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
         `,
         iconSize: [markerSize + 4, markerSize + 4],
         iconAnchor: [(markerSize + 4) / 2, (markerSize + 4) / 2],
       });
 
-        const marker = L.marker([profile.latitude, profile.longitude], { icon })
-          .bindPopup(`
+      const marker = L.marker([profile.latitude, profile.longitude], { icon })
+        .bindPopup(
+          `
           <div class="smart-popup-compact">
             <div class="popup-header-compact">
               <div class="popup-title-compact">${profile.name}</div>
-              ${profile.hasNotes ? `
+              ${
+                profile.hasNotes
+                  ? `
                 <span class="popup-badge-compact">• ${profile.notesCount}</span>
-              ` : ''}
+              `
+                  : ''
+              }
             </div>
             <div class="popup-location-compact">
               ${profile.city || 'Ville inconnue'}, ${profile.country || 'Pays inconnu'}
@@ -285,10 +307,12 @@ export default function SmartInteractiveMap({
               → Profil
             </button>
           </div>
-        `, {
-          maxWidth: 200,
-          className: 'smart-popup-container-compact',
-        })
+        `,
+          {
+            maxWidth: 200,
+            className: 'smart-popup-container-compact',
+          },
+        )
         .on('click', () => {
           onProfileClick?.(profile.id);
         });
@@ -300,7 +324,6 @@ export default function SmartInteractiveMap({
     (window as any).smartMapProfileClick = (profileId: string) => {
       onProfileClick?.(profileId);
     };
-
   }, [profiles, onProfileClick, isLoading]);
 
   // Fonctions de contrôle de la carte
@@ -341,7 +364,9 @@ export default function SmartInteractiveMap({
 
   if (typeof window === 'undefined' || !L) {
     return (
-      <div className={`flex items-center justify-center bg-background rounded-lg ${className}`}>
+      <div
+        className={`flex items-center justify-center bg-background rounded-lg ${className}`}
+      >
         <div className="text-center p-8">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-sm text-muted-foreground">Initialisation de la carte...</p>
@@ -357,21 +382,29 @@ export default function SmartInteractiveMap({
         <div className="absolute inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm z-[1000]">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-sm text-muted-foreground">Chargement des {profiles.length.toLocaleString()} profils...</p>
+            <p className="text-sm text-muted-foreground">
+              Chargement des {profiles.length.toLocaleString()} profils...
+            </p>
           </div>
         </div>
       )}
 
       {/* Panneau de statistiques pays - Compact */}
-      <Card className="absolute top-4 left-4 z-[1000] w-64 max-h-80 overflow-y-auto text-white shadow-xl" style={{
-        background: 'rgba(30, 30, 30, 0.6)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-      }}>
+      <Card
+        className="absolute top-4 left-4 z-[1000] w-64 max-h-80 overflow-y-auto text-white shadow-xl"
+        style={{
+          background: 'rgba(30, 30, 30, 0.6)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+        }}
+      >
         <CardHeader className="pb-1 pt-3 px-3">
-          <CardTitle className="flex items-center gap-1.5 text-xs font-medium" style={{ color: '#ffffff' }}>
+          <CardTitle
+            className="flex items-center gap-1.5 text-xs font-medium"
+            style={{ color: '#ffffff' }}
+          >
             <Target className="h-3 w-3" style={{ color: '#3b82f6' }} />
             Focus Intelligent
           </CardTitle>
@@ -380,19 +413,21 @@ export default function SmartInteractiveMap({
           <div className="text-[10px] mb-1.5" style={{ color: '#b3b3b3' }}>
             {profiles.length.toLocaleString()} profils • {countryStats.length} pays
           </div>
-          
+
           {countryStats.slice(0, 4).map((country, index) => (
             <button
               key={country.country}
               onClick={() => focusOnCountry(country)}
               className="w-full text-left p-1.5 rounded-md transition-all"
               style={{
-                background: selectedCountry === country.country 
-                  ? 'rgba(59, 130, 246, 0.2)' 
-                  : 'rgba(255, 255, 255, 0.05)',
-                border: selectedCountry === country.country 
-                  ? '1px solid #3b82f6' 
-                  : '1px solid transparent'
+                background:
+                  selectedCountry === country.country
+                    ? 'rgba(59, 130, 246, 0.2)'
+                    : 'rgba(255, 255, 255, 0.05)',
+                border:
+                  selectedCountry === country.country
+                    ? '1px solid #3b82f6'
+                    : '1px solid transparent',
               }}
               onMouseEnter={(e) => {
                 if (selectedCountry !== country.country) {
@@ -407,7 +442,12 @@ export default function SmartInteractiveMap({
             >
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <div className="font-medium text-xs truncate" style={{ color: '#ffffff' }}>{country.country}</div>
+                  <div
+                    className="font-medium text-xs truncate"
+                    style={{ color: '#ffffff' }}
+                  >
+                    {country.country}
+                  </div>
                   <div className="text-[10px]" style={{ color: '#b3b3b3' }}>
                     {country.count} profils
                     {country.withNotes > 0 && (
@@ -417,7 +457,10 @@ export default function SmartInteractiveMap({
                     )}
                   </div>
                 </div>
-                <Badge variant={index === 0 ? "default" : "secondary"} className="text-[10px] px-1 py-0 ml-2">
+                <Badge
+                  variant={index === 0 ? 'default' : 'secondary'}
+                  className="text-[10px] px-1 py-0 ml-2"
+                >
                   #{index + 1}
                 </Badge>
               </div>
@@ -430,20 +473,29 @@ export default function SmartInteractiveMap({
       <div className="absolute top-4 right-4 z-[1000] space-y-1">
         {/* Indicateurs de statut - Compact */}
         <div className="space-y-0.5">
-          <div className="text-[10px] px-2 py-0.5 rounded" style={{
-            background: 'rgba(16, 185, 129, 0.2)',
-            color: '#10b981',
-            border: '1px solid rgba(16, 185, 129, 0.3)'
-          }}>
-            <div className="w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse inline-block" style={{ background: '#10b981' }} />
+          <div
+            className="text-[10px] px-2 py-0.5 rounded"
+            style={{
+              background: 'rgba(16, 185, 129, 0.2)',
+              color: '#10b981',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+            }}
+          >
+            <div
+              className="w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse inline-block"
+              style={{ background: '#10b981' }}
+            />
             LIVE
           </div>
           {clusteringEnabled && (
-            <div className="block text-[10px] px-2 py-0.5 rounded" style={{
-              background: 'rgba(59, 130, 246, 0.2)',
-              color: '#3b82f6',
-              border: '1px solid rgba(59, 130, 246, 0.3)'
-            }}>
+            <div
+              className="block text-[10px] px-2 py-0.5 rounded"
+              style={{
+                background: 'rgba(59, 130, 246, 0.2)',
+                color: '#3b82f6',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+              }}
+            >
               <Layers className="w-2.5 h-2.5 mr-1 inline" />
               Clusters
             </div>
@@ -451,58 +503,67 @@ export default function SmartInteractiveMap({
         </div>
 
         {/* Boutons de contrôle - Compact */}
-        <div className="rounded-lg p-1.5 space-y-0.5" style={{
-          background: 'rgba(30, 30, 30, 0.6)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)'
-        }}>
+        <div
+          className="rounded-lg p-1.5 space-y-0.5"
+          style={{
+            background: 'rgba(30, 30, 30, 0.6)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+          }}
+        >
           <Button
             variant="ghost"
             size="sm"
             onClick={zoomIn}
             className="w-full justify-start h-7 px-2 text-xs"
             style={{ color: '#ffffff' }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')
+            }
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
-            <ZoomIn className="h-3 w-3 mr-1.5" />
-            +
+            <ZoomIn className="h-3 w-3 mr-1.5" />+
           </Button>
-          
+
           <Button
             variant="ghost"
             size="sm"
             onClick={zoomOut}
             className="w-full justify-start h-7 px-2 text-xs"
             style={{ color: '#ffffff' }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')
+            }
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
-            <ZoomOut className="h-3 w-3 mr-1.5" />
-            -
+            <ZoomOut className="h-3 w-3 mr-1.5" />-
           </Button>
-          
+
           <Button
             variant="ghost"
             size="sm"
             onClick={resetView}
             className="w-full justify-start h-7 px-2 text-xs"
             style={{ color: '#ffffff' }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')
+            }
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             <Home className="h-3 w-3 mr-1.5" />
             Centre
           </Button>
-          
+
           <Button
             variant="ghost"
             size="sm"
             onClick={fitAllProfiles}
             className="w-full justify-start h-7 px-2 text-xs"
             style={{ color: '#ffffff' }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')
+            }
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             <Navigation className="h-3 w-3 mr-1.5" />
             Tout
@@ -511,35 +572,47 @@ export default function SmartInteractiveMap({
       </div>
 
       {/* Légende - Compact */}
-      <div className="absolute bottom-4 left-4 z-[1000] rounded-lg p-2.5 text-white" style={{
-        background: 'rgba(30, 30, 30, 0.6)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)'
-      }}>
+      <div
+        className="absolute bottom-4 left-4 z-[1000] rounded-lg p-2.5 text-white"
+        style={{
+          background: 'rgba(30, 30, 30, 0.6)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}
+      >
         <div className="space-y-1">
           <div className="flex items-center gap-1.5 text-[10px]">
-            <div className="w-2.5 h-2.5 rounded-full border border-white" style={{ background: '#3b82f6' }} />
-            <span>Standards ({profiles.filter(p => !p.hasNotes).length})</span>
+            <div
+              className="w-2.5 h-2.5 rounded-full border border-white"
+              style={{ background: '#3b82f6' }}
+            />
+            <span>Standards ({profiles.filter((p) => !p.hasNotes).length})</span>
           </div>
           <div className="flex items-center gap-1.5 text-[10px]">
             <div className="relative">
-              <div className="w-2.5 h-2.5 rounded-full border border-white" style={{ background: '#ef4444' }} />
-              <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full border border-white" style={{ background: '#f59e0b' }} />
+              <div
+                className="w-2.5 h-2.5 rounded-full border border-white"
+                style={{ background: '#ef4444' }}
+              />
+              <div
+                className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full border border-white"
+                style={{ background: '#f59e0b' }}
+              />
             </div>
-            <span>Surveillés ({profiles.filter(p => p.hasNotes).length})</span>
+            <span>Surveillés ({profiles.filter((p) => p.hasNotes).length})</span>
           </div>
         </div>
       </div>
 
       {/* Carte */}
-      <div 
-        ref={mapRef} 
+      <div
+        ref={mapRef}
         className="w-full h-full rounded-lg"
         style={{ minHeight: '500px' }}
       />
-      
+
       {/* Styles CSS personnalisés */}
-      <style jsx global>{`
+      <style>{`
         .custom-smart-marker {
           display: flex;
           align-items: center;

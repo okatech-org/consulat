@@ -23,7 +23,7 @@ export const createAppointment = mutation({
     requestId: v.optional(v.id('requests')),
     participants: v.array(
       v.object({
-        userId: v.id('users'),
+        userId: v.union(v.id('profiles'), v.id('memberships')),
         role: v.optional(participantRoleValidator),
         status: v.optional(participantStatusValidator),
       }),
@@ -82,7 +82,7 @@ export const createAppointment = mutation({
       serviceId: args.serviceId,
       requestId: args.requestId,
       participants: args.participants.map((participant) => ({
-        userId: participant.userId,
+        id: participant.userId,
         role: participant.role || ParticipantRole.Attendee,
         status: participant.status || ParticipantStatus.Tentative,
       })),
@@ -187,12 +187,12 @@ export const getAppointmentsByOrganization = query({
 });
 
 export const getAppointmentsByUser = query({
-  args: { userId: v.id('users') },
+  args: { userId: v.union(v.id('profiles'), v.id('memberships')) },
   handler: async (ctx, args) => {
     const allAppointments = await ctx.db.query('appointments').order('asc').collect();
 
     return allAppointments.filter((appointment) =>
-      appointment.participants.some((participant) => participant.userId === args.userId),
+      appointment.participants.some((participant) => participant.id === args.userId),
     );
   },
 });
@@ -210,7 +210,7 @@ export const getAppointmentsByStatus = query({
 
 export const getUpcomingAppointments = query({
   args: {
-    userId: v.optional(v.id('users')),
+    userId: v.optional(v.union(v.id('profiles'), v.id('memberships'))),
     organizationId: v.optional(v.id('organizations')),
     limit: v.optional(v.number()),
   },
@@ -223,9 +223,7 @@ export const getUpcomingAppointments = query({
 
     if (args.userId) {
       appointments = appointments.filter((appointment) =>
-        appointment.participants.some(
-          (participant) => participant.userId === args.userId,
-        ),
+        appointment.participants.some((participant) => participant.id === args.userId),
       );
     }
 
@@ -246,7 +244,7 @@ export const getUpcomingAppointments = query({
 // Enriched query for user appointments grouped by status
 export const getUserAppointmentsEnriched = query({
   args: {
-    userId: v.id('users'),
+    userId: v.union(v.id('profiles'), v.id('memberships')),
     organizationId: v.optional(v.id('organizations')),
   },
   handler: async (ctx, args) => {
@@ -255,7 +253,7 @@ export const getUserAppointmentsEnriched = query({
 
     // Filter by user participation
     let userAppointments = allAppointments.filter((appointment) =>
-      appointment.participants.some((p) => p.userId === args.userId),
+      appointment.participants.some((p) => p.id === args.userId),
     );
 
     // Filter by organization if provided
@@ -401,7 +399,7 @@ export const updateAppointment = mutation({
     participants: v.optional(
       v.array(
         v.object({
-          userId: v.id('users'),
+          id: v.union(v.id('profiles'), v.id('memberships')),
           role: participantRoleValidator,
           status: participantStatusValidator,
         }),
@@ -537,7 +535,7 @@ export const missAppointment = mutation({
 export const addParticipantToAppointment = mutation({
   args: {
     appointmentId: v.id('appointments'),
-    userId: v.id('users'),
+    userId: v.union(v.id('profiles'), v.id('memberships')),
     role: v.optional(participantRoleValidator),
   },
   returns: v.id('appointments'),
@@ -548,7 +546,7 @@ export const addParticipantToAppointment = mutation({
     }
 
     const existingParticipant = appointment.participants.find(
-      (p) => p.userId === args.userId,
+      (p) => p.id === args.userId,
     );
 
     if (existingParticipant) {
@@ -556,7 +554,7 @@ export const addParticipantToAppointment = mutation({
     }
 
     const newParticipant = {
-      userId: args.userId,
+      id: args.userId,
       role: args.role || ParticipantRole.Attendee,
       status: ParticipantStatus.Tentative,
     };
@@ -572,7 +570,7 @@ export const addParticipantToAppointment = mutation({
 export const updateParticipantStatus = mutation({
   args: {
     appointmentId: v.id('appointments'),
-    userId: v.id('users'),
+    userId: v.union(v.id('profiles'), v.id('memberships')),
     status: v.string(),
   },
   returns: v.id('appointments'),
@@ -583,7 +581,7 @@ export const updateParticipantStatus = mutation({
     }
 
     const participantIndex = appointment.participants.findIndex(
-      (p) => p.userId === args.userId,
+      (p) => p.id === args.userId,
     );
 
     if (participantIndex === -1) {
@@ -607,7 +605,7 @@ export const updateParticipantStatus = mutation({
 export const removeParticipantFromAppointment = mutation({
   args: {
     appointmentId: v.id('appointments'),
-    userId: v.id('users'),
+    userId: v.union(v.id('profiles'), v.id('memberships')),
   },
   returns: v.id('appointments'),
   handler: async (ctx, args) => {
@@ -617,7 +615,7 @@ export const removeParticipantFromAppointment = mutation({
     }
 
     const updatedParticipants = appointment.participants.filter(
-      (p) => p.userId !== args.userId,
+      (p) => p.id !== args.userId,
     );
 
     if (updatedParticipants.length === appointment.participants.length) {

@@ -27,9 +27,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { tryCatch } from '@/lib/utils';
-import { notify } from '@/lib/services/notifications';
-import { NotificationChannel, NotificationType } from '@/types/notifications';
+import { useAction } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { NotificationChannel, NotificationType } from '@/convex/lib/constants';
+import type { Id } from '@/convex/_generated/dataModel';
 
 const messageSchema = z.object({
   title: z.string().min(3, 'Le titre doit contenir au moins 3 caractères'),
@@ -56,6 +57,10 @@ export function SendMessageDialog({ user }: SendMessageDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const sendNotification = useAction(
+    api.functions.notification.sendMultiChannelNotification,
+  );
+
   const form = useForm<MessageFormData>({
     resolver: zodResolver(messageSchema),
     defaultValues: {
@@ -74,15 +79,15 @@ export function SendMessageDialog({ user }: SendMessageDialogProps) {
       const notificationChannels: NotificationChannel[] = [];
 
       if (data.channels.includes('EMAIL') && user.email) {
-        notificationChannels.push(NotificationChannel.EMAIL);
+        notificationChannels.push(NotificationChannel.Email);
       }
 
       if (data.channels.includes('SMS') && user.phoneNumber) {
-        notificationChannels.push(NotificationChannel.SMS);
+        notificationChannels.push(NotificationChannel.Sms);
       }
 
       if (data.channels.includes('APP')) {
-        notificationChannels.push(NotificationChannel.APP);
+        notificationChannels.push(NotificationChannel.App);
       }
 
       if (notificationChannels.length === 0) {
@@ -90,25 +95,15 @@ export function SendMessageDialog({ user }: SendMessageDialogProps) {
         return;
       }
 
-      // Envoyer la notification
-      const result = await tryCatch(
-        notify({
-          userId: user.id,
-          type: NotificationType.REQUEST_NEW,
-          title: data.title,
-          message: data.message,
-          channels: notificationChannels,
-          email: user.email || undefined,
-          phoneNumber: user.phoneNumber || undefined,
-          priority: data.priority,
-        }),
-      );
-
-      if (result.error) {
-        toast.error("Erreur lors de l'envoi du message");
-        console.error(result.error);
-        return;
-      }
+      // Envoyer la notification via Convex
+      await sendNotification({
+        userId: user.id as Id<'users'>,
+        type: NotificationType.Feedback,
+        title: data.title,
+        content: data.message,
+        channels: notificationChannels,
+        priority: data.priority,
+      });
 
       toast.success('Message envoyé avec succès');
       form.reset();

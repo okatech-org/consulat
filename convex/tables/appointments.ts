@@ -25,7 +25,7 @@ export const appointments = defineTable({
   // Participants
   participants: v.array(
     v.object({
-      userId: v.id('users'),
+      id: v.union(v.id('profiles'), v.id('memberships')),
       role: participantRoleValidator,
       status: participantStatusValidator,
     }),
