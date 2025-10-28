@@ -1404,11 +1404,13 @@ export const importUserWithData = mutation({
 
           const participants: Array<{
             id: Id<'profiles'> | Id<'memberships'>;
+            userId: Id<'users'>;
             role: ParticipantRole;
             status: ParticipantStatus;
           }> = [
             {
               id: profileId!,
+              userId: userId,
               role: ParticipantRole.Attendee,
               status: ParticipantStatus.Confirmed,
             },
@@ -1417,6 +1419,7 @@ export const importUserWithData = mutation({
           if (agentId) {
             participants.push({
               id: agentId!,
+              userId: userId,
               role: ParticipantRole.Agent,
               status: ParticipantStatus.Confirmed,
             });

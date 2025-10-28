@@ -23,7 +23,8 @@ export const createAppointment = mutation({
     requestId: v.optional(v.id('requests')),
     participants: v.array(
       v.object({
-        userId: v.union(v.id('profiles'), v.id('memberships')),
+        id: v.union(v.id('profiles'), v.id('memberships')),
+        userId: v.id('users'),
         role: v.optional(participantRoleValidator),
         status: v.optional(participantStatusValidator),
       }),
@@ -82,7 +83,8 @@ export const createAppointment = mutation({
       serviceId: args.serviceId,
       requestId: args.requestId,
       participants: args.participants.map((participant) => ({
-        id: participant.userId,
+        id: participant.id,
+        userId: participant.userId,
         role: participant.role || ParticipantRole.Attendee,
         status: participant.status || ParticipantStatus.Tentative,
       })),
@@ -400,6 +402,7 @@ export const updateAppointment = mutation({
       v.array(
         v.object({
           id: v.union(v.id('profiles'), v.id('memberships')),
+          userId: v.id('users'),
           role: participantRoleValidator,
           status: participantStatusValidator,
         }),
@@ -535,7 +538,8 @@ export const missAppointment = mutation({
 export const addParticipantToAppointment = mutation({
   args: {
     appointmentId: v.id('appointments'),
-    userId: v.union(v.id('profiles'), v.id('memberships')),
+    userId: v.id('users'),
+    id: v.union(v.id('profiles'), v.id('memberships')),
     role: v.optional(participantRoleValidator),
   },
   returns: v.id('appointments'),
@@ -545,16 +549,15 @@ export const addParticipantToAppointment = mutation({
       throw new Error('Appointment not found');
     }
 
-    const existingParticipant = appointment.participants.find(
-      (p) => p.id === args.userId,
-    );
+    const existingParticipant = appointment.participants.find((p) => p.id === args.id);
 
     if (existingParticipant) {
       throw new Error('Participant already exists in appointment');
     }
 
     const newParticipant = {
-      id: args.userId,
+      id: args.id,
+      userId: args.userId,
       role: args.role || ParticipantRole.Attendee,
       status: ParticipantStatus.Tentative,
     };
