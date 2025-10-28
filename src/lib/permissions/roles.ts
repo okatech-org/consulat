@@ -1,7 +1,7 @@
 import type { RolesConfig } from './types';
 
 export const ROLES: RolesConfig = {
-  SUPER_ADMIN: {
+  super_admin: {
     profiles: {
       view: true,
       create: true,
@@ -29,6 +29,7 @@ export const ROLES: RolesConfig = {
       process: true,
       validate: true,
       list: true,
+      complete: true,
     },
     organizations: {
       view: true,
@@ -58,225 +59,205 @@ export const ROLES: RolesConfig = {
       delete: true,
       manage: true,
     },
-    parentalAuthorities: {
+    childProfiles: {
       view: true,
       create: true,
       update: true,
       delete: true,
       manage: true,
     },
+    intelligenceNotes: {
+      view: true,
+      create: true,
+      update: true,
+      delete: true,
+      viewHistory: true,
+    },
   },
-  ADMIN: {
+  admin: {
     profiles: {
-      view: (user, profile) => profile.assignedOrganizationId === user.organizationId,
-      create: () => true,
-      update: (user, profile) => profile.assignedOrganizationId === user.organizationId,
-      validate: (user, profile) => profile.assignedOrganizationId === user.organizationId,
-      viewChild: (user, profile) =>
-        profile.assignedOrganizationId === user.organizationId,
+      view: true,
+      create: true,
+      update: true,
+      validate: true,
+      viewChild: true,
     },
     appointments: {
-      view: (user, appointment) => appointment.organizationId === user.organizationId,
-      create: (user, appointment) => appointment.organizationId === user.organizationId,
-      update: (user, appointment) => appointment.organizationId === user.organizationId,
-      reschedule: (user, appointment) =>
-        appointment.organizationId === user.organizationId,
-      cancel: (user, appointment) => appointment.organizationId === user.organizationId,
+      view: true,
+      create: true,
+      update: true,
+      reschedule: true,
+      cancel: true,
     },
     serviceRequests: {
       list: true,
-      view: (user, request) => request.organizationId === user.organizationId,
-      process: (user, request) => request.organizationId === user.organizationId,
-      validate: (user, request) => request.organizationId === user.organizationId,
+      view: true,
+      process: true,
+      validate: true,
+      complete: true,
     },
     organizations: {
-      view: (user, org) => org.id === user.organizationId,
-      update: (user, org) => org.id === user.organizationId,
-      manage: (user, org) => org.id === user.organizationId,
-    },
-    consularServices: {
-      view: (user, service) => service.organizationId === user.organizationId,
-      update: (user, service) => service.organizationId === user.organizationId,
-      configure: (user, service) => service.organizationId === user.organizationId,
-    },
-    documents: {
       view: true,
-      validate: true,
-    },
-    users: {
-      view: (user, targetUser) => targetUser.organizationId === user.organizationId,
-      create: (user, targetUser) => targetUser.organizationId === user.organizationId,
-      update: (user, targetUser) => targetUser.organizationId === user.organizationId,
-      manage: (user, targetUser) => targetUser.organizationId === user.organizationId,
-    },
-    parentalAuthorities: {
-      view: true,
+      update: true,
       manage: true,
     },
-  },
-  AGENT: {
-    profiles: {
-      view: () => true,
-      validate: () => true,
-    },
-    appointments: {
-      view: (user, appointment) => {
-        return (
-          appointment.organizationId === user.organizationId &&
-          (appointment.agentId === user.id || !appointment.agentId)
-        );
-      },
-      update: (user, appointment) => appointment.agentId === user.id,
-      reschedule: (user, appointment) => appointment.agentId === user.id,
-    },
-    serviceRequests: {
-      list: true,
-      view: (user, request) => {
-        return (
-          request.organizationId === user.assignedOrganizationId &&
-          user.specializations &&
-          user.specializations.includes(request.serviceCategory)
-        );
-      },
-      process: (user, request) => {
-        return (
-          request.organizationId === user.assignedOrganizationId &&
-          user.specializations &&
-          user.specializations.includes(request.serviceCategory)
-        );
-      },
-      update: (user, request) => {
-        return (
-          request.organizationId === user.assignedOrganizationId &&
-          user.specializations &&
-          user.specializations.includes(request.serviceCategory)
-        );
-      },
-      validate: (user, request) => {
-        return (
-          request.organizationId === user.assignedOrganizationId &&
-          user.specializations &&
-          user.specializations.includes(request.serviceCategory)
-        );
-      },
-      complete: (user, request) => {
-        return (
-          request.organizationId === user.assignedOrganizationId &&
-          user.specializations &&
-          user.specializations.includes(request.serviceCategory)
-        );
-      },
-    },
-    documents: {
-      view: true,
-      validate: true,
-    },
-    parentalAuthorities: {
-      view: true,
-    },
-  },
-  USER: {
-    profiles: {
-      view: (user, profile) => profile.userId === user.id,
-      create: (user, profile) => profile.userId === user.id,
-      update: (user, profile) => profile.userId === user.id,
-      viewChild: () => true,
-      createChild: (user, profile) => {
-        return profile.userId === user.id && profile.category === 'ADULT';
-      },
-      updateChild: () => true,
-    },
-    appointments: {
-      view: (user, appointment) => appointment.attendeeId === user.id,
-      create: true,
-      reschedule: (user, appointment) => appointment.attendeeId === user.id,
-      cancel: (user, appointment) => appointment.attendeeId === user.id,
-    },
-    serviceRequests: {
-      view: (user, request) => {
-        return request.submittedById === user.id;
-      },
-      create: true,
-      update: (user, request) => {
-        return request.submittedById === user.id;
-      },
-    },
-    documents: {
-      view: (user, doc) => doc.userId === user.id,
-      create: (user, doc) => doc.userId === user.id,
-      update: (user, doc) => doc.userId === user.id,
-    },
     consularServices: {
       view: true,
-    },
-    organizations: {
-      view: true,
-    },
-    parentalAuthorities: {
-      view: (user, authority) => {
-        const parentUserIds = (authority.parentUsers || []).map((user) => user.id);
-        return parentUserIds.includes(user.id);
-      },
-      create: true,
-      update: (user, authority) => {
-        const parentUserIds = (authority.parentUsers || []).map((user) => user.id);
-        return parentUserIds.includes(user.id);
-      },
-      delete: (user, authority) => {
-        const parentUserIds = (authority.parentUsers || []).map((user) => user.id);
-        return parentUserIds.includes(user.id);
-      },
-    },
-  },
-  MANAGER: {
-    profiles: {
-      view: true,
-      validate: true,
-    },
-    appointments: {
-      view: (user, appointment) => appointment.organizationId === user.organizationId,
-      update: (user, appointment) => appointment.organizationId === user.organizationId,
-      reschedule: (user, appointment) =>
-        appointment.organizationId === user.organizationId,
-      cancel: (user, appointment) => appointment.organizationId === user.organizationId,
-    },
-    serviceRequests: {
-      list: true,
-      view: (user, request) => request.organizationId === user.organizationId,
-      process: (user, request) => request.organizationId === user.organizationId,
-      validate: (user, request) => request.organizationId === user.organizationId,
+      update: true,
+      configure: true,
     },
     documents: {
       view: true,
       validate: true,
     },
     users: {
-      view: (user, targetUser) => targetUser.organizationId === user.organizationId,
-    },
-    parentalAuthorities: {
       view: true,
-    },
-  },
-  INTEL_AGENT: {
-    profiles: {
-      view: true, // Lecture seule de tous les profils
-      create: false,
-      update: false,
-      delete: false,
-      validate: false,
-      viewChild: true,
-      createChild: false,
-      updateChild: false,
-      deleteChild: false,
+      create: true,
+      update: true,
+      manage: true,
     },
     intelligenceNotes: {
       view: true,
       create: true,
-      update: (user, note) => note.authorId === user.id,
-      delete: (user, note) => note.authorId === user.id,
+      update: true,
+      delete: true,
       viewHistory: true,
     },
-    // Toutes les autres permissions à false
+  },
+  agent: {
+    profiles: {
+      view: true,
+      validate: true,
+    },
+    appointments: {
+      view: (user, appointment) => {
+        const userParticipant = appointment.participants.find(
+          (p) => p.userId === user._id,
+        );
+        return !!userParticipant && userParticipant.role === 'agent';
+      },
+      update: (user, appointment) => {
+        const userParticipant = appointment.participants.find(
+          (p) => p.userId === user._id,
+        );
+        return !!userParticipant && userParticipant.role === 'agent';
+      },
+      reschedule: (user, appointment) => {
+        const userParticipant = appointment.participants.find(
+          (p) => p.userId === user._id,
+        );
+        return !!userParticipant && userParticipant.role === 'agent';
+      },
+    },
+    serviceRequests: {
+      list: true,
+      view: true,
+      process: true,
+      update: true,
+      validate: true,
+      complete: true,
+    },
+    documents: {
+      view: true,
+      validate: true,
+    },
+  },
+  user: {
+    profiles: {
+      view: (user, profile) => profile.userId === user._id,
+      create: (user, profile) => profile.userId === user._id,
+      update: (user, profile) => profile.userId === user._id,
+      viewChild: true,
+      createChild: true,
+      updateChild: true,
+    },
+    appointments: {
+      view: (user, appointment) => {
+        return appointment.participants.some((p) => p.userId === user._id);
+      },
+      create: true,
+      reschedule: (user, appointment) => {
+        const userParticipant = appointment.participants.find(
+          (p) => p.userId === user._id,
+        );
+        return !!userParticipant && userParticipant.role === 'attendee';
+      },
+      cancel: (user, appointment) => {
+        const userParticipant = appointment.participants.find(
+          (p) => p.userId === user._id,
+        );
+        return !!userParticipant && userParticipant.role === 'attendee';
+      },
+    },
+    serviceRequests: {
+      view: (user, request) => {
+        return request.requesterId === user.profileId;
+      },
+      create: true,
+      update: (user, request) => {
+        return request.requesterId === user.profileId;
+      },
+    },
+    documents: {
+      view: (user, doc) => {
+        return doc.ownerId === user._id || doc.ownerId === user.profileId;
+      },
+      create: (user, doc) => {
+        return doc.ownerId === user._id || doc.ownerId === user.profileId;
+      },
+      update: (user, doc) => {
+        return doc.ownerId === user._id || doc.ownerId === user.profileId;
+      },
+    },
+    consularServices: {
+      view: true,
+    },
+    organizations: {
+      view: true,
+    },
+  },
+  manager: {
+    profiles: {
+      view: true,
+      validate: true,
+    },
+    appointments: {
+      view: true,
+      update: true,
+      reschedule: true,
+      cancel: true,
+    },
+    serviceRequests: {
+      list: true,
+      view: true,
+      process: true,
+      validate: true,
+      complete: true,
+    },
+    documents: {
+      view: true,
+      validate: true,
+    },
+    users: {
+      view: true,
+    },
+    intelligenceNotes: {
+      view: true,
+      viewHistory: true,
+    },
+  },
+  intel_agent: {
+    profiles: {
+      view: true,
+      viewChild: true,
+    },
+    intelligenceNotes: {
+      view: true,
+      create: true,
+      update: (user, note) => note.authorId === user._id,
+      delete: (user, note) => note.authorId === user._id,
+      viewHistory: true,
+    },
     appointments: {
       view: false,
       create: false,
@@ -310,7 +291,7 @@ export const ROLES: RolesConfig = {
       configure: false,
     },
     documents: {
-      view: true, // Peut voir les documents des profils
+      view: true,
       create: false,
       update: false,
       delete: false,
@@ -323,17 +304,40 @@ export const ROLES: RolesConfig = {
       delete: false,
       manage: false,
     },
-    parentalAuthorities: {
-      view: true, // Peut voir les autorités parentales
+  },
+  education_agent: {
+    profiles: {
+      view: true,
+    },
+    appointments: {
+      view: false,
       create: false,
       update: false,
       delete: false,
-      manage: false,
+      reschedule: false,
+      cancel: false,
     },
-  },
-  EDUCATION_AGENT: {
-    profiles: {
+    serviceRequests: {
+      view: false,
+      create: false,
+      update: false,
+      delete: false,
+      process: false,
+      validate: false,
+      list: false,
+      complete: false,
+    },
+    organizations: {
       view: true,
+    },
+    consularServices: {
+      view: false,
+    },
+    documents: {
+      view: false,
+    },
+    users: {
+      view: false,
     },
   },
 };

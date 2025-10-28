@@ -48,11 +48,12 @@ export type ResourceType = {
     action: 'view' | 'create' | 'update' | 'delete' | 'manage';
   };
   childProfiles: {
-    dataType: Doc<'childProfiles'> & {
-      profile?: Doc<'profiles'>;
-      parentUsers?: Doc<'users'>[];
-    };
+    dataType: Doc<'childProfiles'>;
     action: 'view' | 'create' | 'update' | 'delete' | 'manage';
+  };
+  intelligenceNotes: {
+    dataType: Doc<'intelligenceNotes'>;
+    action: 'view' | 'create' | 'update' | 'delete' | 'viewHistory';
   };
 };
 
