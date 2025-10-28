@@ -12,10 +12,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { OrganizationForm } from './organization-form';
-import { api } from '@/trpc/react';
-
+import { api } from '@/convex/_generated/api';
+import { CountryStatus } from '@/convex/lib/constants';
+import { useQuery } from 'convex/react';
 export function CreateOrganizationButton() {
-  const { data } = api.countries.getActive.useQuery();
+  const countries = useQuery(api.functions.country.getAllCountries, {
+    status: CountryStatus.Active,
+  });
   const t = useTranslations('sa.organizations');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -31,7 +34,7 @@ export function CreateOrganizationButton() {
           <DialogTitle>{t('form.create_title')}</DialogTitle>
         </DialogHeader>
         <OrganizationForm
-          countries={data ?? []}
+          countries={countries ?? []}
           onSuccess={() => setIsOpen(false)}
           onCancel={() => setIsOpen(false)}
         />

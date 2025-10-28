@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { ServiceCategory, UserRole } from '@prisma/client';
+import { ServiceCategory, UserRole } from '@/convex/lib/constants';
 import {
   DateSchema,
   EmailSchema,
@@ -29,7 +29,7 @@ export const AgentSchema = z.object({
   lastName: NameSchema,
   email: EmailSchema.optional(),
   phoneNumber: PhoneNumberSchema.optional(),
-  roles: z.array(z.nativeEnum(UserRole)).default([UserRole.AGENT]),
+  roles: z.array(z.enum(UserRole)).default([UserRole.Agent]),
   managedByUserId: z.string().optional(),
   countryCodes: z.array(z.string()).min(1, {
     message: 'Vous devez sélectionner au moins un pays.',
@@ -47,7 +47,7 @@ export const UserSettingsSchema = z.object({
   email: EmailSchema.optional(),
   phoneNumber: PhoneNumberSchema.optional(),
   image: z.string().optional(),
-  roles: z.array(z.nativeEnum(UserRole)),
+  roles: z.array(z.enum(UserRole)),
   emailVerified: DateSchema.optional().nullable(),
   phoneVerified: DateSchema.optional().nullable(),
 });
@@ -56,7 +56,7 @@ export type UserSettings = z.infer<typeof UserSettingsSchema>;
 
 export const AgentSettingsSchema = UserSettingsSchema.extend({
   linkedCountries: z.array(z.string()),
-  specializations: z.array(z.nativeEnum(ServiceCategory)),
+  specializations: z.array(z.enum(ServiceCategory)),
   maxActiveRequests: z.number().optional(),
   availability: z.array(z.string()),
   completedRequests: z.number().optional(),

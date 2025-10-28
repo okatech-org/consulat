@@ -22,23 +22,25 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import { OrganizationType, OrganizationStatus, type Country } from '@prisma/client';
+import { OrganizationType, OrganizationStatus } from '@/convex/lib/constants';
 import {
   organizationSchema,
   type CreateOrganizationInput,
   type UpdateOrganizationInput,
   updateOrganizationSchema,
 } from '@/schemas/organization';
-import { type Organization } from '@/types/organization';
 import { useOrganizationActions } from '@/hooks/use-organization-actions';
 import { InfoField } from '@/components/ui/info-field';
 import { type CountryCode } from '@/lib/autocomplete-datas';
 import { MultiSelect } from '../ui/multi-select';
 import { FlagIcon } from '../ui/flag-icon';
+import type { Doc } from '@/convex/_generated/dataModel';
 
 interface OrganizationFormProps {
-  organization?: Organization;
-  countries: Country[];
+  organization?: Doc<'organizations'> & {
+    countries?: Array<{ id: string; code: string; name: string }>;
+  };
+  countries: Array<Doc<'countries'>>;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -60,12 +62,12 @@ export function OrganizationForm({
           name: organization.name,
           type: organization.type,
           status: organization.status,
-          countryIds: organization.countries.map((c) => c.id),
+          countryIds: organization.countryCodes || [],
         }
       : {
           name: '',
-          type: OrganizationType.CONSULATE,
-          status: OrganizationStatus.ACTIVE,
+          type: OrganizationType.Consulate,
+          status: OrganizationStatus.Active,
           countryIds: [],
           adminEmail: '',
         },
@@ -73,7 +75,10 @@ export function OrganizationForm({
 
   async function handleCreateSubmit(data: CreateOrganizationInput) {
     try {
-      const result = await handleCreate(data);
+      const result = await handleCreate({
+        ...data,
+        code: `ORG_${Date.now().toString(36).toUpperCase()}`,
+      });
       if (!result) {
         return;
       }
@@ -92,7 +97,7 @@ export function OrganizationForm({
         return;
       }
 
-      const result = await handleUpdate(organization.id, data);
+      const result = await handleUpdate(organization._id, data);
       if (!result) {
         return;
       }

@@ -20,10 +20,8 @@ import { Button } from '@/components/ui/button';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { type AgentFormData, AgentSchema } from '@/schemas/user';
 import { toast } from 'sonner';
-
-import { createNewAgent } from '@/actions/organizations';
-import { updateAgent } from '@/actions/agents';
-import { tryCatch } from '@/lib/utils';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import {
   Select,
   SelectTrigger,
@@ -31,20 +29,22 @@ import {
   SelectContent,
   SelectItem,
 } from '../ui/select';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '@/convex/lib/constants';
 import { Badge } from '@/components/ui/badge';
 import CardContainer from '@/components/layouts/card-container';
 import { PhoneInput } from '../ui/phone-input';
+import type { Id } from '@/convex/_generated/dataModel';
 
 interface AgentFormProps {
   initialData?: Partial<AgentFormData>;
   countries: Doc<'countries'>[];
-  services: { id: string; name: string }[];
-  managers?: { id: string; name: string }[];
-  agents?: { id: string; name: string }[];
+  services: Array<Doc<'services'>>;
+  managers?: Array<{ id: Id<'users'>; name: string }>;
+  agents?: Array<{ id: Id<'memberships'>; name: string }>;
   onSuccess?: () => void;
   isEditMode?: boolean;
-  agentId?: string;
+  agentId?: Id<'memberships'>;
+  organizationId: Id<'organizations'>;
 }
 
 export function AgentForm({
@@ -56,6 +56,7 @@ export function AgentForm({
   onSuccess,
   isEditMode = false,
   agentId,
+  organizationId,
 }: AgentFormProps) {
   const t_inputs = useTranslations('inputs');
   const t_common = useTranslations('common');
@@ -65,6 +66,10 @@ export function AgentForm({
     initialData?.managedAgentIds ?? [],
   );
 
+  const addMemberMutation = useMutation(api.functions.membership.addMember);
+  const updateMembershipMutation = useMutation(api.functions.membership.updateMembership);
+  const createUserMutation = useMutation(api.functions.user.createUser);
+
   const form = useForm<AgentFormData>({
     resolver: zodResolver(AgentSchema),
     defaultValues: {
@@ -72,7 +77,7 @@ export function AgentForm({
       countryCodes: initialData?.countryCodes ?? [],
       serviceIds: initialData?.serviceIds ?? [],
       phoneNumber: initialData?.phoneNumber,
-      roles: initialData?.roles ?? [UserRole.AGENT],
+      roles: initialData?.roles ?? [UserRole.Agent],
     },
     mode: 'onSubmit',
   });
@@ -92,53 +97,42 @@ export function AgentForm({
 
     try {
       if (isEditMode && agentId) {
-        // Update existing agent
-        const updateData = {
-          name: `${data.firstName} ${data.lastName}`,
-          email: data.email,
-          phoneNumber: data.phoneNumber,
-          countryCodes: data.countryCodes || [],
-          serviceIds: data.serviceIds || [],
-          managedByUserId: watchedRole?.includes(UserRole.AGENT)
-            ? data.managedByUserId
-            : undefined,
-          roles: data.roles || [UserRole.AGENT],
-          managedAgentIds: watchedRole?.includes(UserRole.MANAGER) ? managedAgents : [],
-        };
+        // Update existing membership
+        await updateMembershipMutation({
+          membershipId: agentId,
+          role: data.roles?.[0],
+        });
 
-        const result = await tryCatch(updateAgent(agentId, updateData));
-
-        if (result.data) {
-          toast.success(t_messages('success.update'));
-          onSuccess?.();
-        } else if (result.error) {
-          toast.error(t_messages('errors.update'), {
-            description: `${result.error.message}`,
-          });
-        }
+        toast.success(t_messages('success.update'));
+        onSuccess?.();
       } else {
-        // Create new agent
-        const createData = {
-          ...data,
-          managedAgentIds: watchedRole?.includes(UserRole.MANAGER) ? managedAgents : [],
-        };
+        // Create new user
+        const userId = await createUserMutation({
+          userId: `temp_${Date.now()}`,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email || '',
+          phoneNumber: data.phoneNumber || '',
+          roles: data.roles || [UserRole.Agent],
+        });
 
-        const result = await tryCatch(createNewAgent(createData));
+        // Add membership to organization
+        await addMemberMutation({
+          userId,
+          organizationId,
+          role: data.roles?.[0] as string,
+          permissions: [],
+        });
 
-        if (result.data) {
-          toast.success(t_messages('success.create'));
-          onSuccess?.();
-        } else if (result.error) {
-          toast.error(t_messages('errors.create'), {
-            description: `${result.error.message}`,
-          });
-        }
+        toast.success(t_messages('success.create'));
+        onSuccess?.();
       }
-    } catch {
+    } catch (error) {
       toast.error(
         isEditMode ? t_messages('errors.update') : t_messages('errors.create'),
         {
-          description: t_messages('errors.create'),
+          description:
+            error instanceof Error ? error.message : t_messages('errors.create'),
         },
       );
     } finally {
@@ -218,7 +212,9 @@ export function AgentForm({
                       onChange={field.onChange}
                       disabled={isLoading}
                       placeholder={t_inputs('phone.placeholder')}
-                      countries={countries?.map((country) => country.code as any)}
+                      countries={
+                        countries?.map((country) => country.code as string) as any
+                      }
                       defaultCountry={countries?.[0]?.code as any}
                     />
                   </FormControl>
@@ -258,7 +254,7 @@ export function AgentForm({
             />
 
             {/* Manager assignment for AGENT role */}
-            {watchedRole?.includes(UserRole.AGENT) && (
+            {watchedRole?.includes(UserRole.Agent) && (
               <div className="space-y-4">
                 {/* Current manager display (edit mode) */}
                 {isEditMode && currentManager && (
@@ -315,7 +311,7 @@ export function AgentForm({
             )}
 
             {/* Agent assignment for MANAGER role */}
-            {watchedRole?.includes(UserRole.MANAGER) && (
+            {watchedRole?.includes(UserRole.Manager) && (
               <FormField
                 control={form.control}
                 name="managedAgentIds"
@@ -377,7 +373,7 @@ export function AgentForm({
                       placeholder={t_inputs('country.select_placeholder')}
                       options={countries.map((country) => ({
                         label: country.name,
-                        value: country._id,
+                        value: country.code,
                       }))}
                       selected={field.value || []}
                       onChange={field.onChange}
@@ -401,7 +397,7 @@ export function AgentForm({
                       placeholder="Sélectionner les services"
                       options={services.map((service) => ({
                         label: service.name,
-                        value: service.id,
+                        value: service._id,
                       }))}
                       selected={field.value || []}
                       onChange={field.onChange}

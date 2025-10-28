@@ -5,6 +5,7 @@ import { EmailSchema, PhoneSchema } from '@/schemas/inputs';
 
 export const organizationSchema = z.object({
   name: z.string().min(1, 'messages.errors.name_required'),
+  code: z.string().optional(),
   type: z.nativeEnum(OrganizationType),
   status: z.nativeEnum(OrganizationStatus),
   countryIds: z.array(z.string()).min(1, 'messages.errors.countries_required'),
@@ -136,7 +137,9 @@ export function getDefaultValues(
 
   // Transform settings from Convex format to form format
   const settings = (organization.countryCodes || []).map((countryCode) => {
-    const existingSettings = organization.settings?.find((s) => s.countryCode === countryCode);
+    const existingSettings = organization.settings?.find(
+      (s) => s.countryCode === countryCode,
+    );
 
     return {
       countryCode: countryCode as string,
