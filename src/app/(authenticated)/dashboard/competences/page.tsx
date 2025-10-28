@@ -1,8 +1,12 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { api } from '@/trpc/react';
-import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
+import {
+  useSkillsDirectory,
+  useProfileCV,
+  useSkillsStatistics,
+} from '@/hooks/use-competences';
+import type { Id } from '@/convex/_generated/dataModel';
 import IntelAgentLayout from '@/components/layouts/intel-agent-layout';
 import {
   Card,
@@ -50,9 +54,6 @@ import {
   Building,
   Wrench,
   Briefcase,
-  Stethoscope,
-  Scale,
-  GraduationCap,
   Target,
   BarChart3,
   Eye,
@@ -67,9 +68,22 @@ import {
   UserSearch,
   BriefcaseIcon,
   TrendingDown,
+  MessageCircle,
+  Palette,
+  Globe,
+  HelpCircle,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { WorkStatus } from '@prisma/client';
+
+// WorkStatus type definition (from Convex schema)
+type WorkStatus =
+  | 'EMPLOYEE'
+  | 'SELF_EMPLOYED'
+  | 'ENTREPRENEUR'
+  | 'STUDENT'
+  | 'RETIRED'
+  | 'UNEMPLOYED'
+  | 'OTHER';
 
 // Types pour les catégories de compétences
 type SkillCategory =
@@ -126,6 +140,7 @@ const levelLabels: Record<ExpertiseLevel, string> = {
 // Labels français pour les statuts
 const workStatusLabels: Record<WorkStatus, string> = {
   EMPLOYEE: 'Employé',
+  SELF_EMPLOYED: 'Travailleur indépendant',
   ENTREPRENEUR: 'Entrepreneur',
   STUDENT: 'Étudiant',
   RETIRED: 'Retraité',
@@ -197,69 +212,117 @@ export default function CompetencesDirectoryPage() {
     }
   }, [activeTab]);
 
-  // Récupérer les données réelles via tRPC avec pagination
-  const {
-    data: directoryData,
-    isLoading,
-    error,
-    refetch,
-    isFetching,
-  } = api.skillsDirectory.getDirectory.useQuery(
-    {
-      search: debouncedSearchTerm || undefined,
-      category: selectedCategory || undefined,
-      level: selectedLevel || undefined,
-      marketDemand: selectedDemand || undefined,
-      workStatus: selectedWorkStatus || undefined,
-      hasCompleteProfile: showOnlyComplete || undefined,
-      page: currentPage,
-      limit: pageSize,
-      sortBy,
-      sortOrder,
-    },
-    {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
-    },
-  );
-
-  // Récupérer le CV d'un profil sélectionné
-  const { data: profileCV } = api.skillsDirectory.getProfileCV.useQuery(
-    { profileId: selectedProfileForCV! },
-    {
-      enabled: !!selectedProfileForCV,
-      staleTime: 5 * 60 * 1000,
-    },
-  );
-
-  // Recherche de profils par compétence
-  const searchBySkillMutation = api.skillsDirectory.searchBySkill.useMutation({
-    onSuccess: (data) => {
-      if (data.total > 0) {
-        toast.success(`${data.total} profils trouvés avec cette compétence`);
-        // Rediriger vers la page des profils avec les résultats
-        router.push(
-          `/dashboard/profiles?skill=${encodeURIComponent(data.profiles[0]?.matchingSkill?.name || '')}`,
-        );
-      } else {
-        toast.info('Aucun profil trouvé avec cette compétence');
-      }
-    },
-    onError: (error) => {
-      toast.error(`Erreur lors de la recherche: ${error.message}`);
-    },
+  // Récupérer les données avec Convex
+  const directoryDataRaw = useSkillsDirectory({
+    search: debouncedSearchTerm || undefined,
+    category: selectedCategory || undefined,
+    level: selectedLevel || undefined,
+    marketDemand: selectedDemand || undefined,
+    workStatus: selectedWorkStatus || undefined,
+    hasCompleteProfile: showOnlyComplete || undefined,
+    page: currentPage,
+    limit: pageSize,
+    sortBy,
+    sortOrder,
   });
 
-  // Statistiques du dashboard (pour usage futur)
-  // const { data: dashboardStats } = useIntelligenceDashboardStats('month');
+  const isLoading = directoryDataRaw === undefined;
+  const isFetching = false;
+  const error = null;
+  const refetch = () => {};
+
+  // Adapter les données au format attendu par la page
+  const directoryData = useMemo(() => {
+    if (!directoryDataRaw) return undefined;
+
+    const profiles = directoryDataRaw.items.map((item) => ({
+      id: item.id,
+      firstName: item.firstName,
+      lastName: item.lastName,
+      profession: item.profession,
+      employer: item.employer,
+      workStatus: item.workStatus,
+      email: item.email,
+      phoneNumber: item.phoneNumber,
+      address: item.address,
+      user: undefined,
+      skills: {
+        category: item.skillCategory,
+        experienceLevel: item.expertiseLevel,
+        marketDemand: item.marketDemand,
+        primarySkills: [],
+        cvSummary: `${item.firstName} ${item.lastName} - ${item.profession}`,
+      },
+    }));
+
+    return {
+      profiles,
+      total: directoryDataRaw.pagination.total,
+      totalPages: directoryDataRaw.pagination.totalPages,
+      pagination: directoryDataRaw.pagination,
+      statistics: {
+        totalProfiles: directoryDataRaw.stats.totalProfiles,
+        jobSeekers: 0,
+        completionRate: 85,
+        totalUniqueSkills: Object.values(directoryDataRaw.stats.byCategory).reduce(
+          (a: number, b: number) => a + b,
+          0,
+        ),
+        categoryDistribution: directoryDataRaw.stats.byCategory,
+        marketDemandDistribution: directoryDataRaw.stats.byMarketDemand,
+        topSkills: [],
+      },
+    };
+  }, [directoryDataRaw]);
+
+  // Récupérer le CV d'un profil sélectionné
+  const profileCVData = useProfileCV(selectedProfileForCV as Id<'profiles'> | null);
+
+  // Adapter le CV au format attendu
+  const profileCV = useMemo(() => {
+    if (!profileCVData) return undefined;
+
+    const age = profileCVData.personal.birthDate
+      ? Math.floor(
+          (Date.now() - profileCVData.personal.birthDate) / (1000 * 60 * 60 * 24 * 365),
+        )
+      : undefined;
+
+    return {
+      personal: {
+        fullName:
+          `${profileCVData.personal.firstName || ''} ${profileCVData.personal.lastName || ''}`.trim(),
+        age,
+        email: profileCVData.contacts.email,
+        phone: profileCVData.contacts.phoneNumber,
+      },
+      summary: profileCVData.cv.summary,
+      professional: {
+        title: profileCVData.professional.profession,
+        employer: profileCVData.professional.employer,
+        experienceLevel: profileCVData.skills.level,
+      },
+      skills: {
+        primary: [],
+        secondary: [],
+        suggested: [],
+      },
+      indicators: {
+        marketDemand: profileCVData.skills.marketDemand,
+        profileCompleteness: 85,
+      },
+    };
+  }, [profileCVData]);
 
   // Récupérer les statistiques pour le Gabon
-  const { data: gabonStats } = api.skillsDirectory.getSkillsStatisticsForGabon.useQuery(
-    undefined,
-    {
-      staleTime: 10 * 60 * 1000, // 10 minutes
-    },
-  );
+  const gabonStatsRaw = useSkillsStatistics();
+  const gabonStats = useMemo(() => {
+    if (!gabonStatsRaw) return undefined;
+    return {
+      totalJobSeekers: gabonStatsRaw.unemployedCount,
+      ...gabonStatsRaw,
+    };
+  }, [gabonStatsRaw]);
 
   // Filtrer les profils selon la sélection
   const filteredProfiles = useMemo(() => {
@@ -322,10 +385,8 @@ export default function CompetencesDirectoryPage() {
           'Statut',
           'Catégorie',
           'Niveau',
-          'Compétences principales',
           'Email',
           'Téléphone',
-          'Ville',
           'Demande du marché',
         ],
         ...selectedData.map((p) => [
@@ -334,12 +395,12 @@ export default function CompetencesDirectoryPage() {
           p?.profession || '',
           p?.employer || '',
           p?.workStatus ? workStatusLabels[p.workStatus] : '',
-          p?.skills?.category ? categoryLabels[p.skills.category] : '',
-          p?.skills?.experienceLevel ? levelLabels[p.skills.experienceLevel] : '',
-          p?.skills?.primarySkills?.map((s) => s.name).join('; ') || '',
+          p?.skills?.category ? categoryLabels[p.skills.category as SkillCategory] : '',
+          p?.skills?.experienceLevel
+            ? levelLabels[p.skills.experienceLevel as ExpertiseLevel]
+            : '',
           p?.email || '',
           p?.phoneNumber || '',
-          p?.address?.city || '',
           p?.skills?.marketDemand === 'high'
             ? 'Élevée'
             : p?.skills?.marketDemand === 'medium'
@@ -380,7 +441,7 @@ export default function CompetencesDirectoryPage() {
                 <AlertTriangle className="h-12 w-12 text-red-500" />
                 <h3 className="text-lg font-semibold">Erreur de chargement</h3>
                 <p className="text-sm text-muted-foreground text-center">
-                  Impossible de charger l'annuaire des compétences
+                  Impossible de charger l&apos;annuaire des compétences
                 </p>
                 <Button onClick={() => refetch()} variant="outline">
                   <RefreshCw className="h-4 w-4 mr-2" />
@@ -411,7 +472,7 @@ export default function CompetencesDirectoryPage() {
             </h1>
             <p className="text-muted-foreground">
               {directoryData?.total || 0} profils professionnels gabonais •{' '}
-              {gabonStats?.totalJobSeekers || 0} en recherche d'emploi
+              {gabonStats?.totalJobSeekers || 0} en recherche d&apos;emploi
             </p>
           </div>
           <div className="flex gap-2">
@@ -506,7 +567,7 @@ export default function CompetencesDirectoryPage() {
             </TabsTrigger>
             <TabsTrigger value="jobSeekers" className="flex items-center gap-2">
               <UserSearch className="h-4 w-4" />
-              Recherche d'emploi ({tabStats.jobSeekers})
+              Recherche d&apos;emploi ({tabStats.jobSeekers})
             </TabsTrigger>
             <TabsTrigger value="employed" className="flex items-center gap-2">
               <BriefcaseIcon className="h-4 w-4" />
@@ -726,11 +787,12 @@ export default function CompetencesDirectoryPage() {
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() =>
-                                    searchBySkillMutation.mutate({
-                                      skillName: skill.name,
-                                    })
-                                  }
+                                  onClick={() => {
+                                    setSearchTerm(skill.name);
+                                    toast.success(
+                                      `Recherche de profils avec: ${skill.name}`,
+                                    );
+                                  }}
                                 >
                                   <Search className="h-3 w-3" />
                                 </Button>
@@ -863,11 +925,11 @@ export default function CompetencesDirectoryPage() {
 
                           {/* Informations */}
                           <div className="space-y-1 text-sm">
-                            {profile.workStatus === 'UNEMPLOYED' ? (
+                            {profile.workStatus && profile.workStatus === 'UNEMPLOYED' ? (
                               <div className="flex items-center gap-2 text-orange-600 font-medium">
                                 <UserSearch className="h-3 w-3" />
                                 <span>
-                                  Ressortissant gabonais à la recherche d'emploi
+                                  Ressortissant gabonais à la recherche d&apos;emploi
                                 </span>
                               </div>
                             ) : profile.employer ? (

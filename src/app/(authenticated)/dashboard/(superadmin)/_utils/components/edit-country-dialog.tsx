@@ -6,10 +6,10 @@ import { CountryForm } from './country-form';
 import { useToast } from '@/hooks/use-toast';
 import type { CountrySchemaInput } from '@/schemas/country';
 import { useCountries } from '@/hooks/use-countries';
-import type { EnrichedCountry } from '@/convex/lib/types';
+import type { CountryListingItem } from '@/convex/lib/types';
 
 interface EditCountryDialogProps {
-  country: EnrichedCountry;
+  country: CountryListingItem;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -29,7 +29,7 @@ export function EditCountryDialog({
         countryId: country._id,
         name: data.name,
         code: data.code,
-        flag: data.flag,
+        flag: data.flag ?? undefined,
         status: data.status,
       });
 
@@ -38,6 +38,7 @@ export function EditCountryDialog({
       });
       onOpenChange(false);
     } catch (error) {
+      console.error(error);
       toast({
         title: t('messages.error.update'),
         variant: 'destructive',

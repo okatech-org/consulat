@@ -102,6 +102,15 @@ export const notificationTypeValidator = v.union(
   v.literal(constants.NotificationType.Cancellation),
   v.literal(constants.NotificationType.Communication),
   v.literal(constants.NotificationType.ImportantCommunication),
+  v.literal(constants.NotificationType.AppointmentConfirmation),
+  v.literal(constants.NotificationType.AppointmentReminder),
+  v.literal(constants.NotificationType.AppointmentCancellation),
+  v.literal(constants.NotificationType.ConsularRegistrationSubmitted),
+  v.literal(constants.NotificationType.ConsularRegistrationValidated),
+  v.literal(constants.NotificationType.ConsularRegistrationRejected),
+  v.literal(constants.NotificationType.ConsularCardReady),
+  v.literal(constants.NotificationType.ConsularRegistrationCompleted),
+  v.literal(constants.NotificationType.Feedback),
 );
 
 export const deliveryStatusValidator = v.union(

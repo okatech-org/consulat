@@ -23,7 +23,7 @@ import {
 import type {
   ServiceExport,
   UserCentricDataExport,
-} from '../../scripts/export-prisma-to-json';
+} from '../../scripts/export-prisma-to-json.ts';
 
 import {
   AppointmentStatus,

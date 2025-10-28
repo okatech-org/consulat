@@ -1,11 +1,21 @@
 import { v } from 'convex/values';
-import { mutation, query } from '../_generated/server';
+import {
+  mutation,
+  query,
+  internalAction,
+  internalQuery,
+  action,
+  internalMutation,
+} from '../_generated/server';
 import { NotificationChannel, NotificationType } from '../lib/constants';
 import type { Doc } from '../_generated/dataModel';
 import {
   notificationStatusValidator,
   notificationTypeValidator,
 } from '../lib/validators';
+import { internal } from '../_generated/api';
+import { resend } from './email';
+import { twilio } from '../lib/twilio';
 
 // Mutations
 export const createNotification = mutation({
@@ -19,6 +29,35 @@ export const createNotification = mutation({
     relatedId: v.optional(v.string()),
     relatedType: v.optional(v.string()),
     expiresAt: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const notificationId = await ctx.db.insert('notifications', {
+      userId: args.userId,
+      type: args.type as NotificationType,
+      title: args.title,
+      content: args.content,
+      readAt: undefined,
+      channels: args.channels as Array<NotificationChannel>,
+      deliveryStatus: {
+        appAt: undefined,
+        emailAt: undefined,
+        smsAt: undefined,
+      },
+      scheduledFor: args.scheduledFor,
+    });
+
+    return notificationId;
+  },
+});
+
+export const createNotificationInternal = internalMutation({
+  args: {
+    userId: v.id('users'),
+    type: v.string(),
+    title: v.string(),
+    content: v.string(),
+    channels: v.array(v.string()),
+    scheduledFor: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const notificationId = await ctx.db.insert('notifications', {
@@ -181,6 +220,34 @@ export const updateDeliveryStatus = mutation({
     const updatedDeliveryStatus = {
       ...notification.deliveryStatus,
       [args.channel]: args.delivered,
+    };
+
+    await ctx.db.patch(args.notificationId, {
+      deliveryStatus: updatedDeliveryStatus,
+    });
+
+    return args.notificationId;
+  },
+});
+
+export const updateDeliveryStatusInternal = internalMutation({
+  args: {
+    notificationId: v.id('notifications'),
+    channel: v.string(),
+    delivered: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const notification = await ctx.db.get(args.notificationId);
+    if (!notification) {
+      throw new Error('Notification not found');
+    }
+
+    const timestamp = Date.now();
+    const channelKey = `${args.channel}At` as keyof typeof notification.deliveryStatus;
+
+    const updatedDeliveryStatus = {
+      ...notification.deliveryStatus,
+      [channelKey]: args.delivered ? timestamp : undefined,
     };
 
     await ctx.db.patch(args.notificationId, {
@@ -421,5 +488,306 @@ export const getNotificationsByType = query({
       .withIndex('by_type', (q) => q.eq('type', args.type))
       .order('desc')
       .collect();
+  },
+});
+
+// Actions pour l'envoi multi-canal
+export const sendNotificationEmail = internalAction({
+  args: {
+    notificationId: v.id('notifications'),
+    email: v.string(),
+    title: v.string(),
+    content: v.string(),
+    actionUrl: v.optional(v.string()),
+    actionLabel: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    try {
+      let html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #1d4ed8;">${args.title}</h2>
+          <p style="color: #333; line-height: 1.6;">${args.content}</p>
+      `;
+
+      if (args.actionUrl && args.actionLabel) {
+        html += `
+          <div style="margin: 30px 0; text-align: center;">
+            <a href="${args.actionUrl}" 
+               style="background-color: #1d4ed8; color: white; padding: 12px 24px; 
+                      text-decoration: none; border-radius: 6px; display: inline-block;">
+              ${args.actionLabel}
+            </a>
+          </div>
+        `;
+      }
+
+      html += `
+          <p style="color: #666; font-size: 12px; margin-top: 40px;">
+            Ceci est une notification automatique de Consulat.ga
+          </p>
+        </div>
+      `;
+
+      await resend.sendEmail(ctx, {
+        from: `Consulat.ga <${process.env.RESEND_SENDER}>`,
+        to: args.email,
+        subject: args.title,
+        html,
+      });
+
+      await ctx.runMutation(
+        internal.functions.notification.updateDeliveryStatusInternal,
+        {
+          notificationId: args.notificationId,
+          channel: NotificationChannel.Email,
+          delivered: true,
+        },
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error sending email notification:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  },
+});
+
+export const sendNotificationSms = internalAction({
+  args: {
+    notificationId: v.id('notifications'),
+    phoneNumber: v.string(),
+    content: v.string(),
+    actionUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    try {
+      let message = args.content;
+
+      if (args.actionUrl) {
+        message += `\n\n${args.actionUrl}`;
+      }
+
+      const status = await twilio.sendMessage(ctx, {
+        to: args.phoneNumber,
+        body: message,
+      });
+
+      await ctx.runMutation(
+        internal.functions.notification.updateDeliveryStatusInternal,
+        {
+          notificationId: args.notificationId,
+          channel: NotificationChannel.Sms,
+          delivered: true,
+        },
+      );
+
+      return { success: true, status };
+    } catch (error) {
+      console.error('Error sending SMS notification:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  },
+});
+
+export const sendMultiChannelNotification = action({
+  args: {
+    userId: v.id('users'),
+    type: v.string(),
+    title: v.string(),
+    content: v.string(),
+    channels: v.array(v.string()),
+    email: v.optional(v.string()),
+    phoneNumber: v.optional(v.string()),
+    actionUrl: v.optional(v.string()),
+    actionLabel: v.optional(v.string()),
+    scheduledFor: v.optional(v.number()),
+    priority: v.optional(v.string()),
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{
+    notificationId: string;
+    scheduled: boolean;
+    results?: Array<{ channel: string; success: boolean; error?: string }>;
+    success?: boolean;
+  }> => {
+    const notificationId = await ctx.runMutation(
+      internal.functions.notification.createNotificationInternal,
+      {
+        userId: args.userId,
+        type: args.type,
+        title: args.title,
+        content: args.content,
+        channels: args.channels,
+        scheduledFor: args.scheduledFor,
+      },
+    );
+
+    if (args.scheduledFor && args.scheduledFor > Date.now()) {
+      return { notificationId, scheduled: true };
+    }
+
+    const results: Array<{ channel: string; success: boolean; error?: string }> = [];
+
+    for (const channel of args.channels) {
+      if (channel === NotificationChannel.App) {
+        await ctx.runMutation(
+          internal.functions.notification.updateDeliveryStatusInternal,
+          {
+            notificationId,
+            channel: NotificationChannel.App,
+            delivered: true,
+          },
+        );
+        results.push({ channel, success: true });
+      } else if (channel === NotificationChannel.Email && args.email) {
+        const emailResult = await ctx.runAction(
+          internal.functions.notification.sendNotificationEmail,
+          {
+            notificationId,
+            email: args.email,
+            title: args.title,
+            content: args.content,
+            actionUrl: args.actionUrl,
+            actionLabel: args.actionLabel,
+          },
+        );
+        results.push({ channel, ...emailResult });
+      } else if (channel === NotificationChannel.Sms && args.phoneNumber) {
+        const smsResult = await ctx.runAction(
+          internal.functions.notification.sendNotificationSms,
+          {
+            notificationId,
+            phoneNumber: args.phoneNumber,
+            content: args.content,
+            actionUrl: args.actionUrl,
+          },
+        );
+        results.push({ channel, ...smsResult });
+      }
+    }
+
+    return {
+      notificationId,
+      scheduled: false,
+      results,
+      success: results.some((r) => r.success),
+    };
+  },
+});
+
+export const processScheduledNotifications = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+
+    const scheduledNotifications = await ctx.runQuery(
+      internal.functions.notification.getScheduledNotificationsInternal,
+      {
+        startTime: 0,
+        endTime: now,
+      },
+    );
+
+    const processedCount = { success: 0, failed: 0 };
+
+    for (const notification of scheduledNotifications.slice(0, 50)) {
+      try {
+        const user = await ctx.runQuery(
+          internal.functions.notification.getUserForNotification,
+          {
+            userId: notification.userId,
+          },
+        );
+
+        if (!user) {
+          console.error(`User not found for notification ${notification._id}`);
+          processedCount.failed++;
+          continue;
+        }
+
+        for (const channel of notification.channels) {
+          if (channel === NotificationChannel.App) {
+            await ctx.runMutation(
+              internal.functions.notification.updateDeliveryStatusInternal,
+              {
+                notificationId: notification._id,
+                channel: NotificationChannel.App,
+                delivered: true,
+              },
+            );
+          } else if (channel === NotificationChannel.Email && user.email) {
+            await ctx.runAction(internal.functions.notification.sendNotificationEmail, {
+              notificationId: notification._id,
+              email: user.email,
+              title: notification.title,
+              content: notification.content,
+            });
+          } else if (channel === NotificationChannel.Sms && user.phoneNumber) {
+            await ctx.runAction(internal.functions.notification.sendNotificationSms, {
+              notificationId: notification._id,
+              phoneNumber: user.phoneNumber,
+              content: notification.content,
+            });
+          }
+        }
+
+        processedCount.success++;
+      } catch (error) {
+        console.error(
+          `Error processing scheduled notification ${notification._id}:`,
+          error,
+        );
+        processedCount.failed++;
+      }
+    }
+
+    return processedCount;
+  },
+});
+
+export const getUserForNotification = internalQuery({
+  args: { userId: v.id('users') },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.userId);
+  },
+});
+
+export const getScheduledNotificationsInternal = internalQuery({
+  args: {
+    startTime: v.optional(v.number()),
+    endTime: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    let notifications = await ctx.db
+      .query('notifications')
+      .filter((q) => q.neq(q.field('scheduledFor'), undefined))
+      .collect();
+
+    if (args.startTime) {
+      notifications = notifications.filter(
+        (n) => n.scheduledFor && n.scheduledFor >= args.startTime!,
+      );
+    }
+
+    if (args.endTime) {
+      notifications = notifications.filter(
+        (n) => n.scheduledFor && n.scheduledFor <= args.endTime!,
+      );
+    }
+
+    return notifications.filter(
+      (n) =>
+        n.deliveryStatus.appAt === undefined &&
+        n.deliveryStatus.emailAt === undefined &&
+        n.deliveryStatus.smsAt === undefined,
+    );
   },
 });

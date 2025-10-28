@@ -58,7 +58,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
-import { CountryStatus } from '@/convex/lib/constants';
+import { CountryCode, CountryStatus } from '@/convex/lib/constants';
 import type { CountryListingItem } from '@/convex/lib/types';
 
 // Types pour les filtres de pays
@@ -85,13 +85,13 @@ export function CountriesList() {
     handleParamsChange,
     handleSortingChange,
     handlePaginationChange,
-  } = useTableSearchParams<CountryListingItem[number], CountryFilters>(adaptSearchParams);
+  } = useTableSearchParams<CountryListingItem, CountryFilters>(adaptSearchParams);
 
   const t = useTranslations('sa.countries');
   const t_common = useTranslations('common');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [country, setCountry] = useState<CountryListingItem[number] | null>(null);
+  const [country, setCountry] = useState<CountryListingItem | null>(null);
 
   const { countries, total, isLoading, deleteCountry } = useCountries({
     ...params,
@@ -99,12 +99,12 @@ export function CountriesList() {
     limit: pagination.limit,
   });
 
-  const handleDelete = async (country: CountryListingItem[number]) => {
+  const handleDelete = async (country: CountryListingItem) => {
     await deleteCountry(country._id);
     setShowDeleteDialog(false);
   };
 
-  const columns = useMemo<ColumnDef<CountryListingItem[number]>[]>(
+  const columns = useMemo<ColumnDef<CountryListingItem>[]>(
     () => [
       {
         id: 'select',
@@ -342,7 +342,7 @@ export function CountriesList() {
   );
 
   // Définition des filtres
-  const filters = useMemo<FilterOption<CountryListingItem[number]>[]>(
+  const filters = useMemo<FilterOption<CountryListingItem>[]>(
     () => [
       {
         type: 'search',
@@ -435,17 +435,14 @@ export function CountriesList() {
 // Schema pour la modification rapide de pays
 const quickEditSchema = z.object({
   name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères').optional(),
-  code: z
-    .string()
-    .min(2, 'Le code pays doit contenir exactement 2 caractères')
-    .optional(),
-  status: z.enum(['active', 'inactive']),
+  code: z.enum(CountryCode).optional(),
+  status: z.enum(CountryStatus),
 });
 
 type QuickEditFormData = z.infer<typeof quickEditSchema>;
 
 type QuickEditFormProps = {
-  country: CountryListingItem[number];
+  country: CountryListingItem;
   onSuccess: () => void;
 };
 
@@ -571,7 +568,7 @@ const statusChangeSchema = z.object({
 type StatusChangeFormData = z.infer<typeof statusChangeSchema>;
 
 type StatusChangeFormProps = {
-  selectedRows: CountryListingItem[number][];
+  selectedRows: CountryListingItem[];
   onSuccess: () => void;
 };
 
@@ -596,7 +593,7 @@ function StatusChangeForm({ selectedRows, onSuccess }: StatusChangeFormProps) {
           countryId: row._id,
           name: row.name,
           code: row.code,
-          status: data.status,
+          status: data.status as CountryStatus,
         });
       });
 

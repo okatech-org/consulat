@@ -22,16 +22,15 @@ import { calculateProfileCompletion, tryCatch } from '@/lib/utils';
 import CardContainer from '../layouts/card-container';
 import { Info } from 'lucide-react';
 import { CountrySelect } from '../ui/country-select';
-import { type CountryCode } from '@/lib/autocomplete-datas';
 import Link from 'next/link';
-import { CountryStatus } from '@/convex/lib/constants';
-import { type CompleteProfile } from '@/types/convex-profile';
+import { CountryCode, CountryStatus } from '@/convex/lib/constants';
 import React from 'react';
 import { useTabs } from '@/hooks/use-tabs';
 import { DocumentType } from '@/convex/lib/constants';
 import type { Doc } from '@/convex/_generated/dataModel';
 import { toast } from 'sonner';
 import { ReviewFields } from './review-fields';
+import type { CompleteProfile } from '@/convex/lib/types';
 
 export type RegistrationStep =
   | 'documents'

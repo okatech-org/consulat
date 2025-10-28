@@ -6,15 +6,15 @@ import { v } from 'convex/values';
  */
 export const associations = defineTable({
   name: v.string(),
-  category: v.string(), // 'Communautaires', 'Social / Humanitaire', etc.
-  zone: v.string(), // 'Zone 1', 'Zone 2', etc.
+  category: v.string(),
+  zone: v.string(),
   city: v.string(),
-  country: v.optional(v.string()), // Default: 'France'
+  country: v.optional(v.string()),
   coordinates: v.optional(
     v.object({
       latitude: v.number(),
       longitude: v.number(),
-    })
+    }),
   ),
   website: v.optional(v.string()),
   logo: v.optional(v.string()),
@@ -23,14 +23,14 @@ export const associations = defineTable({
     v.literal('faible'),
     v.literal('moyen'),
     v.literal('eleve'),
-    v.literal('critique')
+    v.literal('critique'),
   ),
   monitoringStatus: v.union(
     v.literal('actif'),
     v.literal('passif'),
-    v.literal('archive')
+    v.literal('archive'),
   ),
-  lastActivity: v.optional(v.number()), // Timestamp
+  lastActivity: v.optional(v.number()),
   description: v.optional(v.string()),
   activities: v.optional(v.array(v.string())),
   funding: v.optional(v.array(v.string())),
@@ -38,7 +38,7 @@ export const associations = defineTable({
     v.literal('local'),
     v.literal('regional'),
     v.literal('national'),
-    v.literal('international')
+    v.literal('international'),
   ),
   createdAt: v.number(),
   updatedAt: v.number(),
@@ -60,11 +60,11 @@ export const associations = defineTable({
 export const associationMembers = defineTable({
   associationId: v.id('associations'),
   profileId: v.id('profiles'),
-  role: v.optional(v.string()), // 'Président', 'Membre', 'Trésorier', etc.
+  role: v.optional(v.string()),
   joinedAt: v.number(),
   leftAt: v.optional(v.number()),
   isActive: v.boolean(),
-  influenceLevel: v.optional(v.number()), // 0-100
+  influenceLevel: v.optional(v.number()),
   notes: v.optional(v.string()),
   createdAt: v.number(),
   updatedAt: v.number(),

@@ -31,7 +31,7 @@ export function CreateCountryButton() {
       await createCountry({
         name: data.name,
         code: data.code,
-        flag: data.flag,
+        flag: data.flag ?? undefined,
         status: data.status,
       });
       setIsOpen(false);

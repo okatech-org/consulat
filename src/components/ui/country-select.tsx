@@ -14,9 +14,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { type CountryCode, countryKeys } from '@/lib/autocomplete-datas';
 import { useTranslations } from 'next-intl';
 import { FlagIcon } from './flag-icon';
+import { CountryCode } from '@/convex/lib/constants';
 
 // Define a base interface for common properties
 interface BaseCountrySelect {
@@ -54,7 +54,7 @@ export function CountrySelect(props: CountrySelectProps) {
     type,
     selected,
     onChange: onValueChange,
-    options = countryKeys,
+    options = Object.values(CountryCode),
     placeholder = t('country.placeholder'),
     searchPlaceholder = t('country.search'),
     emptyText = t('country.empty'),

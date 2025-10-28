@@ -2,7 +2,11 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { useSkillsDirectory, useProfileCV, useSkillsStatistics } from '@/hooks/use-competences';
+import {
+  useSkillsDirectory,
+  useProfileCV,
+  useSkillsStatistics,
+} from '@/hooks/use-competences';
 import type { Id } from '@/convex/_generated/dataModel';
 import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import {
@@ -70,8 +74,17 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { WorkStatus } from '@prisma/client';
 import { SkillCategory, ExpertiseLevel } from '@/lib/skills-extractor';
+
+// WorkStatus type definition (from Convex schema)
+type WorkStatus =
+  | 'EMPLOYEE'
+  | 'SELF_EMPLOYED'
+  | 'ENTREPRENEUR'
+  | 'STUDENT'
+  | 'RETIRED'
+  | 'UNEMPLOYED'
+  | 'OTHER';
 
 // Types pour les catégories de compétences (utiliser les types du système)
 type LocalSkillCategory = SkillCategory;
@@ -158,7 +171,6 @@ export default function CompetencesDirectoryPage() {
   );
   const [selectedWorkStatus, setSelectedWorkStatus] = useState<WorkStatus | ''>('');
   const [selectedProfiles, setSelectedProfiles] = useState<Set<string>>(new Set());
-  const [isExporting, setIsExporting] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showOnlyComplete, setShowOnlyComplete] = useState(false);
   const [selectedProfileForCV, setSelectedProfileForCV] = useState<string | null>(null);
@@ -235,30 +247,87 @@ export default function CompetencesDirectoryPage() {
   const directoryData = useMemo(() => {
     if (!directoryDataRaw) return undefined;
 
+    const profiles = directoryDataRaw.items.map((item) => ({
+      id: item.id,
+      firstName: item.firstName,
+      lastName: item.lastName,
+      profession: item.profession,
+      employer: item.employer,
+      workStatus: item.workStatus,
+      email: item.email,
+      phoneNumber: item.phoneNumber,
+      address: item.address,
+      user: undefined,
+      skills: {
+        category: item.skillCategory,
+        experienceLevel: item.expertiseLevel,
+        marketDemand: item.marketDemand,
+        primarySkills: [],
+        cvSummary: `${item.firstName} ${item.lastName} - ${item.profession}`,
+      },
+    }));
+
     return {
-      profiles: directoryDataRaw.items,
+      profiles,
       total: directoryDataRaw.pagination.total,
       totalPages: directoryDataRaw.pagination.totalPages,
       pagination: directoryDataRaw.pagination,
       statistics: {
         totalProfiles: directoryDataRaw.stats.totalProfiles,
-        jobSeekers: directoryDataRaw.stats.byWorkStatus?.UNEMPLOYED || 0,
-        completionRate: 85, // Placeholder
-        totalUniqueSkills: Object.values(directoryDataRaw.stats.byCategory).reduce((a: number, b: number) => a + b, 0),
+        jobSeekers: 0,
+        completionRate: 85,
+        totalUniqueSkills: Object.values(directoryDataRaw.stats.byCategory).reduce(
+          (a: number, b: number) => a + b,
+          0,
+        ),
         categoryDistribution: directoryDataRaw.stats.byCategory,
         marketDemandDistribution: directoryDataRaw.stats.byMarketDemand,
-        topSkills: [], // Placeholder - would need more complex calculation
+        topSkills: [],
       },
     };
   }, [directoryDataRaw]);
 
   // Récupérer le CV d'un profil sélectionné
   const profileCVData = useProfileCV(selectedProfileForCV as Id<'profiles'> | null);
-  const profileCV = profileCVData;
+
+  // Adapter le CV au format attendu
+  const profileCV = useMemo(() => {
+    if (!profileCVData) return undefined;
+
+    const age = profileCVData.personal.birthDate
+      ? Math.floor(
+          (Date.now() - profileCVData.personal.birthDate) / (1000 * 60 * 60 * 24 * 365),
+        )
+      : undefined;
+
+    return {
+      personal: {
+        fullName:
+          `${profileCVData.personal.firstName || ''} ${profileCVData.personal.lastName || ''}`.trim(),
+        age,
+        email: profileCVData.contacts.email,
+        phone: profileCVData.contacts.phoneNumber,
+      },
+      summary: profileCVData.cv.summary,
+      professional: {
+        title: profileCVData.professional.profession,
+        employer: profileCVData.professional.employer,
+        experienceLevel: profileCVData.skills.level,
+      },
+      skills: {
+        primary: [],
+        secondary: [],
+        suggested: [],
+      },
+      indicators: {
+        marketDemand: profileCVData.skills.marketDemand,
+        profileCompleteness: 85,
+      },
+    };
+  }, [profileCVData]);
 
   // Récupérer les statistiques pour le Gabon
-  const gabonStatsRaw = useSkillsStatistics();
-  const gabonStats = gabonStatsRaw;
+  useSkillsStatistics();
 
   // Filtrer les profils selon la sélection
   const filteredProfiles = useMemo(() => {
@@ -297,74 +366,6 @@ export default function CompetencesDirectoryPage() {
       setSelectedProfiles(new Set(filteredProfiles.filter((p) => p).map((p) => p!.id)));
     }
   };
-
-  // Export CSV amélioré
-  const handleExportCSV = useCallback(async () => {
-    setIsExporting(true);
-    try {
-      const selectedData =
-        selectedProfiles.size > 0
-          ? filteredProfiles.filter((p) => p && selectedProfiles.has(p.id))
-          : filteredProfiles;
-
-      if (selectedData.length === 0) {
-        toast.warning('Aucun profil à exporter');
-        return;
-      }
-
-      const csv = [
-        [
-          'Nom',
-          'Prénom',
-          'Profession',
-          'Employeur',
-          'Statut',
-          'Catégorie',
-          'Niveau',
-          'Compétences principales',
-          'Email',
-          'Téléphone',
-          'Ville',
-          'Demande du marché',
-        ],
-        ...selectedData.map((p) => [
-          p?.lastName || '',
-          p?.firstName || '',
-          p?.profession || '',
-          p?.employer || '',
-          p?.workStatus ? workStatusLabels[p.workStatus] : '',
-          p?.skills?.category ? categoryLabels[p.skills.category as SkillCategory] : '',
-          p?.skills?.experienceLevel
-            ? levelLabels[p.skills.experienceLevel as ExpertiseLevel]
-            : '',
-          p?.skills?.primarySkills?.map((s) => s.name).join('; ') || '',
-          p?.email || '',
-          p?.phoneNumber || '',
-          p?.address?.city || '',
-          p?.skills?.marketDemand === 'high'
-            ? 'Élevée'
-            : p?.skills?.marketDemand === 'medium'
-              ? 'Moyenne'
-              : 'Faible',
-        ]),
-      ];
-
-      const csvContent =
-        '\ufeff' + csv.map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `competences-gabon-${new Date().toISOString().split('T')[0]}.csv`;
-      link.click();
-
-      toast.success(`${selectedData.length} profils exportés avec succès`);
-    } catch (error) {
-      console.error('Export error:', error);
-      toast.error("Erreur lors de l'export des données");
-    } finally {
-      setIsExporting(false);
-    }
-  }, [selectedProfiles, filteredProfiles]);
 
   // Afficher le CV modal
   const handleShowCV = (profileId: string) => {
@@ -467,7 +468,7 @@ export default function CompetencesDirectoryPage() {
             </TabsTrigger>
             <TabsTrigger value="jobSeekers" className="flex items-center gap-2">
               <UserSearch className="h-4 w-4" />
-              Recherche d'emploi ({tabStats.jobSeekers})
+              Recherche d&apos;emploi ({tabStats.jobSeekers})
             </TabsTrigger>
             <TabsTrigger value="employed" className="flex items-center gap-2">
               <BriefcaseIcon className="h-4 w-4" />
@@ -691,7 +692,9 @@ export default function CompetencesDirectoryPage() {
                                   onClick={() => {
                                     // Rechercher par compétence en filtrant
                                     setSearchTerm(skill.name);
-                                    toast.success(`Recherche de profils avec: ${skill.name}`);
+                                    toast.success(
+                                      `Recherche de profils avec: ${skill.name}`,
+                                    );
                                   }}
                                 >
                                   <Search className="h-3 w-3" />
@@ -831,11 +834,11 @@ export default function CompetencesDirectoryPage() {
 
                           {/* Informations */}
                           <div className="space-y-1 text-sm">
-                            {profile.workStatus === 'UNEMPLOYED' ? (
+                            {profile.workStatus && profile.workStatus === 'UNEMPLOYED' ? (
                               <div className="flex items-center gap-2 text-orange-600 font-medium">
                                 <UserSearch className="h-3 w-3" />
                                 <span>
-                                  Ressortissant gabonais à la recherche d'emploi
+                                  Ressortissant gabonais à la recherche d&apos;emploi
                                 </span>
                               </div>
                             ) : profile.employer ? (

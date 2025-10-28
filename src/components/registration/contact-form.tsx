@@ -16,7 +16,6 @@ import { Separator } from '@/components/ui/separator';
 import { type ContactInfoFormData, ContactInfoSchema } from '@/schemas/registration';
 import { type CountryCode } from '@/lib/autocomplete-datas';
 import { CountrySelect } from '../ui/country-select';
-import { type CompleteProfile } from '@/types/convex-profile';
 import { PhoneInput } from '../ui/phone-input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from 'convex/react';
@@ -24,6 +23,7 @@ import { api } from '@/convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import type { CompleteProfile } from '@/convex/lib/types';
 
 interface ContactInfoFormProps {
   profile: CompleteProfile;

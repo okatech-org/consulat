@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as functions_ai from "../functions/ai.js";
 import type * as functions_analytics from "../functions/analytics.js";
 import type * as functions_appointment from "../functions/appointment.js";
 import type * as functions_associations from "../functions/associations.js";
@@ -37,6 +38,12 @@ import type * as functions_workflow from "../functions/workflow.js";
 import type * as helpers_relationships from "../helpers/relationships.js";
 import type * as helpers_validation from "../helpers/validation.js";
 import type * as http from "../http.js";
+import type * as lib_ai_contextBuilder from "../lib/ai/contextBuilder.js";
+import type * as lib_ai_documentHelpers from "../lib/ai/documentHelpers.js";
+import type * as lib_ai_geminiAnalyzer from "../lib/ai/geminiAnalyzer.js";
+import type * as lib_ai_knowledgeBase from "../lib/ai/knowledgeBase.js";
+import type * as lib_ai_prompts from "../lib/ai/prompts.js";
+import type * as lib_ai_types from "../lib/ai/types.js";
 import type * as lib_constants from "../lib/constants.js";
 import type * as lib_countries from "../lib/countries.js";
 import type * as lib_fileTypes from "../lib/fileTypes.js";
@@ -75,6 +82,7 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  "functions/ai": typeof functions_ai;
   "functions/analytics": typeof functions_analytics;
   "functions/appointment": typeof functions_appointment;
   "functions/associations": typeof functions_associations;
@@ -104,6 +112,12 @@ declare const fullApi: ApiFromModules<{
   "helpers/relationships": typeof helpers_relationships;
   "helpers/validation": typeof helpers_validation;
   http: typeof http;
+  "lib/ai/contextBuilder": typeof lib_ai_contextBuilder;
+  "lib/ai/documentHelpers": typeof lib_ai_documentHelpers;
+  "lib/ai/geminiAnalyzer": typeof lib_ai_geminiAnalyzer;
+  "lib/ai/knowledgeBase": typeof lib_ai_knowledgeBase;
+  "lib/ai/prompts": typeof lib_ai_prompts;
+  "lib/ai/types": typeof lib_ai_types;
   "lib/constants": typeof lib_constants;
   "lib/countries": typeof lib_countries;
   "lib/fileTypes": typeof lib_fileTypes;

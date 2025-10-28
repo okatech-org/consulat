@@ -13,14 +13,15 @@ import {
   FormItem,
   FormControl,
 } from '@/components/ui/form';
-import { analyzeDocuments } from '@/actions/documents';
-import { useToast } from '@/hooks/use-toast';
 import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
 import type { CompleteProfile } from '@/convex/lib/types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { Doc } from '@/convex/_generated/dataModel';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
+import { toast } from 'sonner';
+import { useAction } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 export type DocumentUploadItem = {
   id: 'birthCertificate' | 'passport' | 'residencePermit' | 'addressProof';
@@ -39,7 +40,7 @@ interface DocumentUploadSectionProps {
   onNext?: () => void;
   onPrevious?: () => void;
   documents?: DocumentUploadItem[];
-  onAnalysisComplete?: (data: any) => void;
+  onAnalysisComplete?: (data: Record<string, Record<string, unknown>>) => void;
 }
 
 export function DocumentUploadSection({
@@ -51,14 +52,15 @@ export function DocumentUploadSection({
   documents = [],
   onAnalysisComplete,
 }: DocumentUploadSectionProps) {
-  if (!profile) return null;
+  const analyzeDocuments = useAction(api.functions.ai.analyzeMultipleDocuments);
   const t = useTranslations('registration');
   const t_errors = useTranslations('messages.errors');
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [analysingState, setAnalysingState] = useState<
     'idle' | 'analyzing' | 'success' | 'error'
   >('idle');
+
+  if (!profile) return null;
 
   const form = useForm<DocumentsFormData>({
     resolver: zodResolver(DocumentsSchema),
@@ -72,24 +74,27 @@ export function DocumentUploadSection({
   });
 
   const handleAnalysis = async () => {
-    const documentsToAnalyze: Partial<Record<DocumentType, string>> = {};
+    const documentsToAnalyze: Array<{
+      storageId: Id<'_storage'>;
+      documentType: string;
+    }> = [];
 
-    // Collecter les URLs des documents et leurs champs d'analyse
     Object.entries(form.getValues()).forEach(([key, document]) => {
       const doc = documents.find((d) => d.id === key);
       if (document && doc) {
-        const userDoc = document;
-        if (userDoc?.fileUrl) {
-          documentsToAnalyze[doc.expectedType] = userDoc.fileUrl;
+        const userDoc = document as Doc<'documents'>;
+        if (userDoc?.storageId) {
+          documentsToAnalyze.push({
+            storageId: userDoc.storageId as Id<'_storage'>,
+            documentType: doc.expectedType,
+          });
         }
       }
     });
 
-    if (Object.keys(documentsToAnalyze).length === 0) {
-      toast({
-        title: t('documents.analysis.error.title'),
+    if (documentsToAnalyze.length === 0) {
+      toast.error(t('documents.analysis.error.title'), {
         description: t('documents.analysis.error.no_documents'),
-        variant: 'destructive',
       });
       return;
     }
@@ -97,19 +102,21 @@ export function DocumentUploadSection({
     setAnalysingState('analyzing');
 
     try {
-      const results = await analyzeDocuments(documentsToAnalyze);
+      const results = await analyzeDocuments({
+        documents: documentsToAnalyze,
+      });
 
       if (results.success && results.mergedData) {
         setAnalysingState('success');
         onAnalysisComplete?.(results.mergedData);
+        toast.success(t('documents.analysis.success.description'));
+      } else {
+        setAnalysingState('error');
+        toast.error(results.error || t('documents.analysis.error.description'));
       }
     } catch (error) {
       setAnalysingState('error');
-      toast({
-        title: t('documents.analysis.error.title'),
-        description: error instanceof Error ? error.message : t_errors('unknown'),
-        variant: 'destructive',
-      });
+      toast.error(error instanceof Error ? error.message : t_errors('unknown'));
     }
   };
 
@@ -119,11 +126,7 @@ export function DocumentUploadSection({
       onSave();
       if (onNext) onNext();
     } catch (error) {
-      toast({
-        title: t('documents.error.title'),
-        description: t('documents.error.description'),
-        variant: 'destructive',
-      });
+      toast.error(t('documents.error.description'));
       console.error('Failed to process documents:', error);
     } finally {
       setIsLoading(false);

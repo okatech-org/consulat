@@ -11,13 +11,13 @@ import { format } from 'date-fns';
 import messages from '@/i18n/messages/fr/messages';
 
 import type { Primitive } from 'type-fest';
-import type { OrganizationListingItem } from '@/types/organization';
 import { ROUTES } from '@/schemas/routes';
 import type { Doc } from 'convex/_generated/dataModel';
 import { ProfileStatus, UserRole } from 'convex/lib/constants';
 import type { CompleteProfile } from '@/convex/lib/types';
 import { MaritalStatus, WorkStatus } from '@/convex/lib/constants';
 import type { RegistrationStep } from '@/components/registration/registration-form';
+import type { OrganizationListItem } from '@/components/organization/organizations-table';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -1187,11 +1187,11 @@ export function getOrganizationIdFromUser(currentUser: any | null): string | und
 }
 
 export const getOrganizationFromId = (
-  organisations: OrganizationListingItem[],
+  organisations: OrganizationListItem[],
   organizationId: string | null,
 ) => {
   if (!organizationId) return undefined;
-  return organisations.find((o) => o.id === organizationId);
+  return organisations.find((o) => o._id === organizationId);
 };
 
 export function getDashboardUrl(user: Doc<'users'> | null) {

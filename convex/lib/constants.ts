@@ -102,6 +102,15 @@ export enum NotificationType {
   Cancellation = 'cancellation',
   Communication = 'communication',
   ImportantCommunication = 'important_communication',
+  AppointmentConfirmation = 'appointment_confirmation',
+  AppointmentReminder = 'appointment_reminder',
+  AppointmentCancellation = 'appointment_cancellation',
+  ConsularRegistrationSubmitted = 'consular_registration_submitted',
+  ConsularRegistrationValidated = 'consular_registration_validated',
+  ConsularRegistrationRejected = 'consular_registration_rejected',
+  ConsularCardReady = 'consular_card_ready',
+  ConsularRegistrationCompleted = 'consular_registration_completed',
+  Feedback = 'feedback',
 }
 
 // Enums pour les profils
