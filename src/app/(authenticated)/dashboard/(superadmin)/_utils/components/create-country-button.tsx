@@ -13,14 +13,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { CountryForm } from './country-form';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import type { CountrySchemaInput } from '@/schemas/country';
 import { useCountries } from '@/hooks/use-countries';
 
 export function CreateCountryButton() {
   const t = useTranslations('sa.countries');
   const t_messages = useTranslations('messages');
-  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { createCountry } = useCountries();
@@ -36,9 +35,7 @@ export function CreateCountryButton() {
       });
       setIsOpen(false);
     } catch (error) {
-      toast({
-        title: t_messages('errors.create'),
-        variant: 'destructive',
+      toast.error(t_messages('errors.create'), {
         description: `${(error as Error).message}`,
       });
     } finally {

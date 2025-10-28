@@ -1,83 +1,82 @@
 'use client';
 
-import { AppointmentStatus } from '@prisma/client';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { cn, tryCatch } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { Check, Clock, ExternalLink, User, X } from 'lucide-react';
-import { completeAppointment, missAppointment } from '@/actions/appointments';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
-import type { AppointmentWithRelations } from '@/schemas/appointment';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { AppointmentStatus } from '@/convex/lib/constants';
+import type { Doc } from '@/convex/_generated/dataModel';
 
 interface AgentAppointmentCardProps {
-  appointment: AppointmentWithRelations;
+  appointment: Doc<'appointments'> & {
+    attendee?: { name: string } | null;
+    service?: { name: string } | null;
+  };
 }
 
 export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps) {
   const t = useTranslations('appointments');
   const commonT = useTranslations('common');
   const router = useRouter();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+
+  const completeAppointmentMutation = useMutation(
+    api.functions.appointment.completeAppointment,
+  );
+  const missAppointmentMutation = useMutation(api.functions.appointment.missAppointment);
 
   const handleComplete = async () => {
     setIsLoading(true);
-    const { error } = await tryCatch(completeAppointment(appointment.id));
-    if (error) {
-      toast({
-        title: commonT('error.unknown'),
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: commonT('status.COMPLETED'),
-        variant: 'success',
-      });
+    try {
+      await completeAppointmentMutation({ appointmentId: appointment._id });
+      toast.success(commonT('status.COMPLETED'));
       router.refresh();
+    } catch (error) {
+      toast.error(commonT('error.unknown'));
+      console.error('Error completing appointment:', error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleMiss = async () => {
     setIsLoading(true);
-
-    const { error } = await tryCatch(missAppointment(appointment.id));
-    if (error) {
-      toast({
-        title: commonT('error.unknown'),
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: commonT('status.MISSED'),
-        variant: 'success',
-      });
+    try {
+      await missAppointmentMutation({ appointmentId: appointment._id });
+      toast.success(commonT('status.MISSED'));
       router.refresh();
+    } catch (error) {
+      toast.error(commonT('error.unknown'));
+      console.error('Error marking appointment as missed:', error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const getStatusColor = (status: AppointmentStatus) => {
     switch (status) {
-      case AppointmentStatus.CONFIRMED:
+      case AppointmentStatus.Confirmed:
         return 'bg-green-500/10 text-green-500 hover:bg-green-500/20';
-      case AppointmentStatus.CANCELLED:
+      case AppointmentStatus.Cancelled:
         return 'bg-red-500/10 text-red-500 hover:bg-red-500/20';
-      case AppointmentStatus.COMPLETED:
+      case AppointmentStatus.Completed:
         return 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20';
-      case AppointmentStatus.MISSED:
+      case AppointmentStatus.Missed:
         return 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20';
-      case AppointmentStatus.PENDING:
+      case AppointmentStatus.Pending:
         return 'bg-gray-500/10 text-gray-500 hover:bg-gray-500/20';
-      case AppointmentStatus.RESCHEDULED:
+      case AppointmentStatus.Rescheduled:
         return 'bg-orange-500/10 text-orange-500 hover:bg-orange-500/20';
       default:
         return 'bg-gray-500/10 text-gray-500 hover:bg-gray-500/20';
@@ -116,7 +115,7 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
           size="mobile"
           leftIcon={<ExternalLink />}
         >
-          <Link href={`${ROUTES.dashboard.appointments}/${appointment.id}`}>
+          <Link href={`${ROUTES.dashboard.appointments}/${appointment._id}`}>
             <span>{'Voir les détails'}</span>
           </Link>
         </Button>
@@ -126,22 +125,24 @@ export function AgentAppointmentCard({ appointment }: AgentAppointmentCardProps)
           <Clock className="size-4 text-muted-foreground" />
           <div className="space-y-1">
             <p className="text-sm">
-              {format(new Date(appointment.date), 'EEEE d MMMM yyyy', {
+              {format(new Date(appointment.startAt), 'EEEE d MMMM yyyy', {
                 locale: fr,
               })}
             </p>
             <p className="text-sm text-muted-foreground">
-              {format(appointment.startTime, 'HH:mm')} -{' '}
-              {format(appointment.endTime, 'HH:mm')}
+              {format(new Date(appointment.startAt), 'HH:mm')} -{' '}
+              {format(new Date(appointment.endAt), 'HH:mm')}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline">{t(`type.options.${appointment.type}`)}</Badge>
-          <Badge variant="outline">{appointment.duration} min</Badge>
+          <Badge variant="outline">
+            {Math.round((appointment.endAt - appointment.startAt) / (1000 * 60))} min
+          </Badge>
         </div>
       </CardContent>
-      {appointment.status === AppointmentStatus.CONFIRMED && (
+      {appointment.status === AppointmentStatus.Confirmed && (
         <CardFooter className="gap-2">
           <Button
             variant="outline"

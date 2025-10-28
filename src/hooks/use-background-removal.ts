@@ -1,11 +1,9 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import {
-  removeBackgroundFromUrl,
-  removeBackgroundFromFile,
-} from '@/actions/background-removal';
-import type { BackgroundRemovalResult } from '@/actions/background-removal';
+import { useAction } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { BackgroundRemovalResult } from '@/convex/functions/backgroundRemoval';
 
 interface UseBackgroundRemovalOptions {
   onSuccess?: (result: BackgroundRemovalResult) => void;
@@ -26,6 +24,13 @@ export function useBackgroundRemoval(
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const removeBackgroundFromUrlAction = useAction(
+    api.functions.backgroundRemoval.removeBackgroundFromUrl,
+  );
+  const removeBackgroundFromFileAction = useAction(
+    api.functions.backgroundRemoval.removeBackgroundFromFile,
+  );
+
   const { onSuccess, onError } = options;
 
   const clearError = useCallback(() => {
@@ -43,7 +48,7 @@ export function useBackgroundRemoval(
       setError(null);
 
       try {
-        const result = await removeBackgroundFromUrl(imageUrl);
+        const result = await removeBackgroundFromUrlAction({ imageUrl });
 
         if (result.success) {
           if (onSuccess) {
@@ -75,7 +80,7 @@ export function useBackgroundRemoval(
         setIsProcessing(false);
       }
     },
-    [isProcessing, onSuccess, onError],
+    [isProcessing, onSuccess, onError, removeBackgroundFromUrlAction],
   );
 
   const processImageFromFile = useCallback(
@@ -89,7 +94,25 @@ export function useBackgroundRemoval(
       setError(null);
 
       try {
-        const result = await removeBackgroundFromFile(file);
+        const fileBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            const base64 = result.split(',')[1];
+            if (!base64) {
+              reject(new Error('Impossible de convertir le fichier en base64'));
+              return;
+            }
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        const result = await removeBackgroundFromFileAction({
+          fileBase64,
+          fileName: file.name,
+        });
 
         if (result.success) {
           if (onSuccess) {
@@ -121,7 +144,7 @@ export function useBackgroundRemoval(
         setIsProcessing(false);
       }
     },
-    [isProcessing, onSuccess, onError],
+    [isProcessing, onSuccess, onError, removeBackgroundFromFileAction],
   );
 
   return {

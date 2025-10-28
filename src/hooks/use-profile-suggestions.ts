@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
+import { useAction } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { useLocale, useTranslations } from 'next-intl';
-import { CompleteProfile } from '@/types';
-import { analyzeProfile } from '@/actions/profile-suggestions';
-import { User } from '@prisma/client';
+import type { CompleteProfile } from '@/convex/lib/types';
+import type { Id } from '@/convex/_generated/dataModel';
 
 const STORAGE_KEY = 'profile_suggestions';
 
 interface StoredData {
-  profileHash: string; // Pour comparer les profile
+  profileHash: string;
   suggestions: ProfileSuggestion[];
-  timestamp: number; // Pour potentiellement invalider le cache après un certain temps
+  timestamp: number;
 }
 
 export interface ProfileSuggestion {
@@ -23,18 +24,14 @@ export interface ProfileSuggestion {
   };
 }
 
-// Fonction utilitaire pour générer un hash simple du profil
 function generateProfileHash(profile: CompleteProfile): string {
-  // On prend les champs qui nous intéressent pour la comparaison
   const relevantData = {
-    id: profile.id,
-    updatedAt: profile.updatedAt,
-    // Ajoutez d'autres champs pertinents qui pourraient affecter les suggestions
+    id: profile._id,
+    updatedAt: profile._creationTime,
   };
   return JSON.stringify(relevantData);
 }
 
-// Fonction utilitaire pour sauvegarder les données
 function saveToStorage(data: StoredData) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -43,7 +40,6 @@ function saveToStorage(data: StoredData) {
   }
 }
 
-// Fonction utilitaire pour récupérer les données
 function getFromStorage(): StoredData | null {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
@@ -54,12 +50,14 @@ function getFromStorage(): StoredData | null {
   }
 }
 
-export function useProfileSuggestions(profile: CompleteProfile, user: User) {
+export function useProfileSuggestions(profile: CompleteProfile, userId: Id<'users'>) {
   const [suggestions, setSuggestions] = useState<ProfileSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const locale = useLocale();
   const t = useTranslations('documents.assistant');
+
+  const analyzeProfile = useAction(api.functions.ai.analyzeProfileForSuggestions);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -67,24 +65,22 @@ export function useProfileSuggestions(profile: CompleteProfile, user: User) {
         setIsLoading(true);
         setError(null);
 
-        // Générer le hash du profil actuel
         const currentProfileHash = generateProfileHash(profile);
 
-        // Vérifier le stockage local
         const storedData = getFromStorage();
 
-        // Si on a des données stockées et que le hash correspond
         if (storedData && storedData.profileHash === currentProfileHash) {
           setSuggestions(storedData.suggestions);
           setIsLoading(false);
           return;
         }
 
-        // Sinon, faire l'analyse
-        const result = await analyzeProfile(profile, user, locale);
+        const result = await analyzeProfile({
+          userId,
+          locale,
+        });
 
-        if (result.suggestions) {
-          // Traduire les messages
+        if (result && result.suggestions) {
           const translatedSuggestions = result.suggestions.map(
             (suggestion: ProfileSuggestion) => ({
               ...suggestion,
@@ -92,10 +88,8 @@ export function useProfileSuggestions(profile: CompleteProfile, user: User) {
             }),
           );
 
-          // Sauvegarder dans le state
           setSuggestions(translatedSuggestions);
 
-          // Sauvegarder dans le stockage
           saveToStorage({
             profileHash: currentProfileHash,
             suggestions: translatedSuggestions,
@@ -111,7 +105,7 @@ export function useProfileSuggestions(profile: CompleteProfile, user: User) {
     };
 
     fetchSuggestions();
-  }, [profile, t, user]);
+  }, [profile, userId, locale, analyzeProfile, t]);
 
   return {
     suggestions,

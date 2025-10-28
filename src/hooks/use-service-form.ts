@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import { z, type ZodSchema } from 'zod';
-import type { ServiceField, ServiceStep } from '@/types/consular-service';
 import {
   DateSchema,
   EmailSchema,
@@ -21,9 +20,9 @@ import { useStoredTabs } from './use-tabs';
 import { useTranslations } from 'next-intl';
 import type { CountryCode } from '@/lib/autocomplete-datas';
 import type { Doc } from '@/convex/_generated/dataModel';
-import type { CompleteProfile } from '@/convex/lib/types';
+import type { CompleteProfile, ServiceField, ServiceStep } from '@/convex/lib/types';
 import { getProfileValueByPath } from '@/lib/profile-utils';
-import { ServiceStepType } from '@/convex/lib/constants';
+import { SelectType, ServiceStepType } from '@/convex/lib/constants';
 
 type StepFormValues = Record<string, unknown>;
 
@@ -286,7 +285,6 @@ export function useServiceForm(service: Doc<'services'>, profile: CompleteProfil
         ...(formData?.documents ?? {}),
       },
       stepData: {
-        id: 'documents',
         title: documentsStep.title || 'Documents',
         fields: stepFields.map((field) => {
           const typedField = field as ServiceField;
@@ -346,13 +344,12 @@ export function useServiceForm(service: Doc<'services'>, profile: CompleteProfil
           ...(formData?.[stepId] ? formData[stepId] : {}), // Saved form data overrides
         },
         stepData: {
-          id: stepId,
           title: step.title,
-          description: step.description || null,
+          description: step.description || undefined,
           type: step.type,
           isRequired: step.isRequired,
           fields: stepFields as ServiceField[],
-          validations: step.validations || null,
+          validations: step.validations || undefined,
           order: step.order,
         },
       });
@@ -364,7 +361,6 @@ export function useServiceForm(service: Doc<'services'>, profile: CompleteProfil
     title: 'Adresse de livraison',
     description: `Assurez-vous de renseigner les informations en fonction du mode de délivrance (adresse nécessaire pour le mode postal)`,
     stepData: {
-      id: 'delivery',
       title: 'Adresse de livraison',
       fields: [
         {
@@ -377,7 +373,7 @@ export function useServiceForm(service: Doc<'services'>, profile: CompleteProfil
             value: mode,
             label: tInputs(`deliveryMode.options.${mode}`),
           })),
-          selectType: 'single',
+          selectType: SelectType.Single,
         },
         {
           name: 'deliveryAddress',
@@ -390,7 +386,7 @@ export function useServiceForm(service: Doc<'services'>, profile: CompleteProfil
       order: 1,
       description:
         'Attention à bien renseignez les infos en fonction du mode de délivrance',
-      type: 'DELIVERY',
+      type: ServiceStepType.Delivery,
       isRequired: false,
       validations: {},
     },

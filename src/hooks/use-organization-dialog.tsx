@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Organization } from '@/types/organization';
+import type { Organization } from '@/convex/lib/types';
 
 interface OrganizationDialogStore {
   isOpen: boolean;

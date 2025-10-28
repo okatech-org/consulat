@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Loader2, MessageCircle, Lock } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
 import { useDateLocale } from '@/lib/utils';

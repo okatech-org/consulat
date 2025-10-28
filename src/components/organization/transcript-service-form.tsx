@@ -20,7 +20,7 @@ import {
 } from '@/schemas/transcript-service';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { DynamicFieldsEditor } from '@/components/organization/dynamic-fields-editor';
 import { profileFields } from '@/types/profile';

@@ -26,7 +26,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { CompleteProfile } from '@/convex/lib/types';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
@@ -45,7 +45,6 @@ export function BasicInfoForm({
 }: Readonly<BasicInfoFormProps>) {
   if (!profile) return null;
   const t_inputs = useTranslations('inputs');
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   const updatePersonalInfo = useMutation(api.functions.profile.updatePersonalInfo);
@@ -110,17 +109,14 @@ export function BasicInfoForm({
         },
       });
 
-      toast({
-        title: t_inputs('success.title'),
+      toast.success(t_inputs('success.title'), {
         description: t_inputs('success.description'),
       });
 
       onSave();
     } catch (error) {
-      toast({
-        title: t_inputs('error.title'),
+      toast.error(t_inputs('error.title'), {
         description: t_inputs('error.description'),
-        variant: 'destructive',
       });
       console.error('Failed to update personal info:', error);
     } finally {

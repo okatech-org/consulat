@@ -9,7 +9,7 @@ import {
   type ProfessionalInfoFormData,
 } from '@/schemas/registration';
 import { EditableSection } from '../editable-section';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { filterUneditedKeys, tryCatch } from '@/lib/utils';
@@ -30,7 +30,6 @@ export function ProfessionalInfoSection({
   if (!profile) return null;
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<ProfessionalInfoFormData>({
@@ -60,23 +59,15 @@ export function ProfessionalInfoSection({
     );
 
     if (result.error) {
-      toast({
-        title: t_messages('errors.update_failed'),
+      toast.error(t_errors(result.error.message), {
         description: t_errors(result.error.message),
-        variant: 'destructive',
       });
-      setIsLoading(false);
-      return;
-    }
-
-    if (result.data) {
-      toast({
-        title: t_messages('success.update_title'),
+    } else {
+      toast.success(t_messages('success.update_title'), {
         description: t_messages('success.update_description'),
-        variant: 'success',
       });
-      setIsLoading(false);
       onSave();
+      setIsLoading(false);
     }
   };
 
@@ -85,10 +76,7 @@ export function ProfessionalInfoSection({
       onSave={handleSave}
       isLoading={isLoading}
       id="professional-info"
-      previewContent={
-        // @ts-expect-error - Profile type compatibility
-        <ProfessionalInfoDisplay profile={profile} />
-      }
+      previewContent={<ProfessionalInfoDisplay profile={profile} />}
     >
       <ProfessionalInfoForm form={form} onSubmit={handleSave} isLoading={isLoading} />
     </EditableSection>

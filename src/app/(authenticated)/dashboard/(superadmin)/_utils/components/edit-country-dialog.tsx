@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CountryForm } from './country-form';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import type { CountrySchemaInput } from '@/schemas/country';
 import { useCountries } from '@/hooks/use-countries';
 import type { CountryListingItem } from '@/convex/lib/types';
@@ -20,7 +20,6 @@ export function EditCountryDialog({
   onOpenChange,
 }: EditCountryDialogProps) {
   const t = useTranslations('sa.countries');
-  const { toast } = useToast();
   const { updateCountry } = useCountries();
 
   const handleSubmit = async (data: CountrySchemaInput) => {
@@ -33,16 +32,11 @@ export function EditCountryDialog({
         status: data.status,
       });
 
-      toast({
-        title: t('messages.updateSuccess'),
-      });
+      toast.success(t('messages.updateSuccess'));
       onOpenChange(false);
     } catch (error) {
       console.error(error);
-      toast({
-        title: t('messages.error.update'),
-        variant: 'destructive',
-      });
+      toast.error(t('messages.error.update'));
     }
   };
 

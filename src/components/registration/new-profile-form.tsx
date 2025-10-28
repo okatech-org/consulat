@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { RegistrationSchema, type RegistrationInput } from '@/schemas/user';
 import { ROUTES } from '@/schemas/routes';
 import type { Country } from '@/convex/lib/constants';
@@ -48,7 +48,6 @@ export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
   const tAuth = useTranslations('auth.login');
   const router = useRouter();
   const { isLoaded, signUp, setActive } = useSignUp();
-  const { toast } = useToast();
 
   // State
   const [step, setStep] = useState<RegistrationStep>('FORM');
@@ -92,16 +91,14 @@ export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
     if (error) {
       if (step === 'FORM') {
         // Set general form error or field-specific errors
-        toast({
-          title: tAuth('errors.error_title'),
+        toast.error(tAuth('errors.error_title'), {
           description: error,
-          variant: 'destructive',
         });
       } else {
         form.setError('otp', { message: error });
       }
     }
-  }, [error, step, form, toast, tAuth]);
+  }, [error, step, form, tAuth]);
 
   // Gérer la redirection après vérification complète
   React.useEffect(() => {
@@ -116,17 +113,15 @@ export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
           router.refresh();
         } catch (error) {
           console.error("Erreur lors de l'activation de la session:", error);
-          toast({
-            title: tAuth('errors.error_title'),
+          toast.error(tAuth('errors.error_title'), {
             description: 'Erreur lors de la connexion',
-            variant: 'destructive',
           });
         }
       };
 
       redirectToProfile();
     }
-  }, [signUp?.status, signUp?.createdSessionId, setActive, router, toast, tAuth]);
+  }, [signUp?.status, signUp?.createdSessionId, setActive, router, tAuth]);
 
   // Fonction pour mapper les erreurs Clerk vers les clés de traduction
   const mapClerkErrorToTranslation = (error: any): string => {
@@ -179,8 +174,7 @@ export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
       setStep('VERIFICATION');
       setCanResend(false);
       setResendCooldown(60);
-      toast({
-        title: 'Code envoyé',
+      toast.success('Code envoyé', {
         description: tAuth('messages.otp_sent'),
       });
     } catch (error: unknown) {
@@ -207,8 +201,7 @@ export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
       });
 
       if (result?.status === 'complete') {
-        toast({
-          title: tAuth('messages.login_success'),
+        toast.success(tAuth('messages.login_success'), {
           description: 'Vérification réussie!',
         });
       } else {
@@ -257,8 +250,7 @@ export function NewProfileForm({ availableCountries }: NewProfileFormProps) {
 
       setCanResend(false);
       setResendCooldown(60);
-      toast({
-        title: 'Code renvoyé',
+      toast.success('Code renvoyé', {
         description: tAuth('messages.otp_sent'),
       });
     } catch (error: unknown) {

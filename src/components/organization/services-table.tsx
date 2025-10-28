@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import type { FilterOption } from '@/components/data-table/data-table-toolbar';
 import { DataTable } from '@/components/data-table/data-table';
 import { useTranslations } from 'next-intl';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Pencil, Trash } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import Link from 'next/link';
@@ -55,7 +55,6 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
   const t_inputs = useTranslations('inputs');
   const t = useTranslations('services');
   const t_common = useTranslations('common');
-  const toast = useToast();
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -83,15 +82,11 @@ export function ServicesTable({ organizations }: ServicesTablesProps) {
       try {
         await deleteServiceMutation(service._id);
         setShowDeleteDialog(false);
-        toast.toast({
-          title: t('messages.deleteSuccess'),
-          variant: 'success',
-        });
+        toast.success(t('messages.deleteSuccess'));
       } catch (error) {
-        toast.toast({
-          title: t('messages.error.delete'),
-          variant: 'destructive',
-          description: String(error),
+        toast.error(t('messages.error.delete'), {
+          description:
+            error instanceof Error ? error.message : 'Une erreur est survenue.',
         });
       }
     },

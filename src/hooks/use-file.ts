@@ -1,6 +1,5 @@
 'use client';
 
-import { deleteFile } from '@/actions/utils';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { tryCatch } from '@/lib/utils';
@@ -13,6 +12,7 @@ export function useFile() {
   const t_errors = useTranslations('messages.errors');
   const [isLoading, setIsLoading] = useState(false);
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl);
+  const deleteFile = useMutation(api.storage.deleteFile);
 
   async function handleFileUpload(file: File) {
     setIsLoading(true);
@@ -54,7 +54,7 @@ export function useFile() {
     setIsLoading(true);
     const fileKey = fileUrl.split('/').pop();
     if (fileKey) {
-      await tryCatch(deleteFile(fileUrl));
+      await tryCatch(deleteFile({ storageId: fileKey as Id<'_storage'> }));
     }
     setIsLoading(false);
   }

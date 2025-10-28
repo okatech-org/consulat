@@ -3,7 +3,11 @@
 import { useLayoutEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AppointmentType } from '@/convex/lib/constants';
+import {
+  AppointmentType,
+  ParticipantRole,
+  ParticipantStatus,
+} from '@/convex/lib/constants';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,7 +29,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from 'convex/_generated/api';
 import type { Doc, Id } from 'convex/_generated/dataModel';
 import { z } from 'zod';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 
@@ -119,7 +123,7 @@ export function NewAppointmentForm({
       ? {
           organizationId,
           date: selectedDate.getTime(),
-          duration: selectedServiceDetails.appointmentDuration || 30,
+          duration: selectedServiceDetails.processing.appointment.duration || 30,
         }
       : 'skip',
   );
@@ -146,11 +150,11 @@ export function NewAppointmentForm({
       } else if (serviceDetails) {
         const types: AppointmentType[] = [];
 
-        if (serviceDetails.requiresAppointment) {
+        if (serviceDetails.processing.appointment.requires) {
           types.push(AppointmentType.DocumentCollection);
         }
 
-        if (serviceDetails.deliveryAppointment) {
+        if (serviceDetails.delivery.appointment?.requires) {
           types.push(AppointmentType.DocumentSubmission);
         }
 
@@ -187,24 +191,20 @@ export function NewAppointmentForm({
         participants: [
           {
             userId: attendeeId,
-            role: 'attendee',
-            status: 'confirmed',
+            role: ParticipantRole.Attendee,
+            status: ParticipantStatus.Confirmed,
           },
         ],
       });
 
-      toast({
-        title: t('messages.success.create'),
+      toast.success(t('messages.success.create'), {
         description: t('messages.success.create_description'),
-        variant: 'success',
       });
 
       router.push(ROUTES.user.appointments);
     } catch (error) {
-      toast({
-        title: t('messages.errors.create'),
+      toast.error(t('messages.errors.create'), {
         description: error instanceof Error ? error.message : 'Unknown error',
-        variant: 'destructive',
       });
     }
   };
@@ -283,7 +283,7 @@ export function NewAppointmentForm({
         <div className="mt-4 flex items-center gap-2">
           <Clock className="size-4" />
           <span className="text-sm">
-            Durée : {selectedServiceDetails.appointmentDuration} minutes
+            Durée : {selectedServiceDetails.processing.appointment.duration} minutes
           </span>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -312,7 +312,7 @@ export function NewAppointmentForm({
           <h3 className="text-lg font-medium">Sélectionnez un créneau</h3>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="size-4" />
-            <span>{selectedServiceDetails.appointmentDuration} min</span>
+            <span>{selectedServiceDetails.processing.appointment.duration} min</span>
           </div>
         </div>
 
@@ -386,11 +386,11 @@ export function NewAppointmentForm({
     if (selectedServiceDetails && selectedRequest) {
       const types: AppointmentType[] = [];
 
-      if (selectedServiceDetails.requiresAppointment) {
+      if (selectedServiceDetails.processing.appointment.requires) {
         types.push(AppointmentType.DocumentCollection);
       }
 
-      if (selectedServiceDetails.deliveryAppointment) {
+      if (selectedServiceDetails.delivery.appointment?.requires) {
         types.push(AppointmentType.DocumentSubmission);
       }
 
@@ -464,17 +464,17 @@ export function NewAppointmentForm({
   function handleTypeChange(type: string) {
     if (
       type === AppointmentType.DocumentCollection &&
-      selectedServiceDetails?.deliveryAppointmentDuration
+      selectedServiceDetails?.delivery.appointment?.duration
     ) {
-      form.setValue('duration', selectedServiceDetails.deliveryAppointmentDuration);
+      form.setValue('duration', selectedServiceDetails.delivery.appointment?.duration);
       return;
     }
 
     if (
       type === AppointmentType.DocumentSubmission &&
-      selectedServiceDetails?.deliveryAppointmentDuration
+      selectedServiceDetails?.delivery.appointment?.duration
     ) {
-      form.setValue('duration', selectedServiceDetails.deliveryAppointmentDuration);
+      form.setValue('duration', selectedServiceDetails.delivery.appointment?.duration);
       return;
     }
 

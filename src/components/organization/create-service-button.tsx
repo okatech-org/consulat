@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { createService } from '../../app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { type NewServiceSchemaInput } from '@/schemas/consular-service';
 import { type Country } from '@prisma/client';
@@ -26,7 +26,6 @@ export function CreateServiceButton({
   countries: Country[];
 }) {
   const t = useTranslations('services');
-  const { toast } = useToast();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,14 +37,12 @@ export function CreateServiceButton({
       if (result.error) {
         throw new Error(result.error);
       }
-      toast({ title: t('messages.createSuccess'), variant: 'success' });
+      toast.success(t('messages.createSuccess'));
       setIsOpen(false);
       router.refresh();
     } catch (error) {
-      toast({
-        title: t('messages.error.create'),
+      toast.error(t('messages.error.create'), {
         description: `${error}`,
-        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);

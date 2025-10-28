@@ -10,11 +10,31 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Phone, Settings, Shield, Zap } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import CardContainer from '@/components/layouts/card-container';
 
 interface AircallSettingsProps {
@@ -23,7 +43,11 @@ interface AircallSettingsProps {
   isLoading?: boolean;
 }
 
-export function AircallSettings({ config, onSave, isLoading = false }: AircallSettingsProps) {
+export function AircallSettings({
+  config,
+  onSave,
+  isLoading = false,
+}: AircallSettingsProps) {
   const t = useTranslations('organization.settings.aircall');
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
@@ -73,7 +97,7 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <CardContainer 
+        <CardContainer
           title="Configuration Aircall"
           description="Configurez l'intégration Aircall pour permettre les appels depuis l'interface de review"
           icon={<Phone className="size-5" />}
@@ -88,7 +112,8 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Activer Aircall</FormLabel>
                     <FormDescription>
-                      Permettre aux agents de passer des appels depuis l'interface de review des demandes
+                      Permettre aux agents de passer des appels depuis l'interface de
+                      review des demandes
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -101,14 +126,14 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
             {isEnabled && (
               <>
                 <Separator />
-                
+
                 {/* Configuration API */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Settings className="size-4" />
                     <h3 className="text-lg font-medium">Configuration API</h3>
                   </div>
-                  
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <FormField
                       control={form.control}
@@ -138,10 +163,7 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                         <FormItem>
                           <FormLabel>ID API</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="Votre ID API Aircall"
-                              {...field}
-                            />
+                            <Input placeholder="Votre ID API Aircall" {...field} />
                           </FormControl>
                           <FormDescription>
                             ID API obtenu depuis votre dashboard Aircall
@@ -160,10 +182,7 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                         <FormItem>
                           <FormLabel>Nom de l'intégration</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="Consulat.ga"
-                              {...field}
-                            />
+                            <Input placeholder="Consulat.ga" {...field} />
                           </FormControl>
                           <FormDescription>
                             Nom affiché dans l'interface Aircall
@@ -179,7 +198,10 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Taille du workspace</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Sélectionner une taille" />
@@ -209,7 +231,7 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                     <Shield className="size-4" />
                     <h3 className="text-lg font-medium">Permissions</h3>
                   </div>
-                  
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <FormField
                       control={form.control}
@@ -223,7 +245,10 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -241,7 +266,10 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -259,7 +287,10 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -277,7 +308,10 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -293,7 +327,7 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                     <Zap className="size-4" />
                     <h3 className="text-lg font-medium">Événements</h3>
                   </div>
-                  
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <FormField
                       control={form.control}
@@ -307,7 +341,10 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -325,7 +362,10 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -343,7 +383,10 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -361,7 +404,10 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -379,7 +425,10 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -403,4 +452,4 @@ export function AircallSettings({ config, onSave, isLoading = false }: AircallSe
       </form>
     </Form>
   );
-} 
+}

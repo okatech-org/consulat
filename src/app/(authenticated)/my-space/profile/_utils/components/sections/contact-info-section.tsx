@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { ContactInfoSchema, type ContactInfoFormData } from '@/schemas/registration';
 import { EditableSection } from '../editable-section';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { CompleteProfile } from '@/convex/lib/types';
@@ -27,23 +27,20 @@ export function ContactInfoSection({
 }: ContactInfoSectionProps) {
   const t_messages = useTranslations('messages.profile');
   const t_errors = useTranslations('messages.errors');
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<ContactInfoFormData>({
     resolver: zodResolver(ContactInfoSchema),
-    // @ts-expect-error -- TODO: fix the don't accept null values
     defaultValues: {
-      email: profile.contacts?.email ?? undefined,
-      phoneNumber: profile.contacts?.phone ?? '+33-',
+      email: profile.contacts?.email,
+      phone: profile.contacts?.phone,
       address: {
-        firstLine: profile.personal?.address?.street ?? '',
-        city: profile.personal?.address?.city ?? '',
-        zipCode: profile.personal?.address?.postalCode ?? '',
-        country: (profile.personal?.address?.country as any) ?? 'FR',
-        secondLine: profile.personal?.address?.complement ?? '',
+        street: profile.contacts?.address?.street ?? '',
+        city: profile.contacts?.address?.city ?? '',
+        postalCode: profile.contacts?.address?.postalCode ?? '',
+        country: profile.contacts?.address?.country ?? 'FR',
+        complement: profile.contacts?.address?.complement ?? '',
       },
-      residentContact: undefined,
     },
   });
 
@@ -61,15 +58,15 @@ export function ContactInfoSection({
 
     if (data.address) {
       personalUpdate.address = {
-        street: data.address.firstLine,
-        complement: data.address.secondLine,
+        street: data.address.street,
+        complement: data.address.complement,
         city: data.address.city,
-        postalCode: data.address.zipCode,
-        country: data.address.country as any,
+        postalCode: data.address.postalCode,
+        country: data.address.country,
       };
     }
-    if (typeof data.email !== 'undefined') contactsUpdate.email = data.email;
-    if (typeof data.phoneNumber !== 'undefined') contactsUpdate.phone = data.phoneNumber;
+    if (data.email) contactsUpdate.email = data.email;
+    if (data.phone) contactsUpdate.phone = data.phone;
 
     const result = await tryCatch(
       convexUpdate({
@@ -84,24 +81,16 @@ export function ContactInfoSection({
     );
 
     if (result.error) {
-      toast({
-        title: t_messages('errors.update_failed'),
+      toast.error(t_errors(result.error.message), {
         description: t_errors(result.error.message),
-        variant: 'destructive',
       });
-      setIsLoading(false);
-      return;
-    }
-
-    if (result.data) {
-      toast({
-        title: t_messages('success.update_title'),
+    } else {
+      toast.success(t_messages('success.update_title'), {
         description: t_messages('success.update_description'),
-        variant: 'success',
       });
-      setIsLoading(false);
       onSave();
     }
+    setIsLoading(false);
   };
 
   return (

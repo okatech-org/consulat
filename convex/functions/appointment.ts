@@ -513,6 +513,27 @@ export const completeAppointment = mutation({
   },
 });
 
+export const missAppointment = mutation({
+  args: { appointmentId: v.id('appointments') },
+  returns: v.id('appointments'),
+  handler: async (ctx, args) => {
+    const appointment = await ctx.db.get(args.appointmentId);
+    if (!appointment) {
+      throw new Error('Appointment not found');
+    }
+
+    if (appointment.status !== AppointmentStatus.Confirmed) {
+      throw new Error('Only confirmed appointments can be marked as missed');
+    }
+
+    await ctx.db.patch(args.appointmentId, {
+      status: AppointmentStatus.Missed,
+    });
+
+    return args.appointmentId;
+  },
+});
+
 export const addParticipantToAppointment = mutation({
   args: {
     appointmentId: v.id('appointments'),

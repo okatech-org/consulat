@@ -448,6 +448,24 @@ export const getUnreadNotifications = query({
   },
 });
 
+export const getUnreadNotificationsCount = query({
+  args: {
+    userId: v.id('users'),
+  },
+  handler: async (ctx, args) => {
+    const notifications = await ctx.db
+      .query('notifications')
+      .withIndex('by_user_unread', (q) =>
+        q.eq('userId', args.userId).eq('readAt', undefined),
+      )
+      .collect();
+    
+    return {
+      count: notifications.length,
+    };
+  },
+});
+
 export const getScheduledNotifications = query({
   args: {
     startTime: v.optional(v.number()),

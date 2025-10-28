@@ -1,99 +1,128 @@
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import { OrganizationStatus } from '@prisma/client';
 import {
-  createOrganization,
-  deleteOrganization,
-  updateOrganization,
-  updateOrganizationStatus,
-} from '@/actions/organizations';
-import type {
-  CreateOrganizationInput,
-  UpdateOrganizationInput,
-} from '@/schemas/organization';
+  CountryCode,
+  OrganizationStatus,
+  OrganizationType,
+} from '@/convex/lib/constants';
+import type { Id } from '@/convex/_generated/dataModel';
+
+interface CreateOrganizationInput {
+  code: string;
+  name: string;
+  logo?: string;
+  type: OrganizationType;
+  status?: OrganizationStatus;
+  parentId?: Id<'organizations'>;
+  countryCodes?: string[];
+}
+
+interface UpdateOrganizationInput {
+  code?: string;
+  name?: string;
+  logo?: string;
+  type?: OrganizationType;
+  status?: OrganizationStatus;
+  countryCodes?: CountryCode[];
+  settings?: any;
+  metadata?: any;
+}
 
 export function useOrganizationActions() {
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const t = useTranslations('sa.organizations.messages');
+
+  const createOrg = useMutation(api.functions.organization.createOrganization);
+  const updateOrg = useMutation(api.functions.organization.updateOrganization);
+  const updateOrgStatus = useMutation(
+    api.functions.organization.updateOrganizationStatus,
+  );
+  const deleteOrg = useMutation(api.functions.organization.deleteOrganization);
 
   const handleCreate = async (data: CreateOrganizationInput) => {
     setIsLoading(true);
     try {
-      const result = await createOrganization(data);
-      if (result.error) throw new Error(result.error);
-      toast({ title: t('createSuccess') });
+      await createOrg({
+        code: data.code,
+        name: data.name,
+        logo: data.logo,
+        type: data.type as any,
+        status: data.status as any,
+        parentId: data.parentId,
+        countryCodes: data.countryCodes as any,
+      });
+      toast.success(t('createSuccess'));
       return true;
     } catch (error) {
       console.error(error);
-      toast({
-        title: t('error.create'),
-        variant: 'destructive',
-      });
+      toast.error(t('error.create'));
       return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleUpdate = async (id: string, data: UpdateOrganizationInput) => {
+  const handleUpdate = async (id: Id<'organizations'>, data: UpdateOrganizationInput) => {
     setIsLoading(true);
     try {
-      const result = await updateOrganization(id, data);
-      if (result.error) throw new Error(result.error);
-      toast({ title: t('updateSuccess') });
+      await updateOrg({
+        organizationId: id,
+        ...data,
+      });
+      toast.success(t('updateSuccess'));
       return true;
     } catch (error) {
       console.error(error);
-      toast({
-        title: t('error.update'),
-        variant: 'destructive',
-      });
+      toast.error(t('error.update'));
       return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleStatusUpdate = async (id: string, status: OrganizationStatus) => {
+  const handleStatusUpdate = async (
+    id: Id<'organizations'>,
+    status: OrganizationStatus,
+  ) => {
     setIsLoading(true);
     try {
-      const result = await updateOrganizationStatus(id, status);
-      if (result.error) throw new Error(result.error);
-      toast({ title: t('updateSuccess') });
+      await updateOrgStatus({
+        organizationId: id,
+        status: status as any,
+      });
+      toast.success(t('updateSuccess'));
       return true;
     } catch (error) {
       console.error(error);
-      toast({
-        title: t('error.update'),
-        variant: 'destructive',
-      });
+      toast.error(t('error.update'));
       return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: Id<'organizations'>) => {
     setIsLoading(true);
     try {
-      const result = await deleteOrganization(id);
-      if (result.error) throw new Error(result.error);
-      toast({ title: t('deleteSuccess') });
+      await deleteOrg({ organizationId: id });
+      toast.success(t('deleteSuccess'));
       return true;
     } catch (error) {
       console.error(error);
-      toast({
-        title: t('error.delete'),
-        variant: 'destructive',
-      });
+      toast.error(t('error.delete'));
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleStatusChange = async (id: string, status: OrganizationStatus) => {
+  const handleStatusChange = async (
+    id: Id<'organizations'>,
+    status: OrganizationStatus,
+  ) => {
     return handleStatusUpdate(id, status);
   };
 

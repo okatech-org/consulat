@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Phone, PhoneCall, PhoneOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useAircall } from '@/hooks/use-aircall';
 import type { AircallConfig } from '@/schemas/aircall';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';

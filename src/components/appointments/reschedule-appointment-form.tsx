@@ -21,9 +21,9 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from 'convex/_generated/api';
-import type { Doc, Id } from 'convex/_generated/dataModel';
+import type { Doc } from 'convex/_generated/dataModel';
 import { z } from 'zod';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { ROUTES } from '@/schemas/routes';
 
 // Reschedule form schema
@@ -97,18 +97,14 @@ export function RescheduleAppointmentForm({
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
 
-      toast({
-        title: t('messages.success.reschedule'),
+      toast.success(t('messages.success.reschedule'), {
         description: t('messages.success.reschedule_description'),
-        variant: 'success',
       });
 
       router.push(ROUTES.user.appointments);
     } catch (error) {
-      toast({
-        title: t('messages.errors.reschedule'),
+      toast.error(t('messages.errors.reschedule'), {
         description: error instanceof Error ? error.message : 'Unknown error',
-        variant: 'destructive',
       });
     }
   };

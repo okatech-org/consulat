@@ -13,7 +13,7 @@ import {
   FormControl,
 } from '@/components/ui/form';
 import { analyzeDocuments } from '@/actions/documents';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { DocumentType, OwnerType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
 import type { Doc } from '@/convex/_generated/dataModel';
@@ -58,7 +58,6 @@ export function ChildDocumentsForm({
 }: Readonly<ChildDocumentsFormProps>) {
   const t = useTranslations('registration');
   const t_errors = useTranslations('messages.errors');
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [analysingState, setAnalysingState] = useState<
     'idle' | 'analyzing' | 'success' | 'error'
@@ -87,10 +86,8 @@ export function ChildDocumentsForm({
     });
 
     if (Object.keys(documentsToAnalyze).length === 0) {
-      toast({
-        title: t('documents.analysis.error.title'),
+      toast.error(t('documents.analysis.error.title'), {
         description: t('documents.analysis.error.no_documents'),
-        variant: 'destructive',
       });
       return;
     }
@@ -106,10 +103,8 @@ export function ChildDocumentsForm({
       }
     } catch (error) {
       setAnalysingState('error');
-      toast({
-        title: t('documents.analysis.error.title'),
+      toast.error(t('documents.analysis.error.title'), {
         description: error instanceof Error ? error.message : t_errors('unknown'),
-        variant: 'destructive',
       });
     }
   };
@@ -119,10 +114,8 @@ export function ChildDocumentsForm({
     try {
       onSave();
     } catch (error) {
-      toast({
-        title: t('documents.error.title'),
+      toast.error(t('documents.error.title'), {
         description: t('documents.error.description'),
-        variant: 'destructive',
       });
       console.error('Failed to process documents:', error);
     } finally {

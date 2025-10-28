@@ -15,7 +15,7 @@ import {
 
 import { useRouter } from 'next/navigation';
 import { useMutation } from 'convex/react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { api } from '@/convex/_generated/api';
 import type { CompleteProfile } from '@/convex/lib/types';
 import { calculateProfileCompletion } from '@/lib/utils';
@@ -42,20 +42,16 @@ export function SubmitProfileButton({ profile }: SubmitProfileButtonProps) {
         profileId: profile._id,
       });
 
-      toast({
-        title: 'Profil soumis',
+      toast.success('Profil soumis', {
         description: 'Votre profil a été soumis pour validation avec succès',
-        variant: 'default',
       });
 
       setIsDialogOpen(false);
       router.refresh();
     } catch (error) {
       console.error('Error submitting profile:', error);
-      toast({
-        title: 'Erreur',
+      toast.error('Erreur', {
         description: 'Une erreur est survenue lors de la soumission du profil',
-        variant: 'destructive',
       });
       setIsDialogOpen(false);
     }

@@ -3,7 +3,6 @@ import '@/styles/globals.css';
 import { type Metadata, type Viewport } from 'next';
 import { Geist } from 'next/font/google';
 
-import { TRPCReactProvider } from '@/trpc/react';
 import { env } from '@/env';
 import { getLocale, getMessages } from 'next-intl/server';
 import ErrorBoundary from '@/components/error-boundary';
@@ -158,44 +157,42 @@ export default async function RootLayout({
           <html lang={locale} className={geist.variable} suppressHydrationWarning>
             <body suppressHydrationWarning>
               <ErrorBoundary>
-                <TRPCReactProvider>
-                  <AuthProvider>
-                    <SidebarProvider
-                      defaultOpen={
-                        cookieStore?.get('sidebar_state')?.value
-                          ? cookieStore.get('sidebar_state')?.value === 'true'
-                          : true
-                      }
-                      style={
-                        {
-                          '--sidebar-width': 'calc(var(--spacing) * 64)',
-                          '--header-height': 'calc(var(--spacing) * 12)',
-                        } as React.CSSProperties
-                      }
-                    >
-                      <SpeedInsights />
-                      <Analytics />
+                <AuthProvider>
+                  <SidebarProvider
+                    defaultOpen={
+                      cookieStore?.get('sidebar_state')?.value
+                        ? cookieStore.get('sidebar_state')?.value === 'true'
+                        : true
+                    }
+                    style={
+                      {
+                        '--sidebar-width': 'calc(var(--spacing) * 64)',
+                        '--header-height': 'calc(var(--spacing) * 12)',
+                      } as React.CSSProperties
+                    }
+                  >
+                    <SpeedInsights />
+                    <Analytics />
 
-                      <ThemeProvider
-                        attribute="class"
-                        defaultTheme={serverTheme}
-                        enableSystem
-                        enableColorScheme={false}
-                        disableTransitionOnChange
-                        storageKey="theme"
-                      >
-                        <ThemeWrapper>
-                          <ChatProvider>
-                            <ThemeSync />
-                            <ViewportDetector />
-                            {children}
-                            <Toaster />
-                          </ChatProvider>
-                        </ThemeWrapper>
-                      </ThemeProvider>
-                    </SidebarProvider>
-                  </AuthProvider>
-                </TRPCReactProvider>
+                    <ThemeProvider
+                      attribute="class"
+                      defaultTheme={serverTheme}
+                      enableSystem
+                      enableColorScheme={false}
+                      disableTransitionOnChange
+                      storageKey="theme"
+                    >
+                      <ThemeWrapper>
+                        <ChatProvider>
+                          <ThemeSync />
+                          <ViewportDetector />
+                          {children}
+                          <Toaster />
+                        </ChatProvider>
+                      </ThemeWrapper>
+                    </ThemeProvider>
+                  </SidebarProvider>
+                </AuthProvider>
               </ErrorBoundary>
             </body>
           </html>

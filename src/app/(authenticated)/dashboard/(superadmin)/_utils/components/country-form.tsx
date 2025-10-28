@@ -22,7 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCountries } from '@/hooks/use-countries';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { CountrySelect } from '@/components/ui/country-select';
 import { tryCatch } from '@/lib/utils';
@@ -70,16 +70,11 @@ export function CountryForm({ initialData, onSubmit, isLoading }: CountryFormPro
     );
 
     if (result.error) {
-      toast({
-        title: t('messages.error.update'),
-        variant: 'destructive',
-      });
+      toast.error(t('messages.error.update'));
       return;
     }
 
-    toast({
-      title: t('messages.updateSuccess'),
-    });
+    toast.success(t('messages.updateSuccess'));
   };
 
   return (

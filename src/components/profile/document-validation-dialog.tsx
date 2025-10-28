@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { DocumentStatus } from '@prisma/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 import { validateDocument } from '@/actions/documents';
 import { tryCatch } from '@/lib/utils';

@@ -1,57 +1,39 @@
 'use client';
 
-import { api } from '@/trpc/react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import {
   useIntelligenceDashboardStats as useConvexIntelligenceDashboardStats,
   useIntelligenceProfilesMap as useConvexIntelligenceProfilesMap,
   useIntelligenceNotes as useConvexIntelligenceNotes,
   useIntelligenceProfiles as useConvexIntelligenceProfiles,
 } from './use-intelligence';
+import { useCurrentUser } from './use-current-user';
 
 /**
- * Hook optimisé pour les pays actifs avec cache longue durée
- * Les données de pays changent rarement, cache de 24h
- */
-export function useActiveCountries(organizationId?: string) {
-  return api.countries.getActive.useQuery(
-    { organizationId },
-    {
-      staleTime: 24 * 60 * 60 * 1000, // 24 heures
-      gcTime: 24 * 60 * 60 * 1000, // 24 heures en mémoire
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-    }
-  );
-}
-
-/**
- * Hook optimisé pour les stats du dashboard intelligence
- * Cache de 5 minutes pour équilibrer fraîcheur et performance
+ * Hook pour les stats du dashboard intelligence
  * MIGRATED TO CONVEX
  */
-export function useIntelligenceDashboardStats(period: 'day' | 'week' | 'month' | 'year' = 'month') {
+export function useIntelligenceDashboardStats(
+  period: 'day' | 'week' | 'month' | 'year' = 'month',
+) {
   return useConvexIntelligenceDashboardStats(period);
 }
 
 /**
- * Hook pour les notifications avec cache court
- * Les notifications doivent être relativement fraîches
+ * Hook pour les notifications
  */
 export function useNotificationCount() {
-  return api.notifications.getUnreadCount.useQuery(
-    undefined,
-    {
-      staleTime: 30 * 1000, // 30 secondes
-      gcTime: 2 * 60 * 1000, // 2 minutes en mémoire
-      refetchOnWindowFocus: true,
-      refetchInterval: 60 * 1000, // Actualiser chaque minute
-    }
+  const { user } = useCurrentUser();
+
+  return useQuery(
+    api.functions.notification.getUnreadNotificationsCount,
+    user?._id ? { userId: user._id } : 'skip',
   );
 }
 
 /**
- * Hook optimisé pour la carte des profils intelligence
- * Cache agressif car les données géographiques changent peu
+ * Hook pour la carte des profils intelligence
  * MIGRATED TO CONVEX
  */
 export function useIntelligenceProfilesMap(filters?: any) {
@@ -59,8 +41,7 @@ export function useIntelligenceProfilesMap(filters?: any) {
 }
 
 /**
- * Hook optimisé pour les profils avec notes intelligence
- * Cache modéré car les données changent régulièrement
+ * Hook pour les profils avec notes intelligence
  * MIGRATED TO CONVEX
  */
 export function useIntelligenceProfilesWithNotes(filters?: any) {
@@ -68,8 +49,7 @@ export function useIntelligenceProfilesWithNotes(filters?: any) {
 }
 
 /**
- * Hook optimisé pour les notes intelligence
- * Cache court car les notes sont mises à jour fréquemment
+ * Hook pour les notes intelligence
  * MIGRATED TO CONVEX
  */
 export function useIntelligenceNotes(filters?: any) {

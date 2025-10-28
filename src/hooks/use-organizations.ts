@@ -2,12 +2,15 @@
 
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { ROUTES } from '@/schemas/routes';
 import type { Id } from '@/convex/_generated/dataModel';
-import { OrganizationStatus, OrganizationType } from '@/convex/lib/constants';
-import type { CountryCode } from '@/convex/lib/countries';
+import {
+  CountryCode,
+  OrganizationStatus,
+  OrganizationType,
+} from '@/convex/lib/constants';
 
 /**
  * Hook principal pour la gestion des organisations avec filtres et pagination
@@ -19,8 +22,6 @@ export function useOrganizations(options?: {
   page?: number;
   limit?: number;
 }) {
-  const { toast } = useToast();
-
   // Query pour récupérer la liste des organisations enrichies
   const organizationsData = useQuery(
     api.functions.organization.getOrganizationsListEnriched,
@@ -38,7 +39,7 @@ export function useOrganizations(options?: {
 
   const createOrganization = async (data: {
     name: string;
-    code?: string;
+    code: CountryCode;
     type: OrganizationType;
     status?: OrganizationStatus;
     logo?: string;
@@ -51,18 +52,15 @@ export function useOrganizations(options?: {
         type: data.type,
         status: data.status || OrganizationStatus.Active,
         logo: data.logo,
-        countryIds: (data.countryIds as Id<'countries'>[]) || [],
+        countryCodes: data.countryCodes || [],
       });
 
-      toast({
-        title: 'Organisation créée avec succès',
+      toast.success('Organisation créée avec succès', {
         description: `L'organisation ${data.name} a été créée.`,
       });
     } catch (error) {
-      toast({
-        title: 'Erreur lors de la création',
+      toast.error('Erreur lors de la création', {
         description: error instanceof Error ? error.message : 'Une erreur est survenue.',
-        variant: 'destructive',
       });
       throw error;
     }
@@ -78,7 +76,7 @@ export function useOrganizations(options?: {
       code?: string;
       type?: string;
       logo?: string;
-      countryIds?: string[];
+      countryCodes?: CountryCode[];
     },
   ) => {
     try {
@@ -88,18 +86,15 @@ export function useOrganizations(options?: {
         code: data.code,
         type: data.type,
         logo: data.logo,
-        countryIds: (data.countryIds as Id<'countries'>[]) || [],
+        countryCodes: data.countryCodes || [],
       });
 
-      toast({
-        title: 'Organisation mise à jour',
+      toast.success('Organisation mise à jour avec succès', {
         description: `L'organisation a été mise à jour avec succès.`,
       });
     } catch (error) {
-      toast({
-        title: 'Erreur lors de la mise à jour',
+      toast.error('Erreur lors de la mise à jour', {
         description: error instanceof Error ? error.message : 'Une erreur est survenue.',
-        variant: 'destructive',
       });
       throw error;
     }
@@ -117,15 +112,12 @@ export function useOrganizations(options?: {
         status,
       });
 
-      toast({
-        title: 'Statut mis à jour',
+      toast.success('Statut mis à jour avec succès', {
         description: `Le statut de l'organisation a été mis à jour.`,
       });
     } catch (error) {
-      toast({
-        title: 'Erreur lors de la mise à jour du statut',
+      toast.error('Erreur lors de la mise à jour du statut', {
         description: error instanceof Error ? error.message : 'Une erreur est survenue.',
-        variant: 'destructive',
       });
       throw error;
     }
@@ -140,15 +132,12 @@ export function useOrganizations(options?: {
         organizationId,
       });
 
-      toast({
-        title: 'Organisation supprimée',
+      toast.success('Organisation supprimée avec succès', {
         description: "L'organisation a été supprimée avec succès.",
       });
     } catch (error) {
-      toast({
-        title: 'Erreur lors de la suppression',
+      toast.error('Erreur lors de la suppression', {
         description: error instanceof Error ? error.message : 'Une erreur est survenue.',
-        variant: 'destructive',
       });
       throw error;
     }
@@ -227,8 +216,6 @@ export function useOrganizationsStats() {
  * Hook pour les paramètres d'une organisation
  */
 export function useOrganizationSettings(id: Id<'organizations'>) {
-  const { toast } = useToast();
-
   const updateSettingsMutation = useMutation(
     api.functions.organization.updateOrganizationSettings,
   );
@@ -240,15 +227,12 @@ export function useOrganizationSettings(id: Id<'organizations'>) {
         settings: data,
       });
 
-      toast({
-        title: 'Paramètres mis à jour',
+      toast.success('Paramètres mis à jour avec succès', {
         description: `Les paramètres de l'organisation ont été mis à jour.`,
       });
     } catch (error) {
-      toast({
-        title: 'Erreur lors de la mise à jour',
+      toast.error('Erreur lors de la mise à jour', {
         description: error instanceof Error ? error.message : 'Une erreur est survenue.',
-        variant: 'destructive',
       });
       throw error;
     }
@@ -266,18 +250,17 @@ export function useOrganizationSettings(id: Id<'organizations'>) {
  * Hook pour les actions de création avec navigation
  */
 export function useOrganizationCreation() {
-  const { toast } = useToast();
   const router = useRouter();
 
   const createMutation = useMutation(api.functions.organization.createOrganization);
 
   const create = async (data: {
     name: string;
-    code?: string;
-    type: string;
-    status?: string;
+    code: CountryCode;
+    type: OrganizationType;
+    status?: OrganizationStatus;
     logo?: string;
-    countryIds?: string[];
+    countryCodes?: CountryCode[];
   }) => {
     try {
       await createMutation({
@@ -286,21 +269,18 @@ export function useOrganizationCreation() {
         type: data.type,
         status: data.status || OrganizationStatus.Active,
         logo: data.logo,
-        countryIds: (data.countryIds as Id<'countries'>[]) || [],
+        countryCodes: data.countryCodes || [],
       });
 
-      toast({
-        title: 'Organisation créée avec succès',
+      toast.success('Organisation créée avec succès', {
         description: `L'organisation ${data.name} a été créée.`,
       });
 
       // Navigate to organizations page
       router.push(ROUTES.sa.organizations);
     } catch (error) {
-      toast({
-        title: 'Erreur lors de la création',
+      toast.error('Erreur lors de la création', {
         description: error instanceof Error ? error.message : 'Une erreur est survenue.',
-        variant: 'destructive',
       });
       throw error;
     }
@@ -317,7 +297,7 @@ export function useOrganizationCreation() {
 /**
  * Hook pour récupérer une organisation par pays
  */
-export function useOrganizationByCountry(countryCode: string) {
+export function useOrganizationByCountry(countryCode: CountryCode) {
   const organizationsData = useQuery(
     api.functions.organization.getOrganizationsByCountry,
     countryCode ? { countryCode } : 'skip',

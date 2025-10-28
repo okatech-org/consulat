@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MultiSelectCountries } from '@/components/ui/multi-select-countries';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { type BaseAgent } from '@/types/organization';
 import { type Country } from '@prisma/client';
 import { getServicesForOrganization, updateAgent } from '@/actions/agents';
@@ -58,7 +58,6 @@ export function EditAgentDialog({
   const t_inputs = useTranslations('inputs');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages');
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [countries, setCountries] = useState<Country[]>([]);
   const [services, setServices] = useState<{ id: string; name: string }[]>([]);
@@ -114,16 +113,14 @@ export function EditAgentDialog({
     const result = await tryCatch(updateAgent(agent.id, updateData));
 
     if (result.data) {
-      toast({ title: t_messages('success.update'), variant: 'success' });
+      toast.success(t_messages('success.update'));
       onSuccess();
       onOpenChange(false);
     }
 
     if (result.error) {
-      toast({
-        title: t_messages('errors.update'),
+      toast.error(t_messages('errors.update'), {
         description: `${result.error.message}`,
-        variant: 'destructive',
       });
     }
 

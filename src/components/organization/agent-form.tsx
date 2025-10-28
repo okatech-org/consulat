@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { type AgentFormData, AgentSchema } from '@/schemas/user';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 import { createNewAgent } from '@/actions/organizations';
 import { updateAgent } from '@/actions/agents';
@@ -60,7 +60,6 @@ export function AgentForm({
   const t_inputs = useTranslations('inputs');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages');
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
   const [managedAgents, setManagedAgents] = React.useState<string[]>(
     initialData?.managedAgentIds ?? [],
@@ -110,13 +109,11 @@ export function AgentForm({
         const result = await tryCatch(updateAgent(agentId, updateData));
 
         if (result.data) {
-          toast({ title: t_messages('success.update'), variant: 'success' });
+          toast.success(t_messages('success.update'));
           onSuccess?.();
         } else if (result.error) {
-          toast({
-            title: t_messages('errors.update'),
+          toast.error(t_messages('errors.update'), {
             description: `${result.error.message}`,
-            variant: 'destructive',
           });
         }
       } else {
@@ -129,22 +126,21 @@ export function AgentForm({
         const result = await tryCatch(createNewAgent(createData));
 
         if (result.data) {
-          toast({ title: t_messages('success.create'), variant: 'success' });
+          toast.success(t_messages('success.create'));
           onSuccess?.();
         } else if (result.error) {
-          toast({
-            title: t_messages('errors.create'),
+          toast.error(t_messages('errors.create'), {
             description: `${result.error.message}`,
-            variant: 'destructive',
           });
         }
       }
     } catch {
-      toast({
-        title: isEditMode ? t_messages('errors.update') : t_messages('errors.create'),
-        description: t_messages('errors.create'),
-        variant: 'destructive',
-      });
+      toast.error(
+        isEditMode ? t_messages('errors.update') : t_messages('errors.create'),
+        {
+          description: t_messages('errors.create'),
+        },
+      );
     } finally {
       setIsLoading(false);
     }

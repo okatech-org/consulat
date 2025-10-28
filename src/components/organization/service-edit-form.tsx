@@ -21,7 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useTabs } from '@/hooks/use-tabs';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { filterUneditedKeys, getValuable } from '@/lib/utils';
 import { ServiceSchema, ServiceSchemaInput } from '@/schemas/consular-service';
 import { ConsularServiceItem, ServiceStep } from '@/types/consular-service';

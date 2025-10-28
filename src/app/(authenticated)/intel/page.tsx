@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api as convexApi } from '@/convex/_generated/api';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
-import { usePrefetchIntelData, usePrefetchPage } from '@/hooks/use-prefetch-intel';
 import DashboardCompactMap from '@/components/intelligence/dashboard-compact-map';
 import MiniMapWidget from '@/components/intelligence/mini-map-widget';
 import { RealTimeStatusWidget } from '@/components/intelligence/realtime-status-widget';
@@ -35,15 +34,7 @@ export default function IntelAgentDashboardContent() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [activeAction, setActiveAction] = useState<number | null>(null);
 
-  // Précharger les données
-  usePrefetchIntelData();
-
-  const { prefetch: prefetchProfiles } = usePrefetchPage('profiles');
-  const { prefetch: prefetchAssociations } = usePrefetchPage('associations');
-  const { prefetch: prefetchCompetences } = usePrefetchPage('competences');
-  const { prefetch: prefetchAnalytics } = usePrefetchPage('analytics');
-
-  const { data: dashboardStats } = useIntelligenceDashboardStats('month');
+  const dashboardStats = useIntelligenceDashboardStats('month');
 
   // Récupérer les données avec Convex
   const profilesResponse = useQuery(convexApi.functions.intelligence.getProfiles, {
@@ -76,19 +67,15 @@ export default function IntelAgentDashboardContent() {
     try {
       switch (index) {
         case 0: // Profils
-          await prefetchProfiles();
           router.push(ROUTES.dashboard.profiles);
           break;
         case 1: // Carte des Associations
-          await prefetchAssociations();
           router.push(ROUTES.intel.maps.associations);
           break;
         case 2: // Annuaire Compétences
-          await prefetchCompetences();
           router.push(ROUTES.intel.competences);
           break;
         case 3: // Analyses Avancées
-          await prefetchAnalytics();
           router.push(ROUTES.intel.analytics);
           break;
         default:
@@ -101,6 +88,7 @@ export default function IntelAgentDashboardContent() {
           }
       }
     } catch (error) {
+      console.error("Erreur: Impossible d'exécuter l'action", error);
       toast.error("Erreur: Impossible d'exécuter l'action ", {
         description: "Erreur: Impossible d'exécuter l'action",
       });
