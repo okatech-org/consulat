@@ -180,7 +180,7 @@ export default function SuperAdminDashboard() {
 
       {/* Main Charts Section */}
       <Tabs defaultValue="analytics" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+        <TabsList className="grid w-full grid-cols-4 max-w-md">
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <Activity className="size-4" />
             {t('tabs.analytics')}

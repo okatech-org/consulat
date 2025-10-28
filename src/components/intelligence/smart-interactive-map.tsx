@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useState, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -13,8 +14,18 @@ import {
 import type { ProfilesMapDataItem } from '@/convex/lib/types';
 import { getLocationCoordinates } from '@/lib/services/geocoding-service';
 import { useTranslations } from 'next-intl';
+import { MapPin, Users, RotateCcw } from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import CardContainer from '../layouts/card-container';
 
-declare const L: any;
+// Fix for default marker icons in react-leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
 
 interface SmartInteractiveMapProps {
   profiles?: ProfilesMapDataItem[];
@@ -33,15 +44,29 @@ interface ProfileWithCoords {
   country?: string;
 }
 
+// Helper component to fit map bounds to markers
+function FitBounds({ profiles }: { profiles: ProfileWithCoords[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (profiles.length > 0) {
+      const bounds = L.latLngBounds(
+        profiles.map((p) => [p.latitude, p.longitude] as [number, number]),
+      );
+      map.fitBounds(bounds.pad(0.1));
+    }
+  }, [profiles, map]);
+
+  return null;
+}
+
 export default function SmartInteractiveMap({
   profiles = [],
   onProfileClick,
   className,
 }: SmartInteractiveMapProps) {
+  const t = useTranslations('sa.profilesMap');
   const t_countries = useTranslations('countries');
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
 
   const [selectedCountry, setSelectedCountry] = useState<string>('all');
   const [selectedCity, setSelectedCity] = useState<string>('all');
@@ -109,104 +134,56 @@ export default function SmartInteractiveMap({
       .sort((a, b) => b.count - a.count);
   }, [profilesWithCoords]);
 
-  // Stats by city
-  const statsByCity = useMemo(() => {
-    const stats = new Map<string, number>();
-    const filtered =
-      selectedCountry === 'all'
-        ? profilesWithCoords
-        : profilesWithCoords.filter((p) => p.country === selectedCountry);
-
-    filtered.forEach((p) => {
-      const city = p.city || 'Unknown';
-      stats.set(city, (stats.get(city) || 0) + 1);
-    });
-    return Array.from(stats.entries())
-      .map(([city, count]) => ({ city, count }))
-      .sort((a, b) => b.count - a.count);
-  }, [profilesWithCoords, selectedCountry]);
-
-  // Initialize map
-  useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current || typeof window === 'undefined' || !L)
-      return;
-
-    const map = L.map(mapRef.current, {
-      center: [0.4162, 9.4673],
-      zoom: 3,
-      zoomControl: true,
-    });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap',
-    }).addTo(map);
-
-    mapInstanceRef.current = map;
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, []);
-
-  // Update markers when filtered profiles change
-  useEffect(() => {
-    if (!mapInstanceRef.current) return;
-
-    // Clear existing markers
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
-
-    // Add new markers
-    filteredProfiles.forEach((profile) => {
-      const marker = L.marker([profile.latitude, profile.longitude])
-        .bindPopup(
-          `
-          <div>
-            <strong>${profile.name}</strong><br/>
-            ${profile.city || ''}, ${profile.country || ''}
-          </div>
-          `,
-        )
-        .on('click', () => {
-          onProfileClick?.(profile.id);
-        });
-
-      marker.addTo(mapInstanceRef.current);
-      markersRef.current.push(marker);
-    });
-
-    // Fit bounds if profiles exist
-    if (filteredProfiles.length > 0) {
-      const group = L.featureGroup(markersRef.current);
-      mapInstanceRef.current.fitBounds(group.getBounds().pad(0.1));
-    }
-  }, [filteredProfiles, onProfileClick]);
-
-  if (typeof window === 'undefined' || !L) {
-    return (
-      <div
-        className={`flex items-center justify-center bg-background rounded-lg ${className}`}
-      >
-        <div className="text-center p-8">
-          <p className="text-sm text-muted-foreground">Loading map...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={`space-y-4 ${className || ''}`}>
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContainer className="border-primary/10" contentClass="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                {t('totalProfiles')}
+              </p>
+              <p className="text-3xl font-bold mt-1">{profilesWithCoords.length}</p>
+            </div>
+            <div className="size-12 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Users className="size-6 text-primary" />
+            </div>
+          </div>
+        </CardContainer>
+
+        <CardContainer className="border-primary/10" contentClass="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                {t('countries')}
+              </p>
+              <p className="text-3xl font-bold mt-1">{countries.length}</p>
+            </div>
+            <div className="size-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <MapPin className="size-6 text-blue-500" />
+            </div>
+          </div>
+        </CardContainer>
+
+        <CardContainer className="border-primary/10" contentClass="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">{t('cities')}</p>
+              <p className="text-3xl font-bold mt-1">{cities.length}</p>
+            </div>
+            <div className="size-12 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <MapPin className="size-6 text-emerald-500" />
+            </div>
+          </div>
+        </CardContainer>
+      </div>
+
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent className="flex gap-4">
+      <div>
+        <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
+            <label className="text-sm font-medium mb-2 block">{t('selectCountry')}</label>
             <Select
               value={selectedCountry}
               onValueChange={(value) => {
@@ -215,10 +192,10 @@ export default function SmartInteractiveMap({
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select country" />
+                <SelectValue placeholder={t('selectCountryPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Countries</SelectItem>
+                <SelectItem value="all">{t('allCountries')}</SelectItem>
                 {countries.map((country) => (
                   <SelectItem key={country} value={country || ''}>
                     {country}
@@ -228,12 +205,13 @@ export default function SmartInteractiveMap({
             </Select>
           </div>
           <div className="flex-1">
+            <label className="text-sm font-medium mb-2 block">{t('selectCity')}</label>
             <Select value={selectedCity} onValueChange={setSelectedCity}>
               <SelectTrigger>
-                <SelectValue placeholder="Select city" />
+                <SelectValue placeholder={t('selectCityPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Cities</SelectItem>
+                <SelectItem value="all">{t('allCities')}</SelectItem>
                 {cities.map((city) => (
                   <SelectItem key={city} value={city || ''}>
                     {city}
@@ -242,59 +220,130 @@ export default function SmartInteractiveMap({
               </SelectContent>
             </Select>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setSelectedCountry('all');
-              setSelectedCity('all');
-            }}
-          >
-            Reset
-          </Button>
-        </CardContent>
-      </Card>
+          <div className="flex items-end">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => {
+                setSelectedCountry('all');
+                setSelectedCity('all');
+              }}
+            >
+              <RotateCcw className="size-4" />
+              {t('reset')}
+            </Button>
+          </div>
+        </div>
 
+        {/* Active Filters Display */}
+        {(selectedCountry !== 'all' || selectedCity !== 'all') && (
+          <div className="mt-4 flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">{t('activeFilters')}:</span>
+            {selectedCountry !== 'all' && (
+              <Badge variant="secondary" className="gap-1">
+                {selectedCountry}
+              </Badge>
+            )}
+            {selectedCity !== 'all' && (
+              <Badge variant="secondary" className="gap-1">
+                {selectedCity}
+              </Badge>
+            )}
+            <span className="text-sm text-muted-foreground">
+              ({filteredProfiles.length} {t('profilesFound')})
+            </span>
+          </div>
+        )}
+      </div>
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Profiles by Country</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {statsByCountry.map(({ country, count }) => (
-                <div key={country} className="flex justify-between items-center">
-                  <span className="text-sm">{country}</span>
-                  <span className="text-sm font-bold">{count}</span>
-                </div>
-              ))}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <CardContainer
+          className="border-primary/10"
+          title={
+            <div className="flex items-center gap-2">
+              <MapPin className="size-5 text-primary" />
+              <span>{t('profilesByCountry')}</span>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Profiles by City</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {statsByCity.map(({ city, count }) => (
-                <div key={city} className="flex justify-between items-center">
-                  <span className="text-sm">{city}</span>
-                  <span className="text-sm font-bold">{count}</span>
+          }
+        >
+          <div className="space-y-2 flex flex-wrap gap-2">
+            {statsByCountry.length > 0 ? (
+              statsByCountry.map(({ country, count }) => (
+                <div
+                  key={country}
+                  className="flex justify-between items-center px-3 py-2 gap-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
+                  <span className="text-sm font-medium">{country}</span>
+                  <Badge variant="secondary" className="font-bold">
+                    {count}
+                  </Badge>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                {t('noData')}
+              </p>
+            )}
+          </div>
+        </CardContainer>
       </div>
 
       {/* Map */}
-      <Card>
-        <CardContent className="p-0">
-          <div ref={mapRef} className="w-full rounded-lg" style={{ height: '600px' }} />
-        </CardContent>
-      </Card>
+      <CardContainer
+        className="border-primary/10"
+        title={
+          <div className="flex items-center gap-2">
+            <MapPin className="size-5 text-primary" />
+            <span>{t('interactiveMap')}</span>
+          </div>
+        }
+        action={
+          <Badge variant="outline" className="gap-1">
+            <Users className="size-3" />
+            {filteredProfiles.length} {t('profilesShown')}
+          </Badge>
+        }
+        contentClass="p-0"
+      >
+        <div className="rounded-b-lg overflow-hidden">
+          <MapContainer
+            center={[0.4162, 9.4673]}
+            zoom={3}
+            scrollWheelZoom={true}
+            className="w-full"
+            style={{ height: '600px' }}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maxZoom={19}
+            />
+            {filteredProfiles.map((profile) => (
+              <Marker
+                key={profile.id}
+                position={[profile.latitude, profile.longitude]}
+                eventHandlers={{
+                  click: () => {
+                    onProfileClick?.(profile.id);
+                  },
+                }}
+              >
+                <Popup>
+                  <div className="p-2">
+                    <p className="font-semibold text-base mb-1">{profile.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {profile.city || ''}
+                      {profile.city && profile.country ? ', ' : ''}
+                      {profile.country || ''}
+                    </p>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+            <FitBounds profiles={filteredProfiles} />
+          </MapContainer>
+        </div>
+      </CardContainer>
     </div>
   );
 }
