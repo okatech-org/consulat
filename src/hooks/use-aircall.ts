@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { AircallConfig } from '@/schemas/aircall';
+import type { AircallConfig } from '@/schemas/aircall';
 
 declare global {
   interface Window {
@@ -52,7 +52,6 @@ export function useAircall({
   onCallAnswer,
   onError,
 }: UseAircallOptions) {
-  const { user } = useCurrentUser();
   const [isLoaded, setIsLoaded] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
