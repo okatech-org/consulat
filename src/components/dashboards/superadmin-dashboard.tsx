@@ -28,6 +28,7 @@ import {
   Calendar,
   Activity,
   ArrowRight,
+  MapPin,
 } from 'lucide-react';
 import {
   LineChart,
@@ -46,6 +47,7 @@ import {
 } from 'recharts';
 import { ServiceCategory } from '@/convex/lib/constants';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import SmartInteractiveMap from '../intelligence/smart-interactive-map';
 
 // CSS variables as chart colors
 const CHART_COLORS = {
@@ -69,6 +71,7 @@ export default function SuperAdminDashboard() {
   const t = useTranslations('sa.dashboard');
   const t_base = useTranslations('sa');
 
+  const profilesMapData = useQuery(api.functions.profile.getProfilesMapData);
   const dashboardStats = useQuery(api.functions.analytics.getDashboardStats);
   const requestAnalytics = useQuery(api.functions.analytics.getRequestAnalytics, {});
   const organizations = useQuery(api.functions.organization.getAllOrganizations, {});
@@ -189,6 +192,10 @@ export default function SuperAdminDashboard() {
           <TabsTrigger value="organization" className="flex items-center gap-2">
             <Building2 className="size-4" />
             {t('tabs.organizations')}
+          </TabsTrigger>
+          <TabsTrigger value="profiles" className="flex items-center gap-2">
+            <MapPin className="size-4" />
+            {t('tabs.profiles')}
           </TabsTrigger>
         </TabsList>
 
@@ -594,6 +601,21 @@ export default function SuperAdminDashboard() {
                   </tbody>
                 </table>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Profiles Map */}
+        <TabsContent value="profiles" className="space-y-6">
+          <Card className="border-primary/10">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">
+                {t('profilesMap.title')}
+              </CardTitle>
+              <CardDescription>{t('profilesMap.subtitle')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SmartInteractiveMap profiles={profilesMapData || []} />
             </CardContent>
           </Card>
         </TabsContent>

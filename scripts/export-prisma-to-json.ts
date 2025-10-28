@@ -8,7 +8,7 @@ const prisma = new PrismaClient({
 });
 
 const userEmail: string | undefined = undefined;
-const userLimit: number | undefined = 50;
+const userLimit: number | undefined = 100;
 
 interface ExportStats {
   entity: string;
