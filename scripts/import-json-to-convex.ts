@@ -65,6 +65,20 @@ async function loadJsonFile(filename: string) {
   return JSON.parse(content);
 }
 
+async function getCoordinatesFromAddress(address: {
+  city: string;
+  country: string;
+  zipCode: string;
+  firstLine: string;
+  secondLine: string;
+}) {
+  const response = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&q=${address.firstLine}, ${address.secondLine}, ${address.city}, ${address.zipCode}`,
+  );
+  const data = await response.json();
+  return data.length > 0 ? { latitude: data[0].lat, longitude: data[0].lon } : undefined;
+}
+
 async function loadMigrationTracking() {
   try {
     const content = await fs.readFile(TRACKING_FILE, 'utf-8');
@@ -316,7 +330,17 @@ async function importNonUsersAccounts() {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function importUserCentricData() {
   console.log('\n👤 Import des données centrées utilisateur...');
-  const usersData: UserCentricDataExport[] = await loadJsonFile('users-data.json');
+  const usersData: Array<
+    UserCentricDataExport & {
+      address: {
+        firstLine: string;
+        secondLine: string;
+        city: string;
+        zipCode: string;
+        country: string;
+      };
+    }
+  > = await loadJsonFile('users-data.json');
   initStat('users-data', usersData.length);
 
   const usersToImport = usersData.filter((userData) => {
@@ -352,8 +376,34 @@ async function importUserCentricData() {
         `\n   📍 Import utilisateur : ${userData.email || userData.name || userData.id}`,
       );
 
+      const enrichedUserData = {
+        ...userData,
+      };
+
+      const coordinates = await getCoordinatesFromAddress({
+        // @ts-expect-error - address type is not inferred correctly
+        firstLine: userData.profile?.address?.firstLine || '',
+        // @ts-expect-error - address type is not inferred correctly
+        secondLine: userData.profile?.address?.secondLine || '',
+        // @ts-expect-error - address type is not inferred correctly
+        city: userData.profile?.address?.city || '',
+        // @ts-expect-error - address type is not inferred correctly
+        zipCode: userData.profile?.address?.zipCode || '',
+        // @ts-expect-error - address type is not inferred correctly
+        country: userData.profile?.address?.country || '',
+      });
+
+      if (coordinates) {
+        // @ts-expect-error - profile type is not inferred correctly
+        enrichedUserData.profile = {
+          ...userData.profile,
+          // @ts-expect-error - address type is not inferred correctly
+          ...{ address: { ...userData.profile?.address, coordinates: coordinates } },
+        };
+      }
+
       const result = await convex.mutation(api.functions.migration.importUserWithData, {
-        userData,
+        userData: enrichedUserData,
       });
 
       addMigratedId('users-data', userData.id);

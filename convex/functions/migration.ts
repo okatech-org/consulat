@@ -908,16 +908,9 @@ export const importUserWithData = mutation({
     recordCount++;
 
     // @ts-expect-error - address is not typed
-    const profileAddress = profile?.address as Address;
-    let addressCoordinates: { latitude: number; longitude: number } | undefined =
-      undefined;
-
-    if (profileAddress) {
-      const coordinates = await getCoordinatesFromAddress(profileAddress);
-      if (coordinates) {
-        addressCoordinates = coordinates;
-      }
-    }
+    const profileAddress = profile?.address as
+      | (Address & { coordinates: { latitude: string; longitude: string } })
+      | undefined;
 
     const emergencyContacts: Array<
       EmergencyContact & { address: Address; type: EmergencyContactType }
@@ -975,7 +968,7 @@ export const importUserWithData = mutation({
                   (profileAddress.country as CountryCode) ||
                   (countryCode as CountryCode) ||
                   'FR',
-                coordinates: undefined,
+                coordinates: profileAddress.coordinates || undefined,
               }
             : undefined,
         },
@@ -1055,7 +1048,7 @@ export const importUserWithData = mutation({
                 postalCode: c.address.zipCode || '',
                 state: undefined,
                 country: (c.address.country as CountryCode) || ('FR' as CountryCode),
-                coordinates: addressCoordinates,
+                coordinates: undefined,
               }
             : undefined,
           profileId: undefined,
@@ -2225,19 +2218,4 @@ async function getProfileByLegacyUserId(ctx: MutationCtx, userId: string) {
     .first();
 
   return { profile, user };
-}
-
-async function getCoordinatesFromAddress(address: {
-  street?: string;
-  complement?: string;
-  city?: string;
-  postalCode?: string;
-  state?: string;
-  country?: string;
-}): Promise<{ latitude: number; longitude: number } | undefined> {
-  const response = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&q=${address.street}, ${address.complement}, ${address.city}, ${address.postalCode}, ${address.state}, ${address.country}`,
-  );
-  const data = await response.json();
-  return data.length > 0 ? { latitude: data[0].lat, longitude: data[0].lon } : undefined;
 }

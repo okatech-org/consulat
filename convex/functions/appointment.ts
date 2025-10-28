@@ -35,8 +35,8 @@ export const createAppointment = mutation({
         complement: v.optional(v.string()),
         coordinates: v.optional(
           v.object({
-            latitude: v.number(),
-            longitude: v.number(),
+            latitude: v.string(),
+            longitude: v.string(),
           }),
         ),
         street: v.string(),
