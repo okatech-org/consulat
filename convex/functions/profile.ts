@@ -286,29 +286,6 @@ export const removeEmergencyContact = mutation({
   },
 });
 
-export const updateConsularCard = mutation({
-  args: {
-    profileId: v.id('profiles'),
-    consularCard: v.object({
-      cardNumber: v.optional(v.string()),
-      cardIssuedAt: v.optional(v.number()),
-      cardExpiresAt: v.optional(v.number()),
-    }),
-  },
-  handler: async (ctx, args) => {
-    const profile = await ctx.db.get(args.profileId);
-    if (!profile) {
-      throw new Error('Profile not found');
-    }
-
-    await ctx.db.patch(args.profileId, {
-      consularCard: { ...profile.consularCard, ...args.consularCard },
-    });
-
-    return args.profileId;
-  },
-});
-
 export const updateProfileStatus = mutation({
   args: {
     profileId: v.id('profiles'),
@@ -328,16 +305,6 @@ export const getProfile = query({
   args: { profileId: v.id('profiles') },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.profileId);
-  },
-});
-
-export const getProfileByUser = query({
-  args: { userId: v.id('users') },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query('profiles')
-      .withIndex('by_user', (q) => q.eq('userId', args.userId))
-      .first();
   },
 });
 
@@ -371,79 +338,6 @@ export const getAllProfiles = query({
     }
 
     return profiles;
-  },
-});
-
-export const getProfilesByStatus = query({
-  args: { status: profileStatusValidator },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query('profiles')
-      .withIndex('by_status', (q) => q.eq('status', args.status))
-      .order('desc')
-      .collect();
-  },
-});
-
-export const getProfilesByResidenceCountry = query({
-  args: { residenceCountry: v.string() },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query('profiles')
-      .filter((q) => q.eq(q.field('residenceCountry'), args.residenceCountry))
-      .order('desc')
-      .collect();
-  },
-});
-
-export const getProfileWithDocuments = query({
-  args: { profileId: v.id('profiles') },
-  handler: async (ctx, args) => {
-    const profile = await ctx.db.get(args.profileId);
-    if (!profile) return null;
-
-    const documents = await ctx.db
-      .query('documents')
-      .withIndex('by_owner', (q) =>
-        q.eq('ownerId', profile._id).eq('ownerType', OwnerType.Profile),
-      )
-      .collect();
-
-    return {
-      ...profile,
-      documents,
-    };
-  },
-});
-
-export const searchProfiles = query({
-  args: {
-    searchTerm: v.string(),
-    status: v.optional(profileStatusValidator),
-  },
-  handler: async (ctx, args) => {
-    let profiles: Array<Doc<'profiles'>> = [];
-
-    if (args.status) {
-      profiles = await ctx.db
-        .query('profiles')
-        .withIndex('by_status', (q) => q.eq('status', args.status!))
-        .collect();
-    } else {
-      profiles = await ctx.db.query('profiles').collect();
-    }
-
-    return profiles.filter((profile) => {
-      const searchLower = args.searchTerm.toLowerCase();
-      return (
-        (profile.personal?.firstName &&
-          profile.personal.firstName.toLowerCase().includes(searchLower)) ||
-        (profile.personal?.lastName &&
-          profile.personal.lastName.toLowerCase().includes(searchLower)) ||
-        (profile.consularCard?.cardNumber &&
-          profile.consularCard.cardNumber.toLowerCase().includes(searchLower))
-      );
-    });
   },
 });
 

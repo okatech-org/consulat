@@ -54,21 +54,6 @@ export function useChildProfilesList(filters: ChildProfilesFilters = {}) {
 }
 
 /**
- * Hook to get a single profile
- */
-export function useProfile(profileId: Id<'profiles'>) {
-  const profile = useQuery(api.functions.profile.getProfile, {
-    profileId,
-  });
-
-  return {
-    profile,
-    isLoading: profile === undefined,
-    error: null,
-  };
-}
-
-/**
  * Hook to update a profile
  */
 export function useUpdateProfile() {
@@ -119,22 +104,6 @@ export function useUpdateProfileStatus() {
 }
 
 /**
- * Hook to search profiles
- */
-export function useSearchProfiles(searchTerm: string, status?: string) {
-  const results = useQuery(api.functions.profile.searchProfiles, {
-    searchTerm: searchTerm || '',
-    status: status as any,
-  });
-
-  return {
-    results: results ?? [],
-    isLoading: results === undefined,
-    error: null,
-  };
-}
-
-/**
  * Hook to get current user profile
  */
 export function useCurrentProfile(profileId?: Id<'profiles'>) {
@@ -146,30 +115,5 @@ export function useCurrentProfile(profileId?: Id<'profiles'>) {
     profile,
     isLoading: profile === undefined,
     error: null,
-  };
-}
-
-/**
- * Hook to update consular card info
- */
-export function useUpdateConsularCard() {
-  const updateMutation = useMutation(api.functions.profile.updateConsularCard);
-
-  const updateConsularCard = async (profileId: Id<'profiles'>, cardData: any) => {
-    try {
-      await updateMutation({
-        profileId,
-        ...cardData,
-      });
-      toast.success('Carte consulaire mise à jour');
-    } catch (error) {
-      toast.error('Erreur lors de la mise à jour');
-      throw error;
-    }
-  };
-
-  return {
-    updateConsularCard,
-    isUpdating: false,
   };
 }
