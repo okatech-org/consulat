@@ -8,7 +8,7 @@ import { documentValidations, validateDocument } from '@/lib/document-validation
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { DocumentType, ProfileCategory } from '@prisma/client';
+import { DocumentType, ProfileCategory } from '@/convex/lib/constants';
 import { DocumentValidationDialog } from './document-validation-dialog';
 import CardContainer from '@/components/layouts/card-container';
 

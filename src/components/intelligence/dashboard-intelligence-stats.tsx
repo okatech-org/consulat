@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -11,8 +12,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, FileText, TrendingUp, AlertTriangle, Building, Navigation, Plane, Phone, Target } from 'lucide-react';
-import { IntelligenceNoteType } from '@prisma/client';
+import {
+  Users,
+  FileText,
+  TrendingUp,
+  AlertTriangle,
+  Building,
+  Navigation,
+  Plane,
+  Phone,
+  Target,
+} from 'lucide-react';
+import { IntelligenceNoteType } from '@/convex/lib/constants';
 import { useState } from 'react';
 
 interface DashboardIntelligenceStatsProps {
@@ -35,9 +46,8 @@ export function DashboardIntelligenceStats({
   const t = useTranslations('intelligence.dashboard.stats');
   const [period, setPeriod] = useState(initialPeriod);
 
-  const { data: stats, isLoading } = api.intelligence.getDashboardStats.useQuery({
-    period,
-  });
+  const stats = useQuery(api.functions.intelligence.getDashboardStats, { period });
+  const isLoading = stats === undefined;
 
   if (isLoading) {
     return (
@@ -111,7 +121,7 @@ export function DashboardIntelligenceStats({
             <SelectValue placeholder="Période" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="day">Aujourd'hui</SelectItem>
+            <SelectItem value="day">Aujourd&apos;hui</SelectItem>
             <SelectItem value="week">Cette semaine</SelectItem>
             <SelectItem value="month">Ce mois</SelectItem>
             <SelectItem value="year">Cette année</SelectItem>

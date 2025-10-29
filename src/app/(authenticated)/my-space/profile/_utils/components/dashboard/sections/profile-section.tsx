@@ -9,7 +9,7 @@ import { Badge, BadgeVariant } from '@/components/ui/badge';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { Key } from 'react';
-import { RequestStatus } from '@prisma/client';
+import { RequestStatus } from '@/convex/lib/constants';
 
 interface ProfileSectionProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

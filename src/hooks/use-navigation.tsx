@@ -12,7 +12,6 @@ import {
   Users,
   MessageSquare,
   FolderIcon,
-  FileIcon,
   Home,
   Bell,
   type LucideIcon,
@@ -122,12 +121,6 @@ export function useNavigation() {
       url: ROUTES.dashboard.users,
       icon: Users,
       roles: [UserRole.SuperAdmin],
-    },
-    {
-      title: t('document-templates'),
-      url: ROUTES.dashboard.doc_templates,
-      icon: FileIcon,
-      roles: [UserRole.Admin, UserRole.SuperAdmin],
     },
     {
       title: t('tickets'),

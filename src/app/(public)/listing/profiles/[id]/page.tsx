@@ -3,7 +3,6 @@
 import { useParams, useRouter } from 'next/navigation';
 import { ProfileView } from '../_components/profile-view';
 import { ProfileContactForm } from '../_components/profile-contact-form';
-import type { ServiceRequest } from '@prisma/client';
 import { PageContainer } from '@/components/layouts/page-container';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';

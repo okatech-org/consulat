@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { ServiceCategory } from '@prisma/client';
+import { ServiceCategory } from '@/convex/lib/constants';
 import CardContainer from '../layouts/card-container';
 import { MultiSelect } from '../ui/multi-select';
 import { useRouter } from 'next/navigation';

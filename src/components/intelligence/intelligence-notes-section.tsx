@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -14,7 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Search, Filter, FileText } from 'lucide-react';
-import { IntelligenceNoteType, IntelligenceNotePriority } from '@prisma/client';
+import { IntelligenceNoteType, IntelligenceNotePriority } from '@/convex/lib/constants';
 import { IntelligenceNoteCard } from './intelligence-note-card';
 import { IntelligenceNoteForm } from './intelligence-note-form';
 
@@ -51,32 +52,34 @@ export function IntelligenceNotesSection({
     };
   }, [profileId]);
 
-  const {
-    data: notes,
-    isLoading,
-    refetch,
-  } = api.intelligence.getIntelligenceNotes.useQuery({
-    profileId,
-    filters: Object.keys(filters).some(
-      (key) =>
-        filters[key as keyof typeof filters] !== undefined &&
-        filters[key as keyof typeof filters] !== '',
-    )
-      ? filters
-      : undefined,
+  const notes = useQuery(api.functions.intelligence.getIntelligenceNotes, {
+    filters: {
+      profileId: profileId as any,
+      ...(Object.keys(filters).some(
+        (key) =>
+          filters[key as keyof typeof filters] !== undefined &&
+          filters[key as keyof typeof filters] !== '',
+      )
+        ? {
+            type: filters.type,
+            priority: filters.priority,
+            search: filters.search,
+          }
+        : {}),
+    },
   });
+  const isLoading = notes === undefined;
 
   const handleAddSuccess = () => {
     setIsAddingNote(false);
-    refetch();
   };
 
   const handleEditSuccess = () => {
-    refetch();
+    // Convex auto-refetches
   };
 
   const handleDeleteSuccess = () => {
-    refetch();
+    // Convex auto-refetches
   };
 
   const clearFilters = () => {
@@ -91,11 +94,13 @@ export function IntelligenceNotesSection({
 
   return (
     <div className="space-y-4 h-full flex flex-col" data-section="renseignements">
-      
       {/* Filtres */}
       <div className="space-y-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" style={{ color: 'var(--text-muted)' }} />
+          <Search
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4"
+            style={{ color: 'var(--text-muted)' }}
+          />
           <Input
             placeholder={t('filters.search')}
             value={filters.search}
@@ -119,7 +124,7 @@ export function IntelligenceNotesSection({
               }))
             }
           >
-            <SelectTrigger 
+            <SelectTrigger
               className="w-full sm:w-[180px]"
               style={{
                 background: 'var(--bg-glass-light)',
@@ -129,7 +134,7 @@ export function IntelligenceNotesSection({
             >
               <SelectValue placeholder={t('filters.type')} />
             </SelectTrigger>
-            <SelectContent 
+            <SelectContent
               style={{
                 background: 'var(--bg-glass-primary)',
                 border: '1px solid var(--border-glass-primary)',
@@ -138,10 +143,14 @@ export function IntelligenceNotesSection({
               }}
             >
               <SelectItem value="all">{t('filters.allTypes')}</SelectItem>
-              <SelectItem value="POLITICAL_OPINION">{t('types.political_opinion')}</SelectItem>
+              <SelectItem value="POLITICAL_OPINION">
+                {t('types.political_opinion')}
+              </SelectItem>
               <SelectItem value="ORIENTATION">{t('types.orientation')}</SelectItem>
               <SelectItem value="ASSOCIATIONS">{t('types.associations')}</SelectItem>
-              <SelectItem value="TRAVEL_PATTERNS">{t('types.travel_patterns')}</SelectItem>
+              <SelectItem value="TRAVEL_PATTERNS">
+                {t('types.travel_patterns')}
+              </SelectItem>
               <SelectItem value="CONTACTS">{t('types.contacts')}</SelectItem>
               <SelectItem value="ACTIVITIES">{t('types.activities')}</SelectItem>
               <SelectItem value="OTHER">{t('types.other')}</SelectItem>
@@ -158,7 +167,7 @@ export function IntelligenceNotesSection({
               }))
             }
           >
-            <SelectTrigger 
+            <SelectTrigger
               className="w-full sm:w-[180px]"
               style={{
                 background: 'var(--bg-glass-light)',
@@ -212,17 +221,26 @@ export function IntelligenceNotesSection({
         {isLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className="animate-pulse p-4 rounded-xl"
                 style={{
                   background: 'var(--bg-glass-light)',
                   border: '1px solid var(--border-glass-secondary)',
                 }}
               >
-                <div className="h-4 rounded w-3/4 mb-2" style={{ background: 'var(--border-glass-secondary)' }}></div>
-                <div className="h-3 rounded w-1/2 mb-3" style={{ background: 'var(--border-glass-secondary)' }}></div>
-                <div className="h-8 rounded" style={{ background: 'var(--border-glass-secondary)' }}></div>
+                <div
+                  className="h-4 rounded w-3/4 mb-2"
+                  style={{ background: 'var(--border-glass-secondary)' }}
+                ></div>
+                <div
+                  className="h-3 rounded w-1/2 mb-3"
+                  style={{ background: 'var(--border-glass-secondary)' }}
+                ></div>
+                <div
+                  className="h-8 rounded"
+                  style={{ background: 'var(--border-glass-secondary)' }}
+                ></div>
               </div>
             ))}
           </div>
@@ -245,9 +263,7 @@ export function IntelligenceNotesSection({
             <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p className="text-lg font-medium mb-2">{t('emptyTitle')}</p>
             <p className="text-sm">
-              {hasActiveFilters
-                ? t('emptyFiltered')
-                : t('emptyDescription')}
+              {hasActiveFilters ? t('emptyFiltered') : t('emptyDescription')}
             </p>
           </div>
         )}
@@ -255,13 +271,11 @@ export function IntelligenceNotesSection({
 
       {/* Statistiques */}
       {notes && notes.length > 0 && (
-        <div 
+        <div
           className="flex flex-wrap gap-2 pt-4"
           style={{ borderTop: '1px solid var(--border-glass-secondary)' }}
         >
-          <Badge variant="secondary">
-            {t('count', { count: notes.length })}
-          </Badge>
+          <Badge variant="secondary">{t('count', { count: notes.length })}</Badge>
           {Object.entries(
             notes.reduce(
               (acc, note) => {

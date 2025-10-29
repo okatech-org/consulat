@@ -25,7 +25,7 @@ export default {
       requestTrend: 'Tendance des Demandes',
       requestTrendSubtitle: 'Évolution mensuelle des demandes (6 derniers mois)',
       keyMetrics: 'Métriques Clés',
-      keyMetricsSubtitle: 'Vue d\'ensemble instantanée',
+      keyMetricsSubtitle: "Vue d'ensemble instantanée",
       averageProcessingTime: 'Temps Moyen',
       pendingRequests: 'En Attente',
       completedRequests: 'Complétées',
@@ -36,7 +36,7 @@ export default {
     },
     statusTab: {
       distribution: 'Distribution par Statut',
-      distributionSubtitle: 'Vue d\'ensemble de la répartition des demandes',
+      distributionSubtitle: "Vue d'ensemble de la répartition des demandes",
     },
     organizationTab: {
       activeOrganizations: 'Organisations Actives',
@@ -105,6 +105,7 @@ export default {
     interactiveMap: 'Carte Interactive',
     profilesShown: 'profils affichés',
     noData: 'Aucune donnée disponible',
+    loadingMap: 'Chargement de la carte...',
   },
   countries: {
     title: 'Gestion des Pays',

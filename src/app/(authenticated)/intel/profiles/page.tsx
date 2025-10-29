@@ -39,8 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useRouter } from 'next/navigation';
-import { ProfileCategory, Gender, RequestStatus } from '@prisma/client';
+import { ProfileCategory, Gender, RequestStatus } from '@/convex/lib/constants';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { ProfilesArrayItem, ProfilesFilters } from '@/components/profile/types';
@@ -91,8 +90,6 @@ const formatNumber = (num: number): string => {
 };
 
 export default function ProfilesPage() {
-  const router = useRouter();
-
   // États pour les interactions utilisateur
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -118,8 +115,10 @@ export default function ProfilesPage() {
     pageSize: 15,
   });
 
-  const { params, sorting, handleParamsChange, handlePaginationChange } =
-    useTableSearchParams<ProfilesArrayItem, ProfilesFilters>(adaptSearchParams);
+  const { params, handleParamsChange, handlePaginationChange } = useTableSearchParams<
+    ProfilesArrayItem,
+    ProfilesFilters
+  >(adaptSearchParams);
 
   // Utiliser la pagination locale si celle du hook est invalide
   const safePagination = {
@@ -446,7 +445,7 @@ export default function ProfilesPage() {
   const handlePageChange = (page: number) => {
     const newPageIndex = page - 1; // Convertir en index 0-based
     setLocalPagination((prev) => ({ ...prev, pageIndex: newPageIndex }));
-    handlePaginationChange && handlePaginationChange({ pageIndex: newPageIndex });
+    handlePaginationChange?.(newPageIndex);
 
     // Défiler vers le haut pour une meilleure UX
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1115,8 +1114,7 @@ export default function ProfilesPage() {
                       pageIndex: newPageIndex,
                       pageSize: safePagination.pageSize,
                     });
-                    handlePaginationChange &&
-                      handlePaginationChange({ pageIndex: newPageIndex });
+                    handlePaginationChange?.(newPageIndex);
                   }}
                   className="bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20"
                 >
@@ -1177,8 +1175,7 @@ export default function ProfilesPage() {
                           pageSize: newPageSize,
                           pageIndex: 0,
                         }));
-                        handlePaginationChange &&
-                          handlePaginationChange({ pageSize: newPageSize, pageIndex: 0 });
+                        handlePaginationChange?.(newPageSize, 0);
                       }}
                       className="px-2 py-1 rounded border text-sm"
                       style={{
@@ -1216,7 +1213,7 @@ export default function ProfilesPage() {
       <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Ajouter une note d'intelligence</DialogTitle>
+            <DialogTitle>Ajouter une note d&apos;intelligence</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">

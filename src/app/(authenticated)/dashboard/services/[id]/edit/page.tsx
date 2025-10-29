@@ -1,35 +1,66 @@
-import { getTranslations } from 'next-intl/server';
-import { getFullService } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
-import { getOrganizationWithSpecificIncludes } from '@/actions/organizations';
+'use client';
+
+import { useParams } from 'next/navigation';
 import { NotFoundComponent } from '@/components/ui/not-found';
 import { ConsularServiceForm } from '@/components/organization/service-edit-form';
 import { PageContainer } from '@/components/layouts/page-container';
-import { redirect } from 'next/navigation';
-import { ROUTES } from '@/schemas/routes';
-import { UserRole } from '@prisma/client';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { UserRole } from '@/convex/lib/constants';
 import { hasAnyRole } from '@/lib/permissions/utils';
-import { getDocumentTemplates } from '@/actions/document-generation';
-import { api } from '@/trpc/server';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useActiveCountries } from '@/hooks/use-countries';
+import { useOrganizations } from '@/hooks/use-organizations';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { useTranslations } from 'next-intl';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import type { Id } from '@/convex/_generated/dataModel';
 
-export default async function EditServicePage({ params }: { params: { id: string } }) {
-  const awaitedParams = await params;
-  const t = await getTranslations('services');
-  const user = await getCurrentUser();
-  if (!user) {
-    redirect(ROUTES.auth.login);
-  }
-  const isSuperAdmin = hasAnyRole(user, [UserRole.SUPER_ADMIN]);
-  const countries = await api.countries.getActive();
-  const organizations = await api.organizations.getList();
-  const organization = !isSuperAdmin
-    ? await getOrganizationWithSpecificIncludes(user.organizationId ?? '', ['countries'])
-    : null;
-  const documentTemplates = await getDocumentTemplates(
-    isSuperAdmin ? null : (user.organizationId ?? ''),
+export default function EditServicePage() {
+  const params = useParams();
+  const serviceId = params.id as string;
+  const t = useTranslations('services');
+  const { user, loading: userLoading } = useCurrentUser();
+  const { countries, isLoading: countriesLoading } = useActiveCountries();
+  const { organizations, isLoading: organizationsLoading } = useOrganizations();
+
+  const isSuperAdmin = user ? hasAnyRole(user, [UserRole.SuperAdmin]) : false;
+
+  const service = useQuery(
+    api.functions.service.getService,
+    serviceId ? { serviceId: serviceId as Id<'services'> } : 'skip',
   );
 
-  const service = await getFullService(awaitedParams.id);
+  const organization = useQuery(
+    api.functions.organization.getOrganization,
+    !isSuperAdmin && user?.membership?.organizationId
+      ? { organizationId: user.membership.organizationId as Id<'organizations'> }
+      : 'skip',
+  );
+
+  const organizationCountries = useQuery(
+    api.functions.country.getAllCountries,
+    organization?.countryCodes && organization.countryCodes.length > 0
+      ? { status: undefined }
+      : 'skip',
+  );
+
+  const enrichedOrganization =
+    organization && organizationCountries
+      ? {
+          ...organization,
+          countries: organizationCountries.filter((country) =>
+            organization.countryCodes?.includes(country.code),
+          ),
+        }
+      : null;
+
+  if (userLoading || countriesLoading || organizationsLoading || service === undefined) {
+    return (
+      <PageContainer title={t('edit_title')} description={t('edit_title')}>
+        <LoadingSkeleton variant="card" count={3} />
+      </PageContainer>
+    );
+  }
 
   if (!service) {
     return <NotFoundComponent />;
@@ -39,9 +70,15 @@ export default async function EditServicePage({ params }: { params: { id: string
     <PageContainer title={service.name} description={t('edit_title')}>
       <ConsularServiceForm
         service={service}
-        organizations={isSuperAdmin ? organizations : organization ? [organization] : []}
-        countries={isSuperAdmin ? countries : (organization?.countries ?? [])}
-        documentTemplates={documentTemplates}
+        organizations={
+          isSuperAdmin
+            ? organizations
+            : enrichedOrganization
+              ? [enrichedOrganization]
+              : []
+        }
+        countries={isSuperAdmin ? countries : (enrichedOrganization?.countries ?? [])}
+        documentTemplates={[]}
       />
     </PageContainer>
   );

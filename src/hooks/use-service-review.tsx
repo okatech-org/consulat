@@ -1,7 +1,7 @@
 import { useStoredTabs } from './use-tabs';
 import type { ServiceField } from '@/types/consular-service';
 import CardContainer from '@/components/layouts/card-container';
-import { AppointmentStatus } from '@prisma/client';
+import { AppointmentStatus } from '@/convex/lib/constants';
 import { useDateLocale } from '@/lib/utils';
 import { CheckCircle2, XCircle, Calendar, MapPin, Clock, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';

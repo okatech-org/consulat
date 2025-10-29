@@ -1,11 +1,6 @@
-import { AppointmentType, AppointmentStatus } from '@prisma/client';
-import type {
-  User,
-  ServiceRequest,
-  Organization,
-  Appointment,
-  ConsularService,
-} from '@prisma/client';
+import { AppointmentType, AppointmentStatus } from '@/convex/lib/constants';
+import type { CompleteProfile } from '@/convex/lib/types';
+import type { Id } from '@/convex/_generated/dataModel';
 import { z } from 'zod';
 
 export const AppointmentSchema = z.object({
@@ -63,12 +58,42 @@ export const DayScheduleSchema = z.object({
 
 export type DayScheduleInput = z.infer<typeof DayScheduleSchema>;
 
-export interface AppointmentWithRelations extends Appointment {
-  organization: Organization;
-  agent: User | null;
-  request?: (ServiceRequest & { service: ConsularService }) | null;
-  attendee?: User | null;
-  service?: ConsularService | null;
+export interface AppointmentWithRelations {
+  _id: Id<'appointments'>;
+  date: number;
+  startTime: number;
+  endTime: number;
+  duration: number;
+  type: AppointmentType;
+  status: AppointmentStatus;
+  organizationId: Id<'organizations'>;
+  agentId?: Id<'users'> | null;
+  requestId?: Id<'requests'> | null;
+  attendeeId?: Id<'users'> | null;
+  serviceId?: Id<'services'> | null;
+  instructions?: string | null;
+  createdAt: number;
+  updatedAt: number;
+  cancelledAt?: number | null;
+  cancelReason?: string | null;
+  rescheduledFrom?: number | null;
+  organization?: {
+    _id: Id<'organizations'>;
+    name: string;
+  };
+  agent?: CompleteProfile | null;
+  request?: {
+    _id: Id<'requests'>;
+    service?: {
+      _id: Id<'services'>;
+      name: string;
+    } | null;
+  } | null;
+  attendee?: CompleteProfile | null;
+  service?: {
+    _id: Id<'services'>;
+    name: string;
+  } | null;
 }
 
 // Type optimisé pour la liste des rendez-vous (dashboard)

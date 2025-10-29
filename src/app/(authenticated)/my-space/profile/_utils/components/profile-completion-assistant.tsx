@@ -22,19 +22,19 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   ProfileSuggestion,
   useProfileSuggestions,
 } from '@/hooks/use-profile-suggestions';
-import { User } from '@prisma/client';
+import type { CompleteProfile, UserData } from '@/convex/lib/types';
 
 export function ProfileCompletionAssistant({
   profile,
   user,
 }: {
   profile: CompleteProfile;
-  user: User;
+  user: UserData;
 }) {
   const t = useTranslations('profile.assistant');
   const [isOpen, setIsOpen] = useState(false);

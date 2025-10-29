@@ -15,18 +15,18 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { ServiceCategory } from '@prisma/client';
-import type { Country, Organization } from '@prisma/client';
+import { ServiceCategory } from '@/convex/lib/constants';
+import type { Country, Organization } from '@/types';
 import type { ConsularServiceListingItem } from '@/types/consular-service';
 import { NewServiceSchema, type NewServiceSchemaInput } from '@/schemas/consular-service';
 import { CountrySelect } from '../ui/country-select';
 import type { CountryCode } from '@/lib/autocomplete-datas';
 import { useState } from 'react';
-import { tryCatch } from '@/lib/utils';
-import { createService } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import { ErrorCard } from '../ui/error-card';
+import { useServices } from '@/hooks/use-services';
+import type { Id } from '@/convex/_generated/dataModel';
 interface ServiceFormProps {
   initialData?: Partial<ConsularServiceListingItem>;
   countries: Country[];
@@ -43,8 +43,8 @@ export function NewServiceForm({
   const t = useTranslations('services');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { createService } = useServices();
 
-  // Check if a category is pre-selected
   const isCategoryPreSelected = initialData?.category !== undefined;
 
   const form = useForm<NewServiceSchemaInput>({
@@ -53,7 +53,7 @@ export function NewServiceForm({
       id: initialData?.id ?? '',
       name: initialData?.name || '',
       description: initialData?.description || '',
-      category: initialData?.category || ServiceCategory.CIVIL_STATUS,
+      category: initialData?.category || ServiceCategory.CivilStatus,
       organizationId: initialData?.organizationId ?? '',
       countryCode: initialData?.countryCode ?? '',
     },
@@ -63,14 +63,33 @@ export function NewServiceForm({
     setIsLoading(true);
     setError(null);
 
-    const result = await tryCatch(createService(data));
-
-    if (result.error) {
-      setError(result.error.message);
-    }
-
-    if (result.data) {
-      router.push(ROUTES.dashboard.edit_service(result.data.id));
+    try {
+      const serviceId = await createService({
+        code: data.id || `SRV-${Date.now()}`,
+        name: data.name,
+        description: data.description,
+        category: data.category,
+        organizationId: data.organizationId as Id<'organizations'>,
+        countries: data.countryCode ? [data.countryCode] : [],
+        steps: [],
+        processing: {
+          mode: 'online_only' as any,
+          appointment: {
+            requires: false,
+          },
+        },
+        delivery: {
+          modes: [],
+        },
+        pricing: {
+          isFree: true,
+        },
+      });
+      router.push(ROUTES.dashboard.edit_service(serviceId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -144,7 +163,7 @@ export function NewServiceForm({
                 type="single"
                 options={organizations?.map((organization) => ({
                   label: organization.name,
-                  value: organization.id,
+                  value: (organization as any)._id || organization.id,
                 }))}
                 onChange={field.onChange}
                 selected={field.value}

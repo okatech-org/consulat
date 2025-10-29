@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { api } from '@/trpc/react';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import {
-  type IntelligenceNote,
   IntelligenceNoteType,
   IntelligenceNotePriority,
-} from '@prisma/client';
+} from '@/convex/lib/constants';
+import type { Doc } from '@/convex/_generated/dataModel';
 import {
   createIntelligenceNoteSchema,
   updateIntelligenceNoteSchema,
@@ -44,13 +45,13 @@ import {
 } from '@/components/ui/form';
 import { DatePicker } from '@/components/ui/date-picker';
 import { X, Plus } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 interface IntelligenceNoteFormProps {
   profileId: string;
   onSuccess?: () => void;
   onCancel?: () => void;
-  initialData?: IntelligenceNote;
+  initialData?: Doc<'intelligenceNotes'>;
 }
 
 const typeOptions = [
@@ -121,6 +122,7 @@ export function IntelligenceNoteForm({
   initialData,
 }: IntelligenceNoteFormProps) {
   const t = useTranslations('intelligence.notes');
+  const { user } = useCurrentUser();
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [newTag, setNewTag] = useState('');
   const [expiresAt, setExpiresAt] = useState<Date | undefined>(
@@ -142,19 +144,10 @@ export function IntelligenceNoteForm({
     },
   });
 
-  const createNoteMutation = api.intelligence.createNote.useMutation({
-    onSuccess: () => {
-      onSuccess?.();
-    },
-  });
+  const createNoteMutation = useMutation(api.functions.intelligence.createNote);
+  const updateNoteMutation = useMutation(api.functions.intelligence.updateNote);
 
-  const updateNoteMutation = api.intelligence.updateNote.useMutation({
-    onSuccess: () => {
-      onSuccess?.();
-    },
-  });
-
-  const onSubmit = (data: {
+  const onSubmit = async (data: {
     profileId: string;
     type: IntelligenceNoteType;
     priority: IntelligenceNotePriority;
@@ -162,29 +155,39 @@ export function IntelligenceNoteForm({
     content: string;
     id?: string;
   }) => {
-    if (isEditing) {
-      const updateData = {
-        id: data.id!,
-        profileId: data.profileId,
-        type: data.type,
-        priority: data.priority,
-        title: data.title,
-        content: data.content,
-        tags,
-        expiresAt,
-      };
-      updateNoteMutation.mutate(updateData);
-    } else {
-      const createData = {
-        profileId: data.profileId,
-        type: data.type,
-        priority: data.priority,
-        title: data.title,
-        content: data.content,
-        tags,
-        expiresAt,
-      };
-      createNoteMutation.mutate(createData);
+    setIsLoading(true);
+      if (!user?._id) {
+        throw new Error('User not authenticated');
+      }
+      if (isEditing) {
+        await updateNoteMutation({
+          noteId: data.id! as any,
+          profileId: data.profileId as any,
+          type: data.type,
+          priority: data.priority,
+          title: data.title,
+          content: data.content,
+          tags,
+          expiresAt: expiresAt?.getTime(),
+          changedById: user?._id as any,
+        });
+      } else {
+        await createNoteMutation({
+          profileId: data.profileId as any,
+          type: data.type,
+          priority: data.priority,
+          title: data.title,
+          content: data.content,
+          tags,
+          expiresAt: expiresAt?.getTime(),
+          authorId: user?._id as any,
+        });
+      }
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error saving note:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -206,7 +209,7 @@ export function IntelligenceNoteForm({
     }
   };
 
-  const isLoading = createNoteMutation.isPending || updateNoteMutation.isPending;
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <Card className="w-full">

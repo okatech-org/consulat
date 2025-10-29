@@ -23,7 +23,7 @@ import { DataTableColumnHeader } from '@/components/data-table/data-table-column
 import { Checkbox } from '@/components/ui/checkbox';
 import { tryCatch } from '@/lib/utils';
 import { getServices } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '@/convex/lib/constants';
 import { DataTableRowActions } from '@/components/data-table/data-table-row-actions';
 import { Eye, Trash } from 'lucide-react';
 import { EditAgentDialog } from './edit-agent-dialog';

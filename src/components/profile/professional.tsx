@@ -9,7 +9,7 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
-import { WorkStatus } from '@prisma/client';
+import { WorkStatus } from '@/convex/lib/constants';
 
 interface ProfileProfessionalProps {
   profile: CompleteProfile;

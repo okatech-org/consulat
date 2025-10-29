@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { RequestStatus } from '@prisma/client';
+import { RequestStatus } from '@/convex/lib/constants';
 import { useUserServiceRequestsDashboard } from '@/hooks/use-services';
 import { type DashboardServiceRequest } from '@/server/api/routers/services/services';
 import { Button } from '@/components/ui/button';

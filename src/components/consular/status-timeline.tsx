@@ -1,6 +1,6 @@
 'use client';
 
-import { RequestStatus } from '@prisma/client';
+import { RequestStatus } from '@/convex/lib/constants';
 import { Check } from 'lucide-react';
 import { STATUS_ORDER } from '@/lib/validations/status-transitions';
 import { cn } from '@/lib/utils';

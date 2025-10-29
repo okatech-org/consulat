@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { RoleGuard } from '@/lib/permissions/utils';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '@/convex/lib/constants';
 import { Edit, Save, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';

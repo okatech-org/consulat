@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
 import {
   useIntelligenceDashboardStats,
   useIntelligenceProfilesMap,
@@ -38,7 +37,7 @@ import { Input } from '@/components/ui/input';
 import SmartInteractiveMap from '@/components/intelligence/dynamic-smart-map';
 import { useRouter } from 'next/navigation';
 import { useDebounce } from '@/hooks/use-debounce';
-import { IntelligenceNotePriority } from '@prisma/client';
+import { IntelligenceNotePriority } from '@/convex/lib/constants';
 import { getLocationCoordinates } from '@/lib/services/geocoding-service';
 
 // Fonction utilitaire pour formater les nombres de manière cohérente
@@ -47,7 +46,6 @@ const formatNumber = (num: number): string => {
 };
 
 export default function CartePage() {
-  const t = useTranslations('intelligence.map');
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [showLayers] = useState(false);

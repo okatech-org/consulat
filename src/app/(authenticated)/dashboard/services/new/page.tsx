@@ -1,5 +1,7 @@
-import { redirect } from 'next/navigation';
-import { ServiceCategory, UserRole } from '@prisma/client';
+'use client';
+
+import { useSearchParams } from 'next/navigation';
+import { ServiceCategory, UserRole } from '@/convex/lib/constants';
 import { ServiceCategorySelector } from '@/components/organization/service-category-selector';
 import { NewServiceForm } from '@/components/organization/new-service-form';
 import { Button } from '@/components/ui/button';
@@ -8,37 +10,61 @@ import Link from 'next/link';
 
 import { PageContainer } from '@/components/layouts/page-container';
 import { ROUTES } from '@/schemas/routes';
-import { getTranslations } from 'next-intl/server';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { useTranslations } from 'next-intl';
 import { hasAnyRole } from '@/lib/permissions/utils';
-
-import {
-  getOrganizations,
-  getOrganizationWithSpecificIncludes,
-} from '@/actions/organizations';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useActiveCountries } from '@/hooks/use-countries';
+import { useOrganizations } from '@/hooks/use-organizations';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import CardContainer from '@/components/layouts/card-container';
-import { api } from '@/trpc/server';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import type { Id } from '@/convex/_generated/dataModel';
 
-interface ServiceCreationPageProps {
-  searchParams: Promise<{ category: ServiceCategory }>;
-}
+export default function ServiceCreationPage() {
+  const searchParams = useSearchParams();
+  const selectedCategory = (searchParams.get('category') as ServiceCategory) || undefined;
+  const t = useTranslations();
+  const { user, loading: userLoading } = useCurrentUser();
+  const { countries, isLoading: countriesLoading } = useActiveCountries();
+  const { organizations, isLoading: organizationsLoading } = useOrganizations();
 
-export default async function ServiceCreationPage({
-  searchParams,
-}: ServiceCreationPageProps) {
-  const t = await getTranslations();
-  const user = await getCurrentUser();
-  if (!user) {
-    redirect(ROUTES.auth.login);
+  const isSuperAdmin = user ? hasAnyRole(user, [UserRole.SuperAdmin]) : false;
+
+  const organization = useQuery(
+    api.functions.organization.getOrganization,
+    !isSuperAdmin && user?.membership?.organizationId
+      ? { organizationId: user.membership.organizationId as Id<'organizations'> }
+      : 'skip',
+  );
+
+  const organizationCountries = useQuery(
+    api.functions.country.getAllCountries,
+    organization?.countryCodes && organization.countryCodes.length > 0
+      ? { status: undefined }
+      : 'skip',
+  );
+
+  const enrichedOrganization =
+    organization && organizationCountries
+      ? {
+          ...organization,
+          countries: organizationCountries.filter((country) =>
+            organization.countryCodes?.includes(country.code),
+          ),
+        }
+      : null;
+
+  if (userLoading || countriesLoading || organizationsLoading) {
+    return (
+      <PageContainer
+        title={t('services.form.create_title')}
+        description={t('services.category_selector.subtitle')}
+      >
+        <LoadingSkeleton variant="card" count={3} />
+      </PageContainer>
+    );
   }
-  const isSuperAdmin = hasAnyRole(user, [UserRole.SUPER_ADMIN]);
-  const countries = await api.countries.getActive();
-  const organizations = await getOrganizations();
-  const organization = !isSuperAdmin
-    ? await getOrganizationWithSpecificIncludes(user.organizationId ?? '', ['countries'])
-    : null;
-  const awaitedParams = await searchParams;
-  const selectedCategory = awaitedParams.category;
 
   return (
     <PageContainer
@@ -68,12 +94,18 @@ export default async function ServiceCreationPage({
           <NewServiceForm
             initialData={{
               category: selectedCategory,
-              ...(organization ? { organizationId: organization.id } : {}),
+              ...(enrichedOrganization
+                ? { organizationId: enrichedOrganization._id }
+                : {}),
             }}
             organizations={
-              isSuperAdmin ? organizations : organization ? [organization] : []
+              isSuperAdmin
+                ? organizations
+                : enrichedOrganization
+                  ? [enrichedOrganization]
+                  : []
             }
-            countries={isSuperAdmin ? countries : (organization?.countries ?? [])}
+            countries={isSuperAdmin ? countries : (enrichedOrganization?.countries ?? [])}
           />
         </CardContainer>
       ) : (

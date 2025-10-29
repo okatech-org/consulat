@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import type { Profile } from '@prisma/client';
+import type { Doc } from '@/convex/_generated/dataModel';
 import {
   Form,
   FormControl,
@@ -27,7 +27,7 @@ import { profileFields } from '@/types/profile';
 import type { ServiceField } from '@/types/consular-service';
 
 interface TranscriptServiceFormProps {
-  userProfile?: Profile | null;
+  userProfile?: Doc<'profiles'> | null;
   onSubmit: (data: TranscriptDocumentInput) => Promise<void>;
 }
 

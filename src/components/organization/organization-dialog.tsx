@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useTranslations } from 'next-intl';
 import { OrganizationForm } from './organization-form';
 import { useOrganizationDialog } from '@/hooks/use-organization-dialog';
-import { Country } from '@prisma/client';
+import { type Country } from '@/types';
 
 export function OrganizationDialog({ countries }: { countries: Country[] }) {
   const t = useTranslations('sa.organizations');

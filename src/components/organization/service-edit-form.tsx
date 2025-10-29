@@ -1,7 +1,5 @@
 'use client';
 
-import { updateService } from '@/app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
-import { GenerateDocumentSettingsForm } from '@/components/document-generation/generate-document-settings-form';
 import { DynamicFieldsEditor } from '@/components/organization/dynamic-fields-editor';
 import { Button } from '@/components/ui/button';
 import { CountrySelect } from '@/components/ui/country-select';
@@ -31,12 +29,12 @@ import { profileFields } from '@/types/profile';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   DeliveryMode,
-  DocumentTemplate,
   DocumentType,
-  RequestStatus,
   ServiceCategory,
   ServiceStepType,
-} from '@prisma/client';
+} from '@/convex/lib/constants';
+import { useServices } from '@/hooks/use-services';
+import type { Id } from '@/convex/_generated/dataModel';
 import { ArrowUp, Plus, Trash } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -48,7 +46,6 @@ interface ServiceFormProps {
   organizations: OrganizationListingItem[];
   countries: Country[];
   service: Partial<ConsularServiceItem>;
-  documentTemplates: DocumentTemplate[];
 }
 
 type Tab =
@@ -63,12 +60,10 @@ export function ConsularServiceForm({
   organizations,
   service,
   countries,
-  documentTemplates,
 }: ServiceFormProps) {
   const t = useTranslations('services');
   const t_inputs = useTranslations('inputs');
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const router = useRouter();
   const { currentTab, handleTabChange } = useTabs<Tab>('tab', 'general');
 
@@ -80,15 +75,19 @@ export function ConsularServiceForm({
     defaultValues: { ...cleanedService },
   });
 
+  const { updateService } = useServices();
+
   const handleSubmit = async (data: ServiceSchemaInput) => {
     setIsLoading(true);
     try {
-      if (service.id) {
+      if (service._id) {
         filterUneditedKeys(data, form.formState.dirtyFields, ['id', 'steps']);
-      }
-      const result = await updateService(data);
-      if (result.error) {
-        throw new Error(result.error);
+        await updateService({
+          serviceId: service._id as Id<'services'>,
+          name: data.name,
+          code: data.id,
+          description: data.description,
+        });
       }
       toast({ title: t('messages.updateSuccess'), variant: 'success' });
       router.refresh();
@@ -106,7 +105,7 @@ export function ConsularServiceForm({
   const serviceSteps: ServiceStep[] = form.watch('steps');
 
   function handleDeliveryModeChange(value: DeliveryMode[]) {
-    if (value.includes(DeliveryMode.IN_PERSON) || value.includes(DeliveryMode.BY_PROXY)) {
+    if (value.includes(DeliveryMode.InPerson) || value.includes(DeliveryMode.ByProxy)) {
       form.setValue('deliveryAppointment', true, { shouldDirty: true });
       form.setValue('deliveryAppointmentDesc', '', { shouldDirty: true });
       form.setValue('deliveryAppointmentDuration', 15, { shouldDirty: true });
@@ -130,9 +129,6 @@ export function ConsularServiceForm({
             <TabsTrigger value="delivery">{t('tabs.delivery')}</TabsTrigger>
             <TabsTrigger value="pricing">{t('tabs.pricing')}</TabsTrigger>
             <TabsTrigger value="steps">{t('tabs.steps')}</TabsTrigger>
-            <TabsTrigger value="documentGeneration">
-              {t('tabs.documentGeneration')}
-            </TabsTrigger>
           </TabsList>
 
           <CardContainer>
@@ -206,11 +202,13 @@ export function ConsularServiceForm({
                       type="single"
                       options={organizations?.map((organization) => ({
                         label: organization.name,
-                        value: organization.id,
+                        value: organization._id || organization.id,
                       }))}
                       onChange={field.onChange}
                       selected={field.value}
-                      disabled={isLoading || Boolean(service?.organizationId)}
+                      disabled={
+                        isLoading || Boolean(service?._id || service?.organizationId)
+                      }
                       className="min-w-max"
                     />
                     <TradFormMessage />
@@ -391,7 +389,7 @@ export function ConsularServiceForm({
                   )}
                 />
 
-                {form.watch('deliveryMode').includes(DeliveryMode.IN_PERSON) && (
+                {form.watch('deliveryMode').includes(DeliveryMode.InPerson) && (
                   <FormField
                     control={form.control}
                     name="deliveryAppointmentDesc"
@@ -413,7 +411,7 @@ export function ConsularServiceForm({
                 )}
 
                 {/* Options de proxy */}
-                {form.watch('deliveryMode').includes(DeliveryMode.BY_PROXY) && (
+                {form.watch('deliveryMode').includes(DeliveryMode.ByProxy) && (
                   <FormField
                     control={form.control}
                     name="proxyRequirements"
@@ -591,7 +589,7 @@ export function ConsularServiceForm({
                         />
 
                         {/* Éditeur de champs dynamiques */}
-                        {step.type === ServiceStepType.FORM && (
+                        {step.type === ServiceStepType.Form && (
                           <DynamicFieldsEditor
                             fields={step.fields}
                             onChange={(fields) => {
@@ -616,7 +614,7 @@ export function ConsularServiceForm({
                       ...steps,
                       {
                         title: '',
-                        type: ServiceStepType.FORM,
+                        type: ServiceStepType.Form,
                         isRequired: true,
                         description: '',
                         order: steps.length,
@@ -628,29 +626,6 @@ export function ConsularServiceForm({
                   {t('form.steps.add')}
                 </Button>
               </div>
-            </TabsContent>
-
-            <TabsContent value="documentGeneration">
-              <FormField
-                control={form.control}
-                name={`generateDocumentSettings`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.steps.step.description.label')}</FormLabel>
-                    <FormControl>
-                      <GenerateDocumentSettingsForm
-                        templates={documentTemplates}
-                        statuses={Object.values(RequestStatus)}
-                        steps={serviceSteps}
-                        value={field.value}
-                        onChange={(val) => field.onChange(val)}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
             </TabsContent>
           </CardContainer>
         </Tabs>

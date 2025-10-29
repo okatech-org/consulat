@@ -4,20 +4,12 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import {
-  useIntelligenceDashboardStats,
-  useIntelligenceNotes,
-} from '@/hooks/use-optimized-queries';
-import {
-  useCreateIntelligenceNote,
-  useIntelligenceProfiles,
-} from '@/hooks/use-intelligence';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import {
   createIntelligenceNoteSchema,
   type CreateIntelligenceNoteInput,
 } from '@/schemas/intelligence';
-import { tryCatch } from '@/lib/utils';
 import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -58,27 +50,13 @@ import {
   AlertTriangle,
   TrendingUp,
   Calendar,
-  Loader2,
-  Edit,
-  Trash2,
-  X,
 } from 'lucide-react';
-import { IntelligenceNoteType, IntelligenceNotePriority } from '@prisma/client';
+import { IntelligenceNoteType, IntelligenceNotePriority } from '@/convex/lib/constants';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
 
 // Type pour les notes avec relations
-type NoteWithRelations = {
-  id: string;
-  title: string;
-  content: string;
-  type: IntelligenceNoteType;
-  priority: IntelligenceNotePriority;
-  createdAt: string;
-  author?: { id: string; name?: string | null; email?: string | null };
-  profile?: { id: string; firstName?: string | null; lastName?: string | null };
-};
 
 // Fonction utilitaire pour formater les nombres de manière cohérente
 const formatNumber = (num: number): string => {
@@ -97,35 +75,39 @@ export default function NotesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedNote, setSelectedNote] = useState<any>(null);
-  const [selectedProfileId, setSelectedProfileId] = useState('');
 
-  // Queries
-  const {
-    data: notes,
-    isLoading,
-    error,
-    refetch,
-  } = useIntelligenceNotes(
+  const notes = useQuery(
+    api.functions.intelligence.getIntelligenceNotes,
     Object.entries(filters).some(
       ([key, val]) => key !== 'period' && val !== undefined && val !== '',
     )
       ? {
-          type: filters.type,
-          priority: filters.priority,
-          search: filters.search,
+          filters: {
+            type: filters.type,
+            priority: filters.priority,
+            search: filters.search,
+          },
         }
-      : undefined,
+      : 'skip',
   );
+  const isLoading = notes === undefined;
+  const error = null;
+  const refetch = () => {};
 
-  const { user } = useCurrentUser();
-  const { data: dashboardStats, isLoading: statsLoading } = useIntelligenceDashboardStats(
-    filters.period,
-  );
-  const profilesData = useIntelligenceProfiles(1, 100, {});
+  const dashboardStats = useQuery(api.functions.intelligence.getDashboardStats, {
+    period: filters.period,
+  });
+  const statsLoading = dashboardStats === undefined;
+
+  const profilesData = useQuery(api.functions.intelligence.getProfiles, {
+    page: 1,
+    limit: 100,
+    filters: {},
+  });
   const profiles = profilesData?.profiles || [];
 
   // Mutations
-  const createNoteMutation = useCreateIntelligenceNote();
+  const createNoteMutation = useMutation(api.functions.intelligence.createNote);
 
   // Form pour créer une note
   const form = useForm<CreateIntelligenceNoteInput>({
@@ -141,24 +123,28 @@ export default function NotesPage() {
 
   // Handlers
   const handleCreateNote = async (data: CreateIntelligenceNoteInput) => {
-    if (!user?.id) {
+    if (!user?._id) {
       toast.error('Utilisateur non authentifié');
       return;
     }
 
-    const { error } = await tryCatch(() =>
-      createNoteMutation({
-        ...data,
-        authorId: user.id as any,
-      }),
-    );
-
-    if (error) {
-      toast.error('Erreur lors de la création de la note');
-    } else {
+    try {
+      await createNoteMutation({
+        profileId: data.profileId as any,
+        type: data.type,
+        priority: data.priority,
+        title: data.title,
+        content: data.content,
+        tags: data.tags,
+        expiresAt: data.expiresAt?.getTime(),
+        authorId: user._id as any,
+      });
       toast.success('Note créée avec succès');
       setShowCreateModal(false);
       form.reset();
+    } catch (error) {
+      console.error('Error creating note:', error);
+      toast.error('Erreur lors de la création de la note');
     }
   };
 
@@ -480,7 +466,7 @@ export default function NotesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="day">Aujourd'hui</SelectItem>
+                    <SelectItem value="day">Aujourd&apos;hui</SelectItem>
                     <SelectItem value="week">Cette semaine</SelectItem>
                     <SelectItem value="month">Ce mois</SelectItem>
                     <SelectItem value="year">Cette année</SelectItem>
@@ -567,7 +553,7 @@ export default function NotesPage() {
                 // Vraies données des notes
                 notes.map((note) => (
                   <div
-                    key={note.id}
+                    key={note._id}
                     className="p-4 rounded-lg hover:bg-opacity-50 hover:bg-white transition-all duration-200 cursor-pointer border-l-4"
                     style={{
                       background: 'var(--bg-glass-light)',
@@ -626,7 +612,7 @@ export default function NotesPage() {
                         >
                           <span>
                             👤{' '}
-                            {note.profile
+                            {note.profile?.firstName && note.profile?.lastName
                               ? `${note.profile.firstName} ${note.profile.lastName}`
                               : 'Profil inconnu'}
                           </span>
@@ -634,9 +620,13 @@ export default function NotesPage() {
                             <span>✍️ {note.author?.name || 'Anonyme'}</span>
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              {format(new Date(note.createdAt), 'dd/MM/yyyy HH:mm', {
-                                locale: fr,
-                              })}
+                              {format(
+                                new Date(note._creationTime || note.createdAt),
+                                'dd/MM/yyyy HH:mm',
+                                {
+                                  locale: fr,
+                                },
+                              )}
                             </span>
                           </div>
                         </div>
@@ -681,7 +671,7 @@ export default function NotesPage() {
             <DialogHeader>
               <DialogTitle>Créer une nouvelle note de renseignement</DialogTitle>
               <DialogDescription>
-                Ajoutez une note d'intelligence sur un profil spécifique.
+                Ajoutez une note d&apos;intelligence sur un profil spécifique.
               </DialogDescription>
             </DialogHeader>
 
@@ -701,8 +691,8 @@ export default function NotesPage() {
                         </FormControl>
                         <SelectContent>
                           {profiles?.map((profile: any) => (
-                            <SelectItem key={profile.id} value={profile.id}>
-                              {profile.personal.firstName} {profile.personal.lastName}
+                            <SelectItem key={profile._id} value={profile._id}>
+                              {profile.personal?.firstName} {profile.personal?.lastName}
                             </SelectItem>
                           ))}
                         </SelectContent>

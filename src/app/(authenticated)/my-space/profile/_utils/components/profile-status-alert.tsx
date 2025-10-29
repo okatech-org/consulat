@@ -3,7 +3,6 @@
 import { useTranslations } from 'next-intl';
 import { AlertTitle } from '@/components/ui/alert';
 import { buttonVariants } from '@/components/ui/button';
-import { RequestStatus } from '@prisma/client';
 import {
   AlertCircle,
   CheckCircle2,
@@ -16,6 +15,7 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { cn } from '@/lib/utils';
 import CardContainer from '@/components/layouts/card-container';
+import { RequestStatus } from '@/convex/lib/constants';
 
 type AlertVariant = 'default' | 'destructive' | 'secondary';
 

@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
-import type { RequestStatus } from '@prisma/client';
+import { RequestStatus } from '@/lib/convex-types';
 import { useQuery } from 'convex/react';
 import { api as convexApi } from 'convex/_generated/api';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';

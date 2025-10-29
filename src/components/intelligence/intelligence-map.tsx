@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -13,8 +14,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, Filter, Eye, Building, Navigation, Plane, Phone, Target, FileText } from 'lucide-react';
-import { IntelligenceNoteType, IntelligenceNotePriority } from '@prisma/client';
+import {
+  MapPin,
+  Users,
+  Filter,
+  Eye,
+  Building,
+  Navigation,
+  Plane,
+  Phone,
+  Target,
+  FileText,
+} from 'lucide-react';
+import { IntelligenceNoteType, IntelligenceNotePriority } from '@/convex/lib/constants';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -153,13 +165,13 @@ export function IntelligenceMap({ onProfileClick }: IntelligenceMapProps) {
     type: undefined as IntelligenceNoteType | undefined,
   });
 
-  const { data: profiles, isLoading } = api.intelligence.getProfilesMap.useQuery({
-    filters: Object.keys(filters).some(
-      (key) => filters[key as keyof typeof filters] !== undefined,
-    )
-      ? filters
-      : undefined,
-  });
+  const profiles = useQuery(
+    api.functions.intelligence.getProfilesMap,
+    Object.keys(filters).some((key) => filters[key as keyof typeof filters] !== undefined)
+      ? { filters }
+      : 'skip',
+  );
+  const isLoading = profiles === undefined;
 
   const clearFilters = () => {
     setFilters({

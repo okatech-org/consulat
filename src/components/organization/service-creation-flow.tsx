@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ServiceCategory } from '@prisma/client';
+import { ServiceCategory } from '@/convex/lib/constants';
 import { NewServiceForm } from '@/components/organization/new-service-form';
 import { ServiceCategorySelector } from '@/components/organization/service-category-selector';
 import { NewServiceSchemaInput } from '@/schemas/consular-service';
-import { Country } from '@prisma/client';
+import { Country, Organization } from '@/types';
 import { Steps } from '../ui/steps';
 import { Step } from '../ui/steps';
 
@@ -18,9 +18,8 @@ interface ServiceCreationFlowProps {
 }
 
 export function ServiceCreationFlow({
-  handleSubmit,
-  isLoading,
   countries,
+  organizations,
   initialData,
 }: ServiceCreationFlowProps) {
   const t = useTranslations('services');
@@ -42,18 +41,7 @@ export function ServiceCreationFlow({
 
   const handleCategorySelect = (category: ServiceCategory) => {
     setSelectedCategory(category);
-    // Move to the next step after selection
     setCurrentStep(1);
-  };
-
-  const handleFormSubmit = async (data: NewServiceSchemaInput) => {
-    // Ensure the category is included
-    const dataWithCategory = {
-      ...data,
-      category: selectedCategory || data.category,
-    };
-
-    await handleSubmit(dataWithCategory);
   };
 
   const goBack = () => {
@@ -81,10 +69,9 @@ export function ServiceCreationFlow({
       </Steps>
 
       {currentStep === 0 && (
-        <ServiceCategorySelector
-          selectedCategory={selectedCategory}
-          onCategorySelect={handleCategorySelect}
-        />
+        <div>
+          <ServiceCategorySelector />
+        </div>
       )}
 
       {currentStep === 1 && selectedCategory && (
@@ -98,8 +85,7 @@ export function ServiceCreationFlow({
 
           <NewServiceForm
             countries={countries}
-            handleSubmit={handleFormSubmit}
-            isLoading={isLoading}
+            organizations={organizations}
             initialData={{
               ...initialData,
               category: selectedCategory,

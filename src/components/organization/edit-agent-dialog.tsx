@@ -26,7 +26,7 @@ import { MultiSelectCountries } from '@/components/ui/multi-select-countries';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { toast } from 'sonner';
 import { type BaseAgent } from '@/types/organization';
-import { type Country } from '@prisma/client';
+import { type Country } from '@/types';
 import { getServicesForOrganization, updateAgent } from '@/actions/agents';
 import { getActiveCountries } from '@/actions/countries';
 import { tryCatch } from '@/lib/utils';

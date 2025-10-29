@@ -8,7 +8,8 @@ import { DataTableRowActions } from '@/components/data-table/data-table-row-acti
 import { Trash } from 'lucide-react';
 import { DataTable } from '@/components/data-table/data-table';
 import { BaseAgent, FullOrganization } from '@/types/organization';
-import { Country, ServiceCategory, UserRole } from '@prisma/client';
+import { ServiceCategory, UserRole } from '@/convex/lib/constants';
+import type { Country } from '@/types';
 import { RoleGuard } from '@/lib/permissions/utils';
 import { CollapseList } from '../ui/collapse-list';
 import { ROUTES } from '@/schemas/routes';

@@ -6,7 +6,7 @@ import {
   ProcessingMode,
   DeliveryMode,
   RequestStatus,
-} from '@prisma/client';
+} from '@/convex/lib/constants';
 import { CountryCodeSchema } from './inputs';
 import { fieldTypes } from '@/types/consular-service';
 

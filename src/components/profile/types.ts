@@ -1,20 +1,13 @@
-import { Gender, Prisma, ProfileCategory, RequestStatus } from '@prisma/client';
-import { BaseProfileInclude } from './includes';
-
-export type BaseProfile = Prisma.ProfileGetPayload<typeof BaseProfileInclude>;
+import {
+  Gender,
+  ProfileCategory,
+  RequestStatus,
+  type CompleteProfile,
+} from '@/convex/lib/constants';
 
 export type ProfilesArrayItem = Pick<
-  BaseProfile,
-  | 'id'
-  | 'cardNumber'
-  | 'cardPin'
-  | 'category'
-  | 'userId'
-  | 'status'
-  | 'firstName'
-  | 'lastName'
-  | 'createdAt'
-  | 'validationRequestId'
+  CompleteProfile,
+  'id' | 'cardNumber' | 'category' | 'userId' | 'status'
 > & {
   IDPictureUrl?: string;
   IDPictureFileName: string;
@@ -22,6 +15,9 @@ export type ProfilesArrayItem = Pick<
   shareUrl: string;
   cardIssuedAt?: string;
   cardExpiresAt?: string;
+  firstName: string;
+  lastName: string;
+  createdAt: number;
 };
 
 export type ProfilesFilters = {
@@ -36,7 +32,7 @@ export interface GetProfilesOptions extends ProfilesFilters {
   page?: number;
   limit?: number;
   sort?: {
-    field: keyof BaseProfile;
+    field: keyof CompleteProfile;
     order: 'asc' | 'desc';
   };
 }

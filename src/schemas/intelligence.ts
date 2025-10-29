@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { IntelligenceNoteType, IntelligenceNotePriority } from '@prisma/client';
+import { IntelligenceNoteType, IntelligenceNotePriority } from '@/convex/lib/constants';
 
 export const createIntelligenceNoteSchema = z.object({
   profileId: z.string().min(1, "L'ID du profil est requis"),

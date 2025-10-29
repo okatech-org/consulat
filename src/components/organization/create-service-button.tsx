@@ -11,43 +11,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { createService } from '../../app/(authenticated)/dashboard/(superadmin)/_utils/actions/services';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { type NewServiceSchemaInput } from '@/schemas/consular-service';
-import { type Country } from '@prisma/client';
+import { type Country } from '@/types';
 import { ServiceCreationFlow } from '@/components/organization/service-creation-flow';
+import { useServices } from '@/hooks/use-services';
+import type { Id } from '@/convex/_generated/dataModel';
+import { useActiveCountries } from '@/hooks/use-countries';
+import { useOrganizations } from '@/hooks/use-organizations';
 
 export function CreateServiceButton({
   initialData,
-  countries,
 }: {
   initialData?: Partial<NewServiceSchemaInput>;
-  countries: Country[];
 }) {
   const t = useTranslations('services');
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (data: NewServiceSchemaInput) => {
-    setIsLoading(true);
-    try {
-      const result = await createService(data);
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      toast.success(t('messages.createSuccess'));
-      setIsOpen(false);
-      router.refresh();
-    } catch (error) {
-      toast.error(t('messages.error.create'), {
-        description: `${error}`,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { createService } = useServices();
+  const { countries } = useActiveCountries();
+  const { organizations } = useOrganizations();
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -62,8 +46,7 @@ export function CreateServiceButton({
         </DialogHeader>
         <ServiceCreationFlow
           countries={countries}
-          handleSubmit={handleSubmit}
-          isLoading={isLoading}
+          organizations={organizations}
           initialData={initialData}
         />
       </DialogContent>

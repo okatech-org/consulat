@@ -4,12 +4,10 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
-import {
-  type IntelligenceNote,
-  IntelligenceNoteType,
-  IntelligenceNotePriority,
-} from '@prisma/client';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { IntelligenceNoteType, IntelligenceNotePriority } from '@/convex/lib/constants';
+import type { Doc } from '@/convex/_generated/dataModel';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,26 +41,27 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { IntelligenceNoteForm } from './intelligence-note-form';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { IntelligenceNoteHistory } from './intelligence-note-history';
 
 interface IntelligenceNoteCardProps {
-  note: IntelligenceNote & {
-    author: {
+  note: Doc<'intelligenceNotes'> & {
+    author?: {
       id: string;
       name: string | null;
       email: string | null;
     };
-    profile: {
+    profile?: {
       id: string;
       firstName: string | null;
       lastName: string | null;
     };
-    _count: {
+    _count?: {
       history: number;
     };
   };
-  onEdit?: (note: IntelligenceNote) => void;
-  onDelete?: (note: IntelligenceNote) => void;
+  onEdit?: (note: Doc<'intelligenceNotes'>) => void;
+  onDelete?: (note: Doc<'intelligenceNotes'>) => void;
   showHistory?: boolean;
   currentUserId: string;
   allowDelete?: boolean;
@@ -94,16 +93,12 @@ export function IntelligenceNoteCard({
   allowDelete = false,
 }: IntelligenceNoteCardProps) {
   const t = useTranslations('intelligence.notes');
+  const { user } = useCurrentUser();
   const [isEditing, setIsEditing] = useState(false);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const deleteNoteMutation = api.intelligence.deleteNote.useMutation({
-    onSuccess: () => {
-      setShowDeleteDialog(false);
-      onDelete?.(note);
-    },
-  });
+  const deleteNoteMutation = useMutation(api.functions.intelligence.deleteNote);
 
   const canEdit = note.authorId === currentUserId;
   const canDelete = allowDelete && note.authorId === currentUserId;
@@ -112,8 +107,18 @@ export function IntelligenceNoteCard({
     setIsEditing(true);
   };
 
-  const handleDelete = () => {
-    deleteNoteMutation.mutate({ noteId: note.id });
+  const handleDelete = async () => {
+    if (!user?._id) {
+      console.error('User not authenticated');
+      return;
+    }
+    try {
+      await deleteNoteMutation({ noteId: note._id as any, deletedById: user._id as any });
+      setShowDeleteDialog(false);
+      onDelete?.(note);
+    } catch (error) {
+      console.error('Error deleting note:', error);
+    }
   };
 
   const handleEditSuccess = () => {
@@ -247,10 +252,9 @@ export function IntelligenceNoteCard({
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={deleteNoteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteNoteMutation.isPending ? 'Suppression...' : 'Supprimer'}
+              Supprimer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

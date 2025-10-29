@@ -101,8 +101,9 @@ export function useServices(options?: {
     pricing: any;
   }) => {
     try {
-      await createServiceMutation(data);
+      const serviceId = await createServiceMutation(data);
       toast.success(`Le service ${data.name} a été créé.`);
+      return serviceId;
     } catch (error) {
       toast.error(
         (error as Error).message ||

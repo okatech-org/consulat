@@ -3,7 +3,7 @@ import type { CompleteProfile } from '@/convex/lib/types';
 import { CheckCircle2, XCircle, Users, User } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
 import { Badge } from '@/components/ui/badge';
-import { MaritalStatus } from '@prisma/client';
+import { MaritalStatus } from '@/convex/lib/constants';
 
 interface ProfileFamilyProps {
   profile: CompleteProfile;

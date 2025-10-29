@@ -10,7 +10,7 @@ import { fr } from 'date-fns/locale';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { useTranslations } from 'next-intl';
-import type { RequestStatus } from '@prisma/client';
+import { RequestStatus } from '@/lib/convex-types';
 import { EmptyState } from './empty-state';
 import { useQuery } from 'convex/react';
 import { api } from 'convex/_generated/api';
@@ -41,20 +41,20 @@ export function CurrentRequestCard() {
   if (!currentRequest) return <EmptyState />;
 
   const getProgress = (status: RequestStatus) => {
-    const progressMap = {
-      DRAFT: 0,
-      SUBMITTED: 20,
-      APPOINTMENT_SCHEDULED: 40,
-      VALIDATED: 40,
-      PROCESSING: 60,
-      CARD_IN_PRODUCTION: 80,
-      COMPLETED: 100,
-      REJECTED: 100,
-      CANCELLED: 100,
-      PENDING: 10,
-      PENDING_COMPLETION: 30,
-      READY_FOR_PICKUP: 95,
-      DOCUMENT_IN_PRODUCTION: 80,
+    const progressMap: Record<RequestStatus, number> = {
+      [RequestStatus.Draft]: 0,
+      [RequestStatus.Submitted]: 20,
+      [RequestStatus.AppointmentScheduled]: 40,
+      [RequestStatus.Validated]: 40,
+      [RequestStatus.Processing]: 60,
+      [RequestStatus.CardInProduction]: 80,
+      [RequestStatus.Completed]: 100,
+      [RequestStatus.Rejected]: 100,
+      [RequestStatus.Cancelled]: 100,
+      [RequestStatus.Pending]: 10,
+      [RequestStatus.PendingCompletion]: 30,
+      [RequestStatus.ReadyForPickup]: 95,
+      [RequestStatus.DocumentInProduction]: 80,
     };
     return progressMap[status as keyof typeof progressMap] || 0;
   };
