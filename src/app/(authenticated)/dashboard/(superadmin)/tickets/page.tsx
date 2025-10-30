@@ -148,7 +148,7 @@ export default function TicketsPage() {
     () =>
       (['bug', 'feature', 'improvement', 'other'] as const).map((category) => ({
         value: category,
-        label: t(`inputs.feedback.categories.options.${category.toUpperCase()}`),
+        label: t(`inputs.feedback.categories.options.${category}`),
       })),
     [t],
   );
