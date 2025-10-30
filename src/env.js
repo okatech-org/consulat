@@ -7,13 +7,11 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    DATABASE_URL: z.string().url(),
-    DIRECT_URL: z.string().url(),
-    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-
     // Clerk Authentication
     CLERK_SECRET_KEY: z.string(),
     CLERK_WEBHOOK_SECRET: z.string().optional(),
+
+    CONVEX_DEPLOYMENT: z.url(),
 
     // UploadThing
     UPLOADTHING_TOKEN: z.string(),
@@ -33,15 +31,15 @@ export const env = createEnv({
 
     // Resend
     RESEND_API_KEY: z.string(),
-    RESEND_SENDER: z.string().email(),
-    TECHNICAL_CONTACT_EMAIL: z.string().email(),
+    RESEND_SENDER: z.email(),
+    TECHNICAL_CONTACT_EMAIL: z.email(),
 
     // Country Configuration
     BASE_COUNTRY_CODE: z.string().default('GA'),
     RESIDENT_COUNTRY_CODE: z.string().default('FR'),
 
     // Organization
-    NEXT_ORG_LOGO: z.string().url(),
+    NEXT_ORG_LOGO: z.url(),
   },
 
   /**
@@ -52,15 +50,15 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_BASE_COUNTRY_CODE: z.string().default('GA'),
     NEXT_PUBLIC_RESIDENT_COUNTRY_CODE: z.string().default('FR'),
-    NEXT_PUBLIC_URL: z.string().url(),
-    NEXT_PUBLIC_ORG_LOGO: z.string().url(),
+    NEXT_PUBLIC_URL: z.url(),
+    NEXT_PUBLIC_ORG_LOGO: z.url(),
     NEXT_PUBLIC_APP_NAME: z.string(),
     NEXT_PUBLIC_DEFAULT_IMAGE_PATH: z.string().optional(),
     NEXT_PUBLIC_GEMINI_API_KEY: z.string(),
 
     // Clerk Authentication
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
-    NEXT_PUBLIC_CONVEX_URL: z.string().url(),
+    NEXT_PUBLIC_CONVEX_URL: z.url(),
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string(),
   },
 
@@ -69,12 +67,9 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    DATABASE_URL: process.env.DATABASE_URL,
-    NODE_ENV: process.env.NODE_ENV,
-    UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
+    CONVEX_DEPLOYMENT: process.env.CONVEX_DEPLOYMENT,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     REMOVEBG_API_KEY: process.env.REMOVEBG_API_KEY,
-    SMS_PROVIDER: process.env.SMS_PROVIDER,
     TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
     TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
     TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
