@@ -10,7 +10,7 @@ import { fr } from 'date-fns/locale';
 import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { useTranslations } from 'next-intl';
-import { RequestStatus } from '@/lib/convex-types';
+import { RequestStatus } from '@/convex/lib/constants';
 import { EmptyState } from './empty-state';
 import { useQuery } from 'convex/react';
 import { api } from 'convex/_generated/api';
@@ -24,9 +24,9 @@ export function CurrentRequestCard() {
 
   const currentRequest = useQuery(
     api.functions.request.getCurrentRequest,
-    user
+    user?.profileId
       ? {
-          userId: user._id,
+          profileId: user.profileId,
         }
       : 'skip',
   );
@@ -46,15 +46,15 @@ export function CurrentRequestCard() {
       [RequestStatus.Submitted]: 20,
       [RequestStatus.AppointmentScheduled]: 40,
       [RequestStatus.Validated]: 40,
-      [RequestStatus.Processing]: 60,
-      [RequestStatus.CardInProduction]: 80,
+      [RequestStatus.InProduction]: 60,
       [RequestStatus.Completed]: 100,
       [RequestStatus.Rejected]: 100,
       [RequestStatus.Cancelled]: 100,
       [RequestStatus.Pending]: 10,
       [RequestStatus.PendingCompletion]: 30,
       [RequestStatus.ReadyForPickup]: 95,
-      [RequestStatus.DocumentInProduction]: 80,
+      [RequestStatus.Edited]: 50,
+      [RequestStatus.UnderReview]: 50,
     };
     return progressMap[status as keyof typeof progressMap] || 0;
   };
@@ -72,13 +72,13 @@ export function CurrentRequestCard() {
     },
     {
       label: t('steps.processing'),
-      current: currentRequest.status === 'PENDING',
+      current: currentRequest.status === RequestStatus.Pending,
       agent: 'N/A',
     },
     { label: t('steps.final_validation'), completed: false, status: t('steps.waiting') },
     {
       label: t('steps.request_completed'),
-      completed: currentRequest.status === 'COMPLETED',
+      completed: currentRequest.status === RequestStatus.Completed,
       status: t('steps.ready_for_pickup'),
     },
   ];
@@ -99,7 +99,7 @@ export function CurrentRequestCard() {
             </p>
           </div>
           <Badge variant="outlineReverse">
-            {currentRequest.status === 'PENDING'
+            {currentRequest.status === RequestStatus.Pending
               ? t('status.processing')
               : t(`status.${currentRequest.status.toLowerCase()}`)}
           </Badge>
@@ -159,9 +159,9 @@ export function CurrentRequestCard() {
             )}
           </p>
           <Badge variant="outlineReverse">
-            {currentRequest.status === 'PENDING'
+            {currentRequest.status === RequestStatus.Pending
               ? t('status.processing')
-              : t(`status.${currentRequest.status.toLowerCase()}`)}
+              : t(`status.${currentRequest.status}`)}
           </Badge>
         </div>
 

@@ -1,7 +1,9 @@
-import { ServerRoleGuard } from '@/lib/permissions/utils';
-import { getCurrentUser } from '@/lib/auth/utils';
-import type { SessionUser } from '@/types/user';
+'use client';
+
+import { RoleGuard } from '@/lib/permissions/utils';
 import { ProfileIntelligenceDetailsPage } from './_components/profile-intelligence-details-page';
+import { UserRole } from '@/convex/lib/constants';
+import { use } from 'react';
 
 interface ProfilePageProps {
   params: Promise<{
@@ -9,13 +11,12 @@ interface ProfilePageProps {
   }>;
 }
 
-export default async function ProfilePage({ params }: ProfilePageProps) {
-  const { id } = await params;
-  const user = await getCurrentUser();
+export default function ProfilePage({ params }: ProfilePageProps) {
+  const { id } = use(params);
 
   return (
-    <ServerRoleGuard roles={['INTEL_AGENT']} user={user as SessionUser}>
+    <RoleGuard roles={[UserRole.IntelAgent]}>
       <ProfileIntelligenceDetailsPage profileId={id} />
-    </ServerRoleGuard>
+    </RoleGuard>
   );
 }

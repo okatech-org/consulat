@@ -1,16 +1,22 @@
+'use client';
+
 import { BetaBanner } from '@/components/ui/beta-banner';
 import { PageContainer } from '@/components/layouts/page-container';
 import { SignUp } from '@clerk/nextjs';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { redirect } from 'next/navigation';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
+import { useEffect } from 'react';
 
-export default async function SignUpPage() {
-  const currentUser = await getCurrentUser();
+export default function SignUpPage() {
+  const { user } = useCurrentUser();
+  const router = useRouter();
 
-  if (currentUser) {
-    redirect(ROUTES.user.profile_form);
-  }
+  useEffect(() => {
+    if (user) {
+      router.push(ROUTES.user.profile_form);
+    }
+  }, [user, router]);
 
   return (
     <PageContainer className="w-dvw min-h-dvh overflow-x-hidden container py-8 relative bg-background flex items-center justify-center">

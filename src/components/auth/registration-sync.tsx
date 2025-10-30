@@ -12,7 +12,8 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { ROUTES } from '@/schemas/routes';
-import { api } from '@/trpc/react';
+import { useAction } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
@@ -29,23 +30,39 @@ export function RegistrationSync() {
   const [syncState, setSyncState] = React.useState<SyncState>('loading');
   const [errorMessage, setErrorMessage] = React.useState('');
   const [retryCount, setRetryCount] = React.useState(0);
-  const [timeoutId, setTimeoutId] = React.useState<NodeJS.Timeout | null>(null);
+  const [isSyncPending, setIsSyncPending] = React.useState(false);
+  const timeoutIdRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  const { mutate: syncUser, isPending: isSyncPending } =
-    api.auth.handleNewUser.useMutation({
-      onSuccess: () => {
-        if (timeoutId) clearTimeout(timeoutId);
+  const syncUser = useAction(api.functions.user.handleNewUser);
+
+  const handleSyncUser = React.useCallback(
+    async (clerkId: string) => {
+      setIsSyncPending(true);
+      try {
+        await syncUser({ clerkId });
+        if (timeoutIdRef.current) {
+          clearTimeout(timeoutIdRef.current);
+          timeoutIdRef.current = null;
+        }
         setSyncState('success');
         setTimeout(() => {
           router.push(ROUTES.user.profile_form);
         }, REDIRECT_DELAY_MS);
-      },
-      onError: (error) => {
-        if (timeoutId) clearTimeout(timeoutId);
+      } catch (error) {
+        if (timeoutIdRef.current) {
+          clearTimeout(timeoutIdRef.current);
+          timeoutIdRef.current = null;
+        }
         setSyncState('error');
-        setErrorMessage(error.message || "Une erreur inattendue s'est produite");
-      },
-    });
+        setErrorMessage(
+          error instanceof Error ? error.message : "Une erreur inattendue s'est produite",
+        );
+      } finally {
+        setIsSyncPending(false);
+      }
+    },
+    [syncUser, router],
+  );
 
   const handleRetry = React.useCallback(() => {
     if (!user || retryCount >= MAX_RETRY_ATTEMPTS) return;
@@ -55,28 +72,35 @@ export function RegistrationSync() {
     setErrorMessage('');
 
     setTimeout(() => {
-      syncUser({ clerkId: user.id });
+      handleSyncUser(user.id);
       setSyncState('loading');
 
-      const id = setTimeout(() => setSyncState('timeout'), SYNC_TIMEOUT_MS);
-      setTimeoutId(id);
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+      timeoutIdRef.current = setTimeout(() => setSyncState('timeout'), SYNC_TIMEOUT_MS);
     }, 500);
-  }, [user, syncUser, retryCount]);
+  }, [user, handleSyncUser, retryCount]);
 
   React.useEffect(() => {
     if (isLoaded && user) {
-      syncUser({ clerkId: user.id });
+      handleSyncUser(user.id);
 
-      const id = setTimeout(() => setSyncState('timeout'), SYNC_TIMEOUT_MS);
-      setTimeoutId(id);
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+      timeoutIdRef.current = setTimeout(() => setSyncState('timeout'), SYNC_TIMEOUT_MS);
     } else if (isLoaded && !user) {
       router.push(ROUTES.auth.signup);
     }
 
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
     };
-  }, [isLoaded, user]);
+  }, [isLoaded, user, handleSyncUser, router]);
 
   React.useEffect(() => {
     const handleOnline = () => {

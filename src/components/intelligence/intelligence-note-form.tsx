@@ -6,11 +6,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import {
-  IntelligenceNoteType,
-  IntelligenceNotePriority,
-} from '@/convex/lib/constants';
-import type { Doc } from '@/convex/_generated/dataModel';
+import { IntelligenceNoteType, IntelligenceNotePriority } from '@/convex/lib/constants';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
 import {
   createIntelligenceNoteSchema,
   updateIntelligenceNoteSchema,
@@ -43,9 +40,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { DatePicker } from '@/components/ui/date-picker';
 import { X, Plus } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface IntelligenceNoteFormProps {
   profileId: string;
@@ -56,37 +53,37 @@ interface IntelligenceNoteFormProps {
 
 const typeOptions = [
   {
-    value: IntelligenceNoteType.POLITICAL_OPINION,
+    value: IntelligenceNoteType.PoliticalOpinion,
     label: 'Opinion politique',
     icon: <Building className="h-4 w-4" />,
   },
   {
-    value: IntelligenceNoteType.ORIENTATION,
+    value: IntelligenceNoteType.Orientation,
     label: 'Orientation',
     icon: <Navigation className="h-4 w-4" />,
   },
   {
-    value: IntelligenceNoteType.ASSOCIATIONS,
+    value: IntelligenceNoteType.Associations,
     label: 'Associations',
     icon: <Users className="h-4 w-4" />,
   },
   {
-    value: IntelligenceNoteType.TRAVEL_PATTERNS,
+    value: IntelligenceNoteType.TravelPatterns,
     label: 'Habitudes de voyage',
     icon: <Plane className="h-4 w-4" />,
   },
   {
-    value: IntelligenceNoteType.CONTACTS,
+    value: IntelligenceNoteType.Contacts,
     label: 'Contacts',
     icon: <Phone className="h-4 w-4" />,
   },
   {
-    value: IntelligenceNoteType.ACTIVITIES,
+    value: IntelligenceNoteType.Activities,
     label: 'Activités',
     icon: <Target className="h-4 w-4" />,
   },
   {
-    value: IntelligenceNoteType.OTHER,
+    value: IntelligenceNoteType.Other,
     label: 'Autre',
     icon: <FileText className="h-4 w-4" />,
   },
@@ -94,22 +91,22 @@ const typeOptions = [
 
 const priorityOptions = [
   {
-    value: IntelligenceNotePriority.LOW,
+    value: IntelligenceNotePriority.Low,
     label: 'Faible',
     color: 'bg-green-100 text-green-800',
   },
   {
-    value: IntelligenceNotePriority.MEDIUM,
+    value: IntelligenceNotePriority.Medium,
     label: 'Moyenne',
     color: 'bg-yellow-100 text-yellow-800',
   },
   {
-    value: IntelligenceNotePriority.HIGH,
+    value: IntelligenceNotePriority.High,
     label: 'Élevée',
     color: 'bg-orange-100 text-orange-800',
   },
   {
-    value: IntelligenceNotePriority.CRITICAL,
+    value: IntelligenceNotePriority.Critical,
     label: 'Critique',
     color: 'bg-red-100 text-red-800',
   },
@@ -136,11 +133,11 @@ export function IntelligenceNoteForm({
     resolver: zodResolver(schema),
     defaultValues: {
       profileId,
-      type: initialData?.type || IntelligenceNoteType.OTHER,
-      priority: initialData?.priority || IntelligenceNotePriority.MEDIUM,
+      type: initialData?.type || IntelligenceNoteType.Other,
+      priority: initialData?.priority || IntelligenceNotePriority.Medium,
       title: initialData?.title || '',
       content: initialData?.content || '',
-      ...(isEditing && { id: initialData.id }),
+      ...(isEditing && { id: initialData._id }),
     },
   });
 
@@ -148,21 +145,21 @@ export function IntelligenceNoteForm({
   const updateNoteMutation = useMutation(api.functions.intelligence.updateNote);
 
   const onSubmit = async (data: {
-    profileId: string;
+    profileId: Id<'profiles'>;
     type: IntelligenceNoteType;
     priority: IntelligenceNotePriority;
     title: string;
     content: string;
-    id?: string;
+    id?: Id<'intelligenceNotes'>;
   }) => {
     setIsLoading(true);
+    try {
       if (!user?._id) {
         throw new Error('User not authenticated');
       }
       if (isEditing) {
         await updateNoteMutation({
-          noteId: data.id! as any,
-          profileId: data.profileId as any,
+          noteId: data.id!,
           type: data.type,
           priority: data.priority,
           title: data.title,

@@ -9,20 +9,20 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { useTranslations } from 'next-intl';
 import CardContainer from '@/components/layouts/card-container';
-import { RequestStatus } from '@/lib/convex-types';
+import { RequestStatus } from '@/convex/lib/constants';
 import { useQuery } from 'convex/react';
-import { api as convexApi } from 'convex/_generated/api';
+import { api } from 'convex/_generated/api';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function RecentHistory() {
   const { user } = useCurrentUser();
   const requests = useQuery(
-    convexApi.functions.request.getRecentRequests,
-    user
+    api.functions.request.getRecentRequests,
+    user?.profileId
       ? {
           limit: 5,
-          userId: user._id,
+          profileId: user.profileId,
         }
       : 'skip',
   );
@@ -35,63 +35,68 @@ export function RecentHistory() {
       RequestStatus,
       { label: string; variant: 'default' | 'secondary' | 'outline'; color: string }
     > = {
-      COMPLETED: {
+      completed: {
         label: tStatus('completed'),
         variant: 'default' as const,
         color: 'bg-green-100 text-green-800',
       },
-      VALIDATED: {
+      validated: {
         label: tStatus('validated'),
         variant: 'outline' as const,
         color: 'bg-blue-100 text-blue-800',
       },
-      SUBMITTED: {
+      submitted: {
         label: tStatus('submitted'),
         variant: 'outline' as const,
         color: 'bg-gray-100 text-gray-800',
       },
-      PENDING: {
+      pending: {
         label: tStatus('pending'),
         variant: 'outline' as const,
         color: 'bg-yellow-100 text-yellow-800',
       },
-      REJECTED: {
+      rejected: {
         label: tStatus('rejected'),
         variant: 'outline' as const,
         color: 'bg-red-100 text-red-800',
       },
-      DRAFT: {
+      draft: {
         label: tStatus('draft'),
         variant: 'outline' as const,
         color: 'bg-gray-100 text-gray-800',
       },
-      EDITED: {
+      edited: {
         label: tStatus('edited'),
         variant: 'outline',
         color: 'bg-gray-100 text-gray-800',
       },
-      PENDING_COMPLETION: {
+      pending_completion: {
         label: tStatus('pending_completion'),
         variant: 'outline',
         color: 'bg-gray-100 text-gray-800',
       },
-      CARD_IN_PRODUCTION: {
+      in_production: {
         label: tStatus('card_in_production'),
         variant: 'outline',
         color: 'bg-gray-100 text-gray-800',
       },
-      DOCUMENT_IN_PRODUCTION: {
-        label: tStatus('document_in_production'),
-        variant: 'outline',
-        color: 'bg-gray-100 text-gray-800',
-      },
-      READY_FOR_PICKUP: {
+      ready_for_pickup: {
         label: tStatus('ready_for_pickup'),
         variant: 'outline',
         color: 'bg-gray-100 text-gray-800',
       },
-      APPOINTMENT_SCHEDULED: {
+      appointment_scheduled: {
         label: tStatus('appointment_scheduled'),
+        variant: 'outline',
+        color: 'bg-gray-100 text-gray-800',
+      },
+      under_review: {
+        label: tStatus('under_review'),
+        variant: 'outline',
+        color: 'bg-gray-100 text-gray-800',
+      },
+      cancelled: {
+        label: tStatus('cancelled'),
         variant: 'outline',
         color: 'bg-gray-100 text-gray-800',
       },

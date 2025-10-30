@@ -1,29 +1,39 @@
+'use client';
+
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/ui/site-header';
 import { BottomNavigation } from '@/components/ui/bottom-navigation';
 import { IntelSidebar } from '@/components/ui/intel-sidebar';
 import { ROUTES } from '@/schemas/routes';
-import { getCurrentUser } from '@/lib/auth/utils';
-import { redirect } from 'next/navigation';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { UserRole } from '@/convex/lib/constants';
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getCurrentUser();
+  const { user } = useCurrentUser();
+  const router = useRouter();
 
-  if (!user) {
-    redirect(ROUTES.user.base);
-  }
+  useEffect(() => {
+    if (!user) {
+      router.push(ROUTES.user.base);
+      return;
+    }
 
-  if (user?.roles?.includes('USER')) {
-    redirect(ROUTES.user.base);
-  }
+    if (user?.roles?.includes(UserRole.User)) {
+      router.push(ROUTES.user.base);
+      return;
+    }
 
-  if (!user?.roles?.includes('INTEL_AGENT')) {
-    redirect(ROUTES.dashboard.base);
-  }
+    if (!user?.roles?.includes(UserRole.IntelAgent)) {
+      router.push(ROUTES.dashboard.base);
+    }
+  }, [user, router]);
+
   return (
     <SidebarProvider>
       <IntelSidebar />

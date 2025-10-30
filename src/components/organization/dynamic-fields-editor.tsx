@@ -30,7 +30,7 @@ import { Input } from '@/components/ui/input';
 import TagsInput from '@/components/ui/tags-input';
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ProfileField } from '@/types';
+import type { ProfileField } from '@/types/profile';
 import { ServiceFieldSchema } from '@/schemas/consular-service';
 import { MultiSelect } from '@/components/ui/multi-select';
 
@@ -158,20 +158,20 @@ export function DynamicFieldsEditor({
                     <FormControl>
                       <MultiSelect<string>
                         options={profileFields.map((f) => ({
-                          value: f.key,
-                          label: t_inputs(`profile.${f.key}`),
+                          value: f.path,
+                          label: t_inputs(`profile.${f.path}`),
                         }))}
                         selected={field.value}
                         onChange={(value) => {
-                          const pField = profileFields.find((f) => f.key === value);
+                          const pField = profileFields.find((f) => f.path === value);
 
                           field.onChange(value);
 
                           if (pField) {
-                            fieldForm.setValue('name', pField.key);
+                            fieldForm.setValue('name', pField.path);
                             fieldForm.setValue(
                               'label',
-                              t_inputs(`profile.${pField?.key}`),
+                              t_inputs(`profile.${pField?.path}`),
                             );
                             fieldForm.setValue('type', pField.type);
                             fieldForm.setValue('required', pField?.required);

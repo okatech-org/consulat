@@ -1,8 +1,8 @@
-import { useMutation } from 'convex/react';
+import { useAction } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import type { Id } from '@/convex/_generated/dataModel';
+import { NotificationChannel, NotificationType } from '@/convex/lib/constants';
 
 interface SendMessageParams {
   userId: Id<'users'>;
@@ -13,35 +13,28 @@ interface SendMessageParams {
 }
 
 export function useSendMessage() {
-  const { user } = useCurrentUser();
-  const { toast } = useToast();
-  const sendMessageMutation = useMutation(api.functions.profile.sendProfileMessage);
+  const sendNotification = useAction(
+    api.functions.notification.sendMultiChannelNotification,
+  );
 
   return {
     mutateAsync: async (params: SendMessageParams) => {
       try {
-        const result = await sendMessageMutation({
+        await sendNotification({
           userId: params.userId,
-          message: params.message,
-          recipientEmail: params.recipientEmail,
-          from: params.from,
-          contact: params.contact,
-          senderId: user?._id,
+          type: NotificationType.Feedback,
+          title: `Message de ${params.from}`,
+          content: `Message de ${params.from} (${params.contact}):\n\n${params.message}`,
+          channels: [NotificationChannel.Email, NotificationChannel.App],
+          priority: 'normal',
         });
 
-        toast({
-          title: 'Message envoyé',
-          description: 'Votre message a été envoyé avec succès.',
-        });
+        toast.success('Votre message a été envoyé avec succès.');
 
-        return result;
+        return { success: true };
       } catch (error) {
         console.error('Error sending message:', error);
-        toast({
-          title: 'Erreur',
-          description: "Une erreur est survenue lors de l'envoi du message.",
-          variant: 'destructive',
-        });
+        toast.error("Une erreur est survenue lors de l'envoi du message.");
         throw error;
       }
     },

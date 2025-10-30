@@ -11,7 +11,7 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import CardContainer from '../layouts/card-container';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { LeafletDashboardWrapper } from './leaflet-dashboard-wrapper';
+import SmartInteractiveMap from '../intelligence/smart-interactive-map';
 
 export default function AdminDashboard() {
   const { user } = useCurrentUser();
@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   );
 
   const profilesMapData = useQuery(
-    api.functions.intelligence.getProfilesMap,
+    api.functions.profile.getProfilesMapData,
     user ? {} : 'skip',
   );
 
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
             Visualisation des concentrations de profils
           </p>
         </div>
-        <LeafletDashboardWrapper data={profilesMapData || []} height="600px" />
+        <SmartInteractiveMap profiles={profilesMapData || []} className="w-full h-full" />
       </CardContainer>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

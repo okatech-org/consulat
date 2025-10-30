@@ -20,7 +20,7 @@ import { Textarea } from '../ui/textarea';
 import { MultiSelect } from '../ui/multi-select';
 import { type ServiceForm } from '@/hooks/use-service-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { MobileProgress } from '../registration/mobile-progress';
 import CardContainer from '../layouts/card-container';
 import { AddressField } from '../ui/address-field';
@@ -55,9 +55,9 @@ export function DynamicForm({
 
   const handleSubmit = (data: Record<string, unknown>) => {
     if (!currentStepValidity) {
-      toast({
-        title: 'Formulaire incomplet ou invalide',
-        description: 'Veuillez vérifier que tous les champs sont correctement remplis',
+      toast.error('Formulaire incomplet ou invalide', {
+        description:
+          'Veuillez vérifier que tous les champs sont correctement remplis et que les documents sont valides',
       });
     } else {
       onNext(data);

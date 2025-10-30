@@ -21,7 +21,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const { userId } = useClerkAuth();
   const userData = useQuery(
     api.functions.user.getUserByClerkId,
-    userId ? { clerkUserId: userId } : 'skip',
+    userId ? { clerkUserId: userId, withMembership: true } : 'skip',
   );
 
   return (

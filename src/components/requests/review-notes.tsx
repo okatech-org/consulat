@@ -9,16 +9,24 @@ import { toast } from 'sonner';
 import { Loader2, MessageCircle, Lock } from 'lucide-react';
 import CardContainer from '@/components/layouts/card-container';
 import { useDateLocale } from '@/lib/utils';
-import type { FullServiceRequest } from '@/types/service-request';
-import {
-  addServiceRequestNote,
-  updateServiceRequestStatus,
-} from '@/actions/service-requests';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { RequestStatus } from '@/convex/lib/constants';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useRouter } from 'next/navigation';
+import type { Id } from '@/convex/_generated/dataModel';
+
+interface RequestNote {
+  id: string;
+  type: 'INTERNAL' | 'FEEDBACK';
+  content: string;
+  author?: { name: string };
+  createdAt: number | string;
+}
 
 interface NoteItemProps {
-  note: FullServiceRequest['notes'][number];
+  note: RequestNote;
 }
 
 export const NoteItem = ({ note }: NoteItemProps) => {
@@ -85,7 +93,7 @@ const NoteEditor = ({ type, onSubmit, isLoading, canUpdate = true }: NoteEditorP
             disabled={!canUpdate}
             id="pending-completion-status"
             checked={pendingCompletionStatus}
-            onCheckedChange={(checked) =>
+            onCheckedChange={(checked: boolean | 'indeterminate') =>
               setPendingCompletionStatus(checked === 'indeterminate' ? false : checked)
             }
           />
@@ -111,7 +119,7 @@ const NoteEditor = ({ type, onSubmit, isLoading, canUpdate = true }: NoteEditorP
 
 interface ReviewNotesProps {
   requestId: string;
-  notes: FullServiceRequest['notes'];
+  notes: RequestNote[];
   canUpdate?: boolean;
 }
 
@@ -121,9 +129,11 @@ export function ReviewNotes({
   canUpdate = true,
 }: ReviewNotesProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const t = useTranslations('admin.registrations.review.notes');
   const router = useRouter();
+  const { user } = useCurrentUser();
+  const addNoteMutation = useMutation(api.functions.request.addRequestNote);
+  const updateStatusMutation = useMutation(api.functions.request.updateRequestStatus);
 
   const handleAddNote = async (
     content: string,
@@ -132,37 +142,32 @@ export function ReviewNotes({
   ) => {
     try {
       setIsLoading(true);
-      const result = await addServiceRequestNote({
-        requestId,
-        content,
-        type,
-      });
 
-      if (pendingCompletionStatus) {
-        await updateServiceRequestStatus(requestId, 'PENDING_COMPLETION');
-      }
-
-      if (result.error) {
-        toast({
-          title: t('error.title'),
-          description: result.error,
-          variant: 'destructive',
-        });
+      if (!user?.membership?._id) {
+        toast.error('Vous devez être connecté avec un compte membre');
         return;
       }
 
-      toast({
-        title: t('success.title'),
-        description: t('success.description'),
-        variant: 'success',
+      await addNoteMutation({
+        requestId: requestId as Id<'requests'>,
+        note: {
+          type: type.toLowerCase() as 'internal' | 'feedback',
+          content,
+        },
+        addedById: user.membership._id,
       });
+
+      if (pendingCompletionStatus) {
+        await updateStatusMutation({
+          requestId: requestId as Id<'requests'>,
+          status: RequestStatus.PendingCompletion,
+        });
+      }
+
+      toast.success(t('success.description'));
     } catch (error) {
       console.error('Error adding note:', error);
-      toast({
-        title: t('error.title'),
-        description: t('error.unknown'),
-        variant: 'destructive',
-      });
+      toast.error(t('error.unknown'));
     } finally {
       setIsLoading(false);
       router.refresh();
@@ -186,8 +191,8 @@ export function ReviewNotes({
         <TabsContent value="internal" className="mt-4 space-y-4">
           <div className="space-y-4">
             {notes
-              .filter((note) => note.type === 'INTERNAL')
-              .map((note) => (
+              .filter((note: RequestNote) => note.type === 'INTERNAL')
+              .map((note: RequestNote) => (
                 <NoteItem key={note.id} note={note} />
               ))}
           </div>
@@ -202,8 +207,8 @@ export function ReviewNotes({
         <TabsContent value="feedback" className="mt-4 space-y-4">
           <div className="space-y-4">
             {notes
-              .filter((note) => note.type === 'FEEDBACK')
-              .map((note) => (
+              .filter((note: RequestNote) => note.type === 'FEEDBACK')
+              .map((note: RequestNote) => (
                 <NoteItem key={note.id} note={note} />
               ))}
           </div>
@@ -214,10 +219,10 @@ export function ReviewNotes({
   );
 }
 
-export const NotesList = ({ notes }: { notes: FullServiceRequest['notes'] }) => {
+export const NotesList = ({ notes }: { notes: RequestNote[] }) => {
   return (
     <CardContainer title={"Messages de l'administration"} contentClass="pt-0">
-      {notes.map((note) => (
+      {notes.map((note: RequestNote) => (
         <NoteItem key={note.id} note={note} />
       ))}
     </CardContainer>

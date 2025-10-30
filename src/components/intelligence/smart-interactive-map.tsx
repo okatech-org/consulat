@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { ProfilesMapDataItem } from '@/convex/lib/types';
-import { getLocationCoordinates } from '@/lib/services/geocoding-service';
 import { useTranslations } from 'next-intl';
 import { MapPin, Users, RotateCcw } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
@@ -70,28 +69,22 @@ export default function SmartInteractiveMap({
   const [selectedCity, setSelectedCity] = useState<string>('all');
 
   // Transform profiles with coordinates
-  const profilesWithCoords = useMemo<ProfileWithCoords[]>(() => {
-    return profiles
-      .filter((p) => p.address)
-      .map((profile) => {
-        const coords = getLocationCoordinates(
-          profile.address?.city,
-          profile.address?.country,
-        );
-        return {
-          id: profile.id,
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          name: `${profile.firstName} ${profile.lastName}`,
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-          city: profile.address?.city,
-          country: profile.address?.country
-            ? t_countries(profile.address?.country)
-            : undefined,
-        };
-      });
-  }, [profiles]);
+  const profilesWithCoords = profiles
+    .filter((p) => p.address?.coordinates)
+    .map((profile) => {
+      return {
+        id: profile.id,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        name: `${profile.firstName} ${profile.lastName}`,
+        latitude: Number(profile.address?.coordinates?.latitude) || 0,
+        longitude: Number(profile.address?.coordinates?.longitude) || 0,
+        city: profile.address?.city,
+        country: profile.address?.country
+          ? t_countries(profile.address?.country)
+          : undefined,
+      };
+    });
 
   // Get unique countries and cities for filters
   const countries = useMemo(() => {
@@ -319,7 +312,7 @@ export default function SmartInteractiveMap({
             {filteredProfiles.map((profile) => (
               <CircleMarker
                 key={profile.id}
-                center={[profile.latitude, profile.longitude]}
+                center={[Number(profile?.latitude) || 0, Number(profile?.longitude) || 0]}
                 radius={8}
                 pathOptions={{
                   color: '#3b82f6',

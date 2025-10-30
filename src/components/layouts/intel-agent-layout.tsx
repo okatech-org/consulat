@@ -4,14 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { ThemeToggleIntel } from '@/components/ui/theme-toggle-intel';
-import {
-  useOptimizedNavigation,
-  usePrefetchCommonData,
-} from '@/hooks/use-optimized-navigation';
-import {
-  useAggressivePrefetch,
-  useBackgroundRefresh,
-} from '@/hooks/use-aggressive-cache';
+import { useOptimizedNavigation } from '@/hooks/use-optimized-navigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
 import {
@@ -1040,11 +1033,6 @@ export default function IntelAgentLayout({
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const { navigateTo, handleMouseEnter, isPending } = useOptimizedNavigation();
-  const { prefetchCommon } = usePrefetchCommonData();
-
-  // Activer le préchargement agressif et le rafraîchissement en arrière-plan
-  useAggressivePrefetch();
-  useBackgroundRefresh();
 
   // Récupérer l'utilisateur actuel
   const { user: currentUserData } = useCurrentUser();
@@ -1056,10 +1044,7 @@ export default function IntelAgentLayout({
   // Initialiser le composant
   useEffect(() => {
     setMounted(true);
-
-    // Précharger les données communes au montage
-    prefetchCommon();
-  }, [prefetchCommon]);
+  }, []);
 
   if (!mounted) {
     return (

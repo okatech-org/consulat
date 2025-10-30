@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   CardContent,
@@ -9,13 +11,12 @@ import Link from 'next/link';
 import { ROUTES } from '@/schemas/routes';
 import { buttonVariants } from '@/components/ui/button';
 import { ArrowUpRightIcon } from 'lucide-react';
-import * as React from 'react';
-import { getTranslations } from 'next-intl/server';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { useTranslations } from 'next-intl';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
-export default async function CtaContact() {
-  const t = await getTranslations('home');
-  const user = await getCurrentUser();
+export default function CtaContact() {
+  const t = useTranslations('home');
+  const { user } = useCurrentUser();
 
   return (
     <>

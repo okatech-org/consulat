@@ -1,7 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { CountryIndicator } from '@/lib/autocomplete-datas';
-import { phoneCountries } from '@/lib/autocomplete-datas';
 import type { UseFormReturn } from 'react-hook-form';
 import type { DateTimeFormatOptions } from 'next-intl';
 import { useLocale } from 'next-intl';

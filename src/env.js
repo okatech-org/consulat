@@ -13,15 +13,9 @@ export const env = createEnv({
 
     CONVEX_DEPLOYMENT: z.url(),
 
-    // UploadThing
-    UPLOADTHING_TOKEN: z.string(),
-
     // AI APIs
     GEMINI_API_KEY: z.string(),
     REMOVEBG_API_KEY: z.string(),
-
-    // SMS Provider Configuration
-    SMS_PROVIDER: z.enum(['twilio', 'vonage']).default('twilio'),
 
     // Twilio
     TWILIO_ACCOUNT_SID: z.string(),
@@ -87,7 +81,6 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_DEFAULT_IMAGE_PATH: process.env.NEXT_PUBLIC_DEFAULT_IMAGE_PATH,
     NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
-    DIRECT_URL: process.env.DIRECT_URL,
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
 
     // Clerk Authentication

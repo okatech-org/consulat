@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Info } from 'lucide-react';
 import { ErrorCard } from '@/components/ui/error-card';
 import { useRouter } from 'next/navigation';
@@ -80,8 +80,8 @@ export function ServiceSubmissionForm({
       // Step 1: Create the request in Draft status
       const requestId = await createRequest({
         serviceId: service._id,
-        requesterId: profile.userId as Id<'users'>,
-        profileId: profile._id as Id<'profiles'>,
+        requesterId: profile._id,
+        profileId: profile._id,
         formData: rest,
         documentIds: documents
           ? (Object.values(documents as Record<string, { _id: string }>)
@@ -131,10 +131,8 @@ export function ServiceSubmissionForm({
 
       setIsLoading(false);
 
-      toast({
-        title: t('messages.success.create'),
-        description: t('messages.success.profile.update_description'),
-        variant: 'success',
+      toast.success(t('messages.success.create'), {
+        description: t('messages.success.create_description'),
       });
 
       // Check if service requires appointment and redirect accordingly
@@ -158,10 +156,8 @@ export function ServiceSubmissionForm({
           ? error.message
           : 'An error occurred while submitting the request';
 
-      toast({
-        title: t('messages.errors.create'),
+      toast.error(t('messages.errors.create'), {
         description: errorMessage,
-        variant: 'destructive',
       });
       setError(errorMessage);
     }

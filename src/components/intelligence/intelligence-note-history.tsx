@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,10 +23,11 @@ export function IntelligenceNoteHistory({
 }: IntelligenceNoteHistoryProps) {
   const t = useTranslations('intelligence.notes');
 
-  const { data: history, isLoading } =
-    api.intelligence.getIntelligenceNoteHistory.useQuery({
-      noteId,
-    });
+  const history = useQuery(
+    api.functions.intelligence.getNoteHistory,
+    noteId ? { noteId: noteId as any } : 'skip',
+  );
+  const isLoading = history === undefined;
 
   const getActionIcon = (action: string) => {
     switch (action) {

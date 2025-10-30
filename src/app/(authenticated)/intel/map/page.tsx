@@ -10,7 +10,6 @@ import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-b
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   MapPin,
@@ -21,7 +20,6 @@ import {
   Zap,
   Target,
   RefreshCw,
-  AlertCircle,
   Clock,
   TrendingUp,
   Globe,
@@ -34,11 +32,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import SmartInteractiveMap from '@/components/intelligence/dynamic-smart-map';
+import SmartInteractiveMap from '@/components/intelligence/smart-interactive-map';
 import { useRouter } from 'next/navigation';
 import { useDebounce } from '@/hooks/use-debounce';
 import { IntelligenceNotePriority } from '@/convex/lib/constants';
-import { getLocationCoordinates } from '@/lib/services/geocoding-service';
 
 // Fonction utilitaire pour formater les nombres de manière cohérente
 const formatNumber = (num: number): string => {
@@ -65,26 +62,20 @@ export default function CartePage() {
   }, [debouncedSearchTerm]);
 
   // Données de la carte
-  const {
-    data: profilesMap,
-    isLoading: isLoadingProfiles,
-    error: errorProfiles,
-    refetch: refetchProfiles,
-  } = useIntelligenceProfilesMap(
+  const profilesMap = useIntelligenceProfilesMap(
     Object.values(filters).some((value) => value !== undefined && value !== '')
       ? filters
       : undefined,
   );
+  const isLoadingProfiles = profilesMap === undefined;
 
   // Notes récentes pour l'activité
-  const {
-    data: recentNotes,
-    isLoading: isLoadingNotes,
-    error: errorNotes,
-  } = useIntelligenceNotes({ filters: { search: filters.search || undefined } });
+  const recentNotes = useIntelligenceNotes({ search: filters.search || undefined });
+  const isLoadingNotes = recentNotes === undefined;
 
   // Statistiques générales
-  const { isLoading: isLoadingStats } = useIntelligenceDashboardStats('day');
+  const dashboardStats = useIntelligenceDashboardStats('day');
+  const isLoadingStats = dashboardStats === undefined;
 
   // Calculer les statistiques de la carte basées sur la RÉSIDENCE (adresse)
   const stats = useMemo(() => {
@@ -92,15 +83,20 @@ export default function CartePage() {
 
     // Filtrer uniquement les profils avec une adresse de résidence valide
     const profilesWithAddress = profilesMap.filter(
-      (p) => p.address?.city && p.address?.country,
+      (p: (typeof profilesMap)[number]) => p.address?.city && p.address?.country,
     );
 
     return {
       totalProfiles: profilesWithAddress.length,
-      countries: new Set(profilesWithAddress.map((p) => p.address!.country)).size,
-      cities: new Set(profilesWithAddress.map((p) => p.address!.city)).size,
+      countries: new Set(
+        profilesWithAddress.map((p: (typeof profilesMap)[number]) => p.address!.country),
+      ).size,
+      cities: new Set(
+        profilesWithAddress.map((p: (typeof profilesMap)[number]) => p.address!.city),
+      ).size,
       withNotes: profilesWithAddress.filter(
-        (p) => p.intelligenceNotes && p.intelligenceNotes.length > 0,
+        (p: (typeof profilesMap)[number]) =>
+          p.intelligenceNotes && p.intelligenceNotes.length > 0,
       ).length,
     };
   }, [profilesMap]);
@@ -111,8 +107,10 @@ export default function CartePage() {
 
     return recentNotes
       .slice(0, 4)
-      .map((note) => {
-        const profile = profilesMap.find((p) => p.id === note.profileId);
+      .map((note: (typeof recentNotes)[number]) => {
+        const profile = profilesMap.find(
+          (p: (typeof profilesMap)[number]) => p.id === note.profileId,
+        );
         if (!profile || !profile.address?.city || !profile.address?.country) return null;
 
         const timeAgo = new Date(note.createdAt);
@@ -142,8 +140,11 @@ export default function CartePage() {
 
     // Filtrer uniquement les profils avec adresse de résidence valide
     profilesMap
-      .filter((profile) => profile.address?.city && profile.address?.country)
-      .forEach((profile) => {
+      .filter(
+        (profile: (typeof profilesMap)[number]) =>
+          profile.address?.city && profile.address?.country,
+      )
+      .forEach((profile: (typeof profilesMap)[number]) => {
         const key = `${profile.address!.city}, ${profile.address!.country}`;
         const current = zoneStats.get(key) || {
           zone: profile.address!.city,
@@ -202,7 +203,7 @@ export default function CartePage() {
     if (!autoRefresh) {
       // Démarrer le rafraîchissement automatique
       const interval = setInterval(() => {
-        refetchProfiles();
+        window.location.reload();
       }, 30000); // Toutes les 30 secondes
 
       // Nettoyer à la fermeture
@@ -214,36 +215,13 @@ export default function CartePage() {
     router.push(`/dashboard/profiles/${profileId}`);
   };
 
-  const handleRefreshData = () => {
-    refetchProfiles();
-  };
-
-  // États d'erreur et de chargement
-  const hasErrors = errorProfiles || errorNotes;
+  // États de chargement
   const isLoading = isLoadingProfiles || isLoadingNotes || isLoadingStats;
 
   return (
     <>
       <IntelNavigationBar currentPage="Carte des profils" />
       <div className="space-y-6">
-        {/* Gestion d'erreurs */}
-        {hasErrors && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Erreur lors du chargement des données.
-              <Button
-                variant="link"
-                size="sm"
-                onClick={handleRefreshData}
-                className="ml-2 p-0 h-auto"
-              >
-                Réessayer
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
-
         {/* Contrôles rapides optimisés */}
         <Card className="shadow-sm bg-card border">
           <CardContent className="p-3">
@@ -350,38 +328,17 @@ export default function CartePage() {
               ) : (
                 <SmartInteractiveMap
                   profiles={
-                    profilesMap
-                      ?.filter((profile) => {
-                        // SEULS les profils avec ADRESSE DE RÉSIDENCE valide
-                        const hasValidResidenceAddress =
-                          profile.address &&
-                          profile.address.city &&
-                          profile.address.city.trim() !== '' &&
-                          profile.address.country &&
-                          profile.address.country.trim() !== '';
+                    profilesMap?.filter((profile: (typeof profilesMap)[number]) => {
+                      // SEULS les profils avec ADRESSE DE RÉSIDENCE valide
+                      const hasValidResidenceAddress =
+                        profile.address &&
+                        profile.address.city &&
+                        profile.address.city.trim() !== '' &&
+                        profile.address.country &&
+                        profile.address.country.trim() !== '';
 
-                        return hasValidResidenceAddress;
-                      })
-                      .map((profile) => {
-                        // Utiliser UNIQUEMENT l'adresse de RÉSIDENCE
-                        const coordinates = getLocationCoordinates(
-                          profile.address!.city, // ← Ville de RÉSIDENCE
-                          profile.address!.country, // ← Pays de RÉSIDENCE
-                        );
-
-                        return {
-                          id: profile.id,
-                          name: `${profile.firstName} ${profile.lastName}`,
-                          latitude: coordinates.latitude,
-                          longitude: coordinates.longitude,
-                          city: profile.address!.city, // ← Ville de résidence
-                          country: profile.address!.country, // ← Pays de résidence
-                          hasNotes:
-                            profile.intelligenceNotes &&
-                            profile.intelligenceNotes.length > 0,
-                          notesCount: profile.intelligenceNotes?.length || 0,
-                        };
-                      }) || []
+                      return hasValidResidenceAddress;
+                    }) || []
                   }
                   onProfileClick={handleProfileClick}
                   className="w-full h-full"
@@ -518,44 +475,48 @@ export default function CartePage() {
                       </div>
                     ))
                   ) : recentActivity.length > 0 ? (
-                    recentActivity.slice(0, 6).map(
-                      (activity, index) =>
-                        activity && (
+                    recentActivity
+                      .filter(
+                        (activity): activity is NonNullable<typeof activity> =>
+                          activity !== null,
+                      )
+                      .slice(0, 6)
+                      .map((activity, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all cursor-pointer group border border-transparent hover:border-blue-500/30"
+                          onClick={() => handleProfileClick(activity.id)}
+                        >
                           <div
-                            key={index}
-                            className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all cursor-pointer group border border-transparent hover:border-blue-500/30"
-                            onClick={() => handleProfileClick(activity.id)}
+                            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                            style={{
+                              background:
+                                activity.priority === IntelligenceNotePriority.High ||
+                                activity.priority === IntelligenceNotePriority.Critical
+                                  ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+                                  : activity.priority === IntelligenceNotePriority.Medium
+                                    ? 'linear-gradient(135deg, #f59e0b, #d97706)'
+                                    : 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                            }}
                           >
-                            <div
-                              className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                              style={{
-                                background:
-                                  activity.priority === 'HIGH'
-                                    ? 'linear-gradient(135deg, #ef4444, #dc2626)'
-                                    : activity.priority === 'MEDIUM'
-                                      ? 'linear-gradient(135deg, #f59e0b, #d97706)'
-                                      : 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                              }}
-                            >
-                              {activity.name.charAt(0)}
+                            {activity.name.charAt(0)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium truncate group-hover:text-blue-400 transition-colors text-foreground">
+                                {activity.name}
+                              </span>
+                              <Eye className="h-4 w-4 text-blue-500 flex-shrink-0" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium truncate group-hover:text-blue-400 transition-colors text-foreground">
-                                  {activity.name}
-                                </span>
-                                <Eye className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <span className="truncate">📍 {activity.location}</span>
-                                <span>•</span>
-                                <Clock className="h-3 w-3" />
-                                <span>{activity.time}</span>
-                              </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="truncate">📍 {activity.location}</span>
+                              <span>•</span>
+                              <Clock className="h-3 w-3" />
+                              <span>{activity.time}</span>
                             </div>
                           </div>
-                        ),
-                    )
+                        </div>
+                      ))
                   ) : (
                     <div className="col-span-full text-center py-8 text-muted-foreground">
                       <Clock className="h-12 w-12 mx-auto mb-3 opacity-50" />
