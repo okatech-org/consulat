@@ -25,7 +25,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import { FeedbackCategory } from '@/convex/lib/constants';
 
 interface FeedbackFormProps {
   isOpen?: boolean;
@@ -39,7 +40,7 @@ export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
 
   const form = useForm<FeedbackFormValues>({
     resolver: zodResolver(feedbackSchema),
-    defaultValues: { subject: '', message: '', category: 'IMPROVEMENT' },
+    defaultValues: { subject: '', message: '', category: FeedbackCategory.Improvement },
   });
 
   const onSubmit = (data: FeedbackFormValues) => {
@@ -55,11 +56,7 @@ export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
       {
         onSuccess: () => {
           form.reset();
-          toast({
-            variant: 'success',
-            title: t('confirmation.title'),
-            description: t('confirmation.message'),
-          });
+          toast.success(t('confirmation.message'));
           if (onSuccess) onSuccess();
         },
       },

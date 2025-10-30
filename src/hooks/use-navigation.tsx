@@ -117,12 +117,6 @@ export function useNavigation() {
       roles: [UserRole.Admin, UserRole.Manager, UserRole.SuperAdmin],
     },
     {
-      title: t('users'),
-      url: ROUTES.dashboard.users,
-      icon: Users,
-      roles: [UserRole.SuperAdmin],
-    },
-    {
       title: t('tickets'),
       url: ROUTES.dashboard.tickets,
       icon: Ticket,

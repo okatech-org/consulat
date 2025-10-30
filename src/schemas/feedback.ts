@@ -1,6 +1,5 @@
+import { FeedbackCategory } from '@/convex/lib/constants';
 import { z } from 'zod';
-
-export const FeedbackCategory = z.enum(['BUG', 'FEATURE', 'IMPROVEMENT', 'OTHER']);
 
 export const feedbackSchema = z.object({
   subject: z.string().min(3, {
@@ -10,8 +9,8 @@ export const feedbackSchema = z.object({
     message: 'Le message doit contenir au moins 10 caractères',
   }),
   rating: z.number().min(1).max(5).optional(),
-  category: FeedbackCategory,
-  email: z.string().email().optional(),
+  category: z.enum(FeedbackCategory),
+  email: z.email().optional(),
   phoneNumber: z.string().optional(),
   serviceId: z.string().optional(),
   requestId: z.string().optional(),

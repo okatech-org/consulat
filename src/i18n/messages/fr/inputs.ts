@@ -1,4 +1,17 @@
 export default {
+  userRole: {
+    label: 'Rôle utilisateur',
+    placeholder: 'Sélectionner un rôle',
+    options: {
+      super_admin: 'Super Admin',
+      admin: 'Admin',
+      manager: 'Manager',
+      agent: 'Agent consulaire',
+      user: 'Utilisateur',
+      intel_agent: "Agent d'intelligence",
+      education_agent: "Agent d'éducation",
+    },
+  },
   requestAction: {
     label: 'Action sur la demande',
     options: {
@@ -124,10 +137,10 @@ export default {
     categories: {
       label: 'Catégorie de retour',
       options: {
-        BUG: 'Bug',
-        FEATURE: 'Fonctionnalité',
-        IMPROVEMENT: 'Amélioration',
-        OTHER: 'Autre',
+        bug: 'Bug',
+        feature: 'Fonctionnalité',
+        improvement: 'Amélioration',
+        other: 'Autre',
       },
     },
   },

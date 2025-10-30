@@ -53,6 +53,7 @@ export function UsersList() {
   } = useTableSearchParams<UserListItem, UsersFilters>(adaptSearchParams);
 
   const t = useTranslations('sa.users');
+  const t_inputs = useTranslations('inputs');
 
   const { formatDate } = useDateLocale();
 
@@ -321,10 +322,10 @@ export function UsersList() {
       {
         type: 'checkbox',
         property: 'roles',
-        label: t('table.role'),
+        label: t_inputs('userRole.label'),
         options: Object.values(UserRole).map((role) => ({
           value: role,
-          label: t(`form.role.options.${role.toLowerCase()}`),
+          label: t_inputs(`userRole.options.${role.toLowerCase()}`),
         })),
         defaultValue: params.roles || [],
         onChange: (value) => {
