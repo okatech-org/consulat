@@ -5,7 +5,7 @@ import { api } from '@/convex/_generated/api';
 import { PageContainer } from '@/components/layouts/page-container';
 import SmartInteractiveMap from '@/components/intelligence/smart-interactive-map';
 
-export function CartePage() {
+export default function CartePage() {
   const profilesMap = useQuery(api.functions.profile.getProfilesMapData);
   return (
     <PageContainer

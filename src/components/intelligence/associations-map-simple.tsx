@@ -5,6 +5,11 @@ import { useAction } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import 'leaflet.markercluster';
 
 interface AssociationData {
   id: string;
@@ -39,10 +44,10 @@ export default function AssociationsMapSimple({
   const [mapError, setMapError] = useState<string | null>(null);
   const getLocationCoordinates = useAction(
     api.functions.geocoding.getLocationCoordinates,
-  );@
+  );
 
   useEffect(() => {
-    // Fonction asynchrone pour charger Leaflet
+    // Fonction pour initialiser la carte
     const initializeMap = async () => {
       try {
         // Vérifier qu'on est côté client
@@ -66,19 +71,8 @@ export default function AssociationsMapSimple({
           mapRef.current.innerHTML = '';
         }
 
-        // Charger Leaflet dynamiquement
-        const L = (await import('leaflet')).default;
-        await import('leaflet/dist/leaflet.css');
-
-        // Charger le plugin de clustering si nécessaire
-        if (showClusters) {
-          await import('leaflet.markercluster/dist/MarkerCluster.css');
-          await import('leaflet.markercluster/dist/MarkerCluster.Default.css');
-          await import('leaflet.markercluster');
-        }
-
         // Vérifier qu'il n'y a pas déjà une carte sur cet élément
-        if (mapRef.current._leaflet_id) {
+        if ((mapRef.current as any)._leaflet_id) {
           console.warn('Une carte existe déjà sur cet élément');
           return;
         }
@@ -255,7 +249,7 @@ export default function AssociationsMapSimple({
         mapRef.current.innerHTML = '';
       }
     };
-  }, [associations, onAssociationClick, showClusters, getLocationCoordinates]);
+  }, [associations, onAssociationClick, showClusters]);
 
   if (mapError) {
     return (

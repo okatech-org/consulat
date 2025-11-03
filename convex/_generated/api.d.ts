@@ -20,6 +20,7 @@ import type * as functions_document from "../functions/document.js";
 import type * as functions_email from "../functions/email.js";
 import type * as functions_feedback from "../functions/feedback.js";
 import type * as functions_file from "../functions/file.js";
+import type * as functions_geocoding from "../functions/geocoding.js";
 import type * as functions_intelligence from "../functions/intelligence.js";
 import type * as functions_membership from "../functions/membership.js";
 import type * as functions_migration from "../functions/migration.js";
@@ -94,6 +95,7 @@ declare const fullApi: ApiFromModules<{
   "functions/email": typeof functions_email;
   "functions/feedback": typeof functions_feedback;
   "functions/file": typeof functions_file;
+  "functions/geocoding": typeof functions_geocoding;
   "functions/intelligence": typeof functions_intelligence;
   "functions/membership": typeof functions_membership;
   "functions/migration": typeof functions_migration;
