@@ -15,7 +15,7 @@ export default function HistoryPage() {
   const { user } = useCurrentUser();
   const requests = useQuery(
     api.functions.request.getAllRequests,
-    user?._id ? { requesterId: user._id } : 'skip',
+    user?.profileId ? { profileId: user.profileId } : 'skip',
   );
 
   if (requests === undefined) {

@@ -404,84 +404,108 @@ export const importOrganizations = mutation({
           memberIds: [],
           serviceIds: [],
           childIds: [],
-          settings: orgCountryConfigs.map((config) => ({
-            appointmentSettings: postgresOrg.appointmentSettings || {},
-            workflowSettings: postgresOrg.workflowSettings || {},
-            notificationSettings: postgresOrg.notificationSettings || {},
-            countryCode: config.countryCode,
-            consularCard: config.config.consularCard,
-            contact: config.config.contact
-              ? {
-                  address: config.config.contact.address
-                    ? {
-                        street: config.config.contact.address.firstLine || '',
-                        city: config.config.contact.address.city || '',
-                        postalCode: config.config.contact.address.zipCode || '',
-                        country: (config.config.contact.address.country ||
-                          'FR') as CountryCode,
-                      }
-                    : undefined,
-                  phone: config.config.contact.phone,
-                  email: config.config.contact.email,
-                  website: config.config.contact.website,
+          settings: (() => {
+            // Construire les settings à partir du metadata parsé
+            const settingsArray: Array<{
+              appointmentSettings: any;
+              workflowSettings: any;
+              notificationSettings: any;
+              countryCode: CountryCode;
+              consularCard?: any;
+              contact?: any;
+              schedule?: any;
+              holidays: number[];
+              closures: number[];
+            }> = [];
+
+            if (parsedMetadata && typeof parsedMetadata === 'object') {
+              for (const countryCode of countryCodes) {
+                const countryConfig = parsedMetadata[countryCode];
+                if (countryConfig && countryConfig.settings) {
+                  const config = countryConfig.settings as CountrySettings;
+                  settingsArray.push({
+                    appointmentSettings: postgresOrg.appointmentSettings || {},
+                    workflowSettings: postgresOrg.workflowSettings || {},
+                    notificationSettings: postgresOrg.notificationSettings || {},
+                    countryCode: countryCode,
+                    consularCard: config.consularCard,
+                    contact: config.contact
+                      ? {
+                          address: config.contact.address
+                            ? {
+                                street: config.contact.address.firstLine || '',
+                                city: config.contact.address.city || '',
+                                postalCode: config.contact.address.zipCode || '',
+                                country: (config.contact.address.country ||
+                                  'FR') as CountryCode,
+                              }
+                            : undefined,
+                          phone: config.contact.phone,
+                          email: config.contact.email,
+                          website: config.contact.website,
+                        }
+                      : undefined,
+                    schedule: config.schedule
+                      ? {
+                          monday: {
+                            isOpen: Boolean(config.schedule.monday?.isOpen),
+                            slots: (config.schedule.monday?.slots || []).map((s) => ({
+                              start: s.start ?? '',
+                              end: s.end ?? '',
+                            })),
+                          },
+                          tuesday: {
+                            isOpen: Boolean(config.schedule.tuesday?.isOpen),
+                            slots: (config.schedule.tuesday?.slots || []).map((s) => ({
+                              start: s.start ?? '',
+                              end: s.end ?? '',
+                            })),
+                          },
+                          wednesday: {
+                            isOpen: Boolean(config.schedule.wednesday?.isOpen),
+                            slots: (config.schedule.wednesday?.slots || []).map((s) => ({
+                              start: s.start ?? '',
+                              end: s.end ?? '',
+                            })),
+                          },
+                          thursday: {
+                            isOpen: Boolean(config.schedule.thursday?.isOpen),
+                            slots: (config.schedule.thursday?.slots || []).map((s) => ({
+                              start: s.start ?? '',
+                              end: s.end ?? '',
+                            })),
+                          },
+                          friday: {
+                            isOpen: Boolean(config.schedule.friday?.isOpen),
+                            slots: (config.schedule.friday?.slots || []).map((s) => ({
+                              start: s.start ?? '',
+                              end: s.end ?? '',
+                            })),
+                          },
+                          saturday: {
+                            isOpen: Boolean(config.schedule.saturday?.isOpen),
+                            slots: (config.schedule.saturday?.slots || []).map((s) => ({
+                              start: s.start ?? '',
+                              end: s.end ?? '',
+                            })),
+                          },
+                          sunday: {
+                            isOpen: Boolean(config.schedule.sunday?.isOpen),
+                            slots: (config.schedule.sunday?.slots || []).map((s) => ({
+                              start: s.start ?? '',
+                              end: s.end ?? '',
+                            })),
+                          },
+                        }
+                      : undefined,
+                    holidays: (config.holidays || []).map((h) => new Date(h).getTime()),
+                    closures: (config.closures || []).map((c) => new Date(c).getTime()),
+                  });
                 }
-              : undefined,
-            schedule: config.config.schedule
-              ? {
-                  monday: {
-                    isOpen: Boolean(config.config.schedule.monday?.isOpen),
-                    slots: (config.config.schedule.monday?.slots || []).map((s) => ({
-                      start: s.start ?? '',
-                      end: s.end ?? '',
-                    })),
-                  },
-                  tuesday: {
-                    isOpen: Boolean(config.config.schedule.tuesday?.isOpen),
-                    slots: (config.config.schedule.tuesday?.slots || []).map((s) => ({
-                      start: s.start ?? '',
-                      end: s.end ?? '',
-                    })),
-                  },
-                  wednesday: {
-                    isOpen: Boolean(config.config.schedule.wednesday?.isOpen),
-                    slots: (config.config.schedule.wednesday?.slots || []).map((s) => ({
-                      start: s.start ?? '',
-                      end: s.end ?? '',
-                    })),
-                  },
-                  thursday: {
-                    isOpen: Boolean(config.config.schedule.thursday?.isOpen),
-                    slots: (config.config.schedule.thursday?.slots || []).map((s) => ({
-                      start: s.start ?? '',
-                      end: s.end ?? '',
-                    })),
-                  },
-                  friday: {
-                    isOpen: Boolean(config.config.schedule.friday?.isOpen),
-                    slots: (config.config.schedule.friday?.slots || []).map((s) => ({
-                      start: s.start ?? '',
-                      end: s.end ?? '',
-                    })),
-                  },
-                  saturday: {
-                    isOpen: Boolean(config.config.schedule.saturday?.isOpen),
-                    slots: (config.config.schedule.saturday?.slots || []).map((s) => ({
-                      start: s.start ?? '',
-                      end: s.end ?? '',
-                    })),
-                  },
-                  sunday: {
-                    isOpen: Boolean(config.config.schedule.sunday?.isOpen),
-                    slots: (config.config.schedule.sunday?.slots || []).map((s) => ({
-                      start: s.start ?? '',
-                      end: s.end ?? '',
-                    })),
-                  },
-                }
-              : undefined,
-            holidays: (config.config.holidays || []).map((h) => new Date(h).getTime()),
-            closures: (config.config.closures || []).map((c) => new Date(c).getTime()),
-          })),
+              }
+            }
+            return settingsArray;
+          })(),
           legacyId: postgresOrg.id,
           metadata: {},
         });

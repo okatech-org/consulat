@@ -92,7 +92,7 @@
     "client-only": "^0.0.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "convex": "^1.27.5",
+    "convex": "^1.28.2",
     "cookies-next": "^5.1.0",
     "date-fns": "^4.1.0",
     "deepl-node": "^1.14.0",
