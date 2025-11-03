@@ -16,11 +16,7 @@ export default function RegistrationPage() {
   const { user } = useCurrentUser();
   const t = useTranslations('auth.signup');
 
-  if (!user) {
-    redirect(ROUTES.auth.signup);
-  }
-
-  if (user.profileId) {
+  if (user?.profileId) {
     redirect(ROUTES.user.profile_form);
   }
 

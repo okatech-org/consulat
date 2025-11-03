@@ -1,10 +1,9 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import fs from 'fs/promises';
 import path from 'path';
 
 const prisma = new PrismaClient({
-  datasourceUrl:
-    'postgresql://neondb_owner:npg_iZ2rXwYGM1xh@ep-lingering-frost-a95p0p8l-pooler.gwc.azure.neon.tech/neondb?sslmode=require&channel_binding=require',
+  datasourceUrl: '',
 });
 
 const userEmail: string | undefined = undefined;
@@ -23,7 +22,7 @@ async function ensureExportDir() {
   console.log(`📁 Dossier d'export créé : ${EXPORT_DIR}`);
 }
 
-const exportCountryInclude: Prisma.CountrySelect = {
+const exportCountryInclude = {
   id: true,
   name: true,
   code: true,
@@ -31,9 +30,7 @@ const exportCountryInclude: Prisma.CountrySelect = {
   flag: true,
 };
 
-export type CountryExport = Prisma.CountryGetPayload<{
-  select: typeof exportCountryInclude;
-}>;
+export type CountryExport = typeof exportCountryInclude;
 
 async function exportCountries() {
   console.log('\n🌍 Export des pays...');
@@ -49,7 +46,7 @@ async function exportCountries() {
   return { entity: 'countries', count: countries.length, file: filePath };
 }
 
-const exportOrganizationInclude: Prisma.OrganizationSelect = {
+const exportOrganizationInclude = {
   id: true,
   name: true,
   logo: true,
@@ -76,9 +73,7 @@ const exportOrganizationInclude: Prisma.OrganizationSelect = {
   documentTemplates: true,
 };
 
-export type OrganizationExport = Prisma.OrganizationGetPayload<{
-  select: typeof exportOrganizationInclude;
-}>;
+export type OrganizationExport = typeof exportOrganizationInclude;
 
 async function exportOrganizations() {
   console.log('\n🏢 Export des organisations...');
@@ -94,7 +89,7 @@ async function exportOrganizations() {
   return { entity: 'organizations', count: organizations.length, file: filePath };
 }
 
-const exportServiceInclude: Prisma.ConsularServiceSelect = {
+const exportServiceInclude = {
   id: true,
   name: true,
   description: true,
@@ -147,9 +142,7 @@ const exportServiceInclude: Prisma.ConsularServiceSelect = {
   feedbacks: true,
 };
 
-export type ServiceExport = Prisma.ConsularServiceGetPayload<{
-  select: typeof exportServiceInclude;
-}>;
+export type ServiceExport = typeof exportServiceInclude;
 
 async function exportServices() {
   console.log('\n🛎️ Export des services...');
@@ -165,7 +158,7 @@ async function exportServices() {
   return { entity: 'services', count: services.length, file: filePath };
 }
 
-const exportNonUsersAccountsInclude: Prisma.UserSelect = {
+const exportNonUsersAccountsInclude = {
   id: true,
   clerkId: true,
   name: true,
@@ -192,9 +185,7 @@ const exportNonUsersAccountsInclude: Prisma.UserSelect = {
   },
 };
 
-export type NonUsersAccountsExport = Prisma.UserGetPayload<{
-  select: typeof exportNonUsersAccountsInclude;
-}>;
+export type NonUsersAccountsExport = typeof exportNonUsersAccountsInclude;
 
 async function exportNonUsersAccounts() {
   console.log('\n👤 Export des comptes non utilisateurs...');
@@ -221,7 +212,7 @@ async function exportNonUsersAccounts() {
   return { entity: 'non-users-accounts', count: nonUsers.length, file: filePath };
 }
 
-const exportUserCentricDataInclude: Prisma.UserSelect = {
+const exportUserCentricDataInclude = {
   id: true,
   clerkId: true,
   name: true,
@@ -310,9 +301,7 @@ const exportUserCentricDataInclude: Prisma.UserSelect = {
   childAuthorities: true,
 };
 
-export type UserCentricDataExport = Prisma.UserGetPayload<{
-  select: typeof exportUserCentricDataInclude;
-}>;
+export type UserCentricDataExport = typeof exportUserCentricDataInclude;
 
 async function exportUserCentricData() {
   console.log('\n👤 Export des données centrées utilisateur...');
@@ -337,7 +326,7 @@ async function exportUserCentricData() {
   return { entity: 'users-data', count: users.length, file: filePath };
 }
 
-const exportParentalAuthorityInclude: Prisma.ParentalAuthoritySelect = {
+const exportParentalAuthorityInclude = {
   id: true,
   profile: {
     select: {
@@ -407,16 +396,12 @@ const exportParentalAuthorityInclude: Prisma.ParentalAuthoritySelect = {
   isActive: true,
 };
 
-export type ParentalAuthorityExport = Prisma.ParentalAuthorityGetPayload<{
-  select: typeof exportParentalAuthorityInclude;
-}>;
+export type ParentalAuthorityExport = typeof exportParentalAuthorityInclude;
 
-export type RequestExport = Prisma.ServiceRequestGetPayload<{
-  include: {
-    notes: true;
-    actions: true;
-  };
-}>;
+export type RequestExport = {
+  notes: true;
+  actions: true;
+};
 
 async function exportUserParentalAuthorities() {
   console.log('\n👤 Export des autorités parentales...');
@@ -429,13 +414,13 @@ async function exportUserParentalAuthorities() {
   });
 
   const requetsToInclude = parentalAuthorities.map(
-    (pa) => pa.profile.validationRequestId,
+    (pa: any) => pa.profile.validationRequestId,
   );
 
   const requests = await Promise.all(
     requetsToInclude
-      .filter((r) => r !== null)
-      .map(async (r) => {
+      .filter((r: any) => r !== null)
+      .map(async (r: any) => {
         return await prisma.serviceRequest.findUnique({
           where: { id: r },
         });

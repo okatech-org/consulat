@@ -224,6 +224,9 @@ export const handleNewUser = action({
         throw new Error('User must have at least an email or phone number');
       }
 
+      console.log('email', email);
+      console.log('phoneNumber', phoneNumber);
+
       const extratedCountryCode = countryCodeFromPhoneNumber(phoneNumber || '');
 
       if (!extratedCountryCode) {
