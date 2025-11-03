@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useAction } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getLocationCoordinates } from '@/lib/services/geocoding-service';
 
 interface AssociationData {
   id: string;
@@ -25,17 +26,20 @@ interface AssociationsMapSimpleProps {
   showClusters?: boolean;
 }
 
-export default function AssociationsMapSimple({ 
-  associations, 
+export default function AssociationsMapSimple({
+  associations,
   onAssociationClick,
   className = '',
-  showClusters = true
+  showClusters = true,
 }: AssociationsMapSimpleProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersLayerRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mapError, setMapError] = useState<string | null>(null);
+  const getLocationCoordinates = useAction(
+    api.functions.geocoding.getLocationCoordinates,
+  );@
 
   useEffect(() => {
     // Fonction asynchrone pour charger Leaflet
@@ -65,7 +69,7 @@ export default function AssociationsMapSimple({
         // Charger Leaflet dynamiquement
         const L = (await import('leaflet')).default;
         await import('leaflet/dist/leaflet.css');
-        
+
         // Charger le plugin de clustering si nécessaire
         if (showClusters) {
           await import('leaflet.markercluster/dist/MarkerCluster.css');
@@ -84,13 +88,13 @@ export default function AssociationsMapSimple({
           center: [46.603354, 1.888334], // Centre de la France
           zoom: 6,
           zoomControl: true,
-          attributionControl: false
+          attributionControl: false,
         });
 
         // Ajouter le fond de carte
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
           maxZoom: 19,
-          attribution: '© OpenStreetMap contributors, © CARTO'
+          attribution: '© OpenStreetMap contributors, © CARTO',
         }).addTo(map);
 
         // Créer la couche de marqueurs
@@ -99,7 +103,7 @@ export default function AssociationsMapSimple({
             chunkedLoading: true,
             spiderfyOnMaxZoom: true,
             showCoverageOnHover: false,
-            maxClusterRadius: 50
+            maxClusterRadius: 50,
           });
         } else {
           markersLayerRef.current = L.layerGroup();
@@ -108,14 +112,36 @@ export default function AssociationsMapSimple({
         markersLayerRef.current.addTo(map);
         mapInstanceRef.current = map;
 
+        // Obtenir les coordonnées pour toutes les associations
+        const coordinatesPromises = associations.map(async (association) => {
+          try {
+            const coords = await getLocationCoordinates({
+              city: association.city,
+              country: 'France',
+            });
+            return { association, coords };
+          } catch (error) {
+            console.error(`Error geocoding ${association.city}:`, error);
+            return {
+              association,
+              coords: { latitude: 46.603354, longitude: 1.888334 },
+            };
+          }
+        });
+
+        const associationsWithCoords = await Promise.all(coordinatesPromises);
+
         // Ajouter les marqueurs
-        associations.forEach(association => {
-          const coords = getLocationCoordinates(association.city, 'France');
-          
+        associationsWithCoords.forEach(({ association, coords }) => {
           // Définir la couleur selon le niveau de risque
-          const color = association.riskLevel === 'critique' ? '#ef4444' :
-                       association.riskLevel === 'eleve' ? '#f97316' :
-                       association.riskLevel === 'moyen' ? '#eab308' : '#22c55e';
+          const color =
+            association.riskLevel === 'critique'
+              ? '#ef4444'
+              : association.riskLevel === 'eleve'
+                ? '#f97316'
+                : association.riskLevel === 'moyen'
+                  ? '#eab308'
+                  : '#22c55e';
 
           // Créer un marqueur simple avec icône par défaut colorée
           const icon = L.divIcon({
@@ -132,7 +158,7 @@ export default function AssociationsMapSimple({
             className: 'custom-div-icon',
             iconSize: [16, 16],
             iconAnchor: [8, 8],
-            popupAnchor: [0, -8]
+            popupAnchor: [0, -8],
           });
 
           const marker = L.marker([coords.latitude, coords.longitude], { icon })
@@ -160,11 +186,15 @@ export default function AssociationsMapSimple({
                     font-size: 11px;
                   ">${association.riskLevel.toUpperCase()}</span>
                 </p>
-                ${association.memberCount ? `
+                ${
+                  association.memberCount
+                    ? `
                   <p style="margin: 4px 0; font-size: 12px; color: #666;">
                     <strong>Membres:</strong> ${association.memberCount}
                   </p>
-                ` : ''}
+                `
+                    : ''
+                }
               </div>
             `);
 
@@ -188,7 +218,7 @@ export default function AssociationsMapSimple({
         setIsLoading(false);
         setMapError(null);
       } catch (error) {
-        console.error('Erreur lors de l\'initialisation de la carte:', error);
+        console.error("Erreur lors de l'initialisation de la carte:", error);
         setMapError('Erreur lors du chargement de la carte');
         setIsLoading(false);
       }
@@ -199,7 +229,7 @@ export default function AssociationsMapSimple({
 
     return () => {
       clearTimeout(timeoutId);
-      
+
       // Nettoyer les marqueurs
       if (markersLayerRef.current) {
         try {
@@ -208,7 +238,7 @@ export default function AssociationsMapSimple({
           console.warn('Erreur lors du nettoyage des marqueurs:', e);
         }
       }
-      
+
       // Nettoyer la carte
       if (mapInstanceRef.current) {
         try {
@@ -219,17 +249,19 @@ export default function AssociationsMapSimple({
         }
         mapInstanceRef.current = null;
       }
-      
+
       // Vider le conteneur DOM
       if (mapRef.current) {
         mapRef.current.innerHTML = '';
       }
     };
-  }, [associations, onAssociationClick, showClusters]);
+  }, [associations, onAssociationClick, showClusters, getLocationCoordinates]);
 
   if (mapError) {
     return (
-      <div className={`w-full h-full flex items-center justify-center bg-gray-100 rounded-lg ${className}`}>
+      <div
+        className={`w-full h-full flex items-center justify-center bg-gray-100 rounded-lg ${className}`}
+      >
         <div className="text-center">
           <p className="text-red-500 mb-2">⚠️ {mapError}</p>
           <p className="text-sm text-gray-600">Veuillez rafraîchir la page</p>
@@ -241,7 +273,7 @@ export default function AssociationsMapSimple({
   return (
     <div className={`relative w-full h-full ${className}`}>
       <div ref={mapRef} className="w-full h-full rounded-lg" />
-      
+
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg z-[1000]">
           <div className="text-center">
@@ -259,19 +291,28 @@ export default function AssociationsMapSimple({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500" />
-                <span className="text-xs">Critique ({associations.filter(a => a.riskLevel === 'critique').length})</span>
+                <span className="text-xs">
+                  Critique (
+                  {associations.filter((a) => a.riskLevel === 'critique').length})
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-orange-500" />
-                <span className="text-xs">Élevé ({associations.filter(a => a.riskLevel === 'eleve').length})</span>
+                <span className="text-xs">
+                  Élevé ({associations.filter((a) => a.riskLevel === 'eleve').length})
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                <span className="text-xs">Moyen ({associations.filter(a => a.riskLevel === 'moyen').length})</span>
+                <span className="text-xs">
+                  Moyen ({associations.filter((a) => a.riskLevel === 'moyen').length})
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-green-500" />
-                <span className="text-xs">Faible ({associations.filter(a => a.riskLevel === 'faible').length})</span>
+                <span className="text-xs">
+                  Faible ({associations.filter((a) => a.riskLevel === 'faible').length})
+                </span>
               </div>
             </div>
           </div>

@@ -1,0 +1,1079 @@
+datasource db {
+    provider = "postgresql"
+    url       = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model User {
+    id                  String     @id @default(cuid())
+    clerkId             String?    @unique // ID utilisateur Clerk
+    name                String?
+    roles               UserRole[] @default([USER])
+    email               String?    @unique
+    phoneNumber         String?    @unique
+    phoneNumberVerified Boolean    @default(false)
+    emailVerified       DateTime?
+    image               String?
+    createdAt           DateTime   @default(now())
+    updatedAt           DateTime   @updatedAt
+
+    // Relations
+    profile   Profile? @relation(fields: [profileId], references: [id])
+    profileId String?  @unique
+
+    linkedCountries  Country[] @relation("managedCountries")
+    sentMessages     Message[] @relation("sender")
+    receivedMessages Message[] @relation("receiver")
+    country          Country?  @relation(fields: [countryCode], references: [code])
+    countryCode      String?
+
+    managedOrganization Organization? @relation(fields: [organizationId], references: [id])
+    organizationId      String?       @unique
+
+    // user fields
+    notifications      Notification[]
+    submittedRequests  ServiceRequest[]
+    documents          UserDocument[]   @relation("userDocuments")
+    validatedDocuments UserDocument[]   @relation("validatedDocuments")
+
+    appointmentsToAttend Appointment[] @relation("AppointmentAttendee")
+
+    // agent & manager fields
+    assignedOrganization   Organization? @relation("OrganizationAgents", fields: [assignedOrganizationId], references: [id])
+    assignedOrganizationId String?
+
+    authoredNotes         Note[]
+    assignedServices      ConsularService[] @relation("AssignedServices")
+    assignedRequests      ServiceRequest[]  @relation("AssignedRequests")
+    managedBy             User?             @relation("ManagedBy", fields: [managedByUserId], references: [id])
+    managedByUserId       String?
+    assignedAppointments  Appointment[]     @relation("AppointmentAgent")
+    requestActions        RequestAction[]
+    maxActiveRequests     Int? // Nombre maximum de demandes actives
+    specializations       ServiceCategory[] // Spécialisations de l'agent
+    availability          Json? // Configuration de disponibilité
+    completedRequests     Int               @default(0)
+    averageProcessingTime Float?
+
+    // manager field
+    managedAgents User[] @relation("ManagedBy")
+
+    // Nouvelles relations pour le service de notification
+    scheduledNotifications  ScheduledNotification[]
+    notificationLogs        NotificationLog[]
+    notificationPreferences NotificationPreference[]
+
+    // parent authority fields
+    childAuthorities  ParentalAuthority[]
+    feedbacks         Feedback[]
+    feedbackResponses Feedback[]          @relation("FeedbackResponses")
+
+    // Relations pour les notes de renseignement
+    authoredIntelligenceNotes IntelligenceNote[]
+    intelligenceNoteHistory   IntelligenceNoteHistory[]
+
+    @@index([roles])
+    @@index([assignedOrganizationId])
+    @@index([createdAt])
+    @@index([countryCode])
+    @@index([profileId])
+    @@index([email])
+    @@index([phoneNumber])
+}
+
+enum UserRole {
+    SUPER_ADMIN
+    ADMIN
+    MANAGER
+    AGENT
+    USER
+    INTEL_AGENT
+    EDUCATION_AGENT
+}
+
+enum ServiceCategory {
+    IDENTITY
+    CIVIL_STATUS
+    VISA
+    CERTIFICATION
+    TRANSCRIPT
+    REGISTRATION
+    ASSISTANCE
+    TRAVEL_DOCUMENT
+    OTHER
+}
+
+enum RequestType {
+    FIRST_REQUEST
+    RENEWAL
+    MODIFICATION
+    CONSULAR_REGISTRATION
+    PASSPORT_REQUEST
+    ID_CARD_REQUEST
+}
+
+enum ProcessingMode {
+    ONLINE_ONLY
+    PRESENCE_REQUIRED
+    HYBRID
+    BY_PROXY
+}
+
+enum DeliveryMode {
+    IN_PERSON
+    POSTAL
+    ELECTRONIC
+    BY_PROXY
+}
+
+enum Gender {
+    MALE
+    FEMALE
+}
+
+enum MaritalStatus {
+    SINGLE
+    MARRIED
+    DIVORCED
+    WIDOWED
+    CIVIL_UNION
+    COHABITING
+}
+
+enum FamilyLink {
+    FATHER
+    MOTHER
+    SPOUSE
+    LEGAL_GUARDIAN
+    CHILD
+    OTHER
+}
+
+enum WorkStatus {
+    SELF_EMPLOYED
+    EMPLOYEE
+    ENTREPRENEUR
+    UNEMPLOYED
+    RETIRED
+    STUDENT
+    OTHER
+}
+
+enum NationalityAcquisition {
+    BIRTH
+    NATURALIZATION
+    MARRIAGE
+    OTHER
+}
+
+enum DocumentStatus {
+    PENDING
+    VALIDATED
+    REJECTED
+    EXPIRED
+    EXPIRING
+}
+
+enum RequestStatus {
+    EDITED
+    DRAFT
+    SUBMITTED
+    PENDING
+    PENDING_COMPLETION
+    VALIDATED
+    REJECTED
+    CARD_IN_PRODUCTION
+    DOCUMENT_IN_PRODUCTION
+    READY_FOR_PICKUP
+    APPOINTMENT_SCHEDULED
+    COMPLETED
+}
+
+enum DocumentType {
+    PASSPORT
+    IDENTITY_CARD
+    BIRTH_CERTIFICATE
+    RESIDENCE_PERMIT
+    PROOF_OF_ADDRESS
+    MARRIAGE_CERTIFICATE
+    DEATH_CERTIFICATE
+    DIVORCE_DECREE
+    NATIONALITY_CERTIFICATE
+    OTHER
+    VISA_PAGES
+    EMPLOYMENT_PROOF
+    NATURALIZATION_DECREE
+    IDENTITY_PHOTO
+    CONSULAR_CARD
+}
+
+enum NoteType {
+    INTERNAL
+    FEEDBACK
+}
+
+enum ProfileCategory {
+    ADULT
+    MINOR
+}
+
+enum ParentalRole {
+    FATHER
+    MOTHER
+    LEGAL_GUARDIAN
+}
+
+enum IntelligenceNoteType {
+    POLITICAL_OPINION    // Opinion politique
+    ORIENTATION          // Orientation
+    ASSOCIATIONS         // Associations
+    TRAVEL_PATTERNS      // Habitudes de voyage
+    CONTACTS             // Contacts
+    ACTIVITIES           // Activités
+    OTHER                // Autre
+}
+
+enum IntelligenceNotePriority {
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+}
+
+model Profile {
+    id     String  @id @default(cuid())
+    userId String? @unique
+    user   User?
+
+    category ProfileCategory @default(ADULT)
+
+    parentAuthorities ParentalAuthority[]
+
+    requestsFor         ServiceRequest[]
+    validationRequestId String?
+
+    firstName              String?
+    lastName               String?
+    gender                 Gender?
+    birthDate              DateTime?
+    birthPlace             String?
+    birthCountry           String?
+    nationality            String?                 @default("GA")
+    maritalStatus          MaritalStatus?          @default(SINGLE)
+    workStatus             WorkStatus?             @default(UNEMPLOYED)
+    acquisitionMode        NationalityAcquisition? @default(BIRTH)
+    passportNumber         String?
+    passportIssueDate      DateTime?
+    passportExpiryDate     DateTime?
+    passportIssueAuthority String?
+
+    identityPicture    UserDocument? @relation("identityPicture", fields: [identityPictureId], references: [id])
+    identityPictureId  String?       @unique
+    passport           UserDocument? @relation("passport", fields: [passportId], references: [id])
+    passportId         String?       @unique
+    birthCertificate   UserDocument? @relation("birthCertificate", fields: [birthCertificateId], references: [id])
+    birthCertificateId String?       @unique
+    residencePermit    UserDocument? @relation("residencePermit", fields: [residencePermitId], references: [id])
+    residencePermitId  String?       @unique
+    addressProof       UserDocument? @relation("addressProof", fields: [addressProofId], references: [id])
+    addressProofId     String?       @unique
+
+    address           Address?          @relation(fields: [addressId], references: [id])
+    addressId         String?
+    phoneNumber       String?
+    email             String?
+    residentContact   EmergencyContact? @relation("residentContact")
+    residentContactId String?           @unique
+    homeLandContact   EmergencyContact? @relation("homeLandContact")
+    homeLandContactId String?           @unique
+
+    activityInGabon String?
+
+    fatherFullName String?
+    motherFullName String?
+    spouseFullName String?
+
+    profession      String?
+    employer        String?
+    employerAddress String?
+
+    cardNumber    String?
+    cardIssuedAt  DateTime?
+    cardExpiresAt DateTime?
+    cardPin       String? // NIP de 6 chiffres (optionnel)
+
+    status          RequestStatus  @default(DRAFT)
+    validationNotes String?
+    validatedAt     DateTime?
+    validatedBy     String?
+    submittedAt     DateTime?
+    notifications   Notification[]
+
+    assignedOrganization   Organization? @relation(fields: [assignedOrganizationId], references: [id])
+    assignedOrganizationId String?
+
+    residenceCountyCode String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([status, assignedOrganizationId])
+    @@index([status, createdAt])
+    @@index([cardNumber])
+    @@index([assignedOrganizationId, status])
+    @@index([userId])
+    @@index([createdAt])
+    @@index([updatedAt])
+
+    // Relations pour les notes de renseignement
+    intelligenceNotes IntelligenceNote[]
+}
+
+model EmergencyContact {
+    id                String     @id @default(cuid())
+    firstName         String
+    lastName          String
+    email             String?
+    relationship      FamilyLink
+    phoneNumber       String?
+    address           Address?   @relation(fields: [addressId], references: [id])
+    addressId         String?
+    residentProfile   Profile?   @relation("residentContact", fields: [residentProfileId], references: [id])
+    residentProfileId String?    @unique
+    homeLandProfile   Profile?   @relation("homeLandContact", fields: [homeLandProfileId], references: [id])
+    homeLandProfileId String?    @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([addressId])
+}
+
+model Address {
+    id                String             @id @default(cuid())
+    firstLine         String
+    secondLine        String?
+    city              String
+    zipCode           String?
+    country           String
+    profile           Profile[]
+    appointments      Appointment[]
+    emergencyContacts EmergencyContact[]
+    createdAt         DateTime           @default(now())
+    updatedAt         DateTime           @updatedAt
+}
+
+model UserDocument {
+    id        String         @id @default(cuid())
+    type      DocumentType
+    status    DocumentStatus @default(PENDING)
+    fileUrl   String
+    fileType  String
+    issuedAt  DateTime?
+    expiresAt DateTime?
+    metadata  Json?
+
+    userId String?
+    user   User?   @relation("userDocuments", fields: [userId], references: [id])
+
+    serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+    serviceRequestId String?
+    validatedBy      User?           @relation("validatedDocuments", fields: [validatedById], references: [id])
+    validatedById    String?         @unique
+
+    passportProfile         Profile? @relation("passport")
+    birthCertificateProfile Profile? @relation("birthCertificate")
+    residencePermitProfile  Profile? @relation("residencePermit")
+    addressProofProfile     Profile? @relation("addressProof")
+    identityPictureProfile  Profile? @relation("identityPicture")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([userId])
+    @@index([serviceRequestId])
+}
+
+model GeneratedDocument {
+    id        String       @id @default(cuid())
+    type      DocumentType
+    fileUrl   String
+    fileType  String
+    issuedAt  DateTime?
+    expiresAt DateTime?
+    metadata  Json?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+    serviceRequestId String?
+
+    template   DocumentTemplate @relation(fields: [templateId], references: [id])
+    templateId String
+
+    @@index([serviceRequestId])
+}
+
+model DocumentTemplate {
+    id          String       @id @default(cuid())
+    name        String
+    description String?
+    type        DocumentType
+    content     Json
+    metadata    Json?
+
+    organization             Organization?              @relation(fields: [organizationId], references: [id])
+    organizationId           String?
+    createdAt                DateTime                   @default(now())
+    updatedAt                DateTime                   @updatedAt
+    generateDocumentSettings GenerateDocumentSettings[]
+    generatedDocuments       GeneratedDocument[]
+}
+
+model GenerateDocumentSettings {
+    id               String           @id @default(cuid())
+    serviceId        String
+    service          ConsularService  @relation(fields: [serviceId], references: [id])
+    settings         Json?
+    template         DocumentTemplate @relation(fields: [templateId], references: [id])
+    templateId       String
+    generateOnStatus RequestStatus[]
+}
+
+model Message {
+    id         String  @id @default(cuid())
+    content    String
+    receiverId String
+    receiver   User    @relation("receiver", fields: [receiverId], references: [id])
+    senderId   String?
+    sender     User?   @relation("sender", fields: [senderId], references: [id])
+
+    serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+    serviceRequestId String?
+    createdAt        DateTime        @default(now())
+}
+
+model Note {
+    id       String   @id @default(cuid())
+    content  String
+    type     NoteType
+    author   User?    @relation(fields: [authorId], references: [id])
+    authorId String?
+
+    serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+    serviceRequestId String?
+
+    createdAt DateTime @default(now())
+}
+
+enum ConsularServiceType {
+    PASSPORT_REQUEST
+    CONSULAR_CARD
+    BIRTH_REGISTRATION
+    MARRIAGE_REGISTRATION
+    DEATH_REGISTRATION
+    CONSULAR_REGISTRATION
+    NATIONALITY_CERTIFICATE
+}
+
+enum ServicePriority {
+    STANDARD
+    URGENT
+}
+
+model ConsularService {
+    id          String          @id @default(cuid())
+    name        String
+    description String?
+    category    ServiceCategory
+    isActive    Boolean         @default(false)
+
+    profileDocuments            String[]
+    requiredDocuments           DocumentType[]
+    optionalDocuments           DocumentType[]
+    toGenerateDocuments         DocumentType[]
+    requiresAppointment         Boolean        @default(false)
+    appointmentDuration         Int?
+    appointmentInstructions     String?
+    deliveryAppointment         Boolean        @default(false)
+    deliveryAppointmentDuration Int?
+    deliveryAppointmentDesc     String?
+
+    steps ServiceStep[]
+
+    isFree   Boolean @default(true)
+    price    Float?
+    currency String? @default("EUR")
+
+    organization   Organization?    @relation(fields: [organizationId], references: [id])
+    organizationId String?
+    requests       ServiceRequest[]
+
+    processingMode     ProcessingMode @default(PRESENCE_REQUIRED)
+    deliveryMode       DeliveryMode[]
+    proxyRequirements  String?
+    postalRequirements String?
+
+    metadata                 Json?
+    createdAt                DateTime                   @default(now())
+    updatedAt                DateTime                   @updatedAt
+    generateDocumentSettings GenerateDocumentSettings[]
+    appointments             Appointment[]
+    assignedTo               User[]                     @relation("AssignedServices")
+    feedbacks                Feedback[]
+}
+
+model ServiceStep {
+    id          String  @id @default(cuid())
+    order       Int
+    title       String
+    description String?
+    isRequired  Boolean @default(true)
+
+    type        ServiceStepType @default(FORM)
+    fields      Json?
+    validations Json?
+
+    service   ConsularService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+    serviceId String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum ServiceStepType {
+    FORM
+    DOCUMENTS
+    APPOINTMENT
+    PAYMENT
+    REVIEW
+    DELIVERY
+}
+
+model ServiceRequest {
+    id       String          @id @default(cuid())
+    status   RequestStatus   @default(SUBMITTED)
+    priority ServicePriority @default(STANDARD)
+
+    service         ConsularService @relation(fields: [serviceId], references: [id])
+    serviceId       String
+    submittedBy     User            @relation(fields: [submittedById], references: [id])
+    submittedById   String
+    serviceCategory ServiceCategory
+
+    requestedFor   Profile? @relation(fields: [requestedForId], references: [id])
+    requestedForId String?
+
+    sharedWith ParentalAuthority[] @relation("SharedWithParents")
+
+    organization   Organization @relation(fields: [organizationId], references: [id])
+    organizationId String
+
+    country     Country @relation(fields: [countryCode], references: [code])
+    countryCode String
+
+    chosenProcessingMode ProcessingMode @default(ONLINE_ONLY)
+    chosenDeliveryMode   DeliveryMode   @default(IN_PERSON)
+    formData             Json?
+    requiredDocuments    UserDocument[]
+    notes                Note[]
+    messages             Message[]
+
+    appointments Appointment[]
+
+    proxyName            String?
+    proxyIdentityDoc     String?
+    proxyPowerOfAttorney String?
+
+    deliveryAddress String?
+    trackingNumber  String?
+    deliveryStatus  String?
+
+    submittedAt DateTime?
+    completedAt DateTime?
+
+    assignedToId String?
+    assignedTo   User?     @relation("AssignedRequests", fields: [assignedToId], references: [id])
+    assignedAt   DateTime?
+
+    deadline                DateTime?
+    estimatedCompletionDate DateTime?
+
+    lastActionAt DateTime?
+    lastActionBy String?
+
+    actions RequestAction[]
+
+    generatedDocuments GeneratedDocument[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    firstPassValidation Boolean?
+    processingTime      Int?
+    feedbacks           Feedback[]
+
+    @@index([submittedById])
+    @@index([serviceId])
+    @@index([assignedToId])
+    @@index([status])
+    @@index([lastActionAt])
+    @@index([deadline])
+    @@index([status, assignedToId])
+    @@index([status, organizationId])
+    @@index([priority, status])
+    @@index([createdAt, status])
+    @@index([submittedById, status])
+}
+
+// Modèle pour les rendez-vous
+model Appointment {
+    id             String            @id @default(cuid())
+    date           DateTime
+    startTime      DateTime
+    endTime        DateTime
+    instructions   String?
+    duration       Int // en minutes
+    type           AppointmentType   @default(DOCUMENT_SUBMISSION)
+    status         AppointmentStatus @default(CONFIRMED)
+    organizationId String // Pour lier au consulat spécifique
+    organization   Organization      @relation(fields: [organizationId], references: [id])
+    location       Address?          @relation(fields: [locationId], references: [id])
+    locationId     String?
+    countryCode    String
+
+    // Relations existantes
+    attendeeId String // Utilisateur qui prend le RDV
+    attendee   User             @relation(fields: [attendeeId], references: [id], name: "AppointmentAttendee")
+    agentId    String? // Agent assigné (optional)
+    agent      User?            @relation(fields: [agentId], references: [id], name: "AppointmentAgent")
+    request    ServiceRequest?  @relation(fields: [requestId], references: [id])
+    requestId  String?
+    serviceId  String?
+    service    ConsularService? @relation(fields: [serviceId], references: [id])
+
+    // Métadonnées
+    createdAt       DateTime  @default(now())
+    updatedAt       DateTime  @updatedAt
+    cancelledAt     DateTime?
+    cancelReason    String?
+    rescheduledFrom DateTime?
+
+    notifications Notification[] @relation(name: "AppointmentNotifications")
+
+    @@index([agentId])
+    @@index([organizationId])
+    @@index([date])
+    @@index([serviceId])
+    @@index([requestId])
+    @@index([date, startTime])
+    @@index([agentId, date])
+    @@index([attendeeId, status])
+    @@index([organizationId, date])
+    @@index([status, date])
+}
+
+enum AppointmentType {
+    DOCUMENT_SUBMISSION
+    DOCUMENT_COLLECTION
+    INTERVIEW
+    MARRIAGE_CEREMONY
+    EMERGENCY
+    OTHER
+}
+
+enum AppointmentStatus {
+    PENDING
+    CONFIRMED
+    CANCELLED
+    COMPLETED
+    MISSED
+    RESCHEDULED
+}
+
+model Notification {
+    id            String             @id @default(cuid())
+    type          NotificationType
+    title         String
+    message       String             @db.Text
+    read          Boolean            @default(false)
+    profileId     String?
+    profile       Profile?           @relation(fields: [profileId], references: [id], onDelete: Cascade)
+    userId        String
+    user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt     DateTime           @default(now())
+    status        NotificationStatus @default(PENDING)
+    appointmentId String?
+    appointment   Appointment?       @relation(fields: [appointmentId], references: [id], name: "AppointmentNotifications")
+
+    // Nouveaux champs pour le service de notification multi-canal
+    priority  String    @default("normal") // low, normal, high, urgent
+    actions   String?   @db.Text // JSON string des actions
+    metadata  Json? // Données additionnelles
+    expiresAt DateTime? // Date d'expiration
+
+    // Relations avec les autres modèles de notification
+    notificationLogs NotificationLog[] @relation("NotificationLogs")
+
+    @@index([userId, status])
+    @@index([userId, read])
+    @@index([type, userId])
+    @@index([createdAt, userId])
+}
+
+// Modèle pour les notifications programmées
+model ScheduledNotification {
+    id           String    @id @default(cuid())
+    userId       String
+    user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    payload      Json // La requête de notification complète
+    scheduledFor DateTime
+    processed    Boolean   @default(false)
+    processedAt  DateTime?
+    createdAt    DateTime  @default(now())
+
+    @@index([userId])
+    @@index([scheduledFor])
+    @@index([processed])
+}
+
+// Modèle pour l'historique des notifications
+model NotificationLog {
+    id             String        @id @default(cuid())
+    requestId      String
+    notificationId String?
+    notification   Notification? @relation("NotificationLogs", fields: [notificationId], references: [id], onDelete: SetNull)
+    userId         String
+    user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    channel        String // app, email, sms, push, webhook
+    success        Boolean
+    error          String?       @db.Text
+    createdAt      DateTime      @default(now())
+
+    @@index([userId])
+    @@index([requestId])
+    @@index([channel])
+    @@index([notificationId])
+    @@index([createdAt])
+}
+
+// Modèle pour les préférences de notification
+model NotificationPreference {
+    id        String   @id @default(cuid())
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    type      String // Le type de notification (APPOINTMENT_CONFIRMATION, FEEDBACK, etc.)
+    channel   String // Le canal (app, email, sms, etc.)
+    enabled   Boolean  @default(true)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([userId, type, channel])
+    @@index([userId])
+    @@index([type])
+    @@index([channel])
+}
+
+enum NotificationType {
+    APPOINTMENT_REMINDER_3_DAYS
+    APPOINTMENT_REMINDER_1_DAY
+    APPOINTMENT_CONFIRMATION
+    APPOINTMENT_MODIFICATION
+    APPOINTMENT_CANCELLATION
+    FEEDBACK
+    VALIDATED
+    REJECTED
+    DOCUMENT_VALIDATED
+    DOCUMENT_REJECTED
+    REQUEST_SUBMITTED
+    REQUEST_ASSIGNED
+    REQUEST_COMPLETED
+    REQUEST_CANCELLED
+    REQUEST_EXPIRED
+    REQUEST_REJECTED
+    REQUEST_APPROVED
+    REQUEST_ADDITIONAL_INFO_NEEDED
+    REQUEST_PENDING_APPOINTMENT
+    REQUEST_PENDING_PAYMENT
+    REQUEST_NEW
+    CONSULAR_REGISTRATION_SUBMITTED
+    CONSULAR_REGISTRATION_VALIDATED
+    CONSULAR_REGISTRATION_REJECTED
+    CONSULAR_CARD_IN_PRODUCTION
+    CONSULAR_CARD_READY
+    CONSULAR_REGISTRATION_COMPLETED
+}
+
+enum NotificationStatus {
+    PENDING
+    SENT
+    READ
+    FAILED
+}
+
+model EmailList {
+    id          String         @id @default(cuid())
+    subscribers Subscription[]
+    createdAt   DateTime       @default(now())
+    updatedAt   DateTime       @updatedAt
+}
+
+model Subscription {
+    id          String      @id @default(cuid())
+    email       String      @unique
+    status      EmailStatus @default(PENDING)
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+    EmailList   EmailList?  @relation(fields: [emailListId], references: [id])
+    emailListId String?
+}
+
+enum EmailStatus {
+    PENDING
+    CONFIRMED
+    UNSUBSCRIBED
+}
+
+model AIQuestion {
+    id         String   @id @default(cuid())
+    question   String
+    frequency  Int      @default(1)
+    category   String
+    userRole   UserRole
+    isRelevant Boolean  @default(true)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+}
+
+model Country {
+    id        String        @id @default(cuid())
+    name      String
+    code      String        @unique
+    status    CountryStatus @default(ACTIVE)
+    flag      String?
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @updatedAt
+
+    agents User[] @relation("managedCountries")
+
+    // Metadata
+    metadata          Json?
+    organizations     Organization[]
+    serviceRequests   ServiceRequest[]
+    users             User[]
+
+    @@index([code])
+}
+
+enum CountryStatus {
+    ACTIVE
+    INACTIVE
+}
+
+enum OrganizationType {
+    EMBASSY
+    CONSULATE
+    GENERAL_CONSULATE
+    HONORARY_CONSULATE
+    OTHER
+}
+
+enum OrganizationStatus {
+    ACTIVE
+    INACTIVE
+    SUSPENDED
+}
+
+model Organization {
+    id     String             @id @default(cuid())
+    name   String
+    logo   String?
+    type   OrganizationType
+    status OrganizationStatus @default(ACTIVE)
+
+    countries Country[]
+
+    services ConsularService[]
+
+    managedProfiles Profile[]
+
+    metadata            Json?
+    createdAt           DateTime      @default(now())
+    updatedAt           DateTime      @updatedAt
+    adminUser           User?
+    appointments        Appointment[]
+    appointmentSettings Json?
+
+    agents User[] @relation("OrganizationAgents")
+
+    serviceRequests   ServiceRequest[]
+    documentTemplates DocumentTemplate[]
+    feedbacks         Feedback[]
+
+    @@map("organizations")
+}
+
+enum RequestActionType {
+    ASSIGNMENT
+    STATUS_CHANGE
+    NOTE_ADDED
+    DOCUMENT_ADDED
+    DOCUMENT_VALIDATED
+    APPOINTMENT_SCHEDULED
+    PAYMENT_RECEIVED
+    COMPLETED
+    PROFILE_UPDATE
+    DOCUMENT_UPDATED
+    DOCUMENT_DELETED
+}
+
+model RequestAction {
+    id        String            @id @default(cuid())
+    type      RequestActionType
+    requestId String
+    request   ServiceRequest    @relation(fields: [requestId], references: [id])
+    userId    String
+    user      User              @relation(fields: [userId], references: [id])
+    data      Json?
+    createdAt DateTime          @default(now())
+
+    @@index([requestId])
+    @@index([userId])
+    @@index([createdAt])
+}
+
+model ParentalAuthority {
+    id           String       @id @default(cuid())
+    profile      Profile      @relation(fields: [profileId], references: [id])
+    profileId    String
+    role         ParentalRole
+    isActive     Boolean      @default(true)
+    parentUser   User         @relation(fields: [parentUserId], references: [id])
+    parentUserId String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    sharedRequests ServiceRequest[] @relation("SharedWithParents")
+
+    @@unique([profileId, role])
+    @@index([profileId])
+}
+
+model Sequence {
+    id             String   @id @default(cuid())
+    value          String   @default("00000")
+    countryCode    String
+    organizationId String
+    profileId      String
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+}
+
+// Modèle pour les feedbacks
+model Feedback {
+    id       String           @id @default(cuid())
+    subject  String
+    message  String           @db.Text
+    category FeedbackCategory
+    rating   Int? // 1-5
+    status   FeedbackStatus   @default(PENDING)
+
+    // Relations
+    userId String?
+    user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+    email  String? // Pour les utilisateurs non connectés
+
+    phoneNumber String?
+
+    // Réponse de l'admin
+    response      String?   @db.Text
+    respondedBy   User?     @relation("FeedbackResponses", fields: [respondedById], references: [id])
+    respondedById String?
+    respondedAt   DateTime?
+
+    // Service ou demande associée (optionnel)
+    serviceId String?
+    service   ConsularService? @relation(fields: [serviceId], references: [id])
+    requestId String?
+    request   ServiceRequest?  @relation(fields: [requestId], references: [id])
+
+    // Organisation associée
+    organizationId String?
+    organization   Organization? @relation(fields: [organizationId], references: [id])
+
+    // Métadonnées
+    metadata  Json?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([userId])
+    @@index([category])
+    @@index([status])
+    @@index([createdAt])
+}
+
+enum FeedbackCategory {
+    BUG
+    FEATURE
+    IMPROVEMENT
+    OTHER
+}
+
+enum FeedbackStatus {
+    PENDING
+    IN_REVIEW
+    RESOLVED
+    CLOSED
+}
+
+// Modèles pour les notes de renseignement
+model IntelligenceNote {
+    id          String                @id @default(cuid())
+    profileId   String
+    profile     Profile               @relation(fields: [profileId], references: [id], onDelete: Cascade)
+    
+    type        IntelligenceNoteType
+    priority    IntelligenceNotePriority @default(MEDIUM)
+    title       String
+    content     String                @db.Text
+    tags        String[]              // Tags pour catégoriser
+    
+    author      User                  @relation(fields: [authorId], references: [id])
+    authorId    String
+    
+    // Métadonnées
+    createdAt   DateTime              @default(now())
+    updatedAt   DateTime              @updatedAt
+    expiresAt   DateTime?             // Date d'expiration optionnelle
+    
+    // Historique des modifications
+    history     IntelligenceNoteHistory[]
+    
+    @@index([profileId])
+    @@index([authorId])
+    @@index([type])
+    @@index([priority])
+    @@index([createdAt])
+}
+
+model IntelligenceNoteHistory {
+    id                String           @id @default(cuid())
+    intelligenceNote  IntelligenceNote @relation(fields: [intelligenceNoteId], references: [id], onDelete: Cascade)
+    intelligenceNoteId String
+    
+    action            String           // 'created', 'updated', 'deleted'
+    previousContent   String?          @db.Text
+    newContent        String?          @db.Text
+    changedBy         User             @relation(fields: [changedById], references: [id])
+    changedById       String
+    changedAt         DateTime         @default(now())
+    
+    @@index([intelligenceNoteId])
+    @@index([changedAt])
+}

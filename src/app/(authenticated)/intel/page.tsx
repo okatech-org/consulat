@@ -4,8 +4,6 @@ import { useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api as convexApi } from '@/convex/_generated/api';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
-import DashboardCompactMap from '@/components/intelligence/dashboard-compact-map';
-import MiniMapWidget from '@/components/intelligence/mini-map-widget';
 import { RealTimeStatusWidget } from '@/components/intelligence/realtime-status-widget';
 import { RealTimeAlerts } from '@/components/intelligence/realtime-alerts';
 import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
@@ -23,6 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ROUTES } from '@/schemas/routes';
+import SmartInteractiveMap from '@/components/intelligence/smart-interactive-map';
 
 // Fonction utilitaire pour formater les nombres de manière cohérente
 const formatNumber = (num: number): string => {
@@ -33,6 +32,7 @@ export default function IntelAgentDashboardContent() {
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
   const [activeAction, setActiveAction] = useState<number | null>(null);
+  const profilesMapData = useQuery(convexApi.functions.profile.getProfilesMapData);
 
   const dashboardStats = useIntelligenceDashboardStats('month');
 
@@ -50,13 +50,6 @@ export default function IntelAgentDashboardContent() {
       }
     : undefined;
   const profilesLoading = profilesResponse === undefined;
-
-  const mapDataResponse = useQuery(convexApi.functions.intelligence.getProfilesMap, {
-    filters: undefined,
-  });
-
-  const mapData = mapDataResponse;
-  const mapLoading = mapDataResponse === undefined;
 
   const handleQuickAction = async (index: number, title: string, path?: string) => {
     if (isNavigating) return;
@@ -309,19 +302,7 @@ export default function IntelAgentDashboardContent() {
 
         {/* Carte Intelligence Pleine Largeur */}
         <div>
-          <DashboardCompactMap
-            profiles={(mapData || []).map((p) => ({
-              ...p,
-              firstName: p.firstName || '',
-              lastName: p.lastName || '',
-              intelligenceNotes: p.intelligenceNotes.map((note) => ({
-                ...note,
-                createdAt: new Date(note.createdAt),
-              })),
-            }))}
-            isLoading={mapLoading}
-            className="h-[500px] md:h-[600px]"
-          />
+          <SmartInteractiveMap profiles={profilesMapData} />
         </div>
 
         {/* Widgets sous la carte */}
@@ -411,18 +392,7 @@ export default function IntelAgentDashboardContent() {
 
           {/* Distribution Mondiale */}
           <div className="lg:col-span-1">
-            <MiniMapWidget
-              profiles={(mapData || []).map((p) => ({
-                ...p,
-                firstName: p.firstName || '',
-                lastName: p.lastName || '',
-                intelligenceNotes: p.intelligenceNotes.map((note) => ({
-                  ...note,
-                  createdAt: new Date(note.createdAt),
-                })),
-              }))}
-              isLoading={mapLoading}
-            />
+            <SmartInteractiveMap profiles={profilesMapData} />
           </div>
         </div>
       </div>

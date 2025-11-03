@@ -1,5 +1,25 @@
 import { v } from 'convex/values';
 import { mutation } from '../_generated/server';
+import {
+  Note,
+  RequestAction,
+  RequestStatus as PrismaRequestStatus,
+  ProcessingMode as PrismaProcessingMode,
+  DeliveryMode as PrismaDeliveryMode,
+  ParentalRole as PrismaParentalRole,
+  RequestActionType,
+  UserRole as PrismaUserRole,
+  FamilyLink as PrismaFamilyLink,
+  DocumentType as PrismaDocumentType,
+  NoteType as PrismaNoteType,
+  AppointmentStatus as PrismaAppointmentStatus,
+  Address,
+  EmergencyContact,
+  UserDocument,
+  ServiceRequest,
+  Appointment,
+  ServiceStepType as PrismaServiceStepType,
+} from '@prisma/client';
 import type {
   ServiceExport,
   UserCentricDataExport,
@@ -85,7 +105,7 @@ type CountrySettings = {
 };
 
 // Mappings pour les enums
-const roleMapping: { [key in any]: UserRole } = {
+const roleMapping: { [key in PrismaUserRole]: UserRole } = {
   USER: UserRole.User,
   AGENT: UserRole.Agent,
   ADMIN: UserRole.Admin,
@@ -138,7 +158,7 @@ const serviceCategoryMapping: { [key: string]: ServiceCategory } = {
   OTHER: ServiceCategory.Other,
 };
 
-const documentTypeMapping: Record<any, DocumentType> = {
+const documentTypeMapping: Record<PrismaDocumentType, DocumentType> = {
   PASSPORT: DocumentType.Passport,
   IDENTITY_CARD: DocumentType.IdentityCard,
   BIRTH_CERTIFICATE: DocumentType.BirthCertificate,
@@ -156,14 +176,14 @@ const documentTypeMapping: Record<any, DocumentType> = {
   CONSULAR_CARD: DocumentType.ConsularCard,
 };
 
-const processingModeMapping: Record<any, ProcessingMode> = {
+const processingModeMapping: Record<PrismaProcessingMode, ProcessingMode> = {
   ONLINE_ONLY: ProcessingMode.OnlineOnly,
   PRESENCE_REQUIRED: ProcessingMode.PresenceRequired,
   HYBRID: ProcessingMode.Hybrid,
   BY_PROXY: ProcessingMode.ByProxy,
 };
 
-const deliveryModeMapping: Record<any, DeliveryMode> = {
+const deliveryModeMapping: Record<PrismaDeliveryMode, DeliveryMode> = {
   IN_PERSON: DeliveryMode.InPerson,
   POSTAL: DeliveryMode.Postal,
   ELECTRONIC: DeliveryMode.Electronic,
@@ -187,7 +207,10 @@ const appointmentTypeMapping: { [key: string]: AppointmentType } = {
   OTHER: AppointmentType.Other,
 };
 
-const appointmentStatusMapping: Record<any | 'SCHEDULED', AppointmentStatus> = {
+const appointmentStatusMapping: Record<
+  PrismaAppointmentStatus | 'SCHEDULED',
+  AppointmentStatus
+> = {
   PENDING: AppointmentStatus.Pending,
   CONFIRMED: AppointmentStatus.Confirmed,
   CANCELLED: AppointmentStatus.Cancelled,
@@ -227,13 +250,13 @@ const notificationTypeMapping: { [key: string]: NotificationType } = {
   CONSULAR_REGISTRATION_COMPLETED: NotificationType.Updated,
 };
 
-const parentalRoleMapping: Record<any, ParentalRole> = {
+const parentalRoleMapping: Record<PrismaParentalRole, ParentalRole> = {
   FATHER: ParentalRole.Father,
   MOTHER: ParentalRole.Mother,
   LEGAL_GUARDIAN: ParentalRole.LegalGuardian,
 };
 
-const requestStatusMapping: Record<any, RequestStatus> = {
+const requestStatusMapping: Record<PrismaRequestStatus, RequestStatus> = {
   EDITED: RequestStatus.Edited,
   DRAFT: RequestStatus.Draft,
   SUBMITTED: RequestStatus.Submitted,
@@ -248,7 +271,7 @@ const requestStatusMapping: Record<any, RequestStatus> = {
   APPOINTMENT_SCHEDULED: RequestStatus.AppointmentScheduled,
 };
 
-const profileStatusMapping: Record<any, ProfileStatus> = {
+const profileStatusMapping: Record<PrismaRequestStatus, ProfileStatus> = {
   EDITED: ProfileStatus.Pending,
   DRAFT: ProfileStatus.Draft,
   SUBMITTED: ProfileStatus.Pending,
@@ -263,7 +286,7 @@ const profileStatusMapping: Record<any, ProfileStatus> = {
   APPOINTMENT_SCHEDULED: ProfileStatus.Active,
 };
 
-const mapRequestActionType: Record<any, ActivityType> = {
+const mapRequestActionType: Record<RequestActionType, ActivityType> = {
   ASSIGNMENT: ActivityType.RequestAssigned,
   STATUS_CHANGE: ActivityType.StatusChanged,
   NOTE_ADDED: ActivityType.CommentAdded,
@@ -277,7 +300,7 @@ const mapRequestActionType: Record<any, ActivityType> = {
   APPOINTMENT_SCHEDULED: ActivityType.AppointmentScheduled,
 };
 
-const familyLinkMapping: Record<any, FamilyLink> = {
+const familyLinkMapping: Record<PrismaFamilyLink, FamilyLink> = {
   FATHER: FamilyLink.Father,
   MOTHER: FamilyLink.Mother,
   SPOUSE: FamilyLink.Spouse,
@@ -307,7 +330,7 @@ const mapDocumentTypeLabel: Record<DocumentType, string> = {
   [DocumentType.FamilyBook]: 'Livret de famille',
 };
 
-const serviceStepTypeMapping: Record<any, ServiceStepType> = {
+const serviceStepTypeMapping: Record<PrismaServiceStepType, ServiceStepType> = {
   FORM: ServiceStepType.Form,
   DOCUMENTS: ServiceStepType.Documents,
   APPOINTMENT: ServiceStepType.Appointment,
@@ -794,7 +817,8 @@ export const importServices = mutation({
           },
           delivery: {
             modes: (service.deliveryMode || []).map(
-              (m: string) => deliveryModeMapping[m as any] || DeliveryMode.InPerson,
+              (m: string) =>
+                deliveryModeMapping[m as PrismaDeliveryMode] || DeliveryMode.InPerson,
             ) || [DeliveryMode.InPerson],
             appointment: {
               requires: service.deliveryAppointment || false,
@@ -883,19 +907,26 @@ export const importUserWithData = mutation({
     });
     recordCount++;
 
+    // @ts-expect-error - address is not typed
     const profileAddress = profile?.address as
-      | (any & { coordinates: { latitude: string; longitude: string } })
+      | (Address & { coordinates: { latitude: string; longitude: string } })
       | undefined;
 
-    const emergencyContacts: Array<any & { address: any; type: EmergencyContactType }> = [
+    const emergencyContacts: Array<
+      EmergencyContact & { address: Address; type: EmergencyContactType }
+    > = [
+      // @ts-expect-error - residentContact and homeLandContact are not typed
       profile?.residentContact
         ? {
+            // @ts-expect-error - residentContact and homeLandContact are not typed
             ...profile.residentContact,
             type: EmergencyContactType.Resident,
           }
         : undefined,
+      // @ts-expect-error - residentContact and homeLandContact are not typed
       profile?.homeLandContact
         ? {
+            // @ts-expect-error - residentContact and homeLandContact are not typed
             ...profile.homeLandContact,
             type: EmergencyContactType.HomeLand,
           }
@@ -907,7 +938,9 @@ export const importUserWithData = mutation({
     if (profile) {
       profileId = await ctx.db.insert('profiles', {
         userId: userId,
-        status: profileStatusMapping[profile.status as any] || ProfileStatus.Pending,
+        status:
+          profileStatusMapping[profile.status as PrismaRequestStatus] ||
+          ProfileStatus.Pending,
         residenceCountry:
           (profile.residenceCountyCode as CountryCode) ||
           (countryCode as CountryCode) ||
@@ -997,7 +1030,8 @@ export const importUserWithData = mutation({
           type: c.type,
           firstName: c.firstName || '',
           lastName: c.lastName || '',
-          relationship: (familyLinkMapping[c.relationship as any] || FamilyLink.Other) as
+          relationship: (familyLinkMapping[c.relationship as PrismaFamilyLink] ||
+            FamilyLink.Other) as
             | FamilyLink.Father
             | FamilyLink.Mother
             | FamilyLink.Spouse
@@ -1037,8 +1071,10 @@ export const importUserWithData = mutation({
       // Mettre à jour l'utilisateur avec le profileId
       await ctx.db.patch(userId, { profileId });
 
+      // @ts-expect-error - identityPicture is not typed
       if (profile?.identityPicture) {
-        const identityPicture = profile.identityPicture as any;
+        // @ts-expect-error - identityPicture is not typed
+        const identityPicture = profile.identityPicture as UserDocument;
         const documentId = await ctx.db.insert('documents', {
           type: DocumentType.IdentityPhoto,
           status: documentStatusMapping[identityPicture.status] || DocumentStatus.Pending,
@@ -1066,8 +1102,10 @@ export const importUserWithData = mutation({
         recordCount++;
       }
 
+      // @ts-expect-error - identityPicture is not typed
       if (profile?.passport) {
-        const passport = profile.passport as any;
+        // @ts-expect-error - identityPicture is not typed
+        const passport = profile.passport as UserDocument;
         const documentId = await ctx.db.insert('documents', {
           type: DocumentType.Passport,
           status: documentStatusMapping[passport.status] || DocumentStatus.Pending,
@@ -1097,8 +1135,10 @@ export const importUserWithData = mutation({
         recordCount++;
       }
 
+      // @ts-expect-error - identityPicture is not typed
       if (profile?.birthCertificate) {
-        const birthCertificate = profile.birthCertificate as any;
+        // @ts-expect-error - identityPicture is not typed
+        const birthCertificate = profile.birthCertificate as UserDocument;
         const documentId = await ctx.db.insert('documents', {
           type: DocumentType.BirthCertificate,
           status:
@@ -1127,8 +1167,10 @@ export const importUserWithData = mutation({
         recordCount++;
       }
 
+      // @ts-expect-error - identityPicture is not typed
       if (profile?.residencePermit) {
-        const residencePermit = profile.residencePermit as any;
+        // @ts-expect-error - identityPicture is not typed
+        const residencePermit = profile.residencePermit as UserDocument;
         const documentId = await ctx.db.insert('documents', {
           type: DocumentType.ResidencePermit,
           status: documentStatusMapping[residencePermit.status] || DocumentStatus.Pending,
@@ -1156,8 +1198,10 @@ export const importUserWithData = mutation({
         recordCount++;
       }
 
+      // @ts-expect-error - identityPicture is not typed
       if (profile?.addressProof) {
-        const addressProof = profile.addressProof as any;
+        // @ts-expect-error - identityPicture is not typed
+        const addressProof = profile.addressProof as UserDocument;
         const documentId = await ctx.db.insert('documents', {
           type: DocumentType.ProofOfAddress,
           status: documentStatusMapping[addressProof.status] || DocumentStatus.Pending,
@@ -1207,7 +1251,7 @@ export const importUserWithData = mutation({
           );
           const activities = await Promise.all(
             req.actions
-              .map(async (a: any) => {
+              .map(async (a: RequestAction) => {
                 const actorId = await findConvexMembershipByLegacyId(ctx, a.userId);
                 if (!actorId) {
                   console.warn(`Utilisateur ${a.userId} introuvable`);
@@ -1220,7 +1264,7 @@ export const importUserWithData = mutation({
                   timestamp: new Date(a.createdAt).getTime(),
                 };
               })
-              .filter((a: any) => a !== undefined),
+              .filter((a) => a !== undefined),
           );
 
           const [service, profileData, organization, assigee] = await Promise.all([
@@ -1233,7 +1277,9 @@ export const importUserWithData = mutation({
           if (serviceId && profileData) {
             const requestId = await ctx.db.insert('requests', {
               number: `REQ-${req.id.substring(0, 8).toUpperCase()}`,
-              status: requestStatusMapping[req.status as any] || RequestStatus.Pending,
+              status:
+                requestStatusMapping[req.status as PrismaRequestStatus] ||
+                RequestStatus.Pending,
               priority:
                 req.priority === 'URGENT'
                   ? RequestPriority.Urgent
@@ -1243,13 +1289,12 @@ export const importUserWithData = mutation({
               profileId: profileData._id,
               formData: req.formData || {},
               documentIds: [],
-              notes: req.notes.map((n: any) => ({
+              notes: req.notes.map((n: Note) => ({
                 type:
-                  (n.type as any) === 'INTERNAL'
-                    ? NoteType.Internal
-                    : (n.type as any) === 'FEEDBACK'
-                      ? NoteType.Feedback
-                      : NoteType.Internal,
+                  {
+                    INTERNAL: NoteType.Internal,
+                    FEEDBACK: NoteType.Feedback,
+                  }[n.type as PrismaNoteType] || NoteType.Internal,
                 authorId: undefined,
                 content: n.content || '',
                 serviceRequestId: undefined,
@@ -1265,7 +1310,7 @@ export const importUserWithData = mutation({
               organizationId: organizationId!,
               countryCode: req.countryCode,
               metadata: {
-                activities: activities.filter((a: any) => a !== undefined),
+                activities: activities.filter((a) => a !== undefined),
                 organization: organization
                   ? {
                       name: organization.name,
@@ -1304,10 +1349,11 @@ export const importUserWithData = mutation({
               },
               config: {
                 processingMode:
-                  processingModeMapping[req.chosenProcessingMode as any] ||
-                  ProcessingMode.OnlineOnly,
+                  processingModeMapping[
+                    req.chosenProcessingMode as PrismaProcessingMode
+                  ] || ProcessingMode.OnlineOnly,
                 deliveryMode:
-                  deliveryModeMapping[req.chosenDeliveryMode as any] ||
+                  deliveryModeMapping[req.chosenDeliveryMode as PrismaDeliveryMode] ||
                   DeliveryMode.InPerson,
                 deliveryAddress: undefined,
                 proxy: undefined,
@@ -1329,7 +1375,7 @@ export const importUserWithData = mutation({
       }
     }
 
-    const appointments: Array<any> = [...appointmentsToAttend];
+    const appointments: Array<Appointment> = [...appointmentsToAttend];
 
     // 5. Importer les rendez-vous (appointments)
     if (appointments && appointments.length > 0) {
@@ -1546,7 +1592,9 @@ export const importParentalAuthority = mutation({
 
         return {
           profileId: profile?._id,
-          role: parentalRoleMapping[parent.role as any] || ParentalRole.LegalGuardian,
+          role:
+            parentalRoleMapping[parent.role as PrismaParentalRole] ||
+            ParentalRole.LegalGuardian,
           firstName: profile?.personal.firstName || '',
           lastName: profile?.personal.lastName || '',
           email: profile?.contacts.email || '',
@@ -1569,8 +1617,9 @@ export const importParentalAuthority = mutation({
       authorUserId: authorUserId as Id<'users'>,
       parents: parentUsers.filter((parent) => parent !== undefined),
       status:
-        profileStatusMapping[args.parentalAuthority.profile.status as any] ||
-        ProfileStatus.Pending,
+        profileStatusMapping[
+          args.parentalAuthority.profile.status as PrismaRequestStatus
+        ] || ProfileStatus.Pending,
       consularCard: {
         cardNumber: args.parentalAuthority.profile.cardNumber || undefined,
         cardIssuedAt: args.parentalAuthority.profile.cardIssuedAt
@@ -1610,7 +1659,8 @@ export const importParentalAuthority = mutation({
     });
 
     if (args.parentalAuthority.profile.identityPicture) {
-      const identityPicture = args.parentalAuthority.profile.identityPicture as any;
+      const identityPicture = args.parentalAuthority.profile
+        .identityPicture as UserDocument;
       const documentId = await ctx.db.insert('documents', {
         type: DocumentType.IdentityPhoto,
         status: documentStatusMapping[identityPicture.status] || DocumentStatus.Pending,
@@ -1638,7 +1688,7 @@ export const importParentalAuthority = mutation({
     }
 
     if (args.parentalAuthority.profile.passport) {
-      const passport = args.parentalAuthority.profile.passport as any;
+      const passport = args.parentalAuthority.profile.passport as UserDocument;
       const documentId = await ctx.db.insert('documents', {
         type: DocumentType.Passport,
         status: documentStatusMapping[passport.status] || DocumentStatus.Pending,
@@ -1668,7 +1718,8 @@ export const importParentalAuthority = mutation({
     }
 
     if (args.parentalAuthority.profile.birthCertificate) {
-      const birthCertificate = args.parentalAuthority.profile.birthCertificate as any;
+      const birthCertificate = args.parentalAuthority.profile
+        .birthCertificate as UserDocument;
       const documentId = await ctx.db.insert('documents', {
         type: DocumentType.BirthCertificate,
         status: documentStatusMapping[birthCertificate.status] || DocumentStatus.Pending,
@@ -1696,7 +1747,8 @@ export const importParentalAuthority = mutation({
     }
 
     if (args.parentalAuthority.profile.residencePermit) {
-      const residencePermit = args.parentalAuthority.profile.residencePermit as any;
+      const residencePermit = args.parentalAuthority.profile
+        .residencePermit as UserDocument;
       const documentId = await ctx.db.insert('documents', {
         type: DocumentType.ResidencePermit,
         status: documentStatusMapping[residencePermit.status] || DocumentStatus.Pending,
@@ -1724,7 +1776,7 @@ export const importParentalAuthority = mutation({
     }
 
     if (args.parentalAuthority.profile.addressProof) {
-      const addressProof = args.parentalAuthority.profile.addressProof as any;
+      const addressProof = args.parentalAuthority.profile.addressProof as UserDocument;
       const documentId = await ctx.db.insert('documents', {
         type: DocumentType.ProofOfAddress,
         status: documentStatusMapping[addressProof.status] || DocumentStatus.Pending,
@@ -1785,7 +1837,7 @@ export const importParentalAuthority = mutation({
         ]);
 
         const activities = await Promise.all(
-          args.request?.actions?.map(async (a: any) => {
+          args.request?.actions?.map(async (a: RequestAction) => {
             const actorId = await findConvexUserByLegacyId(ctx, a.userId);
             if (!actorId) {
               console.warn(`Utilisateur ${a.userId} introuvable`);
@@ -1803,7 +1855,8 @@ export const importParentalAuthority = mutation({
         const requestId = await ctx.db.insert('requests', {
           number: `REQ-${args.request.id.substring(0, 8).toUpperCase()}`,
           status:
-            requestStatusMapping[args.request.status as any] || RequestStatus.Pending,
+            requestStatusMapping[args.request.status as PrismaRequestStatus] ||
+            RequestStatus.Pending,
           priority:
             args.request.priority === 'URGENT'
               ? RequestPriority.Urgent
@@ -1813,7 +1866,7 @@ export const importParentalAuthority = mutation({
           profileId: profile!._id,
           formData: args.request.formData || {},
           documentIds: [],
-          notes: args.request.notes.map((n: any) => ({
+          notes: args.request.notes.map((n: Note) => ({
             type: (n.type || 'feedback').toString().toLowerCase(),
             authorId: undefined,
             content: n.content || '',
@@ -1871,10 +1924,11 @@ export const importParentalAuthority = mutation({
           },
           config: {
             processingMode:
-              processingModeMapping[args.request.processingMode as any] ||
-              ProcessingMode.OnlineOnly,
+              processingModeMapping[
+                args.request.processingMode as PrismaProcessingMode
+              ] || ProcessingMode.OnlineOnly,
             deliveryMode:
-              deliveryModeMapping[args.request.deliveryMode as any] ||
+              deliveryModeMapping[args.request.deliveryMode as PrismaDeliveryMode] ||
               DeliveryMode.InPerson,
             deliveryAddress: args.request.deliveryAddress
               ? {
@@ -1959,7 +2013,7 @@ export const importNonUsersAccounts = mutation({
       try {
         const prismaRoles: Array<string> = account.roles || [];
         const mappedRoles: Array<UserRole> = prismaRoles
-          .map((r) => roleMapping[r as any])
+          .map((r) => roleMapping[r as PrismaUserRole])
           .filter((r): r is UserRole => Boolean(r) && r !== UserRole.User);
 
         const userId = await ctx.db.insert('users', {
