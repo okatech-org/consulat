@@ -386,7 +386,7 @@ export function UserDocument({
     <div className="relative w-full h-auto space-y-2">
       <div>
         <div className="font-medium">
-          <span>
+          <span className="text-sm">
             {label}
             {required && <span className="text-xs">{' (Obligatoire)'}</span>}
           </span>
@@ -411,7 +411,7 @@ export function UserDocument({
                   ? 'aspect-square w-full max-w-[250px]'
                   : 'aspect-document w-full max-w-[250px]'
               }
-              showActions={allowEdit && hasAdminRole}
+              showActions={allowEdit}
               onDelete={
                 allowEdit
                   ? () => {
