@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api as convexApi } from '@/convex/_generated/api';
 import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
-import { RealTimeStatusWidget } from '@/components/intelligence/realtime-status-widget';
 import { RealTimeAlerts } from '@/components/intelligence/realtime-alerts';
 import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Progress } from '@/components/ui/progress';
@@ -49,7 +48,6 @@ export default function IntelAgentDashboardContent() {
         total: profilesResponse.pagination.total,
       }
     : undefined;
-  const profilesLoading = profilesResponse === undefined;
 
   const handleQuickAction = async (index: number, title: string, path?: string) => {
     if (isNavigating) return;
@@ -303,97 +301,6 @@ export default function IntelAgentDashboardContent() {
         {/* Carte Intelligence Pleine Largeur */}
         <div>
           <SmartInteractiveMap profiles={profilesMapData} />
-        </div>
-
-        {/* Widgets sous la carte */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Statut temps réel - 1 colonne */}
-          <div className="lg:col-span-1">
-            <RealTimeStatusWidget />
-          </div>
-
-          {/* Recent Activity - 2 colonnes */}
-          <div className="lg:col-span-2">
-            <div
-              style={{
-                background: 'var(--bg-glass-primary)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                border: '1px solid var(--border-glass-primary)',
-                boxShadow: 'var(--shadow-glass)',
-                borderRadius: '1rem',
-                padding: '1.5rem',
-              }}
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h3
-                  className="text-lg font-semibold"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  Activité Récente
-                </h3>
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Dernières 24h
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(profilesData?.items || [])
-                  .slice(0, 6)
-                  .map((profile: any, index: number) => {
-                    const activity = {
-                      text: `Profil ajouté: ${profile.firstName} ${profile.lastName}`,
-                      time: `Il y a ${Math.floor((Date.now() - new Date(profile.createdAt).getTime()) / (1000 * 60 * 60))}h`,
-                      color: 'blue',
-                    };
-                    return (
-                      <div
-                        key={index}
-                        className="flex gap-3 p-3 rounded-lg transition-all duration-200 hover:bg-white/10 cursor-pointer"
-                        style={{ background: 'var(--bg-glass-light)' }}
-                        onClick={() => router.push(`/dashboard/profiles/${profile.id}`)}
-                      >
-                        <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold text-white"
-                          style={{
-                            background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                          }}
-                        >
-                          {(profile.firstName || 'P').charAt(0)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div
-                            className="font-medium text-sm"
-                            style={{ color: 'var(--text-primary)' }}
-                          >
-                            {activity.text}
-                          </div>
-                          <div
-                            className="text-xs"
-                            style={{ color: 'var(--text-secondary)' }}
-                          >
-                            {activity.time}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                {(!profilesData?.items || profilesData.items.length === 0) && (
-                  <div className="col-span-full text-center py-8">
-                    <div className="text-muted-foreground">
-                      {profilesLoading ? 'Chargement...' : 'Aucune activité récente'}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Distribution Mondiale */}
-          <div className="lg:col-span-1">
-            <SmartInteractiveMap profiles={profilesMapData} />
-          </div>
         </div>
       </div>
     </>
