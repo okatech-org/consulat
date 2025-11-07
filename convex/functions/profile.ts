@@ -408,6 +408,7 @@ export const getProfilesListEnriched = query({
       gender: profile.personal?.gender,
       status: profile.status,
       nipCode: profile.personal?.nipCode,
+      birthDate: profile.personal?.birthDate,
       cardIssuedAt: profile.consularCard?.cardIssuedAt
         ? new Date(profile.consularCard.cardIssuedAt).toLocaleDateString()
         : undefined,
@@ -420,6 +421,8 @@ export const getProfilesListEnriched = query({
       shareUrl: `${process.env.PUBLIC_APP_URL}/listing/profiles/${profile._id}`,
       registrationRequest: profile.registrationRequest,
       countryCode: profile.residenceCountry,
+      address: profile.contacts?.address,
+      phoneNumber: profile.contacts?.phone,
     }));
 
     return {
@@ -430,6 +433,9 @@ export const getProfilesListEnriched = query({
     };
   },
 });
+
+// Alias pour compatibilité
+export const getList = getProfilesListEnriched;
 
 // Nouvelle fonction pour obtenir le profil courant avec toutes les données nécessaires
 export const getCurrentProfile = query({

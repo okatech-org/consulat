@@ -2,22 +2,16 @@
 
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import {
-  useIntelligenceDashboardStats as useConvexIntelligenceDashboardStats,
-  useIntelligenceProfilesMap as useConvexIntelligenceProfilesMap,
-  useIntelligenceNotes as useConvexIntelligenceNotes,
-  useIntelligenceProfiles as useConvexIntelligenceProfiles,
-} from './use-intelligence';
 import { useCurrentUser } from './use-current-user';
 
 /**
  * Hook pour les stats du dashboard intelligence
- * MIGRATED TO CONVEX
+ * MIGRATED TO CONVEX - Direct usage
  */
 export function useIntelligenceDashboardStats(
   period: 'day' | 'week' | 'month' | 'year' = 'month',
 ) {
-  return useConvexIntelligenceDashboardStats(period);
+  return useQuery(api.functions.intelligence.getDashboardStats, { period });
 }
 
 /**
@@ -34,24 +28,34 @@ export function useNotificationCount() {
 
 /**
  * Hook pour la carte des profils intelligence
- * MIGRATED TO CONVEX
+ * MIGRATED TO CONVEX - Direct usage
  */
 export function useIntelligenceProfilesMap(filters?: any) {
-  return useConvexIntelligenceProfilesMap(filters);
+  return useQuery(
+    api.functions.intelligence.getProfilesMap,
+    filters ? { filters } : 'skip',
+  );
 }
 
 /**
  * Hook pour les profils avec notes intelligence
- * MIGRATED TO CONVEX
+ * MIGRATED TO CONVEX - Direct usage
  */
 export function useIntelligenceProfilesWithNotes(filters?: any) {
-  return useConvexIntelligenceProfiles(1, 20, { ...(filters || {}), hasNotes: true });
+  return useQuery(api.functions.intelligence.getProfiles, {
+    page: 1,
+    limit: 20,
+    filters: { ...(filters || {}), hasNotes: true },
+  });
 }
 
 /**
  * Hook pour les notes intelligence
- * MIGRATED TO CONVEX
+ * MIGRATED TO CONVEX - Direct usage
  */
 export function useIntelligenceNotes(filters?: any) {
-  return useConvexIntelligenceNotes(filters);
+  return useQuery(
+    api.functions.intelligence.getIntelligenceNotes,
+    filters ? { filters } : 'skip',
+  );
 }

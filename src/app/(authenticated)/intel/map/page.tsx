@@ -1,11 +1,8 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import {
-  useIntelligenceDashboardStats,
-  useIntelligenceProfilesMap,
-  useIntelligenceNotes,
-} from '@/hooks/use-optimized-queries';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +44,7 @@ export default function CartePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showLayers] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const profilesMapData = useQuery(api.functions.profile.getProfilesMapData);
   const [filters, setFilters] = useState({
     search: '',
     hasNotes: undefined as boolean | undefined,
@@ -62,19 +60,31 @@ export default function CartePage() {
   }, [debouncedSearchTerm]);
 
   // Données de la carte
-  const profilesMap = useIntelligenceProfilesMap(
+  const profilesMap = useQuery(
+    api.functions.intelligence.getProfilesMap,
     Object.values(filters).some((value) => value !== undefined && value !== '')
-      ? filters
-      : undefined,
+      ? { filters }
+      : 'skip',
   );
   const isLoadingProfiles = profilesMap === undefined;
 
   // Notes récentes pour l'activité
-  const recentNotes = useIntelligenceNotes({ search: filters.search || undefined });
+  const recentNotes = useQuery(
+    api.functions.intelligence.getIntelligenceNotes,
+    filters.search
+      ? {
+          filters: {
+            search: filters.search,
+          },
+        }
+      : 'skip',
+  );
   const isLoadingNotes = recentNotes === undefined;
 
   // Statistiques générales
-  const dashboardStats = useIntelligenceDashboardStats('day');
+  const dashboardStats = useQuery(api.functions.intelligence.getDashboardStats, {
+    period: 'day',
+  });
   const isLoadingStats = dashboardStats === undefined;
 
   // Calculer les statistiques de la carte basées sur la RÉSIDENCE (adresse)
@@ -327,19 +337,7 @@ export default function CartePage() {
                 </div>
               ) : (
                 <SmartInteractiveMap
-                  profiles={
-                    profilesMap?.filter((profile: (typeof profilesMap)[number]) => {
-                      // SEULS les profils avec ADRESSE DE RÉSIDENCE valide
-                      const hasValidResidenceAddress =
-                        profile.address &&
-                        profile.address.city &&
-                        profile.address.city.trim() !== '' &&
-                        profile.address.country &&
-                        profile.address.country.trim() !== '';
-
-                      return hasValidResidenceAddress;
-                    }) || []
-                  }
+                  profiles={profilesMapData}
                   onProfileClick={handleProfileClick}
                   className="w-full h-full"
                 />

@@ -160,7 +160,10 @@ export const getIntelligenceNotes = query({
         .collect();
     } else {
       // Default order by created date
-      notes = await ctx.db.query('intelligenceNotes').withIndex('by_created_at').collect();
+      notes = await ctx.db
+        .query('intelligenceNotes')
+        .withIndex('by_created_at')
+        .collect();
     }
 
     // Apply additional filters
@@ -200,7 +203,9 @@ export const getIntelligenceNotes = query({
             author && 'email' in author && 'firstName' in author
               ? {
                   id: author._id,
-                  name: `${(author as any).firstName || ''} ${(author as any).lastName || ''}`.trim() || null,
+                  name:
+                    `${(author as any).firstName || ''} ${(author as any).lastName || ''}`.trim() ||
+                    null,
                   email: (author as any).email || null,
                 }
               : undefined,
@@ -243,7 +248,9 @@ export const getNoteHistory = query({
           changedBy: changedBy
             ? {
                 id: changedBy._id,
-                name: `${changedBy.firstName || ''} ${changedBy.lastName || ''}`.trim() || null,
+                name:
+                  `${changedBy.firstName || ''} ${changedBy.lastName || ''}`.trim() ||
+                  null,
                 email: changedBy.email || null,
               }
             : undefined,
@@ -326,7 +333,9 @@ export const getProfiles = query({
             user && 'email' in user && 'firstName' in user
               ? {
                   id: user._id,
-                  name: `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() || null,
+                  name:
+                    `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() ||
+                    null,
                   email: (user as any).email || null,
                 }
               : undefined,
@@ -480,7 +489,9 @@ export const getProfileDetails = query({
             author && 'email' in author && 'firstName' in author
               ? {
                   id: author._id,
-                  name: `${(author as any).firstName || ''} ${(author as any).lastName || ''}`.trim() || null,
+                  name:
+                    `${(author as any).firstName || ''} ${(author as any).lastName || ''}`.trim() ||
+                    null,
                   email: (author as any).email || null,
                 }
               : undefined,
@@ -494,6 +505,15 @@ export const getProfileDetails = query({
     return {
       ...profile,
       id: profile._id,
+      firstName: profile.personal?.firstName,
+      lastName: profile.personal?.lastName,
+      birthDate: profile.personal?.birthDate,
+      birthPlace: profile.personal?.birthPlace,
+      email: profile.contacts?.email,
+      phoneNumber: profile.contacts?.phone,
+      address: profile.contacts?.address,
+      nationality: profile.personal?.nationality,
+      identityPicture: profile.documents?.identityPicture,
       intelligenceNotes: enrichedNotes,
       _count: {
         intelligenceNotes: intelligenceNotes.length,
@@ -502,7 +522,9 @@ export const getProfileDetails = query({
         user && 'email' in user && 'firstName' in user
           ? {
               id: user._id,
-              name: `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() || null,
+              name:
+                `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() ||
+                null,
               email: (user as any).email || null,
             }
           : undefined,
@@ -590,7 +612,11 @@ export const getDashboardStats = query({
           ...note,
           author:
             author && 'email' in author && 'firstName' in author
-              ? { name: `${(author as any).firstName || ''} ${(author as any).lastName || ''}`.trim() || null }
+              ? {
+                  name:
+                    `${(author as any).firstName || ''} ${(author as any).lastName || ''}`.trim() ||
+                    null,
+                }
               : undefined,
           profile:
             profile && 'personal' in profile

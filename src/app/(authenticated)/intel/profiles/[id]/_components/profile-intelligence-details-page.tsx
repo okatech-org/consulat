@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useIntelligenceProfileDetails } from '@/hooks/use-intelligence';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,7 +42,9 @@ export function ProfileIntelligenceDetailsPage({
   const [isProfileViewed, setIsProfileViewed] = useState(false);
   const [lastActivity] = useState<Date>(new Date());
 
-  const profileData = useIntelligenceProfileDetails(profileId as Id<'profiles'>);
+  const profileData = useQuery(api.functions.intelligence.getProfileDetails, {
+    profileId: profileId as Id<'profiles'>,
+  });
   const profile = profileData;
   const isLoading = profileData === undefined;
 
@@ -365,7 +368,7 @@ export function ProfileIntelligenceDetailsPage({
                               className="text-xs"
                               style={{ color: 'var(--text-secondary)' }}
                             >
-                              Centre d'analyse et de traitement
+                              Centre d&apos;analyse et de traitement
                             </p>
                           </div>
                         </div>
@@ -389,7 +392,7 @@ export function ProfileIntelligenceDetailsPage({
                     <CardContent className="p-6 flex-1 overflow-hidden">
                       <IntelligenceNotesSection
                         profileId={profileId}
-                        currentUserId={currentUser?.id || ''}
+                        currentUserId={currentUser?._id ?? ''}
                         allowDelete={true}
                       />
                     </CardContent>
@@ -498,7 +501,24 @@ export function ProfileIntelligenceDetailsPage({
                               style={{ color: 'var(--text-primary)' }}
                             >
                               {profile.birthDate
-                                ? `${new Date().getFullYear() - new Date(profile.birthDate).getFullYear()} ans`
+                                ? (() => {
+                                    const today = new Date();
+                                    const birth = new Date(
+                                      typeof profile.birthDate === 'number'
+                                        ? profile.birthDate
+                                        : profile.birthDate,
+                                    );
+                                    let age = today.getFullYear() - birth.getFullYear();
+                                    const monthDiff = today.getMonth() - birth.getMonth();
+                                    if (
+                                      monthDiff < 0 ||
+                                      (monthDiff === 0 &&
+                                        today.getDate() < birth.getDate())
+                                    ) {
+                                      age--;
+                                    }
+                                    return `${age} ans`;
+                                  })()
                                 : 'N/A'}
                             </span>
                           </div>

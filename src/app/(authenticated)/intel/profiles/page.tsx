@@ -1,11 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useQuery } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { api as convexApi } from '@/convex/_generated/api';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { useIntelligenceDashboardStats } from '@/hooks/use-optimized-queries';
-import { useCreateIntelligenceNote } from '@/hooks/use-intelligence';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,8 +13,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { IntelligenceNoteType, IntelligenceNotePriority } from '@prisma/client';
 import { IntelNavigationBar } from '@/components/intelligence/intel-navigation-bar';
+import { IntelligenceNoteType, IntelligenceNotePriority } from '@/convex/lib/constants';
 import { Loader2 } from 'lucide-react';
 import {
   Users,
@@ -102,8 +100,8 @@ export default function ProfilesPage() {
   const [newNote, setNewNote] = useState({
     title: '',
     content: '',
-    type: 'GENERAL' as any,
-    priority: 'MEDIUM' as any,
+    type: IntelligenceNoteType.Other,
+    priority: IntelligenceNotePriority.Medium,
   });
 
   // État pour les filtres avancés
@@ -212,10 +210,7 @@ export default function ProfilesPage() {
   const profilesResponse = useQuery(convexApi.functions.profile.getList, {
     page: Math.max(1, safePagination.pageIndex + 1),
     limit: safePagination.pageSize,
-    sort: { field: 'createdAt' as const, order: 'desc' as const },
-    filters: {
-      search: combinedFilters?.search || undefined,
-    },
+    search: combinedFilters?.search || undefined,
   });
 
   const isLoading = profilesResponse === undefined;
@@ -223,15 +218,21 @@ export default function ProfilesPage() {
   const refetch = () => {}; // Convex handles refetching automatically
 
   // Mutation pour créer une note d'intelligence
-  const createNoteMutation = useCreateIntelligenceNote();
+  const createNoteMutation = useMutation(convexApi.functions.intelligence.createNote);
 
-  const { data: dashboardStats } = useIntelligenceDashboardStats('month');
+  const dashboardStats = useQuery(convexApi.functions.intelligence.getDashboardStats, {
+    period: 'month',
+  });
 
   // Fonction pour calculer l'âge à partir de la date de naissance
-  const calculateAge = (birthDate: Date | string | null | undefined): number | null => {
+  const calculateAge = (
+    birthDate: Date | string | number | null | undefined,
+  ): number | null => {
     if (!birthDate) return null;
     const today = new Date();
-    const birth = new Date(birthDate);
+    // Handle timestamp (number) or Date/string
+    const birth =
+      typeof birthDate === 'number' ? new Date(birthDate) : new Date(birthDate);
     if (isNaN(birth.getTime())) return null;
 
     let age = today.getFullYear() - birth.getFullYear();
@@ -365,7 +366,7 @@ export default function ProfilesPage() {
       return;
     }
 
-    if (!user?.id) {
+    if (!user?._id) {
       toast.error('Utilisateur non authentifié');
       return;
     }
@@ -378,7 +379,7 @@ export default function ProfilesPage() {
         content: newNote.content,
         type: newNote.type as any,
         priority: newNote.priority as any,
-        authorId: user.id as any,
+        authorId: user._id as any,
       });
 
       toast.success("Note d'intelligence ajoutée avec succès");
@@ -445,7 +446,7 @@ export default function ProfilesPage() {
   const handlePageChange = (page: number) => {
     const newPageIndex = page - 1; // Convertir en index 0-based
     setLocalPagination((prev) => ({ ...prev, pageIndex: newPageIndex }));
-    handlePaginationChange?.(newPageIndex);
+    handlePaginationChange?.('page', newPageIndex);
 
     // Défiler vers le haut pour une meilleure UX
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -460,31 +461,6 @@ export default function ProfilesPage() {
       createdAt.getFullYear() === now.getFullYear()
     );
   });
-
-  const getCategoryBadge = (category: string) => {
-    switch (category) {
-      case 'CITIZEN':
-        return {
-          text: 'Citoyen',
-          color: 'bg-blue-500/20 text-blue-500 border-blue-500/30',
-        };
-      case 'RESIDENT':
-        return {
-          text: 'Résident',
-          color: 'bg-green-500/20 text-green-500 border-green-500/30',
-        };
-      case 'VISITOR':
-        return {
-          text: 'Visiteur',
-          color: 'bg-orange-500/20 text-orange-500 border-orange-500/30',
-        };
-      default:
-        return {
-          text: 'Non défini',
-          color: 'bg-gray-500/20 text-gray-500 border-gray-500/30',
-        };
-    }
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -703,16 +679,16 @@ export default function ProfilesPage() {
                 setIntelligenceFilters(newFilters);
                 // Synchroniser avec les params URL pour certains filtres
                 if (newFilters.search !== intelligenceFilters.search) {
-                  handleParamsChange({ search: newFilters.search });
+                  handleParamsChange('search', newFilters.search);
                 }
                 if (newFilters.category !== intelligenceFilters.category) {
-                  handleParamsChange({ category: newFilters.category });
+                  handleParamsChange('category', newFilters.category);
                 }
                 if (newFilters.gender !== intelligenceFilters.gender) {
-                  handleParamsChange({ gender: newFilters.gender });
+                  handleParamsChange('gender', newFilters.gender);
                 }
                 if (newFilters.status !== intelligenceFilters.status) {
-                  handleParamsChange({ status: newFilters.status });
+                  handleParamsChange('status', newFilters.status);
                 }
                 // Réinitialiser la pagination lors du changement de filtres
                 setLocalPagination((prev) => ({ ...prev, pageIndex: 0 }));
@@ -824,7 +800,6 @@ export default function ProfilesPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {profiles.map((profile) => {
-                  const categoryStyle = getCategoryBadge(profile.category);
                   const statusStyle = getStatusBadge(profile.status);
                   const hasNotes = hasIntelligenceNotes(profile);
                   const isNewThisMonth = newProfilesThisMonth.some(
@@ -921,9 +896,6 @@ export default function ProfilesPage() {
 
                         {/* Badges statut et catégorie */}
                         <div className="flex items-center gap-2 mt-3">
-                          <Badge className={`text-xs ${categoryStyle.color}`}>
-                            {categoryStyle.text}
-                          </Badge>
                           <Badge className={`text-xs ${statusStyle.color}`}>
                             {statusStyle.text}
                           </Badge>
@@ -933,7 +905,7 @@ export default function ProfilesPage() {
                       <CardContent className="space-y-4">
                         {/* Informations de contact */}
                         <div className="space-y-2">
-                          {profile.user?.email && (
+                          {profile.email && (
                             <div className="flex items-center gap-2">
                               <Mail
                                 className="h-3 w-3"
@@ -943,7 +915,7 @@ export default function ProfilesPage() {
                                 className="text-xs truncate"
                                 style={{ color: 'var(--text-primary)' }}
                               >
-                                {profile.user.email}
+                                {profile.email}
                               </p>
                             </div>
                           )}
@@ -1002,8 +974,7 @@ export default function ProfilesPage() {
                                 style={{ color: 'var(--text-muted)' }}
                               />
                               <Badge className="text-xs bg-blue-500/20 text-blue-500 border-blue-500/30">
-                                {profile.intelligenceNotes?.length || 0} note(s) de
-                                surveillance
+                                0 note(s) de surveillance
                               </Badge>
                             </div>
                           ) : (
@@ -1081,12 +1052,7 @@ export default function ProfilesPage() {
                 <p style={{ color: 'var(--text-muted)' }}>
                   Aucun profil trouvé avec ces critères
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-4"
-                  onClick={() => handleParamsChange && handleParamsChange({})}
-                >
+                <Button variant="outline" size="sm" className="mt-4">
                   Réinitialiser les filtres
                 </Button>
               </div>
@@ -1114,7 +1080,7 @@ export default function ProfilesPage() {
                       pageIndex: newPageIndex,
                       pageSize: safePagination.pageSize,
                     });
-                    handlePaginationChange?.(newPageIndex);
+                    handlePaginationChange?.('page', newPageIndex);
                   }}
                   className="bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20"
                 >
@@ -1175,7 +1141,7 @@ export default function ProfilesPage() {
                           pageSize: newPageSize,
                           pageIndex: 0,
                         }));
-                        handlePaginationChange?.(newPageSize, 0);
+                        handlePaginationChange?.('limit', newPageSize);
                       }}
                       className="px-2 py-1 rounded border text-sm"
                       style={{

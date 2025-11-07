@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useMutation } from 'convex/react';
@@ -55,6 +54,7 @@ import { IntelligenceNoteType, IntelligenceNotePriority } from '@/convex/lib/con
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 // Type pour les notes avec relations
 
@@ -64,7 +64,7 @@ const formatNumber = (num: number): string => {
 };
 
 export default function NotesPage() {
-  const t = useTranslations('intelligence.notes');
+  const { user } = useCurrentUser();
   const [filters, setFilters] = useState({
     type: undefined as IntelligenceNoteType | undefined,
     priority: undefined as IntelligenceNotePriority | undefined,
@@ -97,7 +97,6 @@ export default function NotesPage() {
   const dashboardStats = useQuery(api.functions.intelligence.getDashboardStats, {
     period: filters.period,
   });
-  const statsLoading = dashboardStats === undefined;
 
   const profilesData = useQuery(api.functions.intelligence.getProfiles, {
     page: 1,
@@ -114,8 +113,8 @@ export default function NotesPage() {
     resolver: zodResolver(createIntelligenceNoteSchema),
     defaultValues: {
       profileId: '',
-      type: IntelligenceNoteType.OTHER,
-      priority: IntelligenceNotePriority.MEDIUM,
+      type: IntelligenceNoteType.Other,
+      priority: IntelligenceNotePriority.Medium,
       title: '',
       content: '',
     },
@@ -137,7 +136,7 @@ export default function NotesPage() {
         content: data.content,
         tags: data.tags,
         expiresAt: data.expiresAt?.getTime(),
-        authorId: user._id as any,
+        authorId: user._id,
       });
       toast.success('Note créée avec succès');
       setShowCreateModal(false);
@@ -162,27 +161,27 @@ export default function NotesPage() {
   };
 
   const typeIcons = {
-    [IntelligenceNoteType.POLITICAL_OPINION]: '🏛️',
-    [IntelligenceNoteType.ORIENTATION]: '🧭',
-    [IntelligenceNoteType.ASSOCIATIONS]: '👥',
-    [IntelligenceNoteType.TRAVEL_PATTERNS]: '✈️',
-    [IntelligenceNoteType.CONTACTS]: '📞',
-    [IntelligenceNoteType.ACTIVITIES]: '🎯',
-    [IntelligenceNoteType.OTHER]: '📝',
+    [IntelligenceNoteType.PoliticalOpinion]: '🏛️',
+    [IntelligenceNoteType.Orientation]: '🧭',
+    [IntelligenceNoteType.Associations]: '👥',
+    [IntelligenceNoteType.TravelPatterns]: '✈️',
+    [IntelligenceNoteType.Contacts]: '📞',
+    [IntelligenceNoteType.Activities]: '🎯',
+    [IntelligenceNoteType.Other]: '📝',
   };
 
   const priorityColors = {
-    [IntelligenceNotePriority.LOW]: {
+    [IntelligenceNotePriority.Low]: {
       bg: 'bg-green-500/20',
       text: 'text-green-500',
       border: 'border-green-500/30',
     },
-    [IntelligenceNotePriority.MEDIUM]: {
+    [IntelligenceNotePriority.Medium]: {
       bg: 'bg-orange-500/20',
       text: 'text-orange-500',
       border: 'border-orange-500/30',
     },
-    [IntelligenceNotePriority.HIGH]: {
+    [IntelligenceNotePriority.High]: {
       bg: 'bg-red-500/20',
       text: 'text-red-500',
       border: 'border-red-500/30',
@@ -191,19 +190,19 @@ export default function NotesPage() {
 
   const getTypeLabel = (type: IntelligenceNoteType) => {
     switch (type) {
-      case IntelligenceNoteType.POLITICAL_OPINION:
+      case IntelligenceNoteType.PoliticalOpinion:
         return 'Opinion politique';
-      case IntelligenceNoteType.ORIENTATION:
+      case IntelligenceNoteType.Orientation:
         return 'Orientation';
-      case IntelligenceNoteType.ASSOCIATIONS:
+      case IntelligenceNoteType.Associations:
         return 'Associations';
-      case IntelligenceNoteType.TRAVEL_PATTERNS:
+      case IntelligenceNoteType.TravelPatterns:
         return 'Déplacements';
-      case IntelligenceNoteType.CONTACTS:
+      case IntelligenceNoteType.Contacts:
         return 'Contacts';
-      case IntelligenceNoteType.ACTIVITIES:
+      case IntelligenceNoteType.Activities:
         return 'Activités';
-      case IntelligenceNoteType.OTHER:
+      case IntelligenceNoteType.Other:
         return 'Autres';
       default:
         return 'Non défini';
@@ -212,11 +211,11 @@ export default function NotesPage() {
 
   const getPriorityLabel = (priority: IntelligenceNotePriority) => {
     switch (priority) {
-      case IntelligenceNotePriority.HIGH:
+      case IntelligenceNotePriority.High:
         return 'HAUTE';
-      case IntelligenceNotePriority.MEDIUM:
+      case IntelligenceNotePriority.Medium:
         return 'MOYENNE';
-      case IntelligenceNotePriority.LOW:
+      case IntelligenceNotePriority.Low:
         return 'BASSE';
       default:
         return 'Non défini';
@@ -232,7 +231,7 @@ export default function NotesPage() {
           {[
             {
               title: 'Total notes',
-              value: dashboardStats?.totalNotes || 0,
+              value: notes?.length || 0,
               icon: FileText,
               color: 'blue',
               change: '+15%',
@@ -246,7 +245,9 @@ export default function NotesPage() {
             },
             {
               title: 'Priorité haute',
-              value: dashboardStats?.notesByType?.[IntelligenceNotePriority.HIGH] || 0,
+              value:
+                notes?.filter((note) => note.priority === IntelligenceNotePriority.High)
+                  .length || 0,
               icon: AlertTriangle,
               color: 'red',
               change: '-2%',
@@ -396,22 +397,22 @@ export default function NotesPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tous types</SelectItem>
-                    <SelectItem value={IntelligenceNoteType.POLITICAL_OPINION}>
+                    <SelectItem value={IntelligenceNoteType.PoliticalOpinion}>
                       🏛️ Opinion politique
                     </SelectItem>
-                    <SelectItem value={IntelligenceNoteType.ASSOCIATIONS}>
+                    <SelectItem value={IntelligenceNoteType.Associations}>
                       👥 Associations
                     </SelectItem>
-                    <SelectItem value={IntelligenceNoteType.TRAVEL_PATTERNS}>
+                    <SelectItem value={IntelligenceNoteType.TravelPatterns}>
                       ✈️ Déplacements
                     </SelectItem>
-                    <SelectItem value={IntelligenceNoteType.CONTACTS}>
+                    <SelectItem value={IntelligenceNoteType.Contacts}>
                       📞 Contacts
                     </SelectItem>
-                    <SelectItem value={IntelligenceNoteType.ACTIVITIES}>
+                    <SelectItem value={IntelligenceNoteType.Activities}>
                       🎯 Activités
                     </SelectItem>
-                    <SelectItem value={IntelligenceNoteType.OTHER}>📝 Autres</SelectItem>
+                    <SelectItem value={IntelligenceNoteType.Other}>📝 Autres</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -438,13 +439,13 @@ export default function NotesPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Toutes</SelectItem>
-                    <SelectItem value={IntelligenceNotePriority.HIGH}>
+                    <SelectItem value={IntelligenceNotePriority.High}>
                       🔴 Haute
                     </SelectItem>
-                    <SelectItem value={IntelligenceNotePriority.MEDIUM}>
+                    <SelectItem value={IntelligenceNotePriority.Medium}>
                       🟡 Moyenne
                     </SelectItem>
-                    <SelectItem value={IntelligenceNotePriority.LOW}>🟢 Basse</SelectItem>
+                    <SelectItem value={IntelligenceNotePriority.Low}>🟢 Basse</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -558,9 +559,9 @@ export default function NotesPage() {
                     style={{
                       background: 'var(--bg-glass-light)',
                       borderLeftColor:
-                        note.priority === IntelligenceNotePriority.HIGH
+                        note.priority === IntelligenceNotePriority.High
                           ? '#ef4444'
-                          : note.priority === IntelligenceNotePriority.MEDIUM
+                          : note.priority === IntelligenceNotePriority.Medium
                             ? '#f59e0b'
                             : '#10b981',
                     }}
@@ -621,7 +622,11 @@ export default function NotesPage() {
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
                               {format(
-                                new Date(note._creationTime || note.createdAt),
+                                new Date(
+                                  typeof note.createdAt === 'number'
+                                    ? note.createdAt
+                                    : note.createdAt,
+                                ),
                                 'dd/MM/yyyy HH:mm',
                                 {
                                   locale: fr,
@@ -691,8 +696,12 @@ export default function NotesPage() {
                         </FormControl>
                         <SelectContent>
                           {profiles?.map((profile: any) => (
-                            <SelectItem key={profile._id} value={profile._id}>
-                              {profile.personal?.firstName} {profile.personal?.lastName}
+                            <SelectItem
+                              key={profile.id || profile._id}
+                              value={profile.id || profile._id}
+                            >
+                              {profile.personal?.firstName || profile.firstName}{' '}
+                              {profile.personal?.lastName || profile.lastName}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -716,22 +725,22 @@ export default function NotesPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value={IntelligenceNoteType.POLITICAL_OPINION}>
+                            <SelectItem value={IntelligenceNoteType.PoliticalOpinion}>
                               🏛️ Opinion politique
                             </SelectItem>
-                            <SelectItem value={IntelligenceNoteType.ASSOCIATIONS}>
+                            <SelectItem value={IntelligenceNoteType.Associations}>
                               👥 Associations
                             </SelectItem>
-                            <SelectItem value={IntelligenceNoteType.TRAVEL_PATTERNS}>
+                            <SelectItem value={IntelligenceNoteType.TravelPatterns}>
                               ✈️ Déplacements
                             </SelectItem>
-                            <SelectItem value={IntelligenceNoteType.CONTACTS}>
+                            <SelectItem value={IntelligenceNoteType.Contacts}>
                               📞 Contacts
                             </SelectItem>
-                            <SelectItem value={IntelligenceNoteType.ACTIVITIES}>
+                            <SelectItem value={IntelligenceNoteType.Activities}>
                               🎯 Activités
                             </SelectItem>
-                            <SelectItem value={IntelligenceNoteType.OTHER}>
+                            <SelectItem value={IntelligenceNoteType.Other}>
                               📝 Autres
                             </SelectItem>
                           </SelectContent>
@@ -754,13 +763,13 @@ export default function NotesPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value={IntelligenceNotePriority.HIGH}>
+                            <SelectItem value={IntelligenceNotePriority.High}>
                               🔴 Haute
                             </SelectItem>
-                            <SelectItem value={IntelligenceNotePriority.MEDIUM}>
+                            <SelectItem value={IntelligenceNotePriority.Medium}>
                               🟡 Moyenne
                             </SelectItem>
-                            <SelectItem value={IntelligenceNotePriority.LOW}>
+                            <SelectItem value={IntelligenceNotePriority.Low}>
                               🟢 Basse
                             </SelectItem>
                           </SelectContent>
@@ -835,9 +844,17 @@ export default function NotesPage() {
               <DialogDescription>
                 Note créée le{' '}
                 {selectedNote &&
-                  format(new Date(selectedNote.createdAt), 'dd/MM/yyyy à HH:mm', {
-                    locale: fr,
-                  })}
+                  format(
+                    new Date(
+                      typeof selectedNote.createdAt === 'number'
+                        ? selectedNote.createdAt
+                        : selectedNote.createdAt,
+                    ),
+                    'dd/MM/yyyy à HH:mm',
+                    {
+                      locale: fr,
+                    },
+                  )}
               </DialogDescription>
             </DialogHeader>
 
