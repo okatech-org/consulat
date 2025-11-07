@@ -4,13 +4,13 @@ import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import IAstedButton from '../ui/mr-ray-button-fixed';
 import { ModernChatWindow } from './modern-chat-window';
-import { useAction } from 'convex/react';
+import { useAction, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useLocale } from 'next-intl';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import type { ChatMessage } from '@/lib/ai/types';
+import type { ChatMessage } from '@/convex/lib/ai/types';
 
 interface Message extends ChatMessage {
   id: string;
@@ -30,8 +30,9 @@ export function ChatToggle({ customIcon }: { customIcon?: React.ReactNode }) {
     if (!message.trim() || !user?._id) return '';
 
     try {
-      // Get AI response using Convex action
       const aiResponse = await getChatCompletion({
+        userId: user?._id,
+        locale: locale,
         messages: [
           ...messages.map((msg) => ({
             role: msg.role,
@@ -39,8 +40,6 @@ export function ChatToggle({ customIcon }: { customIcon?: React.ReactNode }) {
           })),
           { role: 'user', content: message },
         ],
-        userId: user._id,
-        locale,
       });
 
       if (aiResponse) {

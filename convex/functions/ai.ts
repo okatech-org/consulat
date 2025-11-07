@@ -44,31 +44,23 @@ function getGeminiModel() {
 
 export const getChatCompletion = action({
   args: {
+    userId: v.optional(v.id('users')),
+    locale: v.string(),
     messages: v.array(
       v.object({
         role: v.union(v.literal('user'), v.literal('assistant'), v.literal('system')),
         content: v.string(),
       }),
     ),
-    contextData: v.object({
-      user: v.string(),
-      assistantPrompt: v.string(),
-      knowledgeBase: v.string(),
-      language: v.string(),
-      countryData: v.optional(v.string()),
-      profileData: v.optional(v.string()),
-      serviceRequestsData: v.optional(v.string()),
-      appointmentData: v.optional(v.string()),
-      notificationsData: v.optional(v.string()),
-      agentData: v.optional(v.string()),
-      adminManagerData: v.optional(v.string()),
-      superAdminData: v.optional(v.string()),
-      availableServicesData: v.optional(v.string()),
-    }),
   },
   handler: async (ctx, args) => {
     try {
-      const context = ContextBuilder.buildContext(args.contextData);
+      const context = ContextBuilder.buildContext(
+        await ctx.runQuery(internal.functions.ai.getUserContextData, {
+          userId: args.userId,
+          locale: args.locale,
+        }),
+      );
 
       const formattedHistory = args.messages.map((msg) => ({
         role: msg.role === 'assistant' ? ('model' as const) : ('user' as const),
