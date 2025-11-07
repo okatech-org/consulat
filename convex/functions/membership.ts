@@ -69,6 +69,8 @@ export const updateMembership = mutation({
     role: v.optional(userRoleValidator),
     permissions: v.optional(v.array(userPermissionValidator)),
     status: v.optional(membershipStatusValidator),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
   },
   returns: v.id('memberships'),
   handler: async (ctx, args) => {
@@ -81,7 +83,8 @@ export const updateMembership = mutation({
       ...(args.role && { role: args.role }),
       ...(args.permissions && { permissions: args.permissions }),
       ...(args.status && { status: args.status }),
-      updatedAt: Date.now(),
+      ...(args.firstName && { firstName: args.firstName }),
+      ...(args.lastName && { lastName: args.lastName }),
     };
 
     await ctx.db.patch(args.membershipId, updateData);
@@ -174,15 +177,18 @@ export const getAgentsList = query({
     managerId: v.optional(v.id('memberships')),
     page: v.optional(v.number()),
     limit: v.optional(v.number()),
+    status: v.optional(membershipStatusValidator),
   },
   handler: async (ctx, args) => {
     const page = args.page || 1;
     const limit = args.limit || 10;
     const skip = (page - 1) * limit;
 
-    let query = ctx.db
-      .query('memberships')
-      .filter((q) => q.eq(q.field('status'), MembershipStatus.Active));
+    let query = ctx.db.query('memberships');
+
+    if (args.status) {
+      query = query.filter((q) => q.eq(q.field('status'), args.status));
+    }
 
     // Filter by organization
     if (args.organizationId) {
@@ -404,6 +410,8 @@ export const getOrganizationAgents = query({
       .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
       .filter((q) => q.eq(q.field('status'), MembershipStatus.Active))
       .collect();
+
+    console.log({ memberships });
 
     return memberships.map((membership) => ({
       _id: membership._id,

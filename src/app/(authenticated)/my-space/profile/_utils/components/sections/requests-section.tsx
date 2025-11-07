@@ -11,6 +11,7 @@ import { fr } from 'date-fns/locale';
 import CardContainer from '@/components/layouts/card-container';
 import type { Doc } from '@/convex/_generated/dataModel';
 import type { RequestStatus } from '@/convex/lib/constants';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 type RequestsSectionProps = {
   requests: Doc<'requests'>[];
@@ -33,23 +34,15 @@ const statusColors: Record<RequestStatus, string> = {
 } as const;
 
 export function RequestsSection({ requests }: RequestsSectionProps) {
-  const t = useTranslations('requests');
+  const t = useTranslations('');
+  const { user } = useCurrentUser();
 
-  const getStatusLabel = (status: string) => {
-    const statusMap: Record<string, string> = {
-      submitted: t('status.submitted'),
-      pending: t('status.pending'),
-      pending_completion: t('status.pending_completion'),
-      validated: t('status.validated'),
-      rejected: t('status.rejected'),
-      card_in_production: t('status.card_in_production'),
-      document_in_production: t('status.card_in_production'),
-      ready_for_pickup: t('status.ready_for_pickup'),
-      appointment_scheduled: t('status.appointment_scheduled'),
-      completed: t('status.completed'),
-    };
-    return statusMap[status.toLowerCase()] || status;
-  };
+  function canOpenRequest(request: Doc<'requests'>) {
+    const membership = user?.membership;
+    if (!membership) return false;
+
+    return request.organizationId === membership.organizationId;
+  }
 
   if (!requests || requests.length === 0) {
     return (
@@ -83,7 +76,7 @@ export function RequestsSection({ requests }: RequestsSectionProps) {
                     'bg-gray-100 text-gray-800'
                   }
                 >
-                  {getStatusLabel(request.status)}
+                  {t(`inputs.requestStatus.options.${request.status}`)}
                 </Badge>
               </div>
             }
@@ -105,7 +98,9 @@ export function RequestsSection({ requests }: RequestsSectionProps) {
                 {request.priority && (
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
-                    <span className="capitalize">{request.priority}</span>
+                    <span className="capitalize">
+                      {t(`inputs.priority.options.${request.priority}`)}
+                    </span>
                   </div>
                 )}
               </div>
@@ -113,21 +108,32 @@ export function RequestsSection({ requests }: RequestsSectionProps) {
               {/* Mode de traitement et de livraison */}
               <div className="flex flex-wrap gap-2 text-xs">
                 <Badge variant="outline">
-                  {t(`processing_mode.${request.config?.processingMode}`)}
+                  {t(`inputs.processingMode.options.${request.config?.processingMode}`)}
                 </Badge>
                 <Badge variant="outline">
-                  {t(`delivery_mode.${request.config?.deliveryMode}`)}
+                  {t(`inputs.deliveryMode.options.${request.config?.deliveryMode}`)}
                 </Badge>
               </div>
 
               {/* Action */}
-              <div className="flex justify-end pt-2">
-                <Button variant="outline" size="sm" className="gap-2" asChild>
+              <div className="flex flex-col gap-2 justify-end pt-2">
+                <Button
+                  disabled={!canOpenRequest(request)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  asChild
+                >
                   <Link href={ROUTES.dashboard.service_requests(request._id)}>
                     Voir les détails
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
+                {!canOpenRequest(request) && (
+                  <p className="text-sm text-muted-foreground">
+                    Vous n&apos;avez pas les permissions pour ouvrir cette demande.
+                  </p>
+                )}
               </div>
             </div>
           </CardContainer>

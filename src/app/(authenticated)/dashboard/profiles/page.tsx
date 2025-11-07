@@ -578,7 +578,7 @@ export default function ProfilesPage() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={ROUTES.dashboard.profile(row.original.id)}>
+                        <Link href={ROUTES.listing.profile(row.original.id)}>
                           <Eye className="size-icon" />
                           <span className="sr-only">Voir le profil</span>
                         </Link>

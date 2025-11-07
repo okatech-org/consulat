@@ -37,7 +37,6 @@ export function TranscriptServiceForm({
 }: TranscriptServiceFormProps) {
   const t = useTranslations('services.transcript');
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
   // Predefined fields for document information
   const documentFields: ServiceField[] = [
@@ -50,7 +49,6 @@ export function TranscriptServiceForm({
         value: type,
         label: t(`documentTypes.${type.toLowerCase()}`),
       })),
-      selectType: 'single',
     },
     {
       name: 'documentDate',
@@ -67,7 +65,6 @@ export function TranscriptServiceForm({
         value: type,
         label: t(`documentTypes.${type.toLowerCase()}`),
       })),
-      selectType: 'single',
     },
     {
       name: 'issuingAuthority',
@@ -117,20 +114,16 @@ export function TranscriptServiceForm({
 
   const form = useForm<TranscriptDocumentInput>({
     resolver: zodResolver(TranscriptDocumentSchema),
-    defaultValues: { documents: [] },
+    defaultValues: {},
   });
 
   const handleSubmit = async (data: TranscriptDocumentInput) => {
     setIsLoading(true);
     try {
       await onSubmit(data);
-      toast({ title: t('messages.success'), variant: 'success' });
-    } catch (error) {
-      toast({
-        title: t('messages.error'),
-        description: `${error}`,
-        variant: 'destructive',
-      });
+      toast.success(t('messages.success'));
+    } catch {
+      toast.error(t('messages.error'));
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +142,10 @@ export function TranscriptServiceForm({
               fields={documentFields}
               onChange={(fields) => {
                 fields.forEach((field) => {
-                  form.setValue(field.name, field.value);
+                  form.setValue(
+                    field.name as keyof TranscriptDocumentInput,
+                    field.defaultValue,
+                  );
                 });
               }}
               profileFields={[]}
@@ -175,7 +171,10 @@ export function TranscriptServiceForm({
               fields={requesterFields}
               onChange={(fields) => {
                 fields.forEach((field) => {
-                  form.setValue(field.name, field.value);
+                  form.setValue(
+                    field.name as keyof TranscriptDocumentInput,
+                    field.defaultValue,
+                  );
                 });
               }}
               profileFields={profileFields}

@@ -127,6 +127,17 @@ export default function SmartInteractiveMap({
 
   return (
     <div className={`space-y-4 ${className || ''}`}>
+      <style>
+        {`
+        .leaflet-pane {
+            z-index: 0;
+          }
+
+          .leaflet-control {
+            z-index: 1;
+          }
+        `}
+      </style>
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <CardContainer className="border-primary/10" contentClass="pt-6">
@@ -296,7 +307,7 @@ export default function SmartInteractiveMap({
         }
         contentClass="p-0"
       >
-        <div className="rounded-b-lg overflow-hidden">
+        <div className="rounded-b-lg overflow-hidden z-0">
           <MapContainer
             center={[0.4162, 9.4673]}
             zoom={3}

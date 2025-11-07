@@ -35,11 +35,10 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
   }
 
   const cantUpdateRequest =
-    hasRole(user, UserRole.Agent) &&
-    request.assignedAgentId !== user?.membership?._id;
+    hasRole(user, UserRole.Agent) && request.assignedAgentId !== user?.membership?._id;
 
   const { formatDate } = useDateLocale();
-  const t_common = useTranslations('common');
+  const t = useTranslations('');
   const [notes, setNotes] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<RequestStatus>(
@@ -99,18 +98,23 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
               <h2 className="text-xl md:text-2xl flex items-center gap-2 font-semibold">
                 {request.metadata.service?.name}{' '}
                 <Badge variant="secondary">
-                  {t_common(`requestStatus.options.${request.status}`)}
+                  {t(`inputs.requestStatus.options.${request.status}`)}
                 </Badge>
-                <Badge variant={request.priority === 'urgent' ? 'destructive' : 'outline'}>
-                  {t_common(`priority.${request.priority}`)}
+                <Badge
+                  variant={request.priority === 'urgent' ? 'destructive' : 'outline'}
+                >
+                  {t(`inputs.priority.options.${request.priority}`)}
                 </Badge>
               </h2>
               {request.metadata.requester && (
                 <div className="flex items-center gap-2 text-sm md:text-base text-muted-foreground">
                   <UserIcon className="size-4" />
-                  {request.metadata.requester.firstName} {request.metadata.requester.lastName}
+                  {request.metadata.requester.firstName}{' '}
+                  {request.metadata.requester.lastName}
                   {phoneNumber && (
-                    <span className="ml-2 text-xs text-muted-foreground">{phoneNumber}</span>
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {phoneNumber}
+                    </span>
                   )}
                 </div>
               )}
@@ -195,7 +199,7 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Pays</p>
-              <p className="font-medium">{request.countryCode}</p>
+              <p className="font-medium">{t(`countries.${request.countryCode}`)}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Service</p>
@@ -205,7 +209,9 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
               <p className="text-sm text-muted-foreground">Catégorie</p>
               <p className="font-medium">
                 {request.metadata.service?.category &&
-                  t_common(`serviceCategory.${request.metadata.service.category}`)}
+                  t(
+                    `inputs.serviceCategory.options.${request.metadata.service.category}`,
+                  )}
               </p>
             </div>
           </div>
@@ -217,21 +223,21 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
         <CardContainer title="Options de la demande" contentClass="space-y-2">
           {/* Priorité */}
           <div className="space-y-2">
-            <Label>Priorité</Label>
+            <Label>{t('inputs.priority.label')}</Label>
             <MultiSelect<string>
               type="single"
               options={[
                 {
                   value: RequestPriority.Normal,
-                  label: t_common(`priority.${RequestPriority.Normal}`),
+                  label: t(`inputs.priority.options.${RequestPriority.Normal}`),
                 },
                 {
                   value: RequestPriority.Urgent,
-                  label: t_common(`priority.${RequestPriority.Urgent}`),
+                  label: t(`inputs.priority.options.${RequestPriority.Urgent}`),
                 },
                 {
                   value: RequestPriority.Critical,
-                  label: t_common(`priority.${RequestPriority.Critical}`),
+                  label: t(`inputs.priority.options.${RequestPriority.Critical}`),
                 },
               ]}
               selected={request.priority}
@@ -280,7 +286,7 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
               type="single"
               options={Object.values(RequestStatus).map((status) => ({
                 value: status,
-                label: t_common(`requestStatus.options.${status}`),
+                label: t(`inputs.requestStatus.options.${status}`),
               }))}
               selected={selectedStatus}
               onChange={(value) => {
@@ -310,7 +316,9 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
           {/* Update button */}
           <Button
             className="w-full"
-            disabled={isUpdating || selectedStatus === request.status || cantUpdateRequest}
+            disabled={
+              isUpdating || selectedStatus === request.status || cantUpdateRequest
+            }
             onClick={async () => {
               await handleStatusUpdate(selectedStatus);
             }}
@@ -328,9 +336,7 @@ export function ServiceRequestReviewBase({ request }: ServiceRequestReviewProps)
               .slice(0, 5)
               .map((activity, index) => (
                 <div key={index} className="border-b pb-3 last:border-0">
-                  <p className="text-sm font-medium">
-                    {getActivityLabel(activity.type)}
-                  </p>
+                  <p className="text-sm font-medium">{getActivityLabel(activity.type)}</p>
                   <p className="text-xs text-muted-foreground">
                     {formatDate(new Date(activity.timestamp), 'PPp')}
                   </p>

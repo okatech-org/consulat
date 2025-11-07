@@ -1,21 +1,26 @@
 import { api } from '@/convex/_generated/api';
-import { CountryCode } from '@/convex/lib/constants';
 import { ConvexHttpClient } from 'convex/browser';
 
 const convex = new ConvexHttpClient('https://dapper-guineapig-547.convex.cloud');
 
 async function main() {
-  console.log('Hello, world!');
-  const profiles = await convex.query(api.functions.profile.getAllProfiles, {});
+  const memberships = await convex.query(api.functions.membership.getAgentsList, {
+    limit: 100,
+  });
 
-  for (const profile of profiles) {
-    if (profile.personal?.nationality === ('gabon' as CountryCode)) {
-      console.log(`Updating profile ${profile._id}`);
-      await convex.mutation(api.functions.profile.updateProfile, {
-        profileId: profile._id,
-        personal: {
-          nationality: CountryCode.GA,
-        },
+  for (const membership of memberships.agents) {
+    console.log(`Updating profile ${membership._id}`);
+
+    const user = await convex.query(api.functions.user.getUserById, {
+      id: membership.userId,
+    });
+
+    if (user) {
+      console.log(`Updating membership ${membership._id} with user ${user._id}`);
+      convex.mutation(api.functions.membership.updateMembership, {
+        membershipId: membership._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
       });
     }
   }

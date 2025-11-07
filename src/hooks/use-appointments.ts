@@ -6,48 +6,6 @@ import { toast } from 'sonner';
 import type { Id } from '@/convex/_generated/dataModel';
 
 /**
- * Hook pour récupérer les rendez-vous d'un utilisateur groupés par statut
- */
-export function useUserAppointments(
-  userId?: Id<'users'>,
-  organizationId?: Id<'organizations'>,
-) {
-  const appointmentsData = useQuery(
-    api.functions.appointment.getUserAppointmentsEnriched,
-    userId ? { userId, organizationId } : 'skip',
-  );
-
-  return {
-    upcoming: appointmentsData?.upcoming ?? [],
-    past: appointmentsData?.past ?? [],
-    cancelled: appointmentsData?.cancelled ?? [],
-    isLoading: appointmentsData === undefined,
-    error: null,
-  };
-}
-
-/**
- * Hook pour les rendez-vous à venir
- */
-export function useUpcomingAppointments(
-  userId?: Id<'users'>,
-  organizationId?: Id<'organizations'>,
-  limit?: number,
-) {
-  const appointments = useQuery(api.functions.appointment.getUpcomingAppointments, {
-    userId,
-    organizationId,
-    limit,
-  });
-
-  return {
-    appointments: appointments ?? [],
-    isLoading: appointments === undefined,
-    error: null,
-  };
-}
-
-/**
  * Hook pour récupérer un rendez-vous spécifique
  */
 export function useAppointment(appointmentId: Id<'appointments'>) {

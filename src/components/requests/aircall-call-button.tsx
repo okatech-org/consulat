@@ -24,7 +24,6 @@ export function AircallCallButton({
   config,
   disabled = false,
 }: AircallCallButtonProps) {
-  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [callStatus, setCallStatus] = useState<
     'idle' | 'calling' | 'connected' | 'ended'
@@ -34,27 +33,18 @@ export function AircallCallButton({
     config,
     domElementId: `aircall-workspace-${requestId}`,
     onLogin: () => {
-      toast({
-        title: 'Aircall connecté',
-        description: 'Vous pouvez maintenant passer des appels.',
-      });
+      toast.success('Aircall connecté');
     },
     onLogout: () => {
       setCallStatus('idle');
     },
     onCallStart: () => {
       setCallStatus('calling');
-      toast({
-        title: 'Appel en cours',
-        description: `Appel vers ${phoneNumber}`,
-      });
+      toast.success(`Appel vers ${phoneNumber}`);
     },
     onCallEnd: () => {
       setCallStatus('ended');
-      toast({
-        title: 'Appel terminé',
-        description: "L'appel a été terminé.",
-      });
+      toast.success("L'appel a été terminé.");
       // Fermer le dialog après un délai
       setTimeout(() => {
         setIsDialogOpen(false);
@@ -63,37 +53,22 @@ export function AircallCallButton({
     },
     onCallAnswer: () => {
       setCallStatus('connected');
-      toast({
-        title: 'Appel connecté',
-        description: "L'appel a été accepté.",
-      });
+      toast.success("L'appel a été accepté.");
     },
     onError: (error) => {
       console.error('Erreur Aircall:', error);
-      toast({
-        title: 'Erreur Aircall',
-        description: "Une erreur est survenue lors de l'appel.",
-        variant: 'destructive',
-      });
+      toast.error("Une erreur est survenue lors de l'appel.");
     },
   });
 
   const handleCall = () => {
     if (!aircall.isConnected) {
-      toast({
-        title: 'Aircall non connecté',
-        description: 'Veuillez vous connecter à Aircall pour passer des appels.',
-        variant: 'destructive',
-      });
+      toast.error('Veuillez vous connecter à Aircall pour passer des appels.');
       return;
     }
 
     if (!phoneNumber) {
-      toast({
-        title: 'Numéro manquant',
-        description: 'Aucun numéro de téléphone disponible pour cette demande.',
-        variant: 'destructive',
-      });
+      toast.error('Aucun numéro de téléphone disponible pour cette demande.');
       return;
     }
 

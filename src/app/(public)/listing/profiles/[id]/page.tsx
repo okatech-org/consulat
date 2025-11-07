@@ -12,6 +12,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { UserRole } from '@/convex/lib/constants';
 import type { CompleteProfile } from '@/convex/lib/types';
+import { hasAnyRole } from '@/lib/permissions/utils';
 
 export default function ProfilePage() {
   const params = useParams<{ id: Id<'profiles'> }>();
@@ -51,14 +52,17 @@ export default function ProfilePage() {
     );
   }
 
-  const hasFullAccess =
-    user?.roles?.includes(UserRole.SuperAdmin) ||
-    (user?.roles?.some((role) =>
-      [UserRole.Admin, UserRole.Manager, UserRole.Agent].includes(role),
-    ) &&
-      user?.countryCode === data.residenceCountry);
+  const hasFullAccess = hasAnyRole(user, [
+    UserRole.SuperAdmin,
+    UserRole.Admin,
+    UserRole.Manager,
+    UserRole.Agent,
+    UserRole.IntelAgent,
+  ]);
 
   const canContact = !!user;
+
+  console.log({ user });
 
   return (
     <PageContainer
@@ -69,7 +73,6 @@ export default function ProfilePage() {
         profile={data}
         hasFullAccess={hasFullAccess ?? false}
         canContact={canContact}
-        requests={requests}
       />
     </PageContainer>
   );

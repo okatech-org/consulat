@@ -3,20 +3,11 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslations } from 'next-intl';
 import { AircallConfigSchema, type AircallConfig } from '@/schemas/aircall';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -33,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Phone, Settings, Shield, Zap } from 'lucide-react';
+import { Settings, Shield, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import CardContainer from '@/components/layouts/card-container';
 
@@ -48,8 +39,6 @@ export function AircallSettings({
   onSave,
   isLoading = false,
 }: AircallSettingsProps) {
-  const t = useTranslations('organization.settings.aircall');
-  const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
   const form = useForm<AircallConfig>({
@@ -79,16 +68,9 @@ export function AircallSettings({
     setIsSaving(true);
     try {
       await onSave(data);
-      toast({
-        title: 'Configuration sauvegardée',
-        description: 'La configuration Aircall a été mise à jour avec succès.',
-      });
-    } catch (error) {
-      toast({
-        title: 'Erreur',
-        description: 'Une erreur est survenue lors de la sauvegarde.',
-        variant: 'destructive',
-      });
+      toast.success('La configuration Aircall a été mise à jour avec succès.');
+    } catch {
+      toast.error('Une erreur est survenue lors de la sauvegarde.');
     } finally {
       setIsSaving(false);
     }
@@ -99,8 +81,7 @@ export function AircallSettings({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <CardContainer
           title="Configuration Aircall"
-          description="Configurez l'intégration Aircall pour permettre les appels depuis l'interface de review"
-          icon={<Phone className="size-5" />}
+          subtitle="Configurez l'intégration Aircall pour permettre les appels depuis l'interface de review"
         >
           <div className="space-y-6">
             {/* Activation */}
@@ -112,7 +93,7 @@ export function AircallSettings({
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Activer Aircall</FormLabel>
                     <FormDescription>
-                      Permettre aux agents de passer des appels depuis l'interface de
+                      Permettre aux agents de passer des appels depuis l&apos;interface de
                       review des demandes
                     </FormDescription>
                   </div>
@@ -180,12 +161,12 @@ export function AircallSettings({
                       name="integrationName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nom de l'intégration</FormLabel>
+                          <FormLabel>Nom de l&apos;intégration</FormLabel>
                           <FormControl>
                             <Input placeholder="Consulat.ga" {...field} />
                           </FormControl>
                           <FormDescription>
-                            Nom affiché dans l'interface Aircall
+                            Nom affiché dans l&apos;interface Aircall
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -214,7 +195,7 @@ export function AircallSettings({
                             </SelectContent>
                           </Select>
                           <FormDescription>
-                            Taille de l'interface Aircall intégrée
+                            Taille de l&apos;interface Aircall intégrée
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -281,9 +262,11 @@ export function AircallSettings({
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Transfert d'appels</FormLabel>
+                            <FormLabel className="text-sm">
+                              Transfert d&apos;appels
+                            </FormLabel>
                             <FormDescription className="text-xs">
-                              Permettre le transfert d'appels entre agents
+                              Permettre le transfert d&apos;appels entre agents
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -304,7 +287,7 @@ export function AircallSettings({
                           <div className="space-y-0.5">
                             <FormLabel className="text-sm">Enregistrement</FormLabel>
                             <FormDescription className="text-xs">
-                              Permettre l'enregistrement des appels
+                              Permettre l&apos;enregistrement des appels
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -377,9 +360,9 @@ export function AircallSettings({
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Début d'appel</FormLabel>
+                            <FormLabel className="text-sm">Début d&apos;appel</FormLabel>
                             <FormDescription className="text-xs">
-                              Écouter les événements de début d'appel
+                              Écouter les événements de début d&apos;appel
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -398,9 +381,9 @@ export function AircallSettings({
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Fin d'appel</FormLabel>
+                            <FormLabel className="text-sm">Fin d&apos;appel</FormLabel>
                             <FormDescription className="text-xs">
-                              Écouter les événements de fin d'appel
+                              Écouter les événements de fin d&apos;appel
                             </FormDescription>
                           </div>
                           <FormControl>
@@ -419,9 +402,11 @@ export function AircallSettings({
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                           <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Réponse d'appel</FormLabel>
+                            <FormLabel className="text-sm">
+                              Réponse d&apos;appel
+                            </FormLabel>
                             <FormDescription className="text-xs">
-                              Écouter les événements de réponse d'appel
+                              Écouter les événements de réponse d&apos;appel
                             </FormDescription>
                           </div>
                           <FormControl>

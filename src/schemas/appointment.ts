@@ -1,4 +1,4 @@
-import { AppointmentType, AppointmentStatus } from '@/convex/lib/constants';
+import { AppointmentType, AppointmentStatus, CountryCode } from '@/convex/lib/constants';
 import type { CompleteProfile } from '@/convex/lib/types';
 import type { Id } from '@/convex/_generated/dataModel';
 import { z } from 'zod';
@@ -6,31 +6,27 @@ import { z } from 'zod';
 export const AppointmentSchema = z.object({
   id: z.string().optional(),
   date: z.date({
-    required_error: 'appointments.validation.date_required',
+    error: 'appointments.validation.date_required',
   }),
   startTime: z.date({
-    required_error: 'appointments.validation.start_time_required',
+    error: 'appointments.validation.start_time_required',
   }),
   endTime: z.date({
-    required_error: 'appointments.validation.end_time_required',
+    error: 'appointments.validation.end_time_required',
   }),
   duration: z.number({
-    required_error: 'appointments.validation.duration_required',
+    error: 'appointments.validation.duration_required',
   }),
-  type: z.nativeEnum(AppointmentType, {
-    required_error: 'appointments.validation.type_required',
+  type: z.enum(AppointmentType, {
+    error: 'appointments.validation.type_required',
   }),
-  status: z.nativeEnum(AppointmentStatus).default(AppointmentStatus.CONFIRMED),
-  organizationId: z.string({
-    required_error: 'appointments.validation.organization_required',
-  }),
-  serviceId: z.string({
-    required_error: 'appointments.validation.service_required',
-  }),
+  status: z.enum(AppointmentStatus).default(AppointmentStatus.Confirmed),
+  organizationId: z.string(),
+  serviceId: z.string(),
   attendeeId: z.string(),
   agentId: z.string(),
-  countryCode: z.string({
-    required_error: 'appointments.validation.country_required',
+  countryCode: z.enum(CountryCode, {
+    error: 'appointments.validation.country_required',
   }),
   instructions: z.string().optional(),
   requestId: z.string().optional(),
