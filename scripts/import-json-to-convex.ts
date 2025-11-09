@@ -15,7 +15,7 @@ import type { CountryCode } from '@/convex/lib/constants';
 
 const EXPORT_DIR = './data/exports';
 const TRACKING_FILE = path.join(EXPORT_DIR, 'migrated-ids.json');
-const convex = new ConvexHttpClient('https://dapper-guineapig-547.convex.cloud');
+const convex = new ConvexHttpClient('https://greedy-horse-339.convex.cloud');
 
 interface ImportStats {
   entity: string;

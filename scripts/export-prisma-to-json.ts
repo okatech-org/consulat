@@ -3,11 +3,12 @@ import fs from 'fs/promises';
 import path from 'path';
 
 const prisma = new PrismaClient({
-  datasourceUrl: '',
+  datasourceUrl:
+    'postgresql://neondb_owner:npg_iZ2rXwYGM1xh@ep-lingering-frost-a95p0p8l-pooler.gwc.azure.neon.tech/neondb?sslmode=require&channel_binding=require',
 });
 
 const userEmail: string | undefined = undefined;
-const userLimit: number | undefined = 100;
+const userLimit: number | undefined = undefined;
 
 interface ExportStats {
   entity: string;

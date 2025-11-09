@@ -11,6 +11,10 @@ async function main() {
   for (const membership of memberships.agents) {
     console.log(`Updating profile ${membership._id}`);
 
+    if (!membership.userId) {
+      return;
+    }
+
     const user = await convex.query(api.functions.user.getUserById, {
       id: membership.userId,
     });
