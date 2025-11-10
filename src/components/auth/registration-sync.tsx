@@ -16,6 +16,7 @@ import { useAction } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 const SYNC_TIMEOUT_MS = 30000;
 const MAX_RETRY_ATTEMPTS = 3;
@@ -165,6 +166,11 @@ export function RegistrationSync() {
               Espace consulaire créé avec succès !
             </p>
             <p className="text-sm text-muted-foreground">Redirection en cours...</p>
+            <Button asChild>
+              <Link href={ROUTES.user.profile_form}>
+                Continuer mon inscription consulaire
+              </Link>
+            </Button>
           </div>
         </div>
       );
