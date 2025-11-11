@@ -80,7 +80,7 @@ const IdentityPhotoGuide: React.FC = () => {
       </p>
       <div className="flex flex-row gap-2 items-start">
         <Image
-          src="https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOiB29qVyt5qRMswJpEe8lhArUQm0gdH6X7ONZL"
+          src="https://greedy-horse-339.convex.cloud/api/storage/0fb75612-4c0a-4d53-866d-d9038e43161d"
           alt={t('guide.example_alt')}
           width={96}
           height={96}

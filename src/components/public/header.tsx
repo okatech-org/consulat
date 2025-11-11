@@ -11,7 +11,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { useTranslations } from "next-intl";
 import { Spinner } from "../ui/spinner";
 
-const logo = env.NEXT_PUBLIC_ORG_LOGO || 'https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOixzCMME2vW7azBeUDjZtRNGPui5wFQks2OdfA';
+const logo = env.NEXT_PUBLIC_ORG_LOGO || 'https://greedy-horse-339.convex.cloud/api/storage/78d28d02-9cd2-44a0-b6b1-4717a766d080';
 const appName = env.NEXT_PUBLIC_APP_NAME || 'Consulat.ga';
 
 

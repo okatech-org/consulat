@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn, useDateLocale } from '@/lib/utils';
-import type { ConvexCompleteProfile } from '@/types/convex-profile';
+import type { CompleteProfile } from '@/convex/lib/types';
 import { QRCode } from '@/components/ui/qr-code';
 
 const keaniaOne = Keania_One({
@@ -19,7 +19,7 @@ const keaniaOne = Keania_One({
 });
 
 interface ConsularCardPreviewProps {
-  profile: ConvexCompleteProfile;
+  profile: CompleteProfile;
   modelVersoUrl?: string;
   modelRectoUrl?: string;
 }
@@ -28,8 +28,8 @@ const APP_URL = process.env.NEXT_PUBLIC_URL;
 
 export function ConsularCardPreview({
   profile,
-  modelVersoUrl = 'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvz157ZiF2PUcesEKuO84jky2RwHnASFvoDIzp5',
-  modelRectoUrl = 'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzq2gxxyGuFrfiyH42kIZxa1G9KejbM8cpnDvB',
+  modelVersoUrl = 'https://greedy-horse-339.convex.cloud/api/storage/1423b4ef-2701-46ef-ac6f-10d759e61c09',
+  modelRectoUrl = 'https://greedy-horse-339.convex.cloud/api/storage/91438165-c30d-4aab-91e0-0a8e5806c1ec',
 }: ConsularCardPreviewProps) {
   const t = useTranslations('profile.card');
   const [isFlipped, setIsFlipped] = useState(true);

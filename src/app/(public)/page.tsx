@@ -40,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: 'website',
       images: [
         {
-          url: 'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzIR5ZwFVy71fBETsMXzUe3H0VnAbYiqJmhgGv',
+          url: 'https://greedy-horse-339.convex.cloud/api/storage/6ba8652a-bea9-4742-9e42-31803bb49480',
           width: 1000,
           height: 1000,
           alt: 'Consulat Digital - Présentation',
@@ -52,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: t('home.landing.hero.consulat_ga'),
       description: t('home.landing.hero.description'),
       images: [
-        'https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzIR5ZwFVy71fBETsMXzUe3H0VnAbYiqJmhgGv',
+        'https://greedy-horse-339.convex.cloud/api/storage/6ba8652a-bea9-4742-9e42-31803bb49480',
       ],
     },
     alternates: {
@@ -138,7 +138,7 @@ export default async function LandingPage() {
                   {/* Intégration vidéo YouTube */}
                   <div className="aspect-[16/9] w-full overflow-hidden rounded-lg">
                     <Image
-                      src="https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzIR5ZwFVy71fBETsMXzUe3H0VnAbYiqJmhgGv"
+                      src="https://greedy-horse-339.convex.cloud/api/storage/6ba8652a-bea9-4742-9e42-31803bb49480"
                       alt="Consulat Digital - Présentation"
                       width={1000}
                       height={1000}
@@ -168,7 +168,7 @@ export default async function LandingPage() {
           {/* Intégration vidéo YouTube - Section Participation */}
           <div className="mb-4 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/10">
             <Image
-              src="https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzu3QBBn71geaQjXnHDofPNzyC6pFAxtWIr2Ou"
+              src="https://greedy-horse-339.convex.cloud/api/storage/28c935c1-73ba-4734-a4ee-c8ecac7f7fab"
               alt="Participation Citoyenne"
               width={1000}
               height={1000}
@@ -188,7 +188,7 @@ export default async function LandingPage() {
           {/* Intégration vidéo YouTube - Section Digital */}
           <div className="mb-4 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/10">
             <Image
-              src="https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvzrYVGHZlHiEwjDCgI8pk6FfLB07qAVPd1oWJr"
+              src="https://greedy-horse-339.convex.cloud/api/storage/87e8ceaa-1497-46d0-b540-35f3bf6768c3"
               alt="Digitalisation des Services"
               width={1000}
               height={1000}
@@ -208,7 +208,7 @@ export default async function LandingPage() {
           {/* Intégration vidéo YouTube - Section Tracking */}
           <div className="mb-4 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 shadow-lg shadow-purple-500/10">
             <Image
-              src="https://qld7pfnhxe.ufs.sh/f/yMD4lMLsSKvz59ALum6EjW1BNKLHSZd53TRcXzlwEr8J7aiM"
+              src="https://greedy-horse-339.convex.cloud/api/storage/d48f51fe-b7ef-49c0-82ea-75e9cd1cbb0e"
               alt="Suivi en Temps Réel"
               width={1000}
               height={1000}

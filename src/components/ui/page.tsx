@@ -359,7 +359,7 @@ export default async function LandingPage() {
                 <div className="relative group">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                   <Image
-                    src="https://rbvj2i3urx.ufs.sh/f/H4jCIhEWEyOifsdcfBbNjDW8YvQqck32Bt5K4OMmIiGzFVUe"
+                    src="https://greedy-horse-339.convex.cloud/api/storage/78d28d02-9cd2-44a0-b6b1-4717a766d080"
                     width={60}
                     height={60}
                     alt="Consulat.ga"
