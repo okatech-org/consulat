@@ -21,6 +21,14 @@ import {
   countryCodeValidator,
 } from '../lib/validators';
 import { api } from '../_generated/api';
+import { paginationOptsValidator } from 'convex/server';
+
+export const queryProfiles = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    return await ctx.db.query('profiles').order('desc').paginate(args.paginationOpts);
+  },
+});
 
 // Mutations
 export const createProfile = mutation({
@@ -150,6 +158,36 @@ export const updateProfile = mutation({
         cv: v.optional(v.id('documents')),
       }),
     ),
+    passport: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    birthCertificate: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    residencePermit: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    addressProof: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    identityPicture: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     const existingProfile = await ctx.db.get(args.profileId);
@@ -167,6 +205,7 @@ export const updateProfile = mutation({
       contacts?: typeof existingProfile.contacts;
       status?: ProfileStatusType;
       registrationRequest?: typeof existingProfile.registrationRequest;
+      documents?: typeof existingProfile.documents;
     } = {};
 
     if (args.personal !== undefined) {
@@ -206,6 +245,34 @@ export const updateProfile = mutation({
 
     if (args.registrationRequest !== undefined) {
       updateData.registrationRequest = args.registrationRequest;
+    }
+
+    if (args.passport !== undefined) {
+      updateData.documents = { ...existingProfile.documents, passport: args.passport };
+    }
+    if (args.birthCertificate !== undefined) {
+      updateData.documents = {
+        ...existingProfile.documents,
+        birthCertificate: args.birthCertificate,
+      };
+    }
+    if (args.residencePermit !== undefined) {
+      updateData.documents = {
+        ...existingProfile.documents,
+        residencePermit: args.residencePermit,
+      };
+    }
+    if (args.addressProof !== undefined) {
+      updateData.documents = {
+        ...existingProfile.documents,
+        addressProof: args.addressProof,
+      };
+    }
+    if (args.identityPicture !== undefined) {
+      updateData.documents = {
+        ...existingProfile.documents,
+        identityPicture: args.identityPicture,
+      };
     }
 
     await ctx.db.patch(args.profileId, updateData);

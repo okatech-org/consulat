@@ -15,8 +15,6 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useMemo } from 'react';
 
-export const dynamic = 'force-dynamic';
-
 export default function UserAppointmentsPage() {
   const { user } = useCurrentUser();
   const appointments = useQuery(

@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
   },
   trailingSlash: false,
   reactStrictMode: true,
+  cacheComponents: true,
   images: {
     remotePatterns: [
       {

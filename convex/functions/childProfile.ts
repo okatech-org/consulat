@@ -21,6 +21,17 @@ import {
   profileStatusValidator,
 } from '../lib/validators';
 import { api } from '../_generated/api';
+import { paginationOptsValidator } from 'convex/server';
+
+export const queryChildProfiles = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query('childProfiles')
+      .order('desc')
+      .paginate(args.paginationOpts);
+  },
+});
 
 // Mutations
 export const createChildProfile = mutation({
@@ -107,6 +118,36 @@ export const updateChildProfile = mutation({
       }),
     ),
     parents: v.optional(v.array(parentalAuthorityValidator)),
+    passport: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    birthCertificate: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    residencePermit: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    addressProof: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
+    identityPicture: v.optional(
+      v.object({
+        id: v.id('documents'),
+        fileUrl: v.string(),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     const existingProfile = await ctx.db.get(args.childProfileId);
@@ -121,6 +162,7 @@ export const updateChildProfile = mutation({
       consularCard?: typeof existingProfile.consularCard;
       status?: typeof existingProfile.status;
       registrationRequest?: typeof existingProfile.registrationRequest;
+      documents?: typeof existingProfile.documents;
     } = {};
 
     if (args.personal !== undefined) {
@@ -145,6 +187,34 @@ export const updateChildProfile = mutation({
 
     if (args.parents !== undefined) {
       updateData.parents = args.parents;
+    }
+
+    if (args.passport !== undefined) {
+      updateData.documents = { ...existingProfile.documents, passport: args.passport };
+    }
+    if (args.birthCertificate !== undefined) {
+      updateData.documents = {
+        ...existingProfile.documents,
+        birthCertificate: args.birthCertificate,
+      };
+    }
+    if (args.residencePermit !== undefined) {
+      updateData.documents = {
+        ...existingProfile.documents,
+        residencePermit: args.residencePermit,
+      };
+    }
+    if (args.addressProof !== undefined) {
+      updateData.documents = {
+        ...existingProfile.documents,
+        addressProof: args.addressProof,
+      };
+    }
+    if (args.identityPicture !== undefined) {
+      updateData.documents = {
+        ...existingProfile.documents,
+        identityPicture: args.identityPicture,
+      };
     }
 
     await ctx.db.patch(args.childProfileId, updateData);

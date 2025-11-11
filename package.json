@@ -19,7 +19,7 @@
     "db:actions": "NODE_ENV=development tsx scripts/db-actions.ts",
     "migrate:export-json": "tsx scripts/export-prisma-to-json.ts",
     "migrate:import-json": "tsx scripts/import-json-to-convex.ts",
-    "convex:reset:yolo": "for tableName in `npx convex data`; do if [ \"$tableName\" != \"documentss\" ]; then npx convex import --prod --table $tableName --replace -y --format jsonLines /dev/null; fi; done"
+    "convex:reset:yolo": "for tableName in `npx convex data`; do if [ \"$tableName\" != \"documentss\" ]; then npx convex import --table $tableName --replace -y --format jsonLines /dev/null; fi; done"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.29.2",
