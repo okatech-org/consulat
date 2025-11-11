@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -18,26 +18,19 @@ import { useTranslations } from 'next-intl';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { UserDocument } from './user-document';
 import type { Doc } from '@/convex/_generated/dataModel';
-import CardContainer from '../layouts/card-container';
 
-export function DocumentsListClient() {
+function DocumentsListContent() {
   const { user } = useCurrentUser();
   const t = useTranslations('services.documents');
   const t_input = useTranslations('inputs.userDocument');
   const [selectedType, setSelectedType] = useState<string | 'all'>('all');
 
-  // Requête avec Convex
   const documents = useQuery(
     api.functions.document.getUserDocuments,
     user?.profileId ? { profileId: user.profileId } : 'skip',
   );
 
-  const isLoading = documents === undefined;
   const totalCount = documents?.length ?? 0;
-
-  if (isLoading) {
-    return <LoadingSkeleton variant="grid" />;
-  }
 
   return (
     <div className="space-y-6">
@@ -92,5 +85,13 @@ export function DocumentsListClient() {
         </div>
       )}
     </div>
+  );
+}
+
+export function DocumentsListClient() {
+  return (
+    <Suspense fallback={<LoadingSkeleton variant="grid" />}>
+      <DocumentsListContent />
+    </Suspense>
   );
 }

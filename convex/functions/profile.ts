@@ -984,7 +984,6 @@ export const getProfilesMapData = query({
     const profiles = await ctx.db
       .query('profiles')
       .filter((q) => q.not(q.eq(q.field('status'), ProfileStatus.Draft)))
-      .filter((q) => q.not(q.eq(q.field('contacts.address'), undefined)))
       .collect();
 
     const childProfiles = await ctx.db
@@ -993,27 +992,44 @@ export const getProfilesMapData = query({
       .collect();
 
     const profilesMapData = profiles
-      .filter((profile) => profile.contacts.address)
+      .filter((profile) => {
+        return (
+          profile.contacts?.address &&
+          profile.personal?.firstName &&
+          profile.personal?.lastName
+        );
+      })
       .map((profile) => {
         return {
           id: profile._id,
-          firstName: profile.personal.firstName,
-          lastName: profile.personal.lastName,
-          address: profile.contacts.address,
+          firstName: profile.personal!.firstName!,
+          lastName: profile.personal!.lastName!,
+          address: profile.contacts!.address!,
           status: profile.status,
         };
       });
 
-    const childProfilesMapData = childProfiles.map((profile) => {
-      const [parent1, parent2] = profile.parents;
-      return {
-        id: profile._id,
-        firstName: profile.personal.firstName,
-        lastName: profile.personal.lastName,
-        address: parent1.address || parent2.address,
-        status: profile.status,
-      };
-    });
+    const childProfilesMapData = childProfiles
+      .filter((profile) => {
+        if (!profile.personal?.firstName || !profile.personal?.lastName) {
+          return false;
+        }
+        if (!profile.parents || profile.parents.length === 0) {
+          return false;
+        }
+        const [parent1, parent2] = profile.parents;
+        return !!(parent1?.address || parent2?.address);
+      })
+      .map((profile) => {
+        const [parent1, parent2] = profile.parents!;
+        return {
+          id: profile._id,
+          firstName: profile.personal!.firstName!,
+          lastName: profile.personal!.lastName!,
+          address: parent1?.address || parent2?.address,
+          status: profile.status,
+        };
+      });
 
     return [...profilesMapData, ...childProfilesMapData];
   },

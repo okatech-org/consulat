@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import RequestReview from '../_components/request-review';
 import { PageContainer } from '@/components/layouts/page-container';
@@ -9,11 +10,9 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 
-export default function ViewRequest() {
-  const { id } = useParams<{ id: Id<'requests'> }>();
-
+function RequestViewContent({ requestId }: { requestId: Id<'requests'> }) {
   const request = useQuery(api.functions.request.getRequest, {
-    requestId: id,
+    requestId,
   });
 
   if (request === undefined) {
@@ -38,5 +37,15 @@ function PageLoadingSkeleton() {
     <PageContainer>
       <LoadingSkeleton variant="grid" columns={2} rows={2} />
     </PageContainer>
+  );
+}
+
+export default function ViewRequest() {
+  const { id } = useParams<{ id: Id<'requests'> }>();
+
+  return (
+    <Suspense fallback={<PageLoadingSkeleton />}>
+      <RequestViewContent requestId={id} />
+    </Suspense>
   );
 }

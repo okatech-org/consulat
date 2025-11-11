@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/ui/site-header';
 import { UserSidebar } from '@/components/layouts/user-sidebar';
@@ -24,16 +25,24 @@ export default function MySpaceLayout({
 }>) {
   return (
     <SidebarProvider>
-      <Guard>
-        <UserSidebar />
-        <SidebarInset className="bg-background overflow-hidden">
-          <SiteHeader />
-          <div className="absolute pt-14 pb-safe md:pb-6! inset-0 overflow-y-scroll overflow-x-hidden container">
-            {children}
-          </div>
-          <UserBottomNavigation />
-        </SidebarInset>
-      </Guard>
+      <Suspense
+        fallback={
+          <PageContainer className="h-full w-full flex flex-col gap-2 items-center justify-center">
+            <Spinner />
+          </PageContainer>
+        }
+      >
+        <Guard>
+          <UserSidebar />
+          <SidebarInset className="bg-background overflow-hidden">
+            <SiteHeader />
+            <div className="absolute pt-14 pb-safe md:pb-6! inset-0 overflow-y-scroll overflow-x-hidden container">
+              {children}
+            </div>
+            <UserBottomNavigation />
+          </SidebarInset>
+        </Guard>
+      </Suspense>
     </SidebarProvider>
   );
 }
