@@ -542,8 +542,8 @@ async function main() {
 
     await loadMigrationTracking();
 
-    await importBaseData();
-    await importUserCentricData();
+    //await importBaseData();
+    //await importUserCentricData();
     await importParentalAuthorities();
 
     await printStats();

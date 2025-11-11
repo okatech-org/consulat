@@ -1295,7 +1295,7 @@ export const importUserWithData = mutation({
             ctx.db.get(serviceId!),
             ctx.db.get(profileId!),
             ctx.db.get(organizationId!),
-            ctx.db.get(assignedAgentId!),
+            assignedAgentId ? ctx.db.get(assignedAgentId) : Promise.resolve(undefined),
           ]);
 
           if (serviceId && profileData) {
@@ -1857,11 +1857,11 @@ export const importParentalAuthority = mutation({
           ctx.db.get(requesterUser.profileId),
           ctx.db.get(childProfileId),
           ctx.db.get(organizationId),
-          ctx.db.get(assignedAgentId!),
+          assignedAgentId ? ctx.db.get(assignedAgentId) : Promise.resolve(undefined),
         ]);
 
         const activities = await Promise.all(
-          args.request?.actions?.map(async (a: RequestAction) => {
+          (args.request?.actions ?? []).map(async (a: RequestAction) => {
             const actorId = await findConvexUserByLegacyId(ctx, a.userId);
             if (!actorId) {
               console.warn(`Utilisateur ${a.userId} introuvable`);
@@ -1890,7 +1890,7 @@ export const importParentalAuthority = mutation({
           profileId: profile!._id,
           formData: args.request.formData || {},
           documentIds: [],
-          notes: args.request.notes.map((n: Note) => ({
+          notes: (args.request.notes ?? []).map((n: Note) => ({
             type: (n.type || 'feedback').toString().toLowerCase(),
             authorId: undefined,
             content: n.content || '',

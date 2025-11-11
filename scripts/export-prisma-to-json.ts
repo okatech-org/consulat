@@ -4,7 +4,7 @@ import path from 'path';
 
 const prisma = new PrismaClient({
   datasourceUrl:
-    'postgresql://neondb_owner:npg_iZ2rXwYGM1xh@ep-lingering-frost-a95p0p8l-pooler.gwc.azure.neon.tech/neondb?sslmode=require&channel_binding=require',
+    'postgresql://neondb_owner:npg_iZ2rXwYGM1xh@ep-cool-frog-a94qnh7f.gwc.azure.neon.tech/neondb?sslmode=require&channel_binding=require',
 });
 
 const userEmail: string | undefined = undefined;
