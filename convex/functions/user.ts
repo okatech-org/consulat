@@ -482,37 +482,43 @@ export const getUserProfile = query({
 
 export const updateOrCreateUserInternal = internalMutation({
   args: {
-    clerkUser: v.object({
-      id: v.string(),
-      first_name: v.optional(v.string()),
-      last_name: v.optional(v.string()),
-      email_addresses: v.optional(
-        v.array(
-          v.object({
-            email_address: v.string(),
-          }),
-        ),
-      ),
-      phone_numbers: v.optional(
-        v.array(
-          v.object({
-            phone_number: v.string(),
-          }),
-        ),
-      ),
-    }),
+    clerkUser: v.any(),
   },
   handler: async (ctx, args) => {
     const { clerkUser } = args;
 
+    let existingUser = null;
+
     // Vérifier si l'utilisateur existe déjà
-    const existingUser = await ctx.db
+    const dbUser = await ctx.db
       .query('users')
       .withIndex('by_userId', (q) => q.eq('userId', clerkUser.id))
       .first();
 
+    if (dbUser) {
+      existingUser = dbUser;
+    }
+
     const email = clerkUser.email_addresses?.[0]?.email_address;
     const phoneNumber = clerkUser.phone_numbers?.[0]?.phone_number;
+
+    const existingUserWithEmail = await ctx.db
+      .query('users')
+      .withIndex('by_email', (q) => q.eq('email', email))
+      .first();
+
+    if (existingUserWithEmail) {
+      existingUser = existingUserWithEmail;
+    }
+
+    const existingUserWithPhoneNumber = await ctx.db
+      .query('users')
+      .withIndex('by_phone', (q) => q.eq('phoneNumber', phoneNumber))
+      .first();
+
+    if (existingUserWithPhoneNumber) {
+      existingUser = existingUserWithPhoneNumber;
+    }
 
     if (existingUser) {
       // Mettre à jour l'utilisateur existant
