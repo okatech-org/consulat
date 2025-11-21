@@ -224,13 +224,32 @@ export const handleNewUser = action({
         throw new Error('User must have at least an email or phone number');
       }
 
-      console.log('email', email);
-      console.log('phoneNumber', phoneNumber);
-
       const extratedCountryCode = countryCodeFromPhoneNumber(phoneNumber || '');
 
       if (!extratedCountryCode) {
         throw new Error('Could not determine country code from phone number');
+      }
+
+      const existingUserWithEmail = await ctx.runQuery(
+        api.functions.user.getUserByEmail,
+        {
+          email: email,
+        },
+      );
+
+      if (existingUserWithEmail) {
+        throw new Error('User already exists with this email');
+      }
+
+      const existingUserWithPhoneNumber = await ctx.runQuery(
+        api.functions.user.getUserByPhoneNumber,
+        {
+          phoneNumber: phoneNumber,
+        },
+      );
+
+      if (existingUserWithPhoneNumber) {
+        throw new Error('User already exists with this phone number');
       }
 
       const userId: Id<'users'> = await ctx.runMutation(api.functions.user.createUser, {
@@ -317,6 +336,16 @@ export const getUserByEmail = query({
     return await ctx.db
       .query('users')
       .withIndex('by_email', (q) => q.eq('email', args.email))
+      .first();
+  },
+});
+
+export const getUserByPhoneNumber = query({
+  args: { phoneNumber: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query('users')
+      .withIndex('by_phone', (q) => q.eq('phoneNumber', args.phoneNumber))
       .first();
   },
 });
