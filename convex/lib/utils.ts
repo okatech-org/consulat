@@ -1,10 +1,11 @@
 import { CountryCode } from './constants';
+import { countryCodes } from './countryCodes';
 
 export const countryCodeFromPhoneNumber = (phoneNumber: string) => {
-  const country = Object.values(CountryCode).find((countryCode) =>
-    phoneNumber.startsWith(`+${countryCode}`),
+  const countryDetails = countryCodes.find((country) =>
+    phoneNumber.startsWith(country.dial_code),
   );
-  return country ? country : undefined;
+  return countryDetails ? (countryDetails.code as CountryCode) : undefined;
 };
 
 interface ProfileCompletionResult {

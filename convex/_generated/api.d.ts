@@ -47,6 +47,7 @@ import type * as lib_ai_knowledgeBase from "../lib/ai/knowledgeBase.js";
 import type * as lib_ai_prompts from "../lib/ai/prompts.js";
 import type * as lib_ai_types from "../lib/ai/types.js";
 import type * as lib_constants from "../lib/constants.js";
+import type * as lib_countryCodes from "../lib/countryCodes.js";
 import type * as lib_fileTypes from "../lib/fileTypes.js";
 import type * as lib_twilio from "../lib/twilio.js";
 import type * as lib_types from "../lib/types.js";
@@ -74,14 +75,6 @@ import type {
   FunctionReference,
 } from "convex/server";
 
-/**
- * A utility for referencing Convex functions in your app's API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = api.myModule.myFunction;
- * ```
- */
 declare const fullApi: ApiFromModules<{
   "functions/ai": typeof functions_ai;
   "functions/analytics": typeof functions_analytics;
@@ -122,6 +115,7 @@ declare const fullApi: ApiFromModules<{
   "lib/ai/prompts": typeof lib_ai_prompts;
   "lib/ai/types": typeof lib_ai_types;
   "lib/constants": typeof lib_constants;
+  "lib/countryCodes": typeof lib_countryCodes;
   "lib/fileTypes": typeof lib_fileTypes;
   "lib/twilio": typeof lib_twilio;
   "lib/types": typeof lib_types;
@@ -143,14 +137,30 @@ declare const fullApi: ApiFromModules<{
   "tables/tickets": typeof tables_tickets;
   "tables/users": typeof tables_users;
 }>;
-declare const fullApiWithMounts: typeof fullApi;
 
+/**
+ * A utility for referencing Convex functions in your app's public API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = api.myModule.myFunction;
+ * ```
+ */
 export declare const api: FilterApi<
-  typeof fullApiWithMounts,
+  typeof fullApi,
   FunctionReference<any, "public">
 >;
+
+/**
+ * A utility for referencing Convex functions in your app's internal API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = internal.myModule.myFunction;
+ * ```
+ */
 export declare const internal: FilterApi<
-  typeof fullApiWithMounts,
+  typeof fullApi,
   FunctionReference<any, "internal">
 >;
 
