@@ -577,6 +577,15 @@ export const getProfilIdFromPublicId = query({
       return args.publicId as Id<'profiles'>;
     }
 
+    const isChildProfile = await ctx.db
+      .query('childProfiles')
+      .withIndex('by_id', (q) => q.eq('_id', args.publicId as Id<'childProfiles'>))
+      .first();
+
+    if (isChildProfile) {
+      return isChildProfile._id;
+    }
+
     const profile = legacyProfiles[args.publicId] as Id<'profiles'> | undefined;
 
     if (profile) {

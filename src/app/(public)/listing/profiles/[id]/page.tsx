@@ -11,25 +11,35 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { UserRole } from '@/convex/lib/constants';
-import type { CompleteProfile } from '@/convex/lib/types';
+import type { CompleteChildProfile, CompleteProfile } from '@/convex/lib/types';
 import { hasAnyRole } from '@/lib/permissions/utils';
 
 export default function ProfilePage() {
   const params = useParams<{ id: Id<'profiles'> }>();
+  const router = useRouter();
+  const { user } = useCurrentUser();
 
   const profileId = useQuery(api.functions.profile.getProfilIdFromPublicId, {
     publicId: params.id,
   });
 
+  const isChildProfile = useQuery(api.functions.childProfile.isChildProfile, {
+    childProfileId: profileId as string,
+  });
+
   const data = useQuery(
     api.functions.profile.getCurrentProfile,
-    profileId ? { profileId } : 'skip',
+    profileId && !isChildProfile ? { profileId: profileId as Id<'profiles'> } : 'skip',
   );
 
-  const { user } = useCurrentUser();
-  const router = useRouter();
+  const childProfile = useQuery(api.functions.childProfile.getCurrentChildProfile, {
+    childProfileId: profileId as Id<'childProfiles'>,
+  });
 
-  if (data === undefined) {
+  if (
+    (isChildProfile && childProfile === undefined) ||
+    (!isChildProfile && data === undefined)
+  ) {
     return (
       <PageContainer
         title={`Profile Consulaires publique`}
@@ -40,7 +50,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (data === null) {
+  if ((isChildProfile && childProfile === null) || (!isChildProfile && data === null)) {
     return (
       <PageContainer
         title={`Profile Consulaires publique`}
@@ -67,8 +77,6 @@ export default function ProfilePage() {
     UserRole.IntelAgent,
   ]);
 
-  const canContact = !!user;
-
   return (
     <PageContainer
       title={`Profile Consulaires publique`}
@@ -76,8 +84,8 @@ export default function ProfilePage() {
     >
       <ProfileDetailsView
         profile={data}
+        childProfile={childProfile}
         hasFullAccess={hasFullAccess ?? false}
-        canContact={canContact}
       />
     </PageContainer>
   );
@@ -85,32 +93,44 @@ export default function ProfilePage() {
 
 interface ProfileDetailsViewProps {
   profile: CompleteProfile;
+  childProfile?: CompleteChildProfile;
   hasFullAccess: boolean;
-  canContact: boolean;
 }
 
 export function ProfileDetailsView({
   profile,
+  childProfile,
   hasFullAccess,
-  canContact,
 }: ProfileDetailsViewProps) {
-  if (!profile) {
+  const { user } = useCurrentUser();
+
+  if (!profile && !childProfile) {
     return null;
   }
 
-  return (
-    <>
-      <ProfileView profile={profile} hasFullAccess={hasFullAccess} showRequests={true} />
+  if (childProfile) {
+    return <h1>Bientôt disponible</h1>;
+  }
 
-      {canContact && (
-        <div className="mt-8">
-          <ProfileContactForm
-            userId={profile.userId}
-            recipientEmail={profile.contacts?.email ?? ''}
-            recipientName={`${profile.personal?.firstName} ${profile.personal?.lastName}`}
-          />
-        </div>
-      )}
-    </>
-  );
+  if (profile) {
+    return (
+      <>
+        <ProfileView
+          profile={profile}
+          hasFullAccess={hasFullAccess}
+          showRequests={true}
+        />
+
+        {user && (
+          <div className="mt-8">
+            <ProfileContactForm
+              userId={user._id}
+              recipientEmail={profile.contacts?.email ?? ''}
+              recipientName={`${profile.personal?.firstName} ${profile.personal?.lastName}`}
+            />
+          </div>
+        )}
+      </>
+    );
+  }
 }

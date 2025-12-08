@@ -12,7 +12,7 @@ import {
   Gender,
 } from '../lib/constants';
 import type { ProfileStatus as ProfileStatusType } from '../lib/constants';
-import type { Doc } from '../_generated/dataModel';
+import type { Doc, Id } from '../_generated/dataModel';
 import {
   countryCodeValidator,
   genderValidator,
@@ -653,6 +653,18 @@ export const getCurrentChildProfile = query({
   },
 });
 
+export const isChildProfile = query({
+  args: { childProfileId: v.string() },
+  handler: async (ctx, args) => {
+    const childProfile = await ctx.db
+      .query('childProfiles')
+      .withIndex('by_id', (q) => q.eq('_id', args.childProfileId as Id<'childProfiles'>))
+      .first();
+
+    return !!childProfile;
+  },
+});
+
 export const deleteChildProfile = mutation({
   args: { childProfileId: v.id('childProfiles') },
   handler: async (ctx, args) => {
@@ -750,5 +762,16 @@ export const updateParentInChildProfile = mutation({
     });
 
     return args.childProfileId;
+  },
+});
+
+export const getChildProfileByFullName = query({
+  args: { firstName: v.string(), lastName: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query('childProfiles')
+      .filter((q) => q.eq(q.field('personal.firstName'), args.firstName))
+      .filter((q) => q.eq(q.field('personal.lastName'), args.lastName))
+      .first();
   },
 });
