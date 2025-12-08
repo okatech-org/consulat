@@ -611,9 +611,9 @@ export const getAllChildProfiles = query({
 });
 
 export const getCurrentChildProfile = query({
-  args: { childProfileId: v.id('childProfiles') },
+  args: { childProfileId: v.string() },
   handler: async (ctx, args) => {
-    const profile = await ctx.db.get(args.childProfileId);
+    const profile = await ctx.db.get(args.childProfileId as Id<'profiles'>);
 
     if (!profile) {
       return null;

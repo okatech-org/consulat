@@ -23,18 +23,28 @@ export default function ProfilePage() {
     publicId: params.id,
   });
 
-  const isChildProfile = useQuery(api.functions.childProfile.isChildProfile, {
-    childProfileId: profileId as string,
-  });
+  const isChildProfile = useQuery(
+    api.functions.childProfile.isChildProfile,
+    profileId
+      ? {
+          childProfileId: profileId as string,
+        }
+      : 'skip',
+  );
 
   const data = useQuery(
     api.functions.profile.getCurrentProfile,
     profileId && !isChildProfile ? { profileId: profileId as Id<'profiles'> } : 'skip',
   );
 
-  const childProfile = useQuery(api.functions.childProfile.getCurrentChildProfile, {
-    childProfileId: profileId as Id<'childProfiles'>,
-  });
+  const childProfile = useQuery(
+    api.functions.childProfile.getCurrentChildProfile,
+    profileId && isChildProfile
+      ? {
+          childProfileId: profileId as Id<'childProfiles'>,
+        }
+      : 'skip',
+  );
 
   if (
     (isChildProfile && childProfile === undefined) ||
@@ -92,8 +102,8 @@ export default function ProfilePage() {
 }
 
 interface ProfileDetailsViewProps {
-  profile: CompleteProfile;
-  childProfile?: CompleteChildProfile;
+  profile: CompleteProfile | null | undefined;
+  childProfile?: CompleteChildProfile | null | undefined;
   hasFullAccess: boolean;
 }
 
