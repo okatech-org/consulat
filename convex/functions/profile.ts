@@ -9,7 +9,7 @@ import {
   ServiceCategory,
 } from '../lib/constants';
 import type { ProfileStatus as ProfileStatusType } from '../lib/constants';
-import type { Doc } from '../_generated/dataModel';
+import type { Doc, Id } from '../_generated/dataModel';
 import {
   addressValidator,
   emergencyContactValidator,
@@ -22,6 +22,7 @@ import {
 } from '../lib/validators';
 import { api } from '../_generated/api';
 import { paginationOptsValidator } from 'convex/server';
+import { legacyProfiles } from '../lib/profile-clerk-map';
 
 export const queryProfiles = query({
   args: { paginationOpts: paginationOptsValidator },
@@ -501,17 +502,13 @@ export const getProfilesListEnriched = query({
   },
 });
 
-// Alias pour compatibilité
-export const getList = getProfilesListEnriched;
-
-// Nouvelle fonction pour obtenir le profil courant avec toutes les données nécessaires
 export const getCurrentProfile = query({
   args: { profileId: v.optional(v.id('profiles')) },
   handler: async (ctx, args) => {
     const userIdentity = await ctx.auth.getUserIdentity();
 
     if (!userIdentity) {
-      throw new Error('user_not_found');
+      return null;
     }
 
     const user = await ctx.db
@@ -520,7 +517,7 @@ export const getCurrentProfile = query({
       .first();
 
     if (!user) {
-      throw new Error('user_not_found');
+      return null;
     }
 
     // Obtenir le profil par userId
@@ -532,7 +529,7 @@ export const getCurrentProfile = query({
           .first();
 
     if (!profile) {
-      throw new Error('profile_not_found');
+      return null;
     }
 
     // Obtenir les documents associés au profil
@@ -565,6 +562,42 @@ export const getCurrentProfile = query({
       residencePermit,
       addressProof,
     };
+  },
+});
+
+export const getProfilFromPublicId = query({
+  args: { publicId: v.string() },
+  handler: async (ctx, args) => {
+    const isProfile = await ctx.db
+      .query('profiles')
+      .withIndex('by_id', (q) => q.eq('_id', args.publicId as Id<'profiles'>))
+      .first();
+
+    if (isProfile) {
+      const profilDetails: Promise<Doc<'profiles'>> = await ctx.runQuery(
+        api.functions.profile.getCurrentProfile,
+        {
+          profileId: isProfile._id,
+        },
+      );
+
+      return profilDetails;
+    }
+
+    const profile = legacyProfiles[args.publicId] as Id<'profiles'> | undefined;
+
+    if (profile) {
+      const profilDetails: Promise<Doc<'profiles'> | null> = await ctx.runQuery(
+        api.functions.profile.getCurrentProfile,
+        {
+          profileId: profile,
+        },
+      );
+
+      return profilDetails;
+    }
+
+    return null;
   },
 });
 

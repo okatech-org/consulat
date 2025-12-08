@@ -207,7 +207,7 @@ export default function ProfilesPage() {
   const { user } = useCurrentUser();
 
   // Récupérer les données avec Convex
-  const profilesResponse = useQuery(convexApi.functions.profile.getList, {
+  const profilesResponse = useQuery(convexApi.functions.profile.getProfilesListEnriched, {
     page: Math.max(1, safePagination.pageIndex + 1),
     limit: safePagination.pageSize,
     search: combinedFilters?.search || undefined,

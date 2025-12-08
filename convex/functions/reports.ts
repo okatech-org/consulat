@@ -6,7 +6,14 @@ import { query } from '../_generated/server';
  */
 export const getReportMetrics = query({
   args: {
-    period: v.optional(v.union(v.literal('week'), v.literal('month'), v.literal('quarter'), v.literal('year'))),
+    period: v.optional(
+      v.union(
+        v.literal('week'),
+        v.literal('month'),
+        v.literal('quarter'),
+        v.literal('year'),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const { period = 'month' } = args;
@@ -33,14 +40,13 @@ export const getReportMetrics = query({
     // Fetch all data
     const profiles = await ctx.db.query('profiles').collect();
     const intelligenceNotes = await ctx.db.query('intelligenceNotes').collect();
-    const associations = await ctx.db.query('associations').collect();
 
     // Calculate metrics
     const totalProfiles = profiles.length;
 
     // Active profiles = profiles with notes or association memberships in period
-    const notesInPeriod = intelligenceNotes.filter(n => n.createdAt >= periodStart);
-    const activeProfileIds = new Set(notesInPeriod.map(n => n.profileId));
+    const notesInPeriod = intelligenceNotes.filter((n) => n.createdAt >= periodStart);
+    const activeProfileIds = new Set(notesInPeriod.map((n) => n.profileId));
     const activeProfiles = activeProfileIds.size;
 
     const notesGenerated = notesInPeriod.length;
@@ -49,30 +55,34 @@ export const getReportMetrics = query({
     const reportsGenerated = Math.floor(notesGenerated / 3.5); // Rough estimate: 1 report per ~3.5 notes
 
     // Average processing time (simulated based on complexity)
-    const avgComplexity = totalProfiles > 1000 ? 'high' : totalProfiles > 500 ? 'medium' : 'low';
-    const averageProcessingTime = avgComplexity === 'high' ? '3.2h' : avgComplexity === 'medium' ? '2.1h' : '1.5h';
+    const avgComplexity =
+      totalProfiles > 1000 ? 'high' : totalProfiles > 500 ? 'medium' : 'low';
+    const averageProcessingTime =
+      avgComplexity === 'high' ? '3.2h' : avgComplexity === 'medium' ? '2.1h' : '1.5h';
 
     // Efficiency rate: based on data quality and coverage
-    const profilesWithAddresses = profiles.filter(p => p.contacts.address?.city).length;
-    const profilesWithContacts = profiles.filter(p => p.contacts.email || p.contacts.phone).length;
-    const dataCompleteness = ((profilesWithAddresses + profilesWithContacts) / (totalProfiles * 2)) * 100;
+    const profilesWithAddresses = profiles.filter((p) => p.contacts.address?.city).length;
+    const profilesWithContacts = profiles.filter(
+      (p) => p.contacts.email || p.contacts.phone,
+    ).length;
+    const dataCompleteness =
+      ((profilesWithAddresses + profilesWithContacts) / (totalProfiles * 2)) * 100;
     const efficiencyRate = Math.min(98, Math.max(75, dataCompleteness));
 
     // Geographic coverage: percentage of profiles with location data
-    const geographicCoverage = totalProfiles > 0
-      ? (profilesWithAddresses / totalProfiles) * 100
-      : 0;
+    const geographicCoverage =
+      totalProfiles > 0 ? (profilesWithAddresses / totalProfiles) * 100 : 0;
 
     // Data quality: based on profile completeness
-    const profilesWithFullInfo = profiles.filter(p =>
-      p.personal.firstName &&
-      p.personal.lastName &&
-      p.contacts.email &&
-      p.contacts.address?.city
+    const profilesWithFullInfo = profiles.filter(
+      (p) =>
+        p.personal.firstName &&
+        p.personal.lastName &&
+        p.contacts.email &&
+        p.contacts.address?.city,
     ).length;
-    const dataQuality = totalProfiles > 0
-      ? (profilesWithFullInfo / totalProfiles) * 100
-      : 0;
+    const dataQuality =
+      totalProfiles > 0 ? (profilesWithFullInfo / totalProfiles) * 100 : 0;
 
     return {
       totalProfiles,
@@ -98,7 +108,20 @@ export const getMonthlyTrends = query({
     const intelligenceNotes = await ctx.db.query('intelligenceNotes').collect();
 
     // Calculate trends for last 4 months
-    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+    const months = [
+      'Jan',
+      'Fév',
+      'Mar',
+      'Avr',
+      'Mai',
+      'Juin',
+      'Juil',
+      'Aoû',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Déc',
+    ];
     const currentMonth = new Date(now).getMonth();
     const currentYear = new Date(now).getFullYear();
 
@@ -113,11 +136,11 @@ export const getMonthlyTrends = query({
       const monthEnd = new Date(year, monthIndex + 1, 0, 23, 59, 59).getTime();
 
       // Count profiles created before or during this month
-      const profilesCount = profiles.filter(p => p._creationTime <= monthEnd).length;
+      const profilesCount = profiles.filter((p) => p._creationTime <= monthEnd).length;
 
       // Count notes created during this month
       const notesCount = intelligenceNotes.filter(
-        n => n.createdAt >= monthStart && n.createdAt <= monthEnd
+        (n) => n.createdAt >= monthStart && n.createdAt <= monthEnd,
       ).length;
 
       // Calculate efficiency (increases over time with more data)
@@ -182,22 +205,33 @@ export const getReportStatistics = query({
 
     // Calculate metrics
     const totalProfiles = profiles.length;
-    const notesInPeriod = intelligenceNotes.filter(n => n.createdAt >= periodStart);
-    const activeProfileIds = new Set(notesInPeriod.map(n => n.profileId));
+    const notesInPeriod = intelligenceNotes.filter((n) => n.createdAt >= periodStart);
+    const activeProfileIds = new Set(notesInPeriod.map((n) => n.profileId));
     const activeProfiles = activeProfileIds.size;
     const notesGenerated = notesInPeriod.length;
     const reportsGenerated = Math.floor(notesGenerated / 3.5);
-    const avgComplexity = totalProfiles > 1000 ? 'high' : totalProfiles > 500 ? 'medium' : 'low';
-    const averageProcessingTime = avgComplexity === 'high' ? '3.2h' : avgComplexity === 'medium' ? '2.1h' : '1.5h';
-    const profilesWithAddresses = profiles.filter(p => p.contacts.address?.city).length;
-    const profilesWithContacts = profiles.filter(p => p.contacts.email || p.contacts.phone).length;
-    const dataCompleteness = ((profilesWithAddresses + profilesWithContacts) / (totalProfiles * 2)) * 100;
-    const efficiencyRate = Math.min(98, Math.max(75, dataCompleteness));
-    const geographicCoverage = totalProfiles > 0 ? (profilesWithAddresses / totalProfiles) * 100 : 0;
-    const profilesWithFullInfo = profiles.filter(p =>
-      p.personal.firstName && p.personal.lastName && p.contacts.email && p.contacts.address?.city
+    const avgComplexity =
+      totalProfiles > 1000 ? 'high' : totalProfiles > 500 ? 'medium' : 'low';
+    const averageProcessingTime =
+      avgComplexity === 'high' ? '3.2h' : avgComplexity === 'medium' ? '2.1h' : '1.5h';
+    const profilesWithAddresses = profiles.filter((p) => p.contacts.address?.city).length;
+    const profilesWithContacts = profiles.filter(
+      (p) => p.contacts.email || p.contacts.phone,
     ).length;
-    const dataQuality = totalProfiles > 0 ? (profilesWithFullInfo / totalProfiles) * 100 : 0;
+    const dataCompleteness =
+      ((profilesWithAddresses + profilesWithContacts) / (totalProfiles * 2)) * 100;
+    const efficiencyRate = Math.min(98, Math.max(75, dataCompleteness));
+    const geographicCoverage =
+      totalProfiles > 0 ? (profilesWithAddresses / totalProfiles) * 100 : 0;
+    const profilesWithFullInfo = profiles.filter(
+      (p) =>
+        p.personal.firstName &&
+        p.personal.lastName &&
+        p.contacts.email &&
+        p.contacts.address?.city,
+    ).length;
+    const dataQuality =
+      totalProfiles > 0 ? (profilesWithFullInfo / totalProfiles) * 100 : 0;
 
     const metrics = {
       totalProfiles,
@@ -211,7 +245,20 @@ export const getReportStatistics = query({
     };
 
     // Calculate trends (duplicated from getMonthlyTrends)
-    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+    const months = [
+      'Jan',
+      'Fév',
+      'Mar',
+      'Avr',
+      'Mai',
+      'Juin',
+      'Juil',
+      'Aoû',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Déc',
+    ];
     const currentMonth = new Date(now).getMonth();
     const currentYear = new Date(now).getFullYear();
     const trends = [];
@@ -221,8 +268,10 @@ export const getReportStatistics = query({
       const year = currentMonth - i < 0 ? currentYear - 1 : currentYear;
       const monthStart = new Date(year, monthIndex, 1).getTime();
       const monthEnd = new Date(year, monthIndex + 1, 0, 23, 59, 59).getTime();
-      const profilesCount = profiles.filter(p => p._creationTime <= monthEnd).length;
-      const notesCount = intelligenceNotes.filter(n => n.createdAt >= monthStart && n.createdAt <= monthEnd).length;
+      const profilesCount = profiles.filter((p) => p._creationTime <= monthEnd).length;
+      const notesCount = intelligenceNotes.filter(
+        (n) => n.createdAt >= monthStart && n.createdAt <= monthEnd,
+      ).length;
       const baseEfficiency = 88;
       const growthBonus = Math.min(7, (3 - i) * 1.5);
       const efficiency = Math.round(baseEfficiency + growthBonus);
@@ -239,12 +288,15 @@ export const getReportStatistics = query({
     // Calculate growth
     const latestMonth = trends[trends.length - 1];
     const previousMonth = trends[trends.length - 2];
-    const profileGrowth = latestMonth && previousMonth
-      ? ((latestMonth.profiles - previousMonth.profiles) / previousMonth.profiles) * 100
-      : 0;
-    const notesGrowth = latestMonth && previousMonth
-      ? ((latestMonth.notes - previousMonth.notes) / Math.max(1, previousMonth.notes)) * 100
-      : 0;
+    const profileGrowth =
+      latestMonth && previousMonth
+        ? ((latestMonth.profiles - previousMonth.profiles) / previousMonth.profiles) * 100
+        : 0;
+    const notesGrowth =
+      latestMonth && previousMonth
+        ? ((latestMonth.notes - previousMonth.notes) / Math.max(1, previousMonth.notes)) *
+          100
+        : 0;
 
     return {
       metrics,
