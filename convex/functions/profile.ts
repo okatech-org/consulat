@@ -22,7 +22,7 @@ import {
 } from '../lib/validators';
 import { api } from '../_generated/api';
 import { paginationOptsValidator } from 'convex/server';
-import { legacyProfiles } from '../lib/profile-clerk-map';
+import { legacyProfiles } from '../lib/legacyProfilesMap';
 
 export const queryProfiles = query({
   args: { paginationOpts: paginationOptsValidator },
@@ -565,7 +565,7 @@ export const getCurrentProfile = query({
   },
 });
 
-export const getProfilFromPublicId = query({
+export const getProfilIdFromPublicId = query({
   args: { publicId: v.string() },
   handler: async (ctx, args) => {
     const isProfile = await ctx.db
@@ -574,27 +574,13 @@ export const getProfilFromPublicId = query({
       .first();
 
     if (isProfile) {
-      const profilDetails: Promise<Doc<'profiles'>> = await ctx.runQuery(
-        api.functions.profile.getCurrentProfile,
-        {
-          profileId: isProfile._id,
-        },
-      );
-
-      return profilDetails;
+      return args.publicId as Id<'profiles'>;
     }
 
     const profile = legacyProfiles[args.publicId] as Id<'profiles'> | undefined;
 
     if (profile) {
-      const profilDetails: Promise<Doc<'profiles'> | null> = await ctx.runQuery(
-        api.functions.profile.getCurrentProfile,
-        {
-          profileId: profile,
-        },
-      );
-
-      return profilDetails;
+      return profile;
     }
 
     return null;

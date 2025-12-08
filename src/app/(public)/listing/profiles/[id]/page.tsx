@@ -16,9 +16,16 @@ import { hasAnyRole } from '@/lib/permissions/utils';
 
 export default function ProfilePage() {
   const params = useParams<{ id: Id<'profiles'> }>();
-  const data = useQuery(api.functions.profile.getCurrentProfile, {
-    profileId: params.id,
+
+  const profileId = useQuery(api.functions.profile.getProfilIdFromPublicId, {
+    publicId: params.id,
   });
+
+  const data = useQuery(
+    api.functions.profile.getCurrentProfile,
+    profileId ? { profileId } : 'skip',
+  );
+
   const { user } = useCurrentUser();
   const router = useRouter();
 
@@ -62,8 +69,6 @@ export default function ProfilePage() {
 
   const canContact = !!user;
 
-  console.log({ user });
-
   return (
     <PageContainer
       title={`Profile Consulaires publique`}
@@ -89,6 +94,10 @@ export function ProfileDetailsView({
   hasFullAccess,
   canContact,
 }: ProfileDetailsViewProps) {
+  if (!profile) {
+    return null;
+  }
+
   return (
     <>
       <ProfileView profile={profile} hasFullAccess={hasFullAccess} showRequests={true} />

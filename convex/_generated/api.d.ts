@@ -49,6 +49,7 @@ import type * as lib_ai_types from "../lib/ai/types.js";
 import type * as lib_constants from "../lib/constants.js";
 import type * as lib_countryCodes from "../lib/countryCodes.js";
 import type * as lib_fileTypes from "../lib/fileTypes.js";
+import type * as lib_legacyProfilesMap from "../lib/legacyProfilesMap.js";
 import type * as lib_twilio from "../lib/twilio.js";
 import type * as lib_types from "../lib/types.js";
 import type * as lib_utils from "../lib/utils.js";
@@ -117,6 +118,7 @@ declare const fullApi: ApiFromModules<{
   "lib/constants": typeof lib_constants;
   "lib/countryCodes": typeof lib_countryCodes;
   "lib/fileTypes": typeof lib_fileTypes;
+  "lib/legacyProfilesMap": typeof lib_legacyProfilesMap;
   "lib/twilio": typeof lib_twilio;
   "lib/types": typeof lib_types;
   "lib/utils": typeof lib_utils;
