@@ -1,13 +1,28 @@
+"use client"
+
 import { PublicHeader } from '@/components/public/header';
 import { PublicFooter } from '@/components/public/footer';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import React from 'react';
-
+import { auth } from '@clerk/nextjs/server';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useRouter } from 'next/router';
+import { UserRole } from '@/convex/lib/constants';
+import { usePathname } from 'next/navigation';
+  
 export interface BaseLayoutProps {
   children: React.ReactNode;
 }
 
 export function PublicLayout({ children }: BaseLayoutProps) {
+  const { user } = useCurrentUser();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  if (user && pathname === '/') {
+    const redirectUrl = getRedirectUrl(user.roles);
+    router.push(redirectUrl);
+  }
   return (
     <SidebarProvider>
       <PublicHeader />
@@ -17,4 +32,14 @@ export function PublicLayout({ children }: BaseLayoutProps) {
       </SidebarInset>
     </SidebarProvider>
   );
+}
+
+function getRedirectUrl(roles: UserRole[]) {
+  if (roles.includes(UserRole.IntelAgent)) {
+    return '/intel';
+  }
+  if (roles.includes(UserRole.User)) {
+    return '/my-space';
+  }
+  return '/dashboard';
 }
