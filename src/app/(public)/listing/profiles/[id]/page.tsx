@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { ProfileView } from '../_components/profile-view';
+import { ChildProfileView } from '../_components/child-profile-view';
 import { ProfileContactForm } from '../_components/profile-contact-form';
 import { PageContainer } from '@/components/layouts/page-container';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -33,7 +34,7 @@ export default function ProfilePage() {
   );
 
   const data = useQuery(
-    api.functions.profile.getCurrentProfile,
+    api.functions.profile.getCompleteProfileById,
     profileId && !isChildProfile ? { profileId: profileId as Id<'profiles'> } : 'skip',
   );
 
@@ -119,7 +120,15 @@ export function ProfileDetailsView({
   }
 
   if (childProfile) {
-    return <h1>Bientôt disponible</h1>;
+    return (
+      <>
+        <ChildProfileView
+          profile={childProfile}
+          hasFullAccess={hasFullAccess}
+          showRequests={true}
+        />
+      </> 
+    );
   }
 
   if (profile) {

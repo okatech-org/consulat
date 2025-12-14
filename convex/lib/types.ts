@@ -39,13 +39,13 @@ import {
 // Profile Types
 // ============================================================================
 
-export type CompleteChildProfile = FunctionReturnType<
+export type CompleteChildProfile = NonNullable<FunctionReturnType<
   typeof api.functions.childProfile.getCurrentChildProfile
->;
+>>;
 
-export type CompleteProfile = FunctionReturnType<
+export type CompleteProfile = NonNullable<FunctionReturnType<
   typeof api.functions.profile.getCurrentProfile
->;
+>>;
 
 export type UserData = FunctionReturnType<typeof api.functions.user.getUserByClerkId>;
 

@@ -565,6 +565,49 @@ export const getCurrentProfile = query({
   },
 });
 
+export const getCompleteProfileById = query({
+  args: { profileId: v.id('profiles') },
+  handler: async (ctx, args) => {
+
+
+    const profile = await ctx.db.get(args.profileId)
+
+    if (!profile) {
+      return null;
+    }
+
+    const documents = await ctx.db
+      .query('documents')
+      .withIndex('by_owner', (q) =>
+        q.eq('ownerId', profile._id).eq('ownerType', OwnerType.Profile),
+      )
+      .collect();
+
+    const identityPicture = documents.find((d) => d?.type === 'identity_photo');
+    const passport = documents.find((d) => d?.type === 'passport');
+    const birthCertificate = documents.find((d) => d?.type === 'birth_certificate');
+    const residencePermit = documents.find((d) => d?.type === 'residence_permit');
+    const addressProof = documents.find((d) => d?.type === 'proof_of_address');
+
+    const registrationRequest = profile.registrationRequest!
+      ? await ctx.db
+          .query('requests')
+          .withIndex('by_id', (q) => q.eq('_id', profile.registrationRequest!))
+          .first()
+      : null;
+
+    return {
+      ...profile,
+      registrationRequest,
+      identityPicture,
+      passport,
+      birthCertificate,
+      residencePermit,
+      addressProof,
+    };
+  },
+});
+
 export const getProfilIdFromPublicId = query({
   args: { publicId: v.string() },
   handler: async (ctx, args) => {
