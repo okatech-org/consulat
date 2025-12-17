@@ -1,8 +1,10 @@
-import Link from "next/link"
-import { getTranslations } from "next-intl/server"
+"use client"
 
-export async function PublicFooter() {
-  const t = await getTranslations('home')
+import Link from "next/link"
+import { useTranslations } from "next-intl"
+
+export function PublicFooter() {
+  const t = useTranslations('home')
 
   return (
     <footer className="bg-muted px-4 py-3 sm:bg-transparent md:py-4">

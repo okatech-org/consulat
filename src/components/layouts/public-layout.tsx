@@ -6,9 +6,8 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import React from 'react';
 import { auth } from '@clerk/nextjs/server';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname } from 'next/navigation';
 import { UserRole } from '@/convex/lib/constants';
-import { usePathname } from 'next/navigation';
   
 export interface BaseLayoutProps {
   children: React.ReactNode;
