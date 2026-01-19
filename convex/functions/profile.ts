@@ -656,7 +656,7 @@ export const submitProfileForValidation = mutation({
     // Get the author user
     const user = await ctx.db.get(profile.userId);
 
-    if (user) {
+    if (!user) {
       throw new Error('user_not_found');
     }
 
@@ -1032,6 +1032,7 @@ export const updateContacts = mutation({
       phone: v.optional(v.string()),
       address: v.optional(addressValidator),
     }),
+    emergencyContacts: v.optional(v.array(emergencyContactValidator)),
   },
   handler: async (ctx, args) => {
     const profile = await ctx.db.get(args.profileId);
@@ -1039,9 +1040,15 @@ export const updateContacts = mutation({
       throw new Error('Profile not found');
     }
 
-    await ctx.db.patch(args.profileId, {
+    const patchData: any = {
       contacts: { ...profile.contacts, ...args.contacts },
-    });
+    };
+
+    if (args.emergencyContacts) {
+      patchData.emergencyContacts = args.emergencyContacts;
+    }
+
+    await ctx.db.patch(args.profileId, patchData);
 
     return args.profileId;
   },

@@ -9,6 +9,7 @@ import {
   AddressSchema,
   DateSchema,
   EmailSchema,
+  EmergencyContactSchema,
   NameSchema,
   PhoneNumberSchema,
   UserDocumentSchema,
@@ -61,6 +62,9 @@ export const ContactInfoSchema = z.object({
   email: EmailSchema,
   phone: PhoneNumberSchema,
   address: AddressSchema,
+  emergencyContacts: z
+    .array(EmergencyContactSchema)
+    .min(2, 'messages.errors.emergency_contacts_required'),
 });
 
 export const ProfessionalInfoSchema = z.object({

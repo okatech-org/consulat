@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { calculateProfileCompletion, tryCatch } from '@/lib/utils';
+import { calculateProfileCompletion, getFieldLabel, tryCatch } from '@/lib/utils';
 import CardContainer from '../layouts/card-container';
 import { Info } from 'lucide-react';
 import { CountrySelect } from '../ui/country-select';
@@ -99,14 +99,20 @@ export function RegistrationForm({ profile }: { profile: CompleteProfile }) {
 
     try {
       // Validate the current step
-      const isStepValid =
-        completion.sections.find((section) => section.name === currentTab)?.completion ===
-        100;
+      const currentSection = completion.sections.find(
+        (section) => section.name === currentTab,
+      );
+      const isStepValid = currentSection?.completion === 100;
 
-      if (!isStepValid) {
+      if (!isStepValid && currentSection) {
+        const missingLabels = currentSection.missingFields
+          .map((field) => getFieldLabel(field, tInputs))
+          .join(', ');
+
         toast.error('Champs invalides ou manquants', {
-          description:
-            'Veuillez corriger les champs invalides ou manquants avant de continuer',
+          description: missingLabels
+            ? `Champs à corriger : ${missingLabels}`
+            : 'Veuillez corriger les champs invalides ou manquants avant de continuer',
         });
         return;
       }

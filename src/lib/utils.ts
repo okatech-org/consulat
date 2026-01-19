@@ -424,6 +424,114 @@ export function calculateProfileCompletion(
   };
 }
 
+/**
+ * Maps a field path to its human-readable label using translations.
+ * Handles nested paths like "address.street" by looking up "inputs.<fieldPath>.label".
+ */
+export function getFieldLabel(fieldPath: string, t: (key: string) => string): string {
+  // Map of known field keys to their translation paths
+  const fieldLabelMap: Record<string, string> = {
+    firstName: 'inputs.firstName.label',
+    lastName: 'inputs.lastName.label',
+    birthDate: 'inputs.birthDate.label',
+    birthPlace: 'inputs.birthPlace.label',
+    birthCountry: 'inputs.birthCountry.label',
+    gender: 'inputs.gender.label',
+    nationality: 'inputs.nationality.label',
+    identityPicture: 'inputs.identityPicture.label',
+    passport: 'inputs.passport.label',
+    birthCertificate: 'inputs.birthCertificate.label',
+    residencePermit: 'inputs.residencePermit.label',
+    addressProof: 'inputs.addressProof.label',
+    email: 'inputs.email.label',
+    phone: 'inputs.phone.label',
+    address: 'inputs.address.label',
+    'address.street': 'inputs.address.street.label',
+    'address.city': 'inputs.address.city.label',
+    'address.postalCode': 'inputs.address.postalCode.label',
+    'address.country': 'inputs.address.country.label',
+    maritalStatus: 'inputs.maritalStatus.label',
+    father: 'inputs.fatherName.label',
+    'father.firstName': 'inputs.firstName.label',
+    'father.lastName': 'inputs.lastName.label',
+    mother: 'inputs.motherName.label',
+    'mother.firstName': 'inputs.firstName.label',
+    'mother.lastName': 'inputs.lastName.label',
+    spouse: 'inputs.spouseName.label',
+    'spouse.firstName': 'inputs.firstName.label',
+    'spouse.lastName': 'inputs.lastName.label',
+    workStatus: 'inputs.workStatus.label',
+    profession: 'inputs.profession.label',
+    employer: 'inputs.employer.label',
+    employerAddress: 'inputs.employerAddress.label',
+    activityInGabon: 'inputs.activityInGabon.label',
+  };
+
+  const translationKey = fieldLabelMap[fieldPath];
+  if (translationKey) {
+    try {
+      return t(translationKey);
+    } catch {
+      return fieldPath;
+    }
+  }
+
+  // Handle emergency contacts (e.g. emergencyContacts.0.firstName)
+  if (fieldPath.startsWith('emergencyContacts.')) {
+    const parts = fieldPath.split('.');
+    // parts[0] = emergencyContacts
+    // parts[1] = index
+    // parts[2...] = field
+    if (parts.length >= 3) {
+      const index = parseInt(parts[1], 10) + 1;
+      const subField = parts.slice(2).join('.');
+
+      // Map subfields to their translations
+      const subFieldLabelMap: Record<string, string> = {
+        firstName: 'inputs.firstName.label',
+        lastName: 'inputs.lastName.label',
+        relationship: 'inputs.familyLink.label',
+        phoneNumber: 'inputs.phone.label',
+        email: 'inputs.email.label',
+        'address.street': 'inputs.address.street.label',
+        'address.city': 'inputs.address.city.label',
+        'address.country': 'inputs.address.country.label',
+        'address.postalCode': 'inputs.address.postalCode.label',
+        'address.complement': 'inputs.address.complement.label',
+      };
+
+      const subKey = subFieldLabelMap[subField];
+      const label = subKey ? t(subKey) : subField;
+      return `Contact d'urgence ${index} - ${label}`;
+    }
+    return "Contacts d'urgence";
+  }
+
+  // Fallback: try to guess based on common patterns
+  return fieldPath.split('.').pop() || fieldPath;
+}
+
+/**
+ * Recursively extracts all keys with errors from the errors object.
+ * Returns an array of dot-notation paths like ['firstName', 'emergencyContacts.0.firstName']
+ */
+export function getInvalidFields(errors: any, prefix = ''): string[] {
+  return Object.keys(errors).reduce((acc: string[], key) => {
+    const value = errors[key];
+    const path = prefix ? `${prefix}.${key}` : key;
+
+    // React Hook Form error object has a 'message' property if it's a leaf error
+    if (value && typeof value === 'object' && 'message' in value) {
+      acc.push(path);
+    } else if (value && typeof value === 'object') {
+      // Recurse for nested objects/arrays
+      acc.push(...getInvalidFields(value, path));
+    }
+
+    return acc;
+  }, []);
+}
+
 export function calculateChildProfileCompletion(
   profile: Doc<'childProfiles'>,
 ): ProfileCompletionResult {

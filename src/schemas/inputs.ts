@@ -6,6 +6,7 @@ import {
   DocumentType,
   ValidationStatus,
   OwnerType,
+  EmergencyContactType,
 } from '@/convex/lib/constants';
 import {
   type CountryCode,
@@ -18,9 +19,10 @@ export const VALIDATION_RULES = {
   NAME_MIN_LENGTH: 2,
   NAME_MAX_LENGTH: 50,
   PHONE_REGEX: /^\+[1-9]\d{1,14}$/,
-  EMAIL_MAX_LENGTH: 255,
   ADDRESS_MAX_LENGTH: 100,
-} as const;
+};
+
+// ... (skipping unchanged parts)
 
 const FileListSchema = z.any().refine((files) => {
   // Si on est côté serveur, on skip la validation
@@ -188,6 +190,7 @@ export const SelectSchema = z
   .refine((val) => val !== 'default', 'messages.errors.field_required');
 
 export const EmergencyContactSchema = z.object({
+  type: z.nativeEnum(EmergencyContactType),
   firstName: NameSchema,
   lastName: NameSchema,
   relationship: z.enum(FamilyLink, {

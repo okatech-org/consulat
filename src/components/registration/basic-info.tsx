@@ -21,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { CountrySelect } from '@/components/ui/country-select';
 import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
-import { capitalize, filterUneditedKeys } from '@/lib/utils';
+import { capitalize, filterUneditedKeys, getFieldLabel } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { CompleteProfile } from '@/convex/lib/types';
 import { useMutation } from 'convex/react';
@@ -138,9 +138,24 @@ export function BasicInfoForm({
     onSave();
   };
 
+  const handleInvalid = (errors: any) => {
+    const invalidFields = Object.keys(errors)
+      .map((field) => getFieldLabel(field, t_inputs))
+      .join(', ');
+
+    toast.error('Champs invalides ou manquants', {
+      description: invalidFields
+        ? `Champs à corriger : ${invalidFields}`
+        : 'Veuillez corriger les champs invalides avant de continuer',
+    });
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(onFormSubmit, handleInvalid)}
+        className="space-y-6"
+      >
         {banner}
         <div className={'grid gap-6 pt-4'}>
           <FormField

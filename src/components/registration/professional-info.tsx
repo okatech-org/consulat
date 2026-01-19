@@ -32,6 +32,7 @@ import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { getFieldLabel } from '@/lib/utils';
 
 interface ProfessionalInfoFormProps {
   profile: CompleteProfile;
@@ -98,9 +99,24 @@ export function ProfessionalInfoForm({
     }
   };
 
+  const handleInvalid = (errors: any) => {
+    const invalidFields = Object.keys(errors)
+      .map((field) => getFieldLabel(field, t_inputs))
+      .join(', ');
+
+    toast.error('Champs invalides ou manquants', {
+      description: invalidFields
+        ? `Champs à corriger : ${invalidFields}`
+        : 'Veuillez corriger les champs invalides avant de continuer',
+    });
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit, handleInvalid)}
+        className="space-y-6"
+      >
         {banner}
         {/* Statut professionnel */}
         <div className="space-y-6 pt-4">

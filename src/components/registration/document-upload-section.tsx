@@ -1,3 +1,4 @@
+import { getFieldLabel } from '@/lib/utils';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -53,6 +54,7 @@ export function DocumentUploadSection({
 }: DocumentUploadSectionProps) {
   const analyzeDocuments = useAction(api.functions.ai.analyzeMultipleDocuments);
   const t = useTranslations('registration');
+  const t_inputs = useTranslations('inputs');
   const t_errors = useTranslations('messages.errors');
   const [isLoading, setIsLoading] = useState(false);
   const [analysingState, setAnalysingState] = useState<
@@ -170,9 +172,14 @@ export function DocumentUploadSection({
   };
 
   const handleInvalid = (errors: any) => {
-    console.log('Validation errors:', errors);
+    const invalidFields = Object.keys(errors)
+      .map((field) => getFieldLabel(field, t_inputs))
+      .join(', ');
+
     toast.error(t('documents.error.validation'), {
-      description: t('documents.error.validation_desc'),
+      description: invalidFields
+        ? `Champs à corriger : ${invalidFields}`
+        : t('documents.error.validation_desc'),
     });
   };
 
