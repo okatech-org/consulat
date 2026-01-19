@@ -73,6 +73,16 @@ export function DocumentUploadSection({
     reValidateMode: 'onBlur',
   });
 
+  // Effect to update form values when profile changes (e.g. after upload)
+  React.useEffect(() => {
+    form.reset({
+      passport: profile.passport,
+      birthCertificate: profile.birthCertificate,
+      residencePermit: profile.residencePermit,
+      addressProof: profile.addressProof,
+    });
+  }, [profile, form]);
+
   const handleAnalysis = async () => {
     const documentsToAnalyze: Array<{
       storageId: Id<'_storage'>;

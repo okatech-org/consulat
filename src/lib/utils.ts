@@ -258,23 +258,45 @@ export function calculateProfileCompletion(
     return true;
   };
 
+  // Documents - Only check required documents
   const documentFields = [
-    { key: 'identityPicture', value: profile.identityPicture },
-    { key: 'passport', value: profile.passport },
-    { key: 'birthCertificate', value: profile.birthCertificate },
-    { key: 'addressProof', value: profile.addressProof },
+    {
+      key: 'birthCertificate',
+      value: profile.birthCertificate,
+      required: true,
+    },
+    {
+      key: 'addressProof',
+      value: profile.addressProof,
+      required: true,
+    },
+    {
+      key: 'passport',
+      value: profile.passport,
+      required: false,
+    },
   ];
-  const documentCompleted = documentFields.filter((f) => isFilled(f.value)).length;
-  const documentMissing = documentFields
+
+  const requiredDocFields = documentFields.filter((f) => f.required);
+  const requiredDocsCompleted = requiredDocFields.filter((f) => isFilled(f.value)).length;
+
+  const documentMissing = requiredDocFields
     .filter((f) => !isFilled(f.value))
     .map((f) => f.key);
-  totalFields += documentFields.length;
-  completedFields += documentCompleted;
+
+  // Completion is based on REQUIRED documents only
+  const documentsCompletionPercentage = Math.round(
+    (requiredDocsCompleted / requiredDocFields.length) * 100,
+  );
+
+  totalFields += requiredDocFields.length;
+  completedFields += requiredDocsCompleted;
+
   sections.push({
     name: 'documents',
-    completion: Math.round((documentCompleted / documentFields.length) * 100),
-    total: documentFields.length,
-    completed: documentCompleted,
+    completion: documentsCompletionPercentage,
+    total: requiredDocFields.length,
+    completed: requiredDocsCompleted,
     missingFields: documentMissing,
   });
 
@@ -287,6 +309,8 @@ export function calculateProfileCompletion(
     { key: 'birthCountry', value: profile.personal.birthCountry },
     { key: 'gender', value: profile.personal.gender },
     { key: 'nationality', value: profile.personal.nationality },
+    // Identity picture is part of Basic Info step
+    { key: 'identityPicture', value: profile.identityPicture },
   ];
 
   const personalCompleted = personalFields.filter((f) => isFilled(f.value)).length;
