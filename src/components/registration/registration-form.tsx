@@ -93,44 +93,24 @@ export function RegistrationForm({ profile }: { profile: CompleteProfile }) {
   };
 
   // Gestionnaire de navigation
-
   const handleNext = async () => {
     const nextStep = orderedSteps[orderedSteps.indexOf(currentTab) + 1];
 
     try {
-      // Validate the current step
-      const currentSection = completion.sections.find(
-        (section) => section.name === currentTab,
-      );
-      const isStepValid = currentSection?.completion === 100;
-
-      if (!isStepValid && currentSection) {
-        const missingLabels = currentSection.missingFields
-          .map((field) => getFieldLabel(field, tInputs))
-          .join(', ');
-
-        toast.error('Champs invalides ou manquants', {
-          description: missingLabels
-            ? `Champs à corriger : ${missingLabels}`
-            : 'Veuillez corriger les champs invalides ou manquants avant de continuer',
-        });
-        return;
-      }
-
       // Handle final step logic
       if (currentStepIndex === totalSteps - 1) {
         if (!completion.canSubmit) {
-          toast.success('Inscription réussie', {
-            description: 'Vous pouvez maintenant accéder à votre tableau de bord',
+          toast.error('Formulaire incomplet', {
+            description: 'Veuillez remplir tous les champs requis avant de soumettre',
           });
-          router.push(ROUTES.user.dashboard);
-        } else {
-          await handleFinalSubmit();
+          return;
         }
+        await handleFinalSubmit();
         return;
       }
 
       // Navigate to next step if available
+      // Note: Validation is now handled by each form's submit handler
       if (nextStep) {
         setCurrentTab(nextStep);
       } else {

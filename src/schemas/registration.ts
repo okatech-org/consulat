@@ -28,12 +28,33 @@ export const BasicInfoSchema = z.object({
     .object({
       number: z
         .string()
-        .min(8)
-        .max(9)
-        .regex(/^[A-Z0-9]{8,9}$/),
-      issueDate: DateSchema.optional(),
-      expiryDate: DateSchema.optional(),
-      issueAuthority: z.string().min(2).max(100),
+        .optional()
+        .refine(
+          (val) => {
+            if (!val || val === '') return true;
+            return val.length >= 8 && val.length <= 9;
+          },
+          { message: 'messages.errors.number_too_short' },
+        )
+        .refine(
+          (val) => {
+            if (!val || val === '') return true;
+            return /^[A-Z0-9]{8,9}$/.test(val);
+          },
+          { message: 'messages.errors.number_invalid_format' },
+        ),
+      issueDate: z.string().optional(),
+      expiryDate: z.string().optional(),
+      issueAuthority: z
+        .string()
+        .optional()
+        .refine(
+          (val) => {
+            if (!val || val === '') return true;
+            return val.length >= 2 && val.length <= 100;
+          },
+          { message: 'messages.errors.authority_too_short' },
+        ),
     })
     .optional(),
   nipCode: z.string().optional(),

@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getFieldLabel } from '@/lib/utils';
+import { handleFormInvalid } from '@/lib/form/validation';
 
 interface FamilyInfoFormProps {
   profile: CompleteProfile;
@@ -60,7 +61,8 @@ export function FamilyInfoForm({
       mother: profile.family?.mother,
       spouse: profile.family?.spouse,
     },
-    reValidateMode: 'onBlur',
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
   });
 
   const maritalStatus = form.watch('maritalStatus');
@@ -94,15 +96,7 @@ export function FamilyInfoForm({
   };
 
   const handleInvalid = (errors: any) => {
-    const invalidFields = Object.keys(errors)
-      .map((field) => getFieldLabel(field, t_inputs))
-      .join(', ');
-
-    toast.error('Champs invalides ou manquants', {
-      description: invalidFields
-        ? `Champs à corriger : ${invalidFields}`
-        : 'Veuillez corriger les champs invalides avant de continuer',
-    });
+    handleFormInvalid(errors, (field) => getFieldLabel(field, t_inputs));
   };
 
   return (

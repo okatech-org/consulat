@@ -25,6 +25,7 @@ import { Button } from '../ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import type { CompleteProfile } from '@/convex/lib/types';
 import { getFieldLabel, getInvalidFields } from '@/lib/utils';
+import { handleFormInvalid } from '@/lib/form/validation';
 import { FamilyLink, EmergencyContactType } from '@/convex/lib/constants';
 import {
   Select,
@@ -98,7 +99,8 @@ export function ContactInfoForm({
               },
             ],
     },
-    reValidateMode: 'onBlur',
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
   });
 
   const { fields: emergencyContactFields } = useFieldArray({
@@ -133,15 +135,7 @@ export function ContactInfoForm({
   };
 
   const handleInvalid = (errors: any) => {
-    const invalidFields = getInvalidFields(errors)
-      .map((field) => getFieldLabel(field, t_inputs))
-      .join(', ');
-
-    toast.error('Champs invalides ou manquants', {
-      description: invalidFields
-        ? `Champs à corriger : ${invalidFields}`
-        : 'Veuillez corriger les champs invalides avant de continuer',
-    });
+    handleFormInvalid(errors, (field) => getFieldLabel(field, t_inputs));
   };
 
   return (

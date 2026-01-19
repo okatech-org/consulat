@@ -33,6 +33,7 @@ import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getFieldLabel } from '@/lib/utils';
+import { handleFormInvalid } from '@/lib/form/validation';
 
 interface ProfessionalInfoFormProps {
   profile: CompleteProfile;
@@ -67,7 +68,8 @@ export function ProfessionalInfoForm({
       employerAddress: profile.professionSituation?.employerAddress,
       activityInGabon: profile.professionSituation?.activityInGabon,
     },
-    reValidateMode: 'onBlur',
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
   });
 
   const workStatus = form.watch('workStatus');
@@ -100,15 +102,7 @@ export function ProfessionalInfoForm({
   };
 
   const handleInvalid = (errors: any) => {
-    const invalidFields = Object.keys(errors)
-      .map((field) => getFieldLabel(field, t_inputs))
-      .join(', ');
-
-    toast.error('Champs invalides ou manquants', {
-      description: invalidFields
-        ? `Champs à corriger : ${invalidFields}`
-        : 'Veuillez corriger les champs invalides avant de continuer',
-    });
+    handleFormInvalid(errors, (field) => getFieldLabel(field, t_inputs));
   };
 
   return (

@@ -22,6 +22,7 @@ import { CountrySelect } from '@/components/ui/country-select';
 import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
 import { capitalize, filterUneditedKeys, getFieldLabel } from '@/lib/utils';
+import { handleFormInvalid } from '@/lib/form/validation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { CompleteProfile } from '@/convex/lib/types';
 import { useMutation } from 'convex/react';
@@ -77,7 +78,8 @@ export function BasicInfoForm({
       acquisitionMode: profile.personal?.acquisitionMode ?? NationalityAcquisition.Birth,
       identityPicture: profile.identityPicture ? { ...profile.identityPicture } : null,
     },
-    reValidateMode: 'onBlur',
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
   });
 
   // Effect to sync identityPicture field with profile prop
@@ -139,15 +141,7 @@ export function BasicInfoForm({
   };
 
   const handleInvalid = (errors: any) => {
-    const invalidFields = Object.keys(errors)
-      .map((field) => getFieldLabel(field, t_inputs))
-      .join(', ');
-
-    toast.error('Champs invalides ou manquants', {
-      description: invalidFields
-        ? `Champs à corriger : ${invalidFields}`
-        : 'Veuillez corriger les champs invalides avant de continuer',
-    });
+    handleFormInvalid(errors, (field) => getFieldLabel(field, t_inputs));
   };
 
   return (
