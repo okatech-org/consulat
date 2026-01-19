@@ -113,12 +113,15 @@ export function UserDocument({
   requestId,
   profileId,
   ownerType,
+  onUpload,
+  onDelete,
 }: UserDocumentProps) {
   const { user } = useCurrentUser();
   const t_errors = useTranslations('messages.errors');
   const t = useTranslations('common.documents');
   const t_common = useTranslations('common');
   const t_messages = useTranslations('messages.profile');
+
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [cropperOpen, setCropperOpen] = React.useState(false);
@@ -127,12 +130,9 @@ export function UserDocument({
   const [processedImageUrl, setProcessedImageUrl] = React.useState<string | null>(null);
   const [processedFile, setProcessedFile] = React.useState<File | null>(null);
   const [showProcessedImageDialog, setShowProcessedImageDialog] = React.useState(false);
+
   const router = useRouter();
   const { handleFileUpload } = useFile();
-
-  if (!user) {
-    return null;
-  }
 
   const updateDocumentMutation = useMutation(api.functions.document.updateUserDocument);
   const createUserDocumentMutation = useMutation(
@@ -156,16 +156,39 @@ export function UserDocument({
     return user?.roles?.some((role) => adminRoles.includes(role));
   }, [user]);
 
+  const form = useForm<UpdateDocumentData>({
+    resolver: zodResolver(updateDocumentSchema),
+    defaultValues: {
+      issuedAt: document?.issuedAt
+        ? format(new Date(document.issuedAt), 'yyyy-MM-dd')
+        : undefined,
+      expiresAt: document?.expiresAt
+        ? format(new Date(document.expiresAt), 'yyyy-MM-dd')
+        : undefined,
+      metadata: document?.metadata,
+    },
+  });
+
+  if (!user) {
+    return null;
+  }
+
   const handleUpdate = async (documentId: Id<'documents'>, data: UpdateDocumentData) => {
     setIsLoading(true);
 
     try {
-      await updateDocumentMutation({
+      const result = await updateDocumentMutation({
         documentId,
         issuedAt: data.issuedAt ? new Date(data.issuedAt).getTime() : undefined,
         expiresAt: data.expiresAt ? new Date(data.expiresAt).getTime() : undefined,
         metadata: data.metadata,
       });
+
+      // If onUpload is provided, we should ideally refresh the doc or pass the result
+      // But for now we just notify success and refresh
+      if (onUpload && typeof result === 'object') {
+        onUpload(result as Doc<'documents'>);
+      }
 
       toast.success(t_messages('success.update_title'));
       router.refresh();
@@ -179,19 +202,6 @@ export function UserDocument({
       setIsLoading(false);
     }
   };
-
-  const form = useForm<UpdateDocumentData>({
-    resolver: zodResolver(updateDocumentSchema),
-    defaultValues: {
-      issuedAt: document?.issuedAt
-        ? format(new Date(document.issuedAt), 'yyyy-MM-dd')
-        : undefined,
-      expiresAt: document?.expiresAt
-        ? format(new Date(document.expiresAt), 'yyyy-MM-dd')
-        : undefined,
-      metadata: document?.metadata,
-    },
-  });
 
   const handleFileSelection = async (file: File) => {
     if (!enableEditor || !file.type.startsWith('image/')) {
@@ -220,7 +230,7 @@ export function UserDocument({
         throw new Error('Owner ID not found');
       }
 
-      await createUserDocumentMutation({
+      const result = await createUserDocumentMutation({
         type: expectedType,
         storageId: uploadResult.storageId,
         fileType: uploadResult.type,
@@ -234,12 +244,52 @@ export function UserDocument({
         },
       });
 
+      if (onUpload && typeof result === 'object') {
+        onUpload(result as Doc<'documents'>);
+      }
+
       toast.success(t_messages('success.update_title'));
       router.refresh();
     } catch (error) {
       toast.error(
         t_errors(error instanceof Error ? error.message : "Erreur lors de l'upload"),
       );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReplaceFile = async (file: File) => {
+    setIsLoading(true);
+    try {
+      if (!document) {
+        throw new Error('Document not found');
+      }
+
+      const uploadResult = await handleFileUpload(file);
+
+      if (!uploadResult) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await replaceUserDocumentFileMutation({
+        documentId: document._id,
+        storageId: uploadResult.storageId,
+        fileType: uploadResult.type,
+        fileName: uploadResult.name,
+      });
+
+      if (onUpload && typeof result === 'object') {
+        onUpload(result as Doc<'documents'>);
+      }
+
+      toast.success(t_messages('success.update_title'));
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        t_errors(error instanceof Error ? error.message : 'Erreur lors du remplacement'),
+      );
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -289,38 +339,6 @@ export function UserDocument({
     );
   };
 
-  const handleReplaceFile = async (file: File) => {
-    setIsLoading(true);
-    try {
-      if (!document) {
-        throw new Error('Document not found');
-      }
-
-      const uploadResult = await handleFileUpload(file);
-
-      if (!uploadResult) {
-        throw new Error('Upload failed');
-      }
-
-      await replaceUserDocumentFileMutation({
-        documentId: document._id,
-        storageId: uploadResult.storageId,
-        fileType: uploadResult.type,
-        fileName: uploadResult.name,
-      });
-
-      toast.success(t_messages('success.update_title'));
-      router.refresh();
-    } catch (error) {
-      toast.error(
-        t_errors(error instanceof Error ? error.message : 'Erreur lors du remplacement'),
-      );
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Gérer la validation de l'image traitée
   const handleValidateProcessedImage = async () => {
     if (!processedFile) return;
@@ -368,6 +386,7 @@ export function UserDocument({
         documentId: document._id,
       });
 
+      if (onDelete) onDelete();
       toast.success(t_messages('success.deleted'));
       router.refresh();
     } catch (error) {
@@ -461,7 +480,7 @@ export function UserDocument({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsDialogOpen(true)}
+              onClick={() => setIsUpdating(true)}
               disabled={disabled || isLoading}
             >
               <BadgeCheck className="size-icon" />

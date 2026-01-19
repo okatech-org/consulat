@@ -76,7 +76,7 @@ export function RegistrationForm({ profile }: { profile: CompleteProfile }) {
         description: (
           <div className="space-y-2">
             <p>{t('profile.analysis.success.description')}</p>
-            <Button onClick={handleNext} size="mobile" weight="medium">
+            <Button onClick={handleNext} size="sm">
               {t('profile.analysis.success.action')}
             </Button>
           </div>

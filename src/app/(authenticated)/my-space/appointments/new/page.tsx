@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { PageContainer } from '@/components/layouts/page-container';
 import { useTranslations } from 'next-intl';
-import { AppointmentType } from '@/convex/lib/constants';
+import { AppointmentType, OrganizationStatus } from '@/convex/lib/constants';
 import { useQuery } from 'convex/react';
 import { api } from 'convex/_generated/api';
 import { useSearchParams } from 'next/navigation';
@@ -25,7 +25,7 @@ export default function NewAppointmentPage() {
   // Get user requests
   const userRequests = useQuery(
     api.functions.request.getAllRequests,
-    user?._id ? { requesterId: user._id } : 'skip',
+    user?.profileId ? { profileId: user.profileId } : 'skip',
   );
 
   // Get specific request if provided
@@ -37,21 +37,21 @@ export default function NewAppointmentPage() {
   // Get organization by country
   const organizations = useQuery(
     api.functions.organization.getAllOrganizations,
-    user?.countryCode ? { status: 'active' } : 'skip',
+    user?.countryCode ? { status: OrganizationStatus.Active } : 'skip',
   );
 
   const organization = organizations?.find((org) =>
-    org.countryIds?.includes(user?.countryCode || ''),
+    org.countryCodes?.includes(user?.countryCode || ''),
   );
 
-  const isLoading = userRequests === undefined || (requestId && specificRequest === undefined) || organizations === undefined;
+  const isLoading =
+    userRequests === undefined ||
+    (requestId && specificRequest === undefined) ||
+    organizations === undefined;
 
   if (isLoading) {
     return (
-      <PageContainer
-        title={t('new.title')}
-        description={t('new.description')}
-      >
+      <PageContainer title={t('new.title')} description={t('new.description')}>
         <LoadingSkeleton variant="form" />
       </PageContainer>
     );
@@ -91,6 +91,7 @@ export default function NewAppointmentPage() {
           countryCode={user.countryCode || ''}
           organizationId={organization._id}
           attendeeId={user._id}
+          profileId={user.profileId!}
           preselectedData={preselectedData}
         />
       )}

@@ -19,10 +19,10 @@ export const BasicInfoSchema = z.object({
   lastName: NameSchema,
   gender: z.enum(Object.values(Gender)),
   acquisitionMode: z.enum(Object.values(NationalityAcquisition)),
-  birthDate: DateSchema.optional(),
-  birthPlace: z.string(),
-  birthCountry: z.string(),
-  nationality: z.string(),
+  birthDate: DateSchema,
+  birthPlace: z.string().min(1, 'messages.errors.field_required'),
+  birthCountry: z.string().min(1, 'messages.errors.field_required'),
+  nationality: z.string().min(1, 'messages.errors.field_required'),
   passportInfos: z
     .object({
       number: z
@@ -36,23 +36,19 @@ export const BasicInfoSchema = z.object({
     })
     .optional(),
   nipCode: z.string().optional(),
-  identityPicture: UserDocumentSchema.optional(),
+  identityPicture: UserDocumentSchema.nullable(),
 });
 
 export const FamilyInfoSchema = z.object({
   maritalStatus: z.enum(Object.values(MaritalStatus)),
-  father: z
-    .object({
-      firstName: NameSchema.optional(),
-      lastName: NameSchema.optional(),
-    })
-    .optional(),
-  mother: z
-    .object({
-      firstName: NameSchema.optional(),
-      lastName: NameSchema.optional(),
-    })
-    .optional(),
+  father: z.object({
+    firstName: NameSchema,
+    lastName: NameSchema,
+  }),
+  mother: z.object({
+    firstName: NameSchema,
+    lastName: NameSchema,
+  }),
   spouse: z
     .object({
       firstName: NameSchema.optional(),
@@ -62,9 +58,9 @@ export const FamilyInfoSchema = z.object({
 });
 
 export const ContactInfoSchema = z.object({
-  email: EmailSchema.optional(),
-  phone: PhoneNumberSchema.optional(),
-  address: AddressSchema.optional(),
+  email: EmailSchema,
+  phone: PhoneNumberSchema,
+  address: AddressSchema,
 });
 
 export const ProfessionalInfoSchema = z.object({
@@ -85,10 +81,19 @@ export type ProfessionalInfoFormData = z.infer<typeof ProfessionalInfoSchema>;
 
 export const DocumentsSchema = z.object({
   passport: UserDocumentSchema.nullable().optional(),
-  birthCertificate: UserDocumentSchema.nullable().optional(),
+  birthCertificate: UserDocumentSchema.nullable().refine(
+    (val) => val !== null && val !== undefined,
+    {
+      message: 'messages.errors.field_required',
+    },
+  ),
   residencePermit: UserDocumentSchema.nullable().optional(),
-  addressProof: UserDocumentSchema.nullable().optional(),
-  identityPicture: UserDocumentSchema.nullable().optional(),
+  addressProof: UserDocumentSchema.nullable().refine(
+    (val) => val !== null && val !== undefined,
+    {
+      message: 'messages.errors.field_required',
+    },
+  ),
 });
 
 export type DocumentsFormData = z.infer<typeof DocumentsSchema>;

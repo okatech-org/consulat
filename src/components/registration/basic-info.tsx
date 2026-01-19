@@ -28,7 +28,7 @@ import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 
 type BasicInfoFormProps = {
   profile: CompleteProfile;
@@ -75,16 +75,23 @@ export function BasicInfoForm({
       nationality: profile.personal?.nationality,
       gender: profile.personal?.gender ?? Gender.Male,
       acquisitionMode: profile.personal?.acquisitionMode ?? NationalityAcquisition.Birth,
-      identityPicture: profile.identityPicture
-        ? { ...profile.identityPicture }
-        : undefined,
+      identityPicture: profile.identityPicture ? { ...profile.identityPicture } : null,
     },
     reValidateMode: 'onBlur',
   });
 
+  // Effect to sync identityPicture field with profile prop
+  React.useEffect(() => {
+    if (profile.identityPicture) {
+      form.setValue('identityPicture', profile.identityPicture as any);
+    } else {
+      form.setValue('identityPicture', null);
+    }
+  }, [profile.identityPicture, form]);
+
   const handleSubmit = async (data: BasicInfoFormData) => {
     // Identity picture is handled separately in UserDocument component
-    delete data.identityPicture;
+    const { identityPicture, ...personalData } = data;
 
     filterUneditedKeys(data, form.formState.dirtyFields);
 
@@ -93,7 +100,9 @@ export function BasicInfoForm({
       await updatePersonalInfo({
         profileId: profile._id,
         personal: {
-          ...data,
+          ...personalData,
+          birthCountry: personalData.birthCountry as any,
+          nationality: personalData.nationality as any,
           birthDate: data.birthDate ? new Date(data.birthDate).getTime() : undefined,
           passportInfos: data.passportInfos
             ? {
@@ -141,13 +150,13 @@ export function BasicInfoForm({
               <FormItem className="max-w-md">
                 <FormControl>
                   <UserDocument
-                    document={field.value}
+                    document={field.value as any}
                     expectedType={DocumentType.IdentityPhoto}
                     label={t_inputs('identityPicture.label')}
                     description={t_inputs('identityPicture.help')}
                     required={true}
                     disabled={isLoading}
-                    onUpload={(doc) => {
+                    onUpload={(doc: any) => {
                       field.onChange(doc);
                     }}
                     onDelete={() => {
@@ -298,7 +307,7 @@ export function BasicInfoForm({
                   <CountrySelect
                     type="single"
                     selected={field.value as CountryCode}
-                    onChange={field.onChange}
+                    onChange={(val) => field.onChange(val)}
                     disabled={isLoading}
                   />
                 </FormControl>
@@ -319,7 +328,7 @@ export function BasicInfoForm({
                   <CountrySelect
                     type="single"
                     selected={field.value as CountryCode}
-                    onChange={field.onChange}
+                    onChange={(val) => field.onChange(val)}
                     disabled={isLoading}
                   />
                 </FormControl>
@@ -483,16 +492,15 @@ export function BasicInfoForm({
         </div>
 
         <div className="flex flex-col md:flex-row justify-between gap-4">
-          <Button
-            onClick={onPrevious}
-            variant="outline"
-            leftIcon={<ArrowLeft className="size-icon" />}
-          >
+          <Button onClick={onPrevious} variant="outline">
+            <ArrowLeft className="mr-1 h-4 w-4" />
             Précédent
           </Button>
 
-          <Button type="submit" rightIcon={<ArrowRight className="size-icon" />}>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {form.formState.isDirty ? 'Enregistrer et continuer' : 'Continuer'}
+            {!isLoading && <ArrowRight className="ml-1 h-4 w-4" />}
           </Button>
         </div>
       </form>

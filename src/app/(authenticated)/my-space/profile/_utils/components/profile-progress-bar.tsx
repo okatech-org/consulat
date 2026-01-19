@@ -32,11 +32,10 @@ interface ProfileProgressBarProps {
 export function ProfileProgressBar({ profile, className }: ProfileProgressBarProps) {
   const t = useTranslations();
   const [isExpanded, setIsExpanded] = useState(false);
-  const completion = calculateProfileCompletion(profile);
-
   if (!profile) {
     return null;
   }
+  const completion = calculateProfileCompletion(profile);
 
   return (
     <Card className={cn('shadow-sm', className)}>

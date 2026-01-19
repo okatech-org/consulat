@@ -1,5 +1,5 @@
-import { UseFormReturn } from 'react-hook-form';
-import { CountryCode } from '@/lib/autocomplete-datas';
+import type { UseFormReturn } from 'react-hook-form';
+import type { CountryCode } from '@/lib/autocomplete-datas';
 import { Input } from './input';
 import { CountrySelect } from './country-select';
 import { FormControl, FormField, FormItem, FormLabel, TradFormMessage } from './form';

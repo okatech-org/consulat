@@ -1,10 +1,9 @@
-'use client';
-
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, ScanBarcode } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ScanBarcode, Loader2, Wand2 } from 'lucide-react';
 import { type DocumentsFormData, DocumentsSchema } from '@/schemas/registration';
 import {
   Form,
@@ -20,7 +19,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Doc, Id } from '@/convex/_generated/dataModel';
 import { toast } from 'sonner';
-import { useAction } from 'convex/react';
+import { useAction, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 
 export type DocumentUploadItem = {
@@ -60,15 +59,16 @@ export function DocumentUploadSection({
     'idle' | 'analyzing' | 'success' | 'error'
   >('idle');
 
+  const router = useRouter();
   if (!profile) return null;
 
   const form = useForm<DocumentsFormData>({
     resolver: zodResolver(DocumentsSchema),
     defaultValues: {
-      passport: profile.passport,
-      birthCertificate: profile.birthCertificate,
-      residencePermit: profile.residencePermit,
-      addressProof: profile.addressProof,
+      passport: profile.passport ?? null,
+      birthCertificate: profile.birthCertificate ?? null,
+      residencePermit: profile.residencePermit ?? null,
+      addressProof: profile.addressProof ?? null,
     },
     reValidateMode: 'onBlur',
   });
@@ -76,10 +76,10 @@ export function DocumentUploadSection({
   // Effect to update form values when profile changes (e.g. after upload)
   React.useEffect(() => {
     form.reset({
-      passport: profile.passport,
-      birthCertificate: profile.birthCertificate,
-      residencePermit: profile.residencePermit,
-      addressProof: profile.addressProof,
+      passport: profile.passport ?? null,
+      birthCertificate: profile.birthCertificate ?? null,
+      residencePermit: profile.residencePermit ?? null,
+      addressProof: profile.addressProof ?? null,
     });
   }, [profile, form]);
 
@@ -118,8 +118,32 @@ export function DocumentUploadSection({
 
       if (results.success && results.mergedData) {
         setAnalysingState('success');
+
+        // Save analyzed data
+        const mergedData = results.mergedData as {
+          personal?: any;
+          contacts?: any;
+          family?: any;
+          professionSituation?: any;
+        };
+
+        // We'll update only if we have data to update
+        if (Object.keys(mergedData).length > 0) {
+          await updateProfileMutation({
+            profileId: profile._id,
+            ...mergedData,
+          });
+          toast.success(t('documents.analysis.success.description'), {
+            description: t('documents.analysis.saved_description'),
+          });
+          router.refresh();
+        } else {
+          toast.info(t('documents.analysis.success.description'), {
+            description: "Aucune nouvelle information n'a pu être extraite.",
+          });
+        }
+
         onAnalysisComplete?.(results.mergedData);
-        toast.success(t('documents.analysis.success.description'));
       } else {
         setAnalysingState('error');
         toast.error(results.error || t('documents.analysis.error.description'));
@@ -129,6 +153,8 @@ export function DocumentUploadSection({
       toast.error(error instanceof Error ? error.message : t_errors('unknown'));
     }
   };
+
+  const updateProfileMutation = useMutation(api.functions.profile.updateProfile);
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -143,9 +169,19 @@ export function DocumentUploadSection({
     }
   };
 
+  const handleInvalid = (errors: any) => {
+    console.log('Validation errors:', errors);
+    toast.error(t('documents.error.validation'), {
+      description: t('documents.error.validation_desc'),
+    });
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit, handleInvalid)}
+        className="space-y-8"
+      >
         {banner}
         <div className="grid gap-4 pt-4 grid-cols-2 lg:grid-cols-4">
           <AnimatePresence mode="sync">
@@ -191,15 +227,14 @@ export function DocumentUploadSection({
               <Button
                 type="button"
                 onClick={handleAnalysis}
-                loading={analysingState === 'analyzing'}
-                disabled={isLoading}
+                disabled={analysingState === 'analyzing' || isLoading}
                 className="w-full md:w-auto"
-                leftIcon={
-                  analysingState === 'analyzing' ? undefined : (
-                    <ScanBarcode className="size-5" />
-                  )
-                }
               >
+                {analysingState === 'analyzing' ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <ScanBarcode className="mr-2 h-4 w-4" />
+                )}
                 {analysingState === 'analyzing'
                   ? t('documents.analysis.analyzing')
                   : t('documents.analysis.start')}
@@ -225,22 +260,15 @@ export function DocumentUploadSection({
 
         <div className="flex flex-col md:flex-row justify-between gap-4">
           {onPrevious && (
-            <Button
-              type="button"
-              onClick={onPrevious}
-              variant="outline"
-              leftIcon={<ArrowLeft className="size-icon" />}
-            >
+            <Button type="button" onClick={onPrevious} variant="outline">
+              <ArrowLeft className="mr-1 h-4 w-4" />
               Précédent
             </Button>
           )}
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            rightIcon={<ArrowRight className="size-icon" />}
-          >
+          <Button type="submit" disabled={isLoading}>
             Continuer
+            <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
         </div>
       </form>

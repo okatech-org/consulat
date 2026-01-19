@@ -102,12 +102,7 @@ export const AddressSchema = z.object({
     .min(1, 'messages.errors.field_required')
     .max(VALIDATION_RULES.ADDRESS_MAX_LENGTH),
 
-  complement: z
-    .string({
-      error: 'messages.errors.field_required',
-    })
-    .max(VALIDATION_RULES.ADDRESS_MAX_LENGTH)
-    .optional(),
+  complement: z.string().max(VALIDATION_RULES.ADDRESS_MAX_LENGTH).optional(),
 
   city: z
     .string({

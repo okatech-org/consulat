@@ -568,9 +568,7 @@ export const getCurrentProfile = query({
 export const getCompleteProfileById = query({
   args: { profileId: v.id('profiles') },
   handler: async (ctx, args) => {
-
-
-    const profile = await ctx.db.get(args.profileId)
+    const profile = await ctx.db.get(args.profileId);
 
     if (!profile) {
       return null;
@@ -939,7 +937,6 @@ export const updatePersonalInfo = mutation({
         }),
       ),
       nipCode: v.optional(v.string()),
-      identityPicture: v.optional(v.any()),
     }),
   },
   handler: async (ctx, args) => {

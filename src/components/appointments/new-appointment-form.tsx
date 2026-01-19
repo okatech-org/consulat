@@ -63,6 +63,7 @@ interface NewAppointmentFormProps {
   countryCode: string;
   organizationId: Id<'organizations'>;
   attendeeId: Id<'users'>;
+  profileId: Id<'profiles'>;
   preselectedData?: { type?: AppointmentType; request?: Doc<'requests'> };
 }
 
@@ -81,6 +82,7 @@ export function NewAppointmentForm({
   countryCode,
   organizationId,
   attendeeId,
+  profileId,
   preselectedData,
 }: NewAppointmentFormProps) {
   const t = useTranslations('appointments');
@@ -181,6 +183,7 @@ export function NewAppointmentForm({
         requestId: data.requestId as Id<'requests'> | undefined,
         participants: [
           {
+            id: profileId,
             userId: attendeeId,
             role: ParticipantRole.Attendee,
             status: ParticipantStatus.Confirmed,
@@ -507,13 +510,9 @@ export function NewAppointmentForm({
               subtitle={t('request.description')}
               footerContent={
                 <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    onClick={handleNext}
-                    disabled={!canGoNext()}
-                    rightIcon={<ArrowRight className="h-4 w-4" />}
-                  >
+                  <Button type="button" onClick={handleNext} disabled={!canGoNext()}>
                     {t('actions.next')}
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               }
@@ -583,12 +582,8 @@ export function NewAppointmentForm({
               footerContent={
                 <div className="flex justify-between items-center gap-2">
                   {canGoPrevious() && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handlePrevious}
-                      leftIcon={<ArrowLeft className="size-icon" />}
-                    >
+                    <Button type="button" variant="outline" onClick={handlePrevious}>
+                      <ArrowLeft className="mr-2 h-4 w-4" />
                       {t('actions.back')}
                     </Button>
                   )}
@@ -599,9 +594,9 @@ export function NewAppointmentForm({
                       onClick={handleNext}
                       disabled={!canGoNext()}
                       className={!canGoPrevious() ? 'ml-auto' : ''}
-                      rightIcon={<ArrowRight className="size-icon" />}
                     >
                       {t('actions.next')}
+                      <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -637,12 +632,8 @@ export function NewAppointmentForm({
               footerContent={
                 <div className="flex justify-between items-center gap-2">
                   {canGoPrevious() && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handlePrevious}
-                      leftIcon={<ArrowLeft className="size-icon" />}
-                    >
+                    <Button type="button" variant="outline" onClick={handlePrevious}>
+                      <ArrowLeft className="mr-2 h-4 w-4" />
                       {t('actions.back')}
                     </Button>
                   )}
