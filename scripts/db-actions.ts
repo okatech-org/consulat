@@ -2,112 +2,79 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../convex/_generated/api';
-const convex = new ConvexHttpClient('');
 
-async function generateProfileClerkMap() {
-  console.log('Generating Profile ID -> Clerk ID map...');
-  const usersDataPath = path.join(process.cwd(), 'data/exports/users-data.json');
-  const outputPath = path.join(process.cwd(), 'data/exports/profile-clerk-map.json');
-
-  if (!fs.existsSync(usersDataPath)) {
-    console.error(`File not found: ${usersDataPath}`);
-    return;
-  }
-
-  try {
-    const rawData = fs.readFileSync(usersDataPath, 'utf-8');
-    const usersData = JSON.parse(rawData);
-    console.log(`Processing ${usersData.length} users...`);
-
-    const profileMap: Record<string, string> = {};
-    let count = 0;
-    let skipped = 0;
-
-    for (const user of usersData) {
-      if (user.profile && user.profile.id && user.clerkId) {
-        console.log(`Processing ${user.id}`);
-        const userDetails = await convex.query(api.functions.user.getUserByClerkId, {
-          clerkUserId: user.clerkId,
-        });
-
-        if (userDetails?.profileId) {
-          console.log('user profile id found and adding to map');
-
-          profileMap[user.profile.id] = userDetails?.profileId;
-          count++;
-        }
-      } else {
-        skipped++;
-      }
-    }
-
-    fs.writeFileSync(outputPath, JSON.stringify(profileMap, null, 2));
-
-    console.log(`\nSuccess!`);
-    console.log(`Mapped: ${count} users`);
-    console.log(`Skipped: ${skipped} users (missing profile or clerkId)`);
-    console.log(`Output written to: ${outputPath}`);
-  } catch (error) {
-    console.error('Error processing data:', error);
-  }
+if (!process.env.NEXT_PUBLIC_CONVEX_URL) {
+  console.error('Error: NEXT_PUBLIC_CONVEX_URL is not set');
+  process.exit(1);
 }
 
-async function generateChildProfileMap() {
-  console.log('Generating Child Profile ID -> Full Name map...');
-  const childProfilesDataPath = path.join(
-    process.cwd(),
-    'data/exports/parental-authorities.json',
-  );
-  const outputPath = path.join(
-    process.cwd(),
-    'data/exports/child-profile-full-name-map.json',
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL);
+
+const BATCH_SIZE = 100;
+
+async function fixMistagedDocuments(dryRun: boolean = true) {
+  console.log(
+    `Running fixMistagedDocumentOwnerType (dryRun: ${dryRun}) with batch size ${BATCH_SIZE}...`,
   );
 
-  if (!fs.existsSync(childProfilesDataPath)) {
-    console.error(`File not found: ${childProfilesDataPath}`);
-    return;
-  }
+  let isDone = false;
+  let cursor: string | null = null;
+
+  let totalFixed = 0;
+  let totalOrphaned = 0;
+  let totalToFix = 0;
+  let totalProcessed = 0;
 
   try {
-    const rawData = fs.readFileSync(childProfilesDataPath, 'utf-8');
-    const parsedData = JSON.parse(rawData);
-    const childProfilesData = parsedData.parentalAuthorities || [];
-    console.log(`Processing ${childProfilesData.length} child profiles...`);
+    while (!isDone) {
+      const result: any = await convex.mutation(
+        api.functions.dbActions.fixMistagedDocumentOwnerType,
+        {
+          dryRun,
+          limit: BATCH_SIZE,
+          cursor: cursor ?? undefined,
+        },
+      );
 
-    const childProfileMap: Record<string, string> = {};
-    let count = 0;
-    let skipped = 0;
+      console.log(`Batch processed: ${result.totalProcessed} docs`);
+      console.log(`  - To Fix: ${result.toFixCount}`);
+      console.log(`  - Fixed: ${result.fixedCount}`);
+      console.log(`  - Orphaned: ${result.orphaned}`);
 
-    for (const childProfile of childProfilesData) {
-      if (childProfile.profile?.firstName && childProfile.profile?.lastName) {
-        console.log(`Processing ${childProfile.id}`);
-        const childProfileDetails = await convex.query(
-          api.functions.childProfile.getChildProfileByFullName,
-          {
-            firstName: childProfile.profile.firstName,
-            lastName: childProfile.profile.lastName,
-          },
+      // Log orphans details for debugging
+      const orphans = result.details.filter(
+        (d: any) => d.action === 'orphaned' || d.action === 'unknown_type',
+      );
+      if (orphans.length > 0) {
+        console.log(
+          '  ⚠️ Orphans found in this batch:',
+          JSON.stringify(orphans, null, 2),
         );
+      }
 
-        if (childProfileDetails?._id) {
-          console.log('child profile details found and adding to map');
-          childProfileMap[childProfile.id] = childProfileDetails._id;
-          count++;
-        }
-      } else {
-        skipped++;
+      totalProcessed += result.totalProcessed;
+      totalToFix += result.toFixCount;
+      totalFixed += result.fixedCount;
+      totalOrphaned += result.orphaned;
+
+      isDone = result.isDone;
+      cursor = result.continueCursor;
+
+      if (!isDone) {
+        console.log('... fetching next batch ...');
       }
     }
 
-    fs.writeFileSync(outputPath, JSON.stringify(childProfileMap, null, 2));
-
-    console.log(`\nSuccess!`);
-    console.log(`Mapped: ${count} child profiles`);
-    console.log(`Skipped: ${skipped} child profiles (missing first name or last name)`);
-    console.log(`Output written to: ${outputPath}`);
+    console.log('\n--- Final Summary ---');
+    console.log(`Total Processed: ${totalProcessed}`);
+    console.log(`Total To Fix: ${totalToFix}`);
+    console.log(`Total Fixed: ${totalFixed}`);
+    console.log(`Total Orphaned: ${totalOrphaned}`);
   } catch (error) {
-    console.error('Error processing data:', error);
+    console.error('Error running mutation:', error);
   }
 }
 
-void generateChildProfileMap();
+// generateChildProfileMap();
+// To run the fix, uncomment the line below:
+void fixMistagedDocuments(false);

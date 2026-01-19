@@ -16,6 +16,7 @@ import type * as functions_backgroundRemoval from "../functions/backgroundRemova
 import type * as functions_childProfile from "../functions/childProfile.js";
 import type * as functions_competences from "../functions/competences.js";
 import type * as functions_country from "../functions/country.js";
+import type * as functions_dbActions from "../functions/dbActions.js";
 import type * as functions_document from "../functions/document.js";
 import type * as functions_email from "../functions/email.js";
 import type * as functions_feedback from "../functions/feedback.js";
@@ -85,6 +86,7 @@ declare const fullApi: ApiFromModules<{
   "functions/childProfile": typeof functions_childProfile;
   "functions/competences": typeof functions_competences;
   "functions/country": typeof functions_country;
+  "functions/dbActions": typeof functions_dbActions;
   "functions/document": typeof functions_document;
   "functions/email": typeof functions_email;
   "functions/feedback": typeof functions_feedback;
