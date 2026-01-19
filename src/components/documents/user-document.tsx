@@ -214,8 +214,7 @@ export function UserDocument({
       }
 
       const targetOwnerId = document?.ownerId ?? profileId ?? user.profileId;
-      const targetOwnerType =
-        ownerType ?? (profileId ? OwnerType.ChildProfile : OwnerType.Profile);
+      const targetOwnerType = ownerType ?? OwnerType.Profile;
 
       if (!targetOwnerId) {
         throw new Error('Owner ID not found');

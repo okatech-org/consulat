@@ -170,15 +170,6 @@ export function NewAppointmentForm({
     const endTimestamp = selectedTimeSlot.end.getTime();
     const now = Date.now();
 
-    console.log('Submitting appointment:', {
-      startTimestamp,
-      endTimestamp,
-      now,
-      startDate: new Date(startTimestamp),
-      endDate: new Date(endTimestamp),
-      isPast: startTimestamp <= now,
-    });
-
     try {
       await createAppointment({
         startAt: startTimestamp,

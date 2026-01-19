@@ -125,7 +125,6 @@ export function BasicInfoForm({
   };
 
   const onFormSubmit = async (data: BasicInfoFormData) => {
-    console.log('onFormSubmit', data);
     await handleSubmit(data);
     onSave();
   };

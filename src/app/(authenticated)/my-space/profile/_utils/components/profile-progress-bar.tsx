@@ -38,8 +38,6 @@ export function ProfileProgressBar({ profile, className }: ProfileProgressBarPro
     return null;
   }
 
-  console.log({ completion });
-
   return (
     <Card className={cn('shadow-sm', className)}>
       <CardHeader className="pb-3">

@@ -9,7 +9,6 @@ interface RequestReviewProps {
 }
 
 export default function RequestReview({ request }: RequestReviewProps) {
-  console.log({ request });
   // Check if this is a registration request based on service category
   if (request.metadata.service?.category === ServiceCategory.Registration) {
     // Check if it's a child profile based on the isChildProfile flag in metadata
