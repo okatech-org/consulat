@@ -11,7 +11,7 @@ export const env = createEnv({
     CLERK_SECRET_KEY: z.string(),
     CLERK_WEBHOOK_SECRET: z.string().optional(),
 
-    CONVEX_DEPLOYMENT: z.url(),
+    CONVEX_DEPLOYMENT: z.string(),
 
     // AI APIs
     GEMINI_API_KEY: z.string(),
@@ -66,7 +66,6 @@ export const env = createEnv({
     TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
     TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
     TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
-    TWILIO_VERIFY_SERVICE_SID: process.env.TWILIO_VERIFY_SERVICE_SID,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_SENDER: process.env.RESEND_SENDER,
     TECHNICAL_CONTACT_EMAIL: process.env.TECHNICAL_CONTACT_EMAIL,
