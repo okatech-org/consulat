@@ -1,17 +1,16 @@
 'use client';
 
-import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldDescription,
+  FieldGroup,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,135 +55,153 @@ export function ChildFamilyInfoForm({
               <CardTitle>{t('children.form.family_info.title')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <FormField
-                control={form.control}
+              <Controller
                 name="hasParentalAuthority"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4" data-invalid={fieldState.invalid}>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                     <div className="space-y-1 leading-none">
-                      <FormLabel>
+                      <FieldLabel htmlFor="child-family-has-authority">
                         {t('children.form.family_info.has_parental_authority')}
-                      </FormLabel>
-                      <FormDescription>
+                      </FieldLabel>
+                      <FieldDescription>
                         {t(
                           'children.form.family_info.has_parental_authority_description',
                         )}
-                      </FormDescription>
+                      </FieldDescription>
                     </div>
-                  </FormItem>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
                 )}
               />
 
               {hasOtherParent && (
                 <>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormField
-                      control={form.control}
+                  <FieldGroup className="grid gap-4 md:grid-cols-2">
+                    <Controller
                       name="otherParentFirstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="child-family-other-firstname">
                             {t('children.form.family_info.other_parent_first_name')}
-                          </FormLabel>
-                          <FormControl>
-                            <Input {...field} value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                          </FieldLabel>
+                          <Input
+                            {...field}
+                            id="child-family-other-firstname"
+                            value={field.value || ''}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
+                    <Controller
                       name="otherParentLastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="child-family-other-lastname">
                             {t('children.form.family_info.other_parent_last_name')}
-                          </FormLabel>
-                          <FormControl>
-                            <Input {...field} value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                          </FieldLabel>
+                          <Input
+                            {...field}
+                            id="child-family-other-lastname"
+                            value={field.value || ''}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
-                  </div>
+                  </FieldGroup>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormField
-                      control={form.control}
+                  <FieldGroup className="grid gap-4 md:grid-cols-2">
+                    <Controller
                       name="otherParentEmail"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="child-family-other-email">
                             {t('children.form.family_info.other_parent_email')}
-                          </FormLabel>
-                          <FormControl>
-                            <Input {...field} type="email" value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                          </FieldLabel>
+                          <Input
+                            {...field}
+                            id="child-family-other-email"
+                            type="email"
+                            value={field.value || ''}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
+                    <Controller
                       name="otherParentPhone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="child-family-other-phone">
                             {t('children.form.family_info.other_parent_phone')}
-                          </FormLabel>
-                          <FormControl>
-                            <Input {...field} value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                          </FieldLabel>
+                          <Input
+                            {...field}
+                            id="child-family-other-phone"
+                            value={field.value || ''}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
-                  </div>
+                  </FieldGroup>
                 </>
               )}
 
-              <FormField
-                control={form.control}
+              <Controller
                 name="familySituation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="child-family-situation">
                       {t('children.form.family_info.family_situation')}
-                    </FormLabel>
-                    <FormDescription>
+                    </FieldLabel>
+                    <FieldDescription>
                       {t('children.form.family_info.family_situation_description')}
-                    </FormDescription>
-                    <FormControl>
-                      <Textarea {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                    </FieldDescription>
+                    <Textarea
+                      {...field}
+                      id="child-family-situation"
+                      value={field.value || ''}
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
                 )}
               />
 
-              <FormField
-                control={form.control}
+              <Controller
                 name="otherInformation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="child-family-other-info">
                       {t('children.form.family_info.other_information')}
-                    </FormLabel>
-                    <FormDescription>
+                    </FieldLabel>
+                    <FieldDescription>
                       {t('children.form.family_info.other_information_description')}
-                    </FormDescription>
-                    <FormControl>
-                      <Textarea {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                    </FieldDescription>
+                    <Textarea
+                      {...field}
+                      id="child-family-other-info"
+                      value={field.value || ''}
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
                 )}
               />
             </CardContent>

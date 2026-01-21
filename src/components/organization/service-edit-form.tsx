@@ -3,15 +3,15 @@
 import { DynamicFieldsEditor } from '@/components/organization/dynamic-fields-editor';
 import { Button } from '@/components/ui/button';
 import { CountrySelect } from '@/components/ui/country-select';
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldDescription,
+  FieldGroup,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Separator } from '@/components/ui/separator';
@@ -21,11 +21,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { useTabs } from '@/hooks/use-tabs';
 import { toast } from 'sonner';
 import { filterUneditedKeys, getValuable } from '@/lib/utils';
-import { ServiceSchema, ServiceSchemaInput } from '@/schemas/consular-service';
-import { ConsularServiceItem, ServiceStep } from '@/types/consular-service';
-import { Country } from '@/types/country';
-import { OrganizationListingItem } from '@/types/organization';
-import { profileFields } from '@/types/profile';
+import {
+  ServiceSchema,
+  type ServiceSchemaInput,
+  ServiceStepSchema,
+} from '@/schemas/consular-service';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   DeliveryMode,
@@ -34,7 +34,12 @@ import {
   ServiceStepType,
 } from '@/convex/lib/constants';
 import { useServices } from '@/hooks/use-services';
-import type { Id } from '@/convex/_generated/dataModel';
+import type { Doc, Id } from '@/convex/_generated/dataModel';
+import { profileFields } from '@/types/profile';
+import type { CountryCode } from '@/convex/lib/constants';
+import type { z } from 'zod';
+
+type ServiceStep = z.infer<typeof ServiceStepSchema>;
 import { ArrowUp, Plus, Trash } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -43,9 +48,9 @@ import { useForm } from 'react-hook-form';
 import CardContainer from '../layouts/card-container';
 
 interface ServiceFormProps {
-  organizations: OrganizationListingItem[];
-  countries: Country[];
-  service: Partial<ConsularServiceItem>;
+  organizations: Doc<'organizations'>[];
+  countries: Doc<'countries'>[];
+  service: Partial<ServiceSchemaInput>;
 }
 
 type Tab =
@@ -69,7 +74,7 @@ export function ConsularServiceForm({
 
   const cleanedService = getValuable(service);
 
-  const form = useForm<typeof ServiceSchema>({
+  const form = useForm<ServiceSchemaInput>({
     resolver: zodResolver(ServiceSchema),
 
     defaultValues: { ...cleanedService },
@@ -135,229 +140,253 @@ export function ConsularServiceForm({
             <TabsContent value="general" className={'space-y-6'}>
               {/* Informations générales */}
 
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.name.label')}</FormLabel>
-                    <FormControl>
+              <FieldGroup>
+                <Controller
+                  name="name"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="service-edit-name">
+                        {t('form.name.label')}
+                      </FieldLabel>
                       <Input
                         {...field}
+                        id="service-edit-name"
                         placeholder={t('form.name.placeholder')}
                         disabled={isLoading}
+                        aria-invalid={fieldState.invalid}
                       />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.description.label')}</FormLabel>
-                    <FormControl>
+                <Controller
+                  name="description"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="service-edit-description">
+                        {t('form.description.label')}
+                      </FieldLabel>
                       <Textarea
                         {...field}
+                        id="service-edit-description"
                         placeholder={t('form.description.placeholder')}
                         disabled={isLoading}
+                        aria-invalid={fieldState.invalid}
                       />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem className="w-full flex flex-col gap-2">
-                    <FormLabel>{t_inputs('serviceCategory.label')}</FormLabel>
-                    <MultiSelect<ServiceCategory>
-                      type="single"
-                      options={Object.values(ServiceCategory).map((category) => ({
-                        label: t_inputs(`serviceCategory.options.${category}`),
-                        value: category,
-                      }))}
-                      onChange={field.onChange}
-                      selected={field.value}
-                      disabled={isLoading}
-                    />
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="organizationId"
-                render={({ field }) => (
-                  <FormItem className="w-full flex flex-col gap-2">
-                    <FormLabel>{t_inputs('organization.label')}</FormLabel>
-                    <MultiSelect<string>
-                      type="single"
-                      options={organizations?.map((organization) => ({
-                        label: organization.name,
-                        value: organization._id || organization.id,
-                      }))}
-                      onChange={field.onChange}
-                      selected={field.value}
-                      disabled={
-                        isLoading || Boolean(service?._id || service?.organizationId)
-                      }
-                      className="min-w-max"
-                    />
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="countryCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t_inputs('country.label')}</FormLabel>
-                    <FormControl>
-                      <CountrySelect
+                <Controller
+                  name="category"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field className="w-full flex flex-col gap-2" data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="service-edit-category">
+                        {t_inputs('serviceCategory.label')}
+                      </FieldLabel>
+                      <MultiSelect<ServiceCategory>
+                        id="service-edit-category"
                         type="single"
-                        selected={field.value as CountryCode}
+                        options={Object.values(ServiceCategory).map((category) => ({
+                          label: t_inputs(`serviceCategory.options.${category}`),
+                          value: category,
+                        }))}
+                        onChange={field.onChange}
+                        selected={field.value}
+                        disabled={isLoading}
+                      />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+
+                <Controller
+                  name="organizationId"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field className="w-full flex flex-col gap-2" data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="service-edit-organization">
+                        {t_inputs('organization.label')}
+                      </FieldLabel>
+                      <MultiSelect<string>
+                        id="service-edit-organization"
+                        type="single"
+                        options={organizations?.map((organization) => ({
+                          label: organization.name,
+                          value: organization._id || organization.id,
+                        }))}
+                        onChange={field.onChange}
+                        selected={field.value}
+                        disabled={
+                          isLoading || Boolean(service?._id || service?.organizationId)
+                        }
+                        className="min-w-max"
+                      />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+
+                <Controller
+                  name="countryCode"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="service-edit-country">
+                        {t_inputs('country.label')}
+                      </FieldLabel>
+                      <CountrySelect
+                        id="service-edit-country"
+                        type="single"
+                        selected={
+                          field.value ? (field.value as CountryCode) : undefined
+                        }
                         onChange={(value) => field.onChange(value)}
                         options={countries?.map((item) => item.code as CountryCode)}
                       />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+              </FieldGroup>
             </TabsContent>
 
             <TabsContent value="documents" className={'space-y-6'}>
               {/* Configuration des documents */}
-              <FormField
-                control={form.control}
-                name="requiredDocuments"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.required_documents.label')}</FormLabel>
-                    <MultiSelect<DocumentType>
-                      type={'multiple'}
-                      options={Object.values(DocumentType).map((type) => ({
-                        label: t(`documents.${type.toLowerCase()}`),
-                        value: type,
-                      }))}
-                      selected={field.value}
-                      onChange={field.onChange}
-                      placeholder={t('form.required_documents.placeholder')}
-                      searchPlaceholder={t('form.required_documents.search')}
-                      emptyText={t('form.required_documents.empty')}
-                    />
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+              <FieldGroup>
+                <Controller
+                  name="requiredDocuments"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="service-edit-required-docs">
+                        {t('form.required_documents.label')}
+                      </FieldLabel>
+                      <MultiSelect<DocumentType>
+                        id="service-edit-required-docs"
+                        type={'multiple'}
+                        options={Object.values(DocumentType).map((type) => ({
+                          label: t(`documents.${type.toLowerCase()}`),
+                          value: type,
+                        }))}
+                        selected={field.value}
+                        onChange={field.onChange}
+                        placeholder={t('form.required_documents.placeholder')}
+                        searchPlaceholder={t('form.required_documents.search')}
+                        emptyText={t('form.required_documents.empty')}
+                      />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="optionalDocuments"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.optional_documents.label')}</FormLabel>
-                    <MultiSelect<DocumentType>
-                      options={Object.values(DocumentType).map((type) => ({
-                        label: t(`documents.${type.toLowerCase()}`),
-                        value: type,
-                      }))}
-                      selected={field.value}
-                      onChange={field.onChange}
-                      placeholder={t('form.required_documents.placeholder')}
-                      searchPlaceholder={t('form.required_documents.search')}
-                      emptyText={t('form.required_documents.empty')}
-                    />
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+                <Controller
+                  name="optionalDocuments"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="service-edit-optional-docs">
+                        {t('form.optional_documents.label')}
+                      </FieldLabel>
+                      <MultiSelect<DocumentType>
+                        id="service-edit-optional-docs"
+                        options={Object.values(DocumentType).map((type) => ({
+                          label: t(`documents.${type.toLowerCase()}`),
+                          value: type,
+                        }))}
+                        selected={field.value}
+                        onChange={field.onChange}
+                        placeholder={t('form.required_documents.placeholder')}
+                        searchPlaceholder={t('form.required_documents.search')}
+                        emptyText={t('form.required_documents.empty')}
+                      />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+              </FieldGroup>
             </TabsContent>
 
             <TabsContent value="delivery">
               <div className="space-y-6">
                 {/* Configuration des rendez-vous */}
-                <FormField
-                  control={form.control}
+                <Controller
                   name="requiresAppointment"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row gap-2 items-center justify-between rounded-lg border p-4 w-max">
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          disabled={isLoading}
-                        />
-                      </FormControl>
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field className="flex flex-row gap-2 items-center justify-between rounded-lg border p-4 w-max" data-invalid={fieldState.invalid}>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isLoading}
+                      />
                       <div className="space-y-0.5">
-                        <FormLabel>
+                        <FieldLabel htmlFor="service-edit-requires-appointment">
                           {t_inputs('appointment.presidential.label')}
-                        </FormLabel>
-                        <FormDescription>
+                        </FieldLabel>
+                        <FieldDescription>
                           {t_inputs('appointment.presidential.description')}
-                        </FormDescription>
+                        </FieldDescription>
                       </div>
-                    </FormItem>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
                   )}
                 />
 
                 {form.watch('requiresAppointment') && (
                   <div className="space-y-4">
-                    <FormField
-                      control={form.control}
+                    <Controller
                       name="appointmentDuration"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t_inputs('appointment.duration.label')}</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min={15}
-                              step={5}
-                              {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
-                              placeholder={t_inputs('appointment.duration.placeholder')}
-                            />
-                          </FormControl>
-                          <FormDescription>
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="service-edit-appointment-duration">
+                            {t_inputs('appointment.duration.label')}
+                          </FieldLabel>
+                          <Input
+                            id="service-edit-appointment-duration"
+                            type="number"
+                            min={15}
+                            step={5}
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            placeholder={t_inputs('appointment.duration.placeholder')}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          <FieldDescription>
                             {t_inputs('appointment.duration.description')}
-                          </FormDescription>
-                          <TradFormMessage />
-                        </FormItem>
+                          </FieldDescription>
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
+                    <Controller
                       name="appointmentInstructions"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="service-edit-appointment-instructions">
                             {t_inputs('appointment.instructions.label')}
-                          </FormLabel>
-                          <FormControl>
-                            <Textarea
-                              {...field}
-                              placeholder={t_inputs(
-                                'appointment.instructions.placeholder',
-                              )}
-                            />
-                          </FormControl>
-                          <FormDescription>
+                          </FieldLabel>
+                          <Textarea
+                            {...field}
+                            id="service-edit-appointment-instructions"
+                            placeholder={t_inputs(
+                              'appointment.instructions.placeholder',
+                            )}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          <FieldDescription>
                             {t_inputs('appointment.instructions.description')}
-                          </FormDescription>
-                          <TradFormMessage />
-                        </FormItem>
+                          </FieldDescription>
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
                   </div>
@@ -366,13 +395,16 @@ export function ConsularServiceForm({
                 <Separator />
 
                 {/* Modes de livraison */}
-                <FormField
-                  control={form.control}
+                <Controller
                   name="deliveryMode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('form.delivery.modes.label')}</FormLabel>
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="service-edit-delivery-mode">
+                        {t('form.delivery.modes.label')}
+                      </FieldLabel>
                       <MultiSelect<DeliveryMode>
+                        id="service-edit-delivery-mode"
                         type={'multiple'}
                         options={Object.values(DeliveryMode).map((mode) => ({
                           label: t(`form.delivery.modes.options.${mode.toLowerCase()}`),
@@ -384,52 +416,51 @@ export function ConsularServiceForm({
                           handleDeliveryModeChange(value);
                         }}
                       />
-                      <TradFormMessage />
-                    </FormItem>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
                   )}
                 />
 
                 {form.watch('deliveryMode').includes(DeliveryMode.InPerson) && (
-                  <FormField
-                    control={form.control}
+                  <Controller
                     name="deliveryAppointmentDesc"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="service-edit-delivery-appointment-desc">
                           {t('form.delivery.appointment.instructions')}
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder={t('form.delivery.appointment.description')}
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
+                        </FieldLabel>
+                        <Textarea
+                          {...field}
+                          id="service-edit-delivery-appointment-desc"
+                          placeholder={t('form.delivery.appointment.description')}
+                          aria-invalid={fieldState.invalid}
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
                     )}
                   />
                 )}
 
-                {/* Options de proxy */}
                 {form.watch('deliveryMode').includes(DeliveryMode.ByProxy) && (
-                  <FormField
-                    control={form.control}
+                  <Controller
                     name="proxyRequirements"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="service-edit-proxy-requirements">
                           {t('form.delivery.proxy.requirements.label')}
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder={t(
-                              'form.delivery.proxy.requirements.placeholder',
-                            )}
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
+                        </FieldLabel>
+                        <Textarea
+                          {...field}
+                          id="service-edit-proxy-requirements"
+                          placeholder={t(
+                            'form.delivery.proxy.requirements.placeholder',
+                          )}
+                          aria-invalid={fieldState.invalid}
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
                     )}
                   />
                 )}
@@ -438,56 +469,62 @@ export function ConsularServiceForm({
 
             <TabsContent value="pricing">
               <div className="space-y-6">
-                <FormField
-                  control={form.control}
+                <Controller
                   name="isFree"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row gap-2 w-max items-center justify-between">
-                      <FormControl>
-                        <Switch
-                          checked={!!field.value}
-                          onCheckedChange={(value) => {
-                            field.onChange(value);
-                          }}
-                          disabled={isLoading}
-                        />
-                      </FormControl>
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field className="flex flex-row gap-2 w-max items-center justify-between" data-invalid={fieldState.invalid}>
+                      <Switch
+                        checked={!!field.value}
+                        onCheckedChange={(value) => {
+                          field.onChange(value);
+                        }}
+                        disabled={isLoading}
+                      />
                       <div className="space-y-0.5">
-                        <FormLabel>{t('form.pricing.label')}</FormLabel>
-                        <FormDescription>{t('form.pricing.description')}</FormDescription>
+                        <FieldLabel htmlFor="service-edit-is-free">
+                          {t('form.pricing.label')}
+                        </FieldLabel>
+                        <FieldDescription>{t('form.pricing.description')}</FieldDescription>
                       </div>
-                    </FormItem>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
                   )}
                 />
 
                 {form.watch('isFree') === true && (
-                  <>
-                    <FormField
-                      control={form.control}
+                  <FieldGroup>
+                    <Controller
                       name="price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('form.pricing.label')}</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
-                              placeholder={t('form.price.placeholder')}
-                            />
-                          </FormControl>
-                          <TradFormMessage />
-                        </FormItem>
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="service-edit-price">
+                            {t('form.pricing.label')}
+                          </FieldLabel>
+                          <Input
+                            id="service-edit-price"
+                            type="number"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            placeholder={t('form.price.placeholder')}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
+                    <Controller
                       name="currency"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('form.pricing.currency.label')}</FormLabel>
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="service-edit-currency">
+                            {t('form.pricing.currency.label')}
+                          </FieldLabel>
                           <MultiSelect<string>
+                            id="service-edit-currency"
                             options={[
                               { value: 'EUR', label: 'EUR' },
                               { value: 'XAF', label: 'XAF' },
@@ -498,11 +535,11 @@ export function ConsularServiceForm({
                             type={'single'}
                             placeholder={t('form.pricing.currency.placeholder')}
                           />
-                          <TradFormMessage />
-                        </FormItem>
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
-                  </>
+                  </FieldGroup>
                 )}
               </div>
             </TabsContent>
@@ -550,41 +587,43 @@ export function ConsularServiceForm({
                       }
                     >
                       <div className="space-y-4">
-                        <FormField
-                          control={form.control}
+                        <Controller
                           name={`steps.${index}.title`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t('form.steps.title')}</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder={t('form.steps.step.title.placeholder')}
-                                  {...field}
-                                />
-                              </FormControl>
-                              <TradFormMessage />
-                            </FormItem>
+                          control={form.control}
+                          render={({ field, fieldState }) => (
+                            <Field data-invalid={fieldState.invalid}>
+                              <FieldLabel htmlFor={`service-step-${index}-title`}>
+                                {t('form.steps.title')}
+                              </FieldLabel>
+                              <Input
+                                id={`service-step-${index}-title`}
+                                placeholder={t('form.steps.step.title.placeholder')}
+                                {...field}
+                                aria-invalid={fieldState.invalid}
+                              />
+                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                            </Field>
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
+                        <Controller
                           name={`steps.${index}.description`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>
+                          control={form.control}
+                          render={({ field, fieldState }) => (
+                            <Field data-invalid={fieldState.invalid}>
+                              <FieldLabel htmlFor={`service-step-${index}-description`}>
                                 {t('form.steps.step.description.label')}
-                              </FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder={t(
-                                    'form.steps.step.description.placeholder',
-                                  )}
-                                  {...field}
-                                />
-                              </FormControl>
-                              <TradFormMessage />
-                            </FormItem>
+                              </FieldLabel>
+                              <Textarea
+                                id={`service-step-${index}-description`}
+                                placeholder={t(
+                                  'form.steps.step.description.placeholder',
+                                )}
+                                {...field}
+                                aria-invalid={fieldState.invalid}
+                              />
+                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                            </Field>
                           )}
                         />
 

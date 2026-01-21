@@ -4,17 +4,16 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { User } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
 import type { Doc } from '@/convex/_generated/dataModel';
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldGroup,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -148,81 +147,94 @@ export function AgentForm({
           title="Informations personnelles"
           subtitle="Renseignez les informations de base de l'agent"
         >
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
+          <FieldGroup className="grid grid-cols-2 gap-4">
+            <Controller
               name="firstName"
-              render={({ field }) => (
-                <FormItem className={'col-span-full lg:col-span-1'}>
-                  <FormLabel>{t_inputs('firstName.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder={t_inputs('firstName.placeholder')}
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field className="col-span-full lg:col-span-1" data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="agent-firstName">
+                    {t_inputs('firstName.label')}
+                  </FieldLabel>
+                  <Input
+                    id="agent-firstName"
+                    placeholder={t_inputs('firstName.placeholder')}
+                    {...field}
+                    disabled={isLoading}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
-            <FormField
-              control={form.control}
+            <Controller
               name="lastName"
-              render={({ field }) => (
-                <FormItem className={'col-span-full lg:col-span-1'}>
-                  <FormLabel>{t_inputs('lastName.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder={t_inputs('lastName.placeholder')}
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field className="col-span-full lg:col-span-1" data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="agent-lastName">
+                    {t_inputs('lastName.label')}
+                  </FieldLabel>
+                  <Input
+                    id="agent-lastName"
+                    placeholder={t_inputs('lastName.placeholder')}
+                    {...field}
+                    disabled={isLoading}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
-            <FormField
-              control={form.control}
+            <Controller
               name="email"
-              render={({ field }) => (
-                <FormItem className={'col-span-full'}>
-                  <FormLabel>{t_inputs('email.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder={t_inputs('email.placeholder')}
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
               control={form.control}
-              name="phoneNumber"
-              render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel>{t_inputs('phone.label')}</FormLabel>
-                  <FormControl>
-                    <PhoneInput
-                      value={field.value}
-                      onChange={field.onChange}
-                      disabled={isLoading}
-                      placeholder={t_inputs('phone.placeholder')}
-                      countries={
-                        countries?.map((country) => country.code as string) as any
-                      }
-                      defaultCountry={countries?.[0]?.code as any}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field className="col-span-full" data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="agent-email">
+                    {t_inputs('email.label')}
+                  </FieldLabel>
+                  <Input
+                    id="agent-email"
+                    placeholder={t_inputs('email.placeholder')}
+                    {...field}
+                    disabled={isLoading}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
-          </div>
+            <Controller
+              name="phoneNumber"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field className="col-span-full" data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="agent-phone">
+                    {t_inputs('phone.label')}
+                  </FieldLabel>
+                  <PhoneInput
+                    id="agent-phone"
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isLoading}
+                    placeholder={t_inputs('phone.placeholder')}
+                    countries={
+                      countries?.map((country) => country.code as string) as
+                        | string[]
+                        | undefined
+                    }
+                    defaultCountry={
+                      countries?.[0]?.code
+                        ? (countries[0].code as string)
+                        : undefined
+                    }
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          </FieldGroup>
         </CardContainer>
 
         {/* Rôle et hiérarchie */}
@@ -230,26 +242,24 @@ export function AgentForm({
           title="Rôle et hiérarchie"
           subtitle="Définissez le rôle et les relations hiérarchiques"
         >
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
+          <FieldGroup>
+            <Controller
               name="roles"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Rôle</FormLabel>
-                  <FormControl>
-                    <MultiSelect<UserRole>
-                      options={Object.values(UserRole).map((role) => ({
-                        label: role,
-                        value: role,
-                      }))}
-                      selected={field.value}
-                      type="multiple"
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="agent-roles">Rôle</FieldLabel>
+                  <MultiSelect<UserRole>
+                    options={Object.values(UserRole).map((role) => ({
+                      label: role,
+                      value: role,
+                    }))}
+                    selected={field.value}
+                    type="multiple"
+                    onChange={field.onChange}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
 
@@ -274,36 +284,33 @@ export function AgentForm({
 
                 {/* Manager selection (create mode or if no current manager) */}
                 {(!isEditMode || !currentManager) && managers.length > 0 && (
-                  <FormField
-                    control={form.control}
+                  <Controller
                     name="managedByUserId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Manager (optionnel)</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value || 'none'}
-                            onValueChange={(value) => {
-                              // Handle clearing selection
-                              field.onChange(value === 'none' ? undefined : value);
-                            }}
-                            disabled={isLoading}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner un manager" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">Aucun manager</SelectItem>
-                              {managers.map((manager) => (
-                                <SelectItem key={manager.id} value={manager.id}>
-                                  {manager.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="agent-manager">Manager (optionnel)</FieldLabel>
+                        <Select
+                          value={field.value || 'none'}
+                          onValueChange={(value) => {
+                            field.onChange(value === 'none' ? undefined : value);
+                          }}
+                          disabled={isLoading}
+                        >
+                          <SelectTrigger id="agent-manager" aria-invalid={fieldState.invalid}>
+                            <SelectValue placeholder="Sélectionner un manager" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Aucun manager</SelectItem>
+                            {managers.map((manager) => (
+                              <SelectItem key={manager.id} value={manager.id}>
+                                {manager.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
                     )}
                   />
                 )}
@@ -312,26 +319,24 @@ export function AgentForm({
 
             {/* Agent assignment for MANAGER role */}
             {watchedRole?.includes(UserRole.Manager) && (
-              <FormField
-                control={form.control}
+              <Controller
                 name="managedAgentIds"
-                render={() => (
-                  <FormItem>
-                    <FormLabel>Agents à superviser</FormLabel>
-                    <FormControl>
-                      <MultiSelect<string>
-                        placeholder="Sélectionner les agents"
-                        options={agents.map((agent) => ({
-                          label: agent.name,
-                          value: agent.id,
-                        }))}
-                        selected={managedAgents}
-                        onChange={setManagedAgents}
-                        type={'multiple'}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
+                control={form.control}
+                render={({ fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="agent-managed-agents">Agents à superviser</FieldLabel>
+                    <MultiSelect<string>
+                      placeholder="Sélectionner les agents"
+                      options={agents.map((agent) => ({
+                        label: agent.name,
+                        value: agent.id,
+                      }))}
+                      selected={managedAgents}
+                      onChange={setManagedAgents}
+                      type={'multiple'}
+                      disabled={isLoading}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     {managedAgents.length > 0 && (
                       <div className="mt-2">
                         <p className="text-sm text-muted-foreground mb-2">
@@ -349,11 +354,11 @@ export function AgentForm({
                         </div>
                       </div>
                     )}
-                  </FormItem>
+                  </Field>
                 )}
               />
             )}
-          </div>
+          </FieldGroup>
         </CardContainer>
 
         {/* Assignations géographiques et services */}
@@ -361,60 +366,59 @@ export function AgentForm({
           title="Assignations"
           subtitle="Définissez les pays et services assignés"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
+          <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Controller
               name="countryCodes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t_inputs('country.label')}</FormLabel>
-                  <FormControl>
-                    <MultiSelect<string>
-                      placeholder={t_inputs('country.select_placeholder')}
-                      options={countries.map((country) => ({
-                        label: country.name,
-                        value: country.code,
-                      }))}
-                      selected={field.value || []}
-                      onChange={field.onChange}
-                      type={'multiple'}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="agent-countries">
+                    {t_inputs('country.label')}
+                  </FieldLabel>
+                  <MultiSelect<string>
+                    placeholder={t_inputs('country.select_placeholder')}
+                    options={countries.map((country) => ({
+                      label: country.name,
+                      value: country.code,
+                    }))}
+                    selected={field.value || []}
+                    onChange={field.onChange}
+                    type={'multiple'}
+                    disabled={isLoading}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
 
-            <FormField
-              control={form.control}
+            <Controller
               name="serviceIds"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Services (optionnel)</FormLabel>
-                  <FormControl>
-                    <MultiSelect<string>
-                      placeholder="Sélectionner les services"
-                      options={services.map((service) => ({
-                        label: service.name,
-                        value: service._id,
-                      }))}
-                      selected={field.value || []}
-                      onChange={field.onChange}
-                      type={'multiple'}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="agent-services">Services (optionnel)</FieldLabel>
+                  <MultiSelect<string>
+                    placeholder="Sélectionner les services"
+                    options={services.map((service) => ({
+                      label: service.name,
+                      value: service._id,
+                    }))}
+                    selected={field.value || []}
+                    onChange={field.onChange}
+                    type={'multiple'}
+                    disabled={isLoading}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
-          </div>
+          </FieldGroup>
         </CardContainer>
 
         <div className="flex justify-end">
-          <Button type="submit" loading={isLoading}>
+          <Button type="submit" disabled={isLoading}>
             {isEditMode ? t_common('actions.update') : t_common('actions.create')}
+            {isLoading && <Loader2 className="size-4 animate-spin" />}
           </Button>
         </div>
       </form>

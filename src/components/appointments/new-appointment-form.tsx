@@ -10,14 +10,13 @@ import {
 } from '@/convex/lib/constants';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+} from '@/components/ui/field';
 import { cn, useDateLocale } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -170,7 +169,6 @@ export function NewAppointmentForm({
 
     const startTimestamp = selectedTimeSlot.start.getTime();
     const endTimestamp = selectedTimeSlot.end.getTime();
-    const now = Date.now();
 
     try {
       await createAppointment({
@@ -518,57 +516,57 @@ export function NewAppointmentForm({
               }
             >
               <div className="space-y-4">
-                <FormField
-                  control={form.control}
+                <Controller
                   name="requestId"
-                  render={({ field }) => (
-                    <FormItem className="w-max">
-                      <FormLabel>{t('request.label')}</FormLabel>
-                      <FormControl>
-                        <MultiSelect<string>
-                          options={eligibleRequests.map((request) => ({
-                            value: request._id as string,
-                            label: `Request ${request.number}`,
-                          }))}
-                          selected={field.value}
-                          onChange={(value) => {
-                            field.onChange(value);
-                            handleRequestChange(value);
-                          }}
-                          placeholder={t('request.placeholder')}
-                          type="single"
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field className="w-max" data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="appointment-request-id">
+                        {t('request.label')}
+                      </FieldLabel>
+                      <MultiSelect<string>
+                        options={eligibleRequests.map((request) => ({
+                          value: request._id as string,
+                          label: `Request ${request.number}`,
+                        }))}
+                        selected={field.value}
+                        onChange={(value) => {
+                          field.onChange(value);
+                          handleRequestChange(value);
+                        }}
+                        placeholder={t('request.placeholder')}
+                        type="single"
+                      />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
                   )}
                 />
                 {renderServiceInfo()}
 
                 {selectedRequest && selectedServiceDetails && (
-                  <FormField
-                    control={form.control}
+                  <Controller
                     name="type"
-                    render={({ field }) => (
-                      <FormItem className="w-max">
-                        <FormLabel>{t('type.label')}</FormLabel>
-                        <FormControl>
-                          <MultiSelect<string>
-                            options={availableTypes.map((type) => ({
-                              value: type,
-                              label: t(`type.options.${type}`),
-                            }))}
-                            selected={field.value}
-                            onChange={(value) => {
-                              field.onChange(value);
-                              handleTypeChange(value);
-                            }}
-                            placeholder={t('type.placeholder')}
-                            type="single"
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field className="w-max" data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="appointment-type">
+                          {t('type.label')}
+                        </FieldLabel>
+                        <MultiSelect<string>
+                          options={availableTypes.map((type) => ({
+                            value: type,
+                            label: t(`type.options.${type}`),
+                          }))}
+                          selected={field.value}
+                          onChange={(value) => {
+                            field.onChange(value);
+                            handleTypeChange(value);
+                          }}
+                          placeholder={t('type.placeholder')}
+                          type="single"
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
                     )}
                   />
                 )}
@@ -605,17 +603,17 @@ export function NewAppointmentForm({
               <div className="space-y-4">
                 {selectedRequest && (
                   <>
-                    <FormField
-                      control={form.control}
+                    <Controller
                       name="date"
-                      render={({ field }) => (
-                        <FormItem className="w-max">
-                          <FormLabel>{t('datetime.pick_date')}</FormLabel>
-                          <FormControl>
-                            <DatePicker date={field.value} onSelect={field.onChange} />
-                          </FormControl>
-                          <TradFormMessage />
-                        </FormItem>
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field className="w-max" data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="appointment-date">
+                            {t('datetime.pick_date')}
+                          </FieldLabel>
+                          <DatePicker date={field.value} onSelect={field.onChange} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
 

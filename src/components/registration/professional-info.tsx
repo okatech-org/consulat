@@ -1,15 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
+import { Form } from '@/components/ui/form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldGroup,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -119,11 +118,11 @@ export function ProfessionalInfoForm({
             title={t_inputs('professionalStatus.label')}
             subtitle={t_inputs('professionalStatus.help')}
           >
-            <FormField
-              control={form.control}
+            <Controller
               name="workStatus"
-              render={({ field }) => (
-                <FormItem>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
                   <Select
                     onValueChange={(value) => {
                       field.onChange(value);
@@ -135,13 +134,11 @@ export function ProfessionalInfoForm({
                     }}
                     defaultValue={field.value}
                   >
-                    <FormControl>
-                      <SelectTrigger disabled={isLoading}>
-                        <SelectValue
-                          placeholder={t_inputs('professionalStatus.select')}
-                        />
-                      </SelectTrigger>
-                    </FormControl>
+                    <SelectTrigger id="professional-info-workStatus" disabled={isLoading} aria-invalid={fieldState.invalid}>
+                      <SelectValue
+                        placeholder={t_inputs('professionalStatus.select')}
+                      />
+                    </SelectTrigger>
                     <SelectContent>
                       {Object.values(WorkStatus).map((status) => (
                         <SelectItem key={status} value={status}>
@@ -150,102 +147,106 @@ export function ProfessionalInfoForm({
                       ))}
                     </SelectContent>
                   </Select>
-                  <TradFormMessage />
-                </FormItem>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
           </CardContainer>
 
-          {/* Informations professionnelles */}
           {(showProfessionField || showEmployerFields) && (
             <CardContainer title={t('form.professional_info')}>
-              <div className="grid gap-4">
+              <FieldGroup>
                 {showProfessionField && (
-                  <FormField
-                    control={form.control}
+                  <Controller
                     name="profession"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t_inputs('profession.label')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            value={field.value ?? ''}
-                            placeholder={t_inputs('profession.placeholder')}
-                            disabled={isLoading}
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="professional-info-profession">
+                          {t_inputs('profession.label')}
+                        </FieldLabel>
+                        <Input
+                          {...field}
+                          id="professional-info-profession"
+                          value={field.value ?? ''}
+                          placeholder={t_inputs('profession.placeholder')}
+                          disabled={isLoading}
+                          aria-invalid={fieldState.invalid}
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
                     )}
                   />
                 )}
 
                 {showEmployerFields && (
                   <>
-                    <FormField
-                      control={form.control}
+                    <Controller
                       name="employer"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t_inputs('employer.label')}</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value ?? ''}
-                              placeholder={t_inputs('employer.placeholder')}
-                              disabled={isLoading}
-                            />
-                          </FormControl>
-                          <TradFormMessage />
-                        </FormItem>
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="professional-info-employer">
+                            {t_inputs('employer.label')}
+                          </FieldLabel>
+                          <Input
+                            {...field}
+                            id="professional-info-employer"
+                            value={field.value ?? ''}
+                            placeholder={t_inputs('employer.placeholder')}
+                            disabled={isLoading}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
+                    <Controller
                       name="employerAddress"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t_inputs('employerAddress.label')}</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value ?? ''}
-                              placeholder={t_inputs('employerAddress.placeholder')}
-                              disabled={isLoading}
-                            />
-                          </FormControl>
-                          <TradFormMessage />
-                        </FormItem>
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="professional-info-employer-address">
+                            {t_inputs('employerAddress.label')}
+                          </FieldLabel>
+                          <Input
+                            {...field}
+                            id="professional-info-employer-address"
+                            value={field.value ?? ''}
+                            placeholder={t_inputs('employerAddress.placeholder')}
+                            disabled={isLoading}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
                   </>
                 )}
-              </div>
+              </FieldGroup>
             </CardContainer>
           )}
 
-          {/* Dernière activité au Gabon */}
           <CardContainer
             title={t('form.gabon_activity')}
             subtitle={t('form.gabon_activity_description')}
           >
-            <FormField
-              control={form.control}
+            <Controller
               name="activityInGabon"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={field.value ?? ''}
-                      placeholder={t_inputs('activityInGabon.placeholder')}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <Input
+                    {...field}
+                    id="professional-info-activity-gabon"
+                    value={field.value ?? ''}
+                    placeholder={t_inputs('activityInGabon.placeholder')}
+                    disabled={isLoading}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
           </CardContainer>

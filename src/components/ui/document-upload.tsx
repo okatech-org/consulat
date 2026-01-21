@@ -3,16 +3,14 @@ import { useTranslations } from 'next-intl';
 import { Upload, X, FileInput } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { type FieldValues, type UseFormReturn } from 'react-hook-form';
+import { Controller, type FieldValues, type UseFormReturn } from 'react-hook-form';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import Image from 'next/image';
 import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { type ReactNode } from 'react';
 
@@ -102,132 +100,126 @@ export function DocumentUploadField<T extends FieldValues>({
   };
 
   return (
-    <FormField
-      control={form.control}
+    <Controller
       name={field.name}
-      render={() => (
-        <FormItem>
+      control={form.control}
+      render={({ field: formField, fieldState }) => (
+        <Field data-invalid={fieldState.invalid}>
           {label && (
-            <FormLabel>
+            <FieldLabel htmlFor={id}>
               {label}
               {required && <span className="ml-1 text-destructive">*</span>}
-            </FormLabel>
+            </FieldLabel>
           )}
-          <FormControl>
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                if (!disabled) setIsDragging(true);
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleDrop}
-              className={cn(
-                'relative rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors',
-                isDragging && 'border-primary bg-primary/5',
-                disabled && 'cursor-not-allowed opacity-60',
-              )}
-            >
-              <Input
-                id={id}
-                ref={inputRef}
-                type="file"
-                accept={accept}
-                onChange={(e) => field.onChange(e.target.files?.[0])}
-                disabled={disabled}
-                className="hidden"
-                max={maxSize * 1024 * 1024}
-              />
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (!disabled) setIsDragging(true);
+            }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+            className={cn(
+              'relative rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors',
+              isDragging && 'border-primary bg-primary/5',
+              disabled && 'cursor-not-allowed opacity-60',
+            )}
+          >
+            <Input
+              id={id}
+              ref={inputRef}
+              type="file"
+              accept={accept}
+              onChange={(e) => formField.onChange(e.target.files?.[0])}
+              disabled={disabled}
+              className="hidden"
+              max={maxSize * 1024 * 1024}
+              aria-invalid={fieldState.invalid}
+            />
 
-              {!field.value && !existingFile ? (
-                // État vide
-                <div className="relative flex flex-col items-center justify-center p-6 text-center">
-                  <Upload className="mb-4 size-8 text-muted-foreground" />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={disabled}
-                    onClick={() => inputRef.current?.click()}
-                  >
-                    {t('drop_zone.button')}
-                  </Button>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {t('drop_zone.description', { size: 10 })}
-                  </p>
-                </div>
-              ) : (
-                // Fichier sélectionné
-                <div className="relative p-4">
-                  <div className="flex items-center gap-4">
-                    {/* Prévisualisation */}
-                    {preview && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button type={'button'} variant="ghost" className="p-0">
-                            <div
-                              className={cn(
-                                'relative overflow-hidden rounded',
-                                aspectRatio === 'square' ? 'h-16 w-16' : 'h-20 w-16',
-                              )}
-                            >
-                              <Image
-                                src={preview}
-                                alt="Preview"
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-3xl">
+            {!formField.value && !existingFile ? (
+              <div className="relative flex flex-col items-center justify-center p-6 text-center">
+                <Upload className="mb-4 size-8 text-muted-foreground" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={disabled}
+                  onClick={() => inputRef.current?.click()}
+                >
+                  {t('drop_zone.button')}
+                </Button>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {t('drop_zone.description', { size: 10 })}
+                </p>
+              </div>
+            ) : (
+              <div className="relative p-4">
+                <div className="flex items-center gap-4">
+                  {preview && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button type={'button'} variant="ghost" className="p-0">
                           <div
                             className={cn(
-                              'relative overflow-hidden rounded-lg',
-                              aspectRatio === 'square' ? 'aspect-square' : 'aspect-[3/4]',
+                              'relative overflow-hidden rounded',
+                              aspectRatio === 'square' ? 'h-16 w-16' : 'h-20 w-16',
                             )}
                           >
                             <Image
                               src={preview}
                               alt="Preview"
                               fill
-                              className="object-contain"
+                              className="object-cover"
                             />
                           </div>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                    {pdfPreview}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-3xl">
+                        <div
+                          className={cn(
+                            'relative overflow-hidden rounded-lg',
+                            aspectRatio === 'square' ? 'aspect-square' : 'aspect-[3/4]',
+                          )}
+                        >
+                          <Image
+                            src={preview}
+                            alt="Preview"
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                  {pdfPreview}
 
-                    {/* Informations du fichier */}
-                    <div className="flex-1 overflow-hidden">
-                      <p className="text-sm font-medium">
-                        {field.value?.name || 'Document téléchargé'}
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-sm font-medium">
+                      {formField.value?.name || 'Document téléchargé'}
+                    </p>
+                    {formField.value?.size && (
+                      <p className="text-sm text-muted-foreground">
+                        {(formField.value.size / (1024 * 1024)).toFixed(2)} MB
                       </p>
-                      {field.value?.size && (
-                        <p className="text-sm text-muted-foreground">
-                          {(field.value.size / (1024 * 1024)).toFixed(2)} MB
-                        </p>
-                      )}
-                    </div>
+                    )}
+                  </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={removeFile}
-                        disabled={disabled}
-                        leftIcon={<X className="size-4" />}
-                      />
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={removeFile}
+                      disabled={disabled}
+                      leftIcon={<X className="size-4" />}
+                    />
                   </div>
                 </div>
-              )}
-            </div>
-          </FormControl>
+              </div>
+            )}
+          </div>
           {description && <p className="text-sm text-muted-foreground">{description}</p>}
-          <TradFormMessage />
-        </FormItem>
+          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+        </Field>
       )}
     />
   );

@@ -9,7 +9,6 @@ import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Card } from '@/components/ui/card';
-import { Pencil, Plus, Trash } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,18 +16,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Form } from '@/components/ui/form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-  FormDescription,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldDescription,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import TagsInput from '@/components/ui/tags-input';
-import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import type { ProfileField } from '@/types/profile';
 import { ServiceFieldSchema } from '@/schemas/consular-service';
@@ -107,13 +103,11 @@ export function DynamicFieldsEditor({
               <Button
                 variant="ghost"
                 size="sm"
-                leftIcon={<Pencil className="size-4" />}
                 onClick={() => handleEditField(index)}
               />
               <Button
                 variant="ghost"
                 size="sm"
-                leftIcon={<Trash className="size-4" />}
                 onClick={() => handleDeleteField(index)}
               />
             </div>
@@ -125,7 +119,6 @@ export function DynamicFieldsEditor({
       <Button
         type="button"
         variant="outline"
-        leftIcon={<Plus className="size-4" />}
         onClick={() => {
           setEditingFieldIndex(-1);
           fieldForm.reset();
@@ -149,154 +142,102 @@ export function DynamicFieldsEditor({
           <Form {...fieldForm}>
             <form ref={formRef} className="space-y-4">
               {/* Mapping avec un champ de profil */}
-              <FormField
-                control={fieldForm.control}
-                name="profileField"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.steps.step.fields.profile_mapping')}</FormLabel>
-                    <FormControl>
-                      <MultiSelect<string>
-                        options={profileFields.map((f) => ({
-                          value: f.path,
-                          label: t_inputs(`profile.${f.path}`),
-                        }))}
-                        selected={field.value}
-                        onChange={(value) => {
-                          const pField = profileFields.find((f) => f.path === value);
+              <Field name="profileField">
+                <FieldLabel>{t('form.steps.step.fields.profile_mapping')}</FieldLabel>
+                <MultiSelect<string>
+                  options={profileFields.map((f) => ({
+                    value: f.path,
+                    label: t_inputs(`profile.${f.path}`),
+                  }))}
+                  selected={fieldForm.watch('profileField')}
+                  onChange={(value) => {
+                    const pField = profileFields.find((f) => f.path === value);
 
-                          field.onChange(value);
+                    fieldForm.setValue('profileField', value);
 
-                          if (pField) {
-                            fieldForm.setValue('name', pField.path);
-                            fieldForm.setValue(
-                              'label',
-                              t_inputs(`profile.${pField?.path}`),
-                            );
-                            fieldForm.setValue('type', pField.type);
-                            fieldForm.setValue('required', pField?.required);
-                          }
-                        }}
-                        type={'single'}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      {t('form.steps.step.fields.profile_mapping_description')}
-                    </FormDescription>
-                  </FormItem>
-                )}
-              />
+                    if (pField) {
+                      fieldForm.setValue('name', pField.path);
+                      fieldForm.setValue(
+                        'label',
+                        t_inputs(`profile.${pField?.path}`),
+                      );
+                      fieldForm.setValue('type', pField.type as ServiceFieldType);
+                    }
+                  }}
+                  type={'single'}
+                />
+                <FieldDescription>
+                  {t('form.steps.step.fields.profile_mapping_description')}
+                </FieldDescription>
+                <FieldError />
+              </Field>
 
-              <FormField
-                control={fieldForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.steps.step.fields.name')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={fieldForm.watch('profileField') !== undefined}
-                        {...field}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+                <Field name="name">
+                <FieldLabel>{t('form.steps.step.fields.name')}</FieldLabel>
+                <Input
+                  disabled={fieldForm.watch('profileField') !== undefined}
+                  {...fieldForm.register('name')}
+                  value={fieldForm.watch('name') || ''}
+                />
+                <FieldError />
+              </Field>
 
-              <FormField
-                control={fieldForm.control}
-                name="label"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.steps.step.fields.label')}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+              <Field name="label">
+                <FieldLabel>{t('form.steps.step.fields.label')}</FieldLabel>
+                <Input
+                  {...fieldForm.register('label')}
+                  value={fieldForm.watch('label') || ''}
+                />
+                <FieldError />
+              </Field>
 
-              <FormField
-                control={fieldForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.steps.step.fields.description')}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+              <Field name="description">
+                <FieldLabel>{t('form.steps.step.fields.description')}</FieldLabel>
+                <Input
+                  {...fieldForm.register('description')}
+                  value={fieldForm.watch('description') || ''}
+                />
+                <FieldError />
+              </Field>
 
-              <FormField
-                control={fieldForm.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.steps.step.fields.type')}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <MultiSelect<ServiceFieldType>
-                          disabled={fieldForm.watch('profileField') !== undefined}
-                          options={fieldTypes.map((type) => ({
-                            value: type,
-                            label: t_inputs(`serviceFieldType.options.${type}`),
-                          }))}
-                          selected={field.value}
-                          onChange={(value) => {
-                            field.onChange(value);
-                          }}
-                          type={'single'}
-                        />
-                      </FormControl>
-                      <SelectContent>
-                        {fieldTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {t_inputs(`serviceFieldType.options.${type}`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+              <Field name="type">
+                <FieldLabel>{t('form.steps.step.fields.type')}</FieldLabel>
+                <MultiSelect<ServiceFieldType>
+                  disabled={fieldForm.watch('profileField') !== undefined}
+                  options={fieldTypes.map((type) => ({
+                    value: type,
+                    label: t_inputs(`serviceFieldType.options.${type}`),
+                  }))}
+                  selected={fieldForm.watch('type')}
+                  onChange={(value) => {
+                    fieldForm.setValue('type', value);
+                  }}
+                  type={'single'}
+                />
+                <FieldError />
+              </Field>
 
-              <FormField
-                control={fieldForm.control}
-                name="required"
-                render={({ field }) => (
-                  <FormItem className="flex items-center gap-2">
-                    <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <FormLabel>{t('form.steps.step.fields.required')}</FormLabel>
-                  </FormItem>
-                )}
-              />
+              <Field name="required" className="flex items-center gap-2">
+                <Switch
+                  checked={fieldForm.watch('required')}
+                  onCheckedChange={(checked) => fieldForm.setValue('required', checked)}
+                />
+                <FieldLabel>{t('form.steps.step.fields.required')}</FieldLabel>
+                <FieldError />
+              </Field>
 
               {/* Options supplémentaires selon le type */}
               {fieldForm.watch('type') === 'select' && (
-                <FormField
-                  control={fieldForm.control}
-                  name="options"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('form.steps.step.fields.options')}</FormLabel>
-                      <TagsInput
-                        value={field.value?.map((o) => o.value) || []}
-                        onChange={(values) => {
-                          field.onChange(values.map((v) => ({ value: v, label: v })));
-                        }}
-                      />
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
+                <Field name="options">
+                  <FieldLabel>{t('form.steps.step.fields.options')}</FieldLabel>
+                  <TagsInput
+                    value={fieldForm.watch('options')?.map((o) => o.value) || []}
+                    onChange={(values) => {
+                      fieldForm.setValue('options', values.map((v) => ({ value: v, label: v })));
+                    }}
+                  />
+                  <FieldError />
+                </Field>
               )}
 
               <DialogFooter>

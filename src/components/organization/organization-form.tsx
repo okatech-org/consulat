@@ -4,14 +4,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldGroup,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import { OrganizationType, OrganizationStatus } from '@/convex/lib/constants';
+import { OrganizationType, OrganizationStatus, CountryCode } from '@/convex/lib/constants';
 import {
   organizationSchema,
   type CreateOrganizationInput,
@@ -31,10 +31,10 @@ import {
 } from '@/schemas/organization';
 import { useOrganizationActions } from '@/hooks/use-organization-actions';
 import { InfoField } from '@/components/ui/info-field';
-import { type CountryCode } from '@/lib/autocomplete-datas';
 import { MultiSelect } from '../ui/multi-select';
 import { FlagIcon } from '../ui/flag-icon';
 import type { Doc } from '@/convex/_generated/dataModel';
+import { Loader2 } from 'lucide-react';
 
 interface OrganizationFormProps {
   organization?: Doc<'organizations'> & {
@@ -117,129 +117,137 @@ export function OrganizationForm({
         )}
         className="space-y-6"
       >
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.name.label')}</FormLabel>
-              <FormControl>
+        <FieldGroup>
+          <Controller
+            name="name"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="organization-name">
+                  {t('form.name.label')}
+                </FieldLabel>
                 <Input
+                  id="organization-name"
                   placeholder={t('form.name.placeholder')}
                   {...field}
                   disabled={isLoading}
+                  aria-invalid={fieldState.invalid}
                 />
-              </FormControl>
-              <TradFormMessage />
-            </FormItem>
-          )}
-        />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.type.label')}</FormLabel>
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={isLoading}
-              >
-                <FormControl>
-                  <SelectTrigger>
+          <Controller
+            name="type"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="organization-type">
+                  {t('form.type.label')}
+                </FieldLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger id="organization-type" aria-invalid={fieldState.invalid}>
                     <SelectValue placeholder={t('form.type.placeholder')} />
                   </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(OrganizationType).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {t(`types.${type}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <TradFormMessage />
-            </FormItem>
-          )}
-        />
+                  <SelectContent>
+                    {Object.values(OrganizationType).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {t(`types.${type}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.status.label')}</FormLabel>
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={isLoading}
-              >
-                <FormControl>
-                  <SelectTrigger>
+          <Controller
+            name="status"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="organization-status">
+                  {t('form.status.label')}
+                </FieldLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger id="organization-status" aria-invalid={fieldState.invalid}>
                     <SelectValue placeholder={t('form.status.placeholder')} />
                   </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(OrganizationStatus).map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {t(`status.${status}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <TradFormMessage />
-            </FormItem>
-          )}
-        />
+                  <SelectContent>
+                    {Object.values(OrganizationStatus).map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {t(`status.${status}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="countryIds"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.countries.label')}</FormLabel>
-              <MultiSelect<CountryCode>
-                type="multiple"
-                options={countries.map((country) => ({
-                  value: country.code as CountryCode,
-                  label: country.name,
-                  component: (
-                    <div className="flex items-center gap-2">
-                      <FlagIcon countryCode={country.code as CountryCode} />
-                      {country.name}
-                    </div>
-                  ),
-                }))}
-                selected={field.value as CountryCode[]}
-                onChange={field.onChange}
-                disabled={isLoading}
-              />
-              <TradFormMessage />
-            </FormItem>
-          )}
-        />
-
-        {!organization && (
-          <FormField
+          <Controller
+            name="countryIds"
             control={form.control}
-            name="adminEmail"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('form.admin_email.label')}</FormLabel>
-                <FormControl>
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="organization-countries">
+                  {t('form.countries.label')}
+                </FieldLabel>
+                <MultiSelect<CountryCode>
+                  type="multiple"
+                  options={countries.map((country) => ({
+                    value: country.code,
+                    label: country.name,
+                    component: (
+                      <div className="flex items-center gap-2">
+                        <FlagIcon countryCode={country.code} />
+                        {country.name}
+                      </div>
+                    ),
+                  }))}
+                  selected={field.value as CountryCode[]}
+                  onChange={field.onChange}
+                  disabled={isLoading}
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+
+          {!organization && (
+            <Controller
+              name="adminEmail"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="organization-admin-email">
+                    {t('form.admin_email.label')}
+                  </FieldLabel>
                   <Input
+                    id="organization-admin-email"
                     type="email"
                     placeholder={t('form.admin_email.placeholder')}
                     {...field}
                     disabled={isLoading}
+                    aria-invalid={fieldState.invalid}
                   />
-                </FormControl>
-                <TradFormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          )}
+        </FieldGroup>
 
         {organization && (
           <InfoField label={t('form.admin_email.label')} value="admin@example.com" />
@@ -249,7 +257,8 @@ export function OrganizationForm({
           <Button variant="outline" type="button" disabled={isLoading} onClick={onCancel}>
             {t_common('actions.cancel')}
           </Button>
-          <Button type="submit" loading={isLoading}>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {organization ? t_common('actions.update') : t_common('actions.add')}
           </Button>
         </div>

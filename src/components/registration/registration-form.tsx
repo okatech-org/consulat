@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { calculateProfileCompletion, getFieldLabel, tryCatch } from '@/lib/utils';
+import { calculateProfileCompletion, tryCatch } from '@/lib/utils';
 import CardContainer from '../layouts/card-container';
 import { Info } from 'lucide-react';
 import { CountrySelect } from '../ui/country-select';

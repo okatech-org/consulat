@@ -3,15 +3,14 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
-import { ArrowLeft, Clock } from 'lucide-react';
+  Field,
+  FieldLabel,
+  FieldError,
+} from '@/components/ui/field';
+import { Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -143,17 +142,17 @@ export function RescheduleAppointmentForm({
               </div>
             </div>
 
-            <FormField
-              control={form.control}
+            <Controller
               name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('datetime.pick_date')}</FormLabel>
-                  <FormControl>
-                    <DatePicker date={field.value} onSelect={field.onChange} />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="reschedule-date">
+                    {t('datetime.pick_date')}
+                  </FieldLabel>
+                  <DatePicker date={field.value} onSelect={field.onChange} />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
 
@@ -211,8 +210,7 @@ export function RescheduleAppointmentForm({
               type="button"
               variant="outline"
               onClick={() => router.back()}
-              size="mobile"
-              leftIcon={<ArrowLeft />}
+              size="sm"
             >
               {t('actions.back')}
             </Button>
@@ -220,8 +218,7 @@ export function RescheduleAppointmentForm({
             <Button
               type="submit"
               disabled={!selectedTimeSlot}
-              size="mobile"
-              weight="medium"
+              size="sm"
             >
               {t('actions.confirm')}
             </Button>

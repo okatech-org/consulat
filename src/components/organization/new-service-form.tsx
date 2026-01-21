@@ -3,34 +3,34 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldGroup,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { ServiceCategory } from '@/convex/lib/constants';
-import type { Country, Organization } from '@/types';
-import type { ConsularServiceListingItem } from '@/types/consular-service';
 import { NewServiceSchema, type NewServiceSchemaInput } from '@/schemas/consular-service';
 import { CountrySelect } from '../ui/country-select';
-import type { CountryCode } from '@/lib/autocomplete-datas';
+import { CountryCode } from '@/convex/lib/constants';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/schemas/routes';
 import { ErrorCard } from '../ui/error-card';
 import { useServices } from '@/hooks/use-services';
-import type { Id } from '@/convex/_generated/dataModel';
+import type { Id, Doc } from '@/convex/_generated/dataModel';
+import { Loader2 } from 'lucide-react';
+
 interface ServiceFormProps {
-  initialData?: Partial<ConsularServiceListingItem>;
-  countries: Country[];
-  organizations: Organization[];
+  initialData?: Partial<NewServiceSchemaInput>;
+  countries: Doc<'countries'>[];
+  organizations: Doc<'organizations'>[];
 }
 
 export function NewServiceForm({
@@ -73,7 +73,7 @@ export function NewServiceForm({
         countries: data.countryCode ? [data.countryCode] : [],
         steps: [],
         processing: {
-          mode: 'online_only' as any,
+          mode: 'online_only' as const,
           appointment: {
             requires: false,
           },
@@ -96,106 +96,117 @@ export function NewServiceForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.name.label')}</FormLabel>
-              <FormControl>
+        <FieldGroup>
+          <Controller
+            name="name"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="new-service-name">
+                  {t('form.name.label')}
+                </FieldLabel>
                 <Input
                   {...field}
+                  id="new-service-name"
                   placeholder={t('form.name.placeholder')}
                   disabled={isLoading}
+                  aria-invalid={fieldState.invalid}
                 />
-              </FormControl>
-              <TradFormMessage />
-            </FormItem>
-          )}
-        />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.description.label')}</FormLabel>
-              <FormControl>
+          <Controller
+            name="description"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="new-service-description">
+                  {t('form.description.label')}
+                </FieldLabel>
                 <Textarea
                   {...field}
+                  id="new-service-description"
                   placeholder={t('form.description.placeholder')}
                   disabled={isLoading}
+                  aria-invalid={fieldState.invalid}
                 />
-              </FormControl>
-              <TradFormMessage />
-            </FormItem>
-          )}
-        />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem className="w-full flex flex-col gap-2">
-              <FormLabel>{tInputs('serviceCategory.label')}</FormLabel>
-              <MultiSelect<ServiceCategory>
-                type="single"
-                options={Object.values(ServiceCategory).map((category) => ({
-                  label: tInputs(`serviceCategory.options.${category}`),
-                  value: category,
-                }))}
-                onChange={field.onChange}
-                selected={field.value}
-                disabled={isLoading || isCategoryPreSelected}
-              />
-              <TradFormMessage />
-            </FormItem>
-          )}
-        />
+          <Controller
+            name="category"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field className="w-full flex flex-col gap-2" data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="new-service-category">
+                  {tInputs('serviceCategory.label')}
+                </FieldLabel>
+                <MultiSelect<ServiceCategory>
+                  type="single"
+                  options={Object.values(ServiceCategory).map((category) => ({
+                    label: tInputs(`serviceCategory.options.${category}`),
+                    value: category,
+                  }))}
+                  onChange={field.onChange}
+                  selected={field.value}
+                  disabled={isLoading || isCategoryPreSelected}
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="organizationId"
-          render={({ field }) => (
-            <FormItem className="w-full flex flex-col gap-2">
-              <FormLabel>{tInputs('organization.label')}</FormLabel>
-              <MultiSelect<string>
-                type="single"
-                options={organizations?.map((organization) => ({
-                  label: organization.name,
-                  value: (organization as any)._id || organization.id,
-                }))}
-                onChange={field.onChange}
-                selected={field.value}
-                disabled={isLoading || Boolean(initialData?.organizationId)}
-                className="min-w-max"
-              />
-              <TradFormMessage />
-            </FormItem>
-          )}
-        />
+          <Controller
+            name="organizationId"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field className="w-full flex flex-col gap-2" data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="new-service-organization">
+                  {tInputs('organization.label')}
+                </FieldLabel>
+                <MultiSelect<string>
+                  type="single"
+                  options={organizations?.map((organization) => ({
+                    label: organization.name,
+                    value: organization._id,
+                  }))}
+                  onChange={field.onChange}
+                  selected={field.value}
+                  disabled={isLoading || Boolean(initialData?.organizationId)}
+                  className="min-w-max"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="countryCode"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{tInputs('country.label')}</FormLabel>
-              <FormControl>
+          <Controller
+            name="countryCode"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="new-service-country">
+                  {tInputs('country.label')}
+                </FieldLabel>
                 <CountrySelect
                   type="single"
-                  selected={field.value as CountryCode}
-                  onChange={(value) => field.onChange(value)}
-                  options={countries?.map((item) => item.code as CountryCode)}
+                  selected={field.value ? (field.value as unknown as CountryCode) : undefined}
+                  onChange={(value) => field.onChange(value as string)}
+                  options={countries?.map((item) => item.code as unknown as CountryCode)}
                 />
-              </FormControl>
-              <TradFormMessage />
-            </FormItem>
-          )}
-        />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+        </FieldGroup>
 
         <div className="flex justify-end gap-4">
-          <Button type="submit" loading={isLoading} disabled={!form.formState.isValid}>
+          <Button type="submit" disabled={isLoading || !form.formState.isValid}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {initialData ? t('actions.update') : t('actions.create')}
           </Button>
         </div>

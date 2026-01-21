@@ -8,15 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Form } from '@/components/ui/form';
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldDescription,
+} from '@/components/ui/field';
 import {
   Select,
   SelectContent,
@@ -85,24 +83,17 @@ export function AircallSettings({
         >
           <div className="space-y-6">
             {/* Activation */}
-            <FormField
-              control={form.control}
-              name="enabled"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Activer Aircall</FormLabel>
-                    <FormDescription>
-                      Permettre aux agents de passer des appels depuis l&apos;interface de
-                      review des demandes
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <Field name="enabled" className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FieldLabel className="text-base">Activer Aircall</FieldLabel>
+                <FieldDescription>
+                  Permettre aux agents de passer des appels depuis l&apos;interface de
+                  review des demandes
+                </FieldDescription>
+              </div>
+              <Switch checked={form.watch('enabled')} onCheckedChange={(checked) => form.setValue('enabled', checked)} />
+              <FieldError />
+            </Field>
 
             {isEnabled && (
               <>
@@ -116,91 +107,68 @@ export function AircallSettings({
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="apiKey"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Clé API</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="Votre clé API Aircall"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Clé API obtenue depuis votre dashboard Aircall
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="apiKey">
+                      <FieldLabel>Clé API</FieldLabel>
+                      <Input
+                        type="password"
+                        placeholder="Votre clé API Aircall"
+                        {...form.register('apiKey')}
+                        value={form.watch('apiKey') || ''}
+                      />
+                      <FieldDescription>
+                        Clé API obtenue depuis votre dashboard Aircall
+                      </FieldDescription>
+                      <FieldError />
+                    </Field>
 
-                    <FormField
-                      control={form.control}
-                      name="apiId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ID API</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Votre ID API Aircall" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            ID API obtenu depuis votre dashboard Aircall
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="apiId">
+                      <FieldLabel>ID API</FieldLabel>
+                      <Input
+                        placeholder="Votre ID API Aircall"
+                        {...form.register('apiId')}
+                        value={form.watch('apiId') || ''}
+                      />
+                      <FieldDescription>
+                        ID API obtenu depuis votre dashboard Aircall
+                      </FieldDescription>
+                      <FieldError />
+                    </Field>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="integrationName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nom de l&apos;intégration</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Consulat.ga" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Nom affiché dans l&apos;interface Aircall
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="integrationName">
+                      <FieldLabel>Nom de l&apos;intégration</FieldLabel>
+                      <Input
+                        placeholder="Consulat.ga"
+                        {...form.register('integrationName')}
+                        value={form.watch('integrationName') || ''}
+                      />
+                      <FieldDescription>
+                        Nom affiché dans l&apos;interface Aircall
+                      </FieldDescription>
+                      <FieldError />
+                    </Field>
 
-                    <FormField
-                      control={form.control}
-                      name="workspaceSize"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Taille du workspace</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner une taille" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="small">Petit</SelectItem>
-                              <SelectItem value="medium">Moyen</SelectItem>
-                              <SelectItem value="big">Grand</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Taille de l&apos;interface Aircall intégrée
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="workspaceSize">
+                      <FieldLabel>Taille du workspace</FieldLabel>
+                      <Select
+                        onValueChange={(value) => form.setValue('workspaceSize', value as 'small' | 'medium' | 'big')}
+                        defaultValue={form.watch('workspaceSize')}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une taille" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="small">Petit</SelectItem>
+                          <SelectItem value="medium">Moyen</SelectItem>
+                          <SelectItem value="big">Grand</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FieldDescription>
+                        Taille de l&apos;interface Aircall intégrée
+                      </FieldDescription>
+                      <FieldError />
+                    </Field>
                   </div>
                 </div>
 
@@ -214,91 +182,63 @@ export function AircallSettings({
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="permissions.canMakeOutboundCalls"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Appels sortants</FormLabel>
-                            <FormDescription className="text-xs">
-                              Permettre aux agents de passer des appels
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="permissions.canMakeOutboundCalls" className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FieldLabel className="text-sm">Appels sortants</FieldLabel>
+                        <FieldDescription className="text-xs">
+                          Permettre aux agents de passer des appels
+                        </FieldDescription>
+                      </div>
+                      <Switch
+                        checked={form.watch('permissions.canMakeOutboundCalls')}
+                        onCheckedChange={(checked) => form.setValue('permissions.canMakeOutboundCalls', checked)}
+                      />
+                      <FieldError />
+                    </Field>
 
-                    <FormField
-                      control={form.control}
-                      name="permissions.canReceiveInboundCalls"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Appels entrants</FormLabel>
-                            <FormDescription className="text-xs">
-                              Permettre aux agents de recevoir des appels
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="permissions.canReceiveInboundCalls" className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FieldLabel className="text-sm">Appels entrants</FieldLabel>
+                        <FieldDescription className="text-xs">
+                          Permettre aux agents de recevoir des appels
+                        </FieldDescription>
+                      </div>
+                      <Switch
+                        checked={form.watch('permissions.canReceiveInboundCalls')}
+                        onCheckedChange={(checked) => form.setValue('permissions.canReceiveInboundCalls', checked)}
+                      />
+                      <FieldError />
+                    </Field>
 
-                    <FormField
-                      control={form.control}
-                      name="permissions.canTransferCalls"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">
-                              Transfert d&apos;appels
-                            </FormLabel>
-                            <FormDescription className="text-xs">
-                              Permettre le transfert d&apos;appels entre agents
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="permissions.canTransferCalls" className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FieldLabel className="text-sm">
+                          Transfert d&apos;appels
+                        </FieldLabel>
+                        <FieldDescription className="text-xs">
+                          Permettre le transfert d&apos;appels entre agents
+                        </FieldDescription>
+                      </div>
+                      <Switch
+                        checked={form.watch('permissions.canTransferCalls')}
+                        onCheckedChange={(checked) => form.setValue('permissions.canTransferCalls', checked)}
+                      />
+                      <FieldError />
+                    </Field>
 
-                    <FormField
-                      control={form.control}
-                      name="permissions.canRecordCalls"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Enregistrement</FormLabel>
-                            <FormDescription className="text-xs">
-                              Permettre l&apos;enregistrement des appels
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="permissions.canRecordCalls" className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FieldLabel className="text-sm">Enregistrement</FieldLabel>
+                        <FieldDescription className="text-xs">
+                          Permettre l&apos;enregistrement des appels
+                        </FieldDescription>
+                      </div>
+                      <Switch
+                        checked={form.watch('permissions.canRecordCalls')}
+                        onCheckedChange={(checked) => form.setValue('permissions.canRecordCalls', checked)}
+                      />
+                      <FieldError />
+                    </Field>
                   </div>
                 </div>
 
@@ -312,112 +252,77 @@ export function AircallSettings({
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="events.onLogin"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Connexion</FormLabel>
-                            <FormDescription className="text-xs">
-                              Écouter les événements de connexion
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="events.onLogin" className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FieldLabel className="text-sm">Connexion</FieldLabel>
+                        <FieldDescription className="text-xs">
+                          Écouter les événements de connexion
+                        </FieldDescription>
+                      </div>
+                      <Switch
+                        checked={form.watch('events.onLogin')}
+                        onCheckedChange={(checked) => form.setValue('events.onLogin', checked)}
+                      />
+                      <FieldError />
+                    </Field>
 
-                    <FormField
-                      control={form.control}
-                      name="events.onLogout"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Déconnexion</FormLabel>
-                            <FormDescription className="text-xs">
-                              Écouter les événements de déconnexion
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="events.onLogout" className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FieldLabel className="text-sm">Déconnexion</FieldLabel>
+                        <FieldDescription className="text-xs">
+                          Écouter les événements de déconnexion
+                        </FieldDescription>
+                      </div>
+                      <Switch
+                        checked={form.watch('events.onLogout')}
+                        onCheckedChange={(checked) => form.setValue('events.onLogout', checked)}
+                      />
+                      <FieldError />
+                    </Field>
 
-                    <FormField
-                      control={form.control}
-                      name="events.onCallStart"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Début d&apos;appel</FormLabel>
-                            <FormDescription className="text-xs">
-                              Écouter les événements de début d&apos;appel
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="events.onCallStart" className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FieldLabel className="text-sm">Début d&apos;appel</FieldLabel>
+                        <FieldDescription className="text-xs">
+                          Écouter les événements de début d&apos;appel
+                        </FieldDescription>
+                      </div>
+                      <Switch
+                        checked={form.watch('events.onCallStart')}
+                        onCheckedChange={(checked) => form.setValue('events.onCallStart', checked)}
+                      />
+                      <FieldError />
+                    </Field>
 
-                    <FormField
-                      control={form.control}
-                      name="events.onCallEnd"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Fin d&apos;appel</FormLabel>
-                            <FormDescription className="text-xs">
-                              Écouter les événements de fin d&apos;appel
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="events.onCallEnd" className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FieldLabel className="text-sm">Fin d&apos;appel</FieldLabel>
+                        <FieldDescription className="text-xs">
+                          Écouter les événements de fin d&apos;appel
+                        </FieldDescription>
+                      </div>
+                      <Switch
+                        checked={form.watch('events.onCallEnd')}
+                        onCheckedChange={(checked) => form.setValue('events.onCallEnd', checked)}
+                      />
+                      <FieldError />
+                    </Field>
 
-                    <FormField
-                      control={form.control}
-                      name="events.onCallAnswer"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">
-                              Réponse d&apos;appel
-                            </FormLabel>
-                            <FormDescription className="text-xs">
-                              Écouter les événements de réponse d&apos;appel
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                    <Field name="events.onCallAnswer" className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FieldLabel className="text-sm">
+                          Réponse d&apos;appel
+                        </FieldLabel>
+                        <FieldDescription className="text-xs">
+                          Écouter les événements de réponse d&apos;appel
+                        </FieldDescription>
+                      </div>
+                      <Switch
+                        checked={form.watch('events.onCallAnswer')}
+                        onCheckedChange={(checked) => form.setValue('events.onCallAnswer', checked)}
+                      />
+                      <FieldError />
+                    </Field>
                   </div>
                 </div>
               </>

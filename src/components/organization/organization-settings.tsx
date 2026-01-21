@@ -28,15 +28,13 @@ import {
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Form } from '@/components/ui/form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+} from '@/components/ui/field';
+import { Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Separator } from '@/components/ui/separator';
@@ -189,122 +187,89 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
         <CardContainer title={t('title')}>
           <div className="space-y-4">
             {/* Logo */}
-            <FormField
-              control={form.control}
-              name="logo"
-              render={({ field }) => (
-                <FileInput
-                  onChangeAction={async (file) => {
-                    const fileUrl = await handleFileUpload(file);
-                    if (fileUrl) {
-                      field.onChange(fileUrl);
-                    }
-                  }}
-                  onDeleteAction={() => {
-                    if (field.value) {
-                      handleFileDelete(field.value);
-                    }
-                    field.onChange('');
-                  }}
-                  accept="image/*"
-                  fileUrl={field.value}
-                  loading={fileLoading}
-                />
-              )}
-            />
+            <Field name="logo">
+              <FileInput
+                onChangeAction={async (file) => {
+                  const fileUrl = await handleFileUpload(file);
+                  if (fileUrl) {
+                    form.setValue('logo', fileUrl.url);
+                  }
+                }}
+                onDeleteAction={() => {
+                  const logoValue = form.watch('logo');
+                  if (logoValue) {
+                    handleFileDelete(logoValue);
+                  }
+                  form.setValue('logo', '');
+                }}
+                accept="image/*"
+                fileUrl={form.watch('logo')}
+                loading={fileLoading}
+              />
+              <FieldError />
+            </Field>
 
             {/* Name */}
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('settings.general.name')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder={t('settings.general.placeholders.name')}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
+            <Field name="name">
+              <FieldLabel>{t('settings.general.name')}</FieldLabel>
+              <Input
+                {...form.register('name')}
+                value={form.watch('name') || ''}
+                placeholder={t('settings.general.placeholders.name')}
+              />
+              <FieldError />
+            </Field>
 
             <RoleGuard roles={[UserRole.SuperAdmin]} fallback={<></>}>
               {/* Type */}
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.type.label')}</FormLabel>
-                    <FormControl>
-                      <MultiSelect<OrganizationType>
-                        options={Object.values(OrganizationType).map((type) => ({
-                          label: t(`types.${type}`),
-                          value: type,
-                        }))}
-                        selected={field.value}
-                        onChange={field.onChange}
-                        type="single"
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <Field name="type">
+                <FieldLabel>{t('form.type.label')}</FieldLabel>
+                <MultiSelect<OrganizationType>
+                  options={Object.values(OrganizationType).map((type) => ({
+                    label: t(`types.${type}`),
+                    value: type,
+                  }))}
+                  selected={form.watch('type')}
+                  onChange={(value) => form.setValue('type', value)}
+                  type="single"
+                  disabled={isLoading}
+                />
+                <FieldError />
+              </Field>
 
               {/* Status */}
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.status.label')}</FormLabel>
-                    <FormControl>
-                      <MultiSelect<OrganizationStatus>
-                        options={Object.values(OrganizationStatus).map((status) => ({
-                          label: t(`status.${status}`),
-                          value: status,
-                        }))}
-                        selected={field.value}
-                        onChange={field.onChange}
-                        type="single"
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <Field name="status">
+                <FieldLabel>{t('form.status.label')}</FieldLabel>
+                <MultiSelect<OrganizationStatus>
+                  options={Object.values(OrganizationStatus).map((status) => ({
+                    label: t(`status.${status}`),
+                    value: status,
+                  }))}
+                  selected={form.watch('status')}
+                  onChange={(value) => form.setValue('status', value)}
+                  type="single"
+                  disabled={isLoading}
+                />
+                <FieldError />
+              </Field>
 
               {/* Countries */}
-              <FormField
-                control={form.control}
-                name="countryCodes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.countries.label')}</FormLabel>
-                    <FormControl>
-                      <MultiSelect<string>
-                        type="multiple"
-                        options={
-                          allCountries?.map((country) => ({
-                            label: t_countries(country.code as CountryCode),
-                            value: country.code,
-                          })) || []
-                        }
-                        selected={field.value}
-                        onChange={field.onChange}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <Field name="countryCodes">
+                <FieldLabel>{t('form.countries.label')}</FieldLabel>
+                <MultiSelect<string>
+                  type="multiple"
+                  options={
+                    allCountries?.map((country) => ({
+                      label: t_countries(country.code as CountryCode),
+                      value: country.code,
+                    })) || []
+                  }
+                  selected={form.watch('countryCodes')}
+                  onChange={(value) => form.setValue('countryCodes', value)}
+                  disabled={isLoading}
+                />
+                <FieldError />
+              </Field>
             </RoleGuard>
           </div>
         </CardContainer>
@@ -339,131 +304,82 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                       </h3>
                       <div className="grid gap-4 lg:grid-cols-2">
                         {/* Email */}
-                        <FormField
-                          control={form.control}
-                          name={`settings.${settingsIndex}.contact.email`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t_inputs('email.label')}</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="email"
-                                  {...field}
-                                  placeholder={t_inputs('email.placeholder')}
-                                />
-                              </FormControl>
-                              <TradFormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <Field name={`settings.${settingsIndex}.contact.email`}>
+                          <FieldLabel>{t_inputs('email.label')}</FieldLabel>
+                          <Input
+                            type="email"
+                            {...form.register(`settings.${settingsIndex}.contact.email`)}
+                            value={form.watch(`settings.${settingsIndex}.contact.email`) || ''}
+                            placeholder={t_inputs('email.placeholder')}
+                          />
+                          <FieldError />
+                        </Field>
 
                         {/* Phone */}
-                        <FormField
-                          control={form.control}
-                          name={`settings.${settingsIndex}.contact.phone`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t_inputs('phone.label')}</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="tel"
-                                  {...field}
-                                  placeholder={t_inputs('phone.placeholder')}
-                                />
-                              </FormControl>
-                              <TradFormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <Field name={`settings.${settingsIndex}.contact.phone`}>
+                          <FieldLabel>{t_inputs('phone.label')}</FieldLabel>
+                          <Input
+                            type="tel"
+                            {...form.register(`settings.${settingsIndex}.contact.phone`)}
+                            value={form.watch(`settings.${settingsIndex}.contact.phone`) || ''}
+                            placeholder={t_inputs('phone.placeholder')}
+                          />
+                          <FieldError />
+                        </Field>
 
                         {/* Website */}
-                        <FormField
-                          control={form.control}
-                          name={`settings.${settingsIndex}.contact.website`}
-                          render={({ field }) => (
-                            <FormItem className="lg:col-span-2">
-                              <FormLabel>{t('settings.general.website')}</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="url"
-                                  placeholder="https://www.example.com"
-                                />
-                              </FormControl>
-                              <TradFormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <Field name={`settings.${settingsIndex}.contact.website`} className="lg:col-span-2">
+                          <FieldLabel>{t('settings.general.website')}</FieldLabel>
+                          <Input
+                            {...form.register(`settings.${settingsIndex}.contact.website`)}
+                            value={form.watch(`settings.${settingsIndex}.contact.website`) || ''}
+                            type="url"
+                            placeholder="https://www.example.com"
+                          />
+                          <FieldError />
+                        </Field>
 
                         {/* Address */}
                         <div className="grid grid-cols-2 gap-4 lg:col-span-2">
-                          <FormField
-                            control={form.control}
-                            name={`settings.${settingsIndex}.contact.address.street`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>{t_inputs('address.street.label')}</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder={t_inputs('address.street.placeholder')}
-                                  />
-                                </FormControl>
-                                <TradFormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          <Field name={`settings.${settingsIndex}.contact.address.street`}>
+                            <FieldLabel>{t_inputs('address.street.label')}</FieldLabel>
+                            <Input
+                              {...form.register(`settings.${settingsIndex}.contact.address.street`)}
+                              value={form.watch(`settings.${settingsIndex}.contact.address.street`) || ''}
+                              placeholder={t_inputs('address.street.placeholder')}
+                            />
+                            <FieldError />
+                          </Field>
 
-                          <FormField
-                            control={form.control}
-                            name={`settings.${settingsIndex}.contact.address.complement`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>{t_inputs('address.complement.label')}</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder={t_inputs('address.complement.placeholder')}
-                                  />
-                                </FormControl>
-                                <TradFormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          <Field name={`settings.${settingsIndex}.contact.address.complement`}>
+                            <FieldLabel>{t_inputs('address.complement.label')}</FieldLabel>
+                            <Input
+                              {...form.register(`settings.${settingsIndex}.contact.address.complement`)}
+                              value={form.watch(`settings.${settingsIndex}.contact.address.complement`) || ''}
+                              placeholder={t_inputs('address.complement.placeholder')}
+                            />
+                            <FieldError />
+                          </Field>
 
-                          <FormField
-                            control={form.control}
-                            name={`settings.${settingsIndex}.contact.address.city`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>{t_inputs('address.city.label')}</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder={t_inputs('address.city.placeholder')}
-                                  />
-                                </FormControl>
-                                <TradFormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          <Field name={`settings.${settingsIndex}.contact.address.city`}>
+                            <FieldLabel>{t_inputs('address.city.label')}</FieldLabel>
+                            <Input
+                              {...form.register(`settings.${settingsIndex}.contact.address.city`)}
+                              value={form.watch(`settings.${settingsIndex}.contact.address.city`) || ''}
+                              placeholder={t_inputs('address.city.placeholder')}
+                            />
+                            <FieldError />
+                          </Field>
 
-                          <FormField
-                            control={form.control}
-                            name={`settings.${settingsIndex}.contact.address.postalCode`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>{t_inputs('address.postalCode.label')}</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder={t_inputs('address.postalCode.placeholder')}
-                                  />
-                                </FormControl>
-                                <TradFormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          <Field name={`settings.${settingsIndex}.contact.address.postalCode`}>
+                            <FieldLabel>{t_inputs('address.postalCode.label')}</FieldLabel>
+                            <Input
+                              {...form.register(`settings.${settingsIndex}.contact.address.postalCode`)}
+                              value={form.watch(`settings.${settingsIndex}.contact.address.postalCode`) || ''}
+                              placeholder={t_inputs('address.postalCode.placeholder')}
+                            />
+                            <FieldError />
+                          </Field>
                         </div>
                       </div>
                     </div>
@@ -521,44 +437,32 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                           ?.map((_, index) => (
                             <CardContainer key={index} contentClass="!p-4 relative">
                               <div className="grid gap-4">
-                                <FormField
-                                  control={form.control}
-                                  name={`settings.${settingsIndex}.holidays.${index}.date`}
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>{t('settings.holidays.date')}</FormLabel>
-                                      <FormControl>
-                                        <DatePicker
-                                          date={
-                                            field.value
-                                              ? new Date(field.value)
-                                              : new Date()
-                                          }
-                                          onSelect={(date) =>
-                                            field.onChange(
-                                              date?.toISOString().split('T')[0],
-                                            )
-                                          }
-                                        />
-                                      </FormControl>
-                                      <TradFormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+                                <Field name={`settings.${settingsIndex}.holidays.${index}.date`}>
+                                  <FieldLabel>{t('settings.holidays.date')}</FieldLabel>
+                                  <DatePicker
+                                    date={
+                                      form.watch(`settings.${settingsIndex}.holidays.${index}.date`)
+                                        ? new Date(form.watch(`settings.${settingsIndex}.holidays.${index}.date`))
+                                        : new Date()
+                                    }
+                                    onSelect={(date) =>
+                                      form.setValue(
+                                        `settings.${settingsIndex}.holidays.${index}.date`,
+                                        date?.toISOString().split('T')[0] || '',
+                                      )
+                                    }
+                                  />
+                                  <FieldError />
+                                </Field>
 
-                                <FormField
-                                  control={form.control}
-                                  name={`settings.${settingsIndex}.holidays.${index}.name`}
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>{t('settings.holidays.name')}</FormLabel>
-                                      <FormControl>
-                                        <Input {...field} />
-                                      </FormControl>
-                                      <TradFormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+                                <Field name={`settings.${settingsIndex}.holidays.${index}.name`}>
+                                  <FieldLabel>{t('settings.holidays.name')}</FieldLabel>
+                                  <Input
+                                    {...form.register(`settings.${settingsIndex}.holidays.${index}.name`)}
+                                    value={form.watch(`settings.${settingsIndex}.holidays.${index}.name`) || ''}
+                                  />
+                                  <FieldError />
+                                </Field>
 
                                 <Button
                                   type="button"
@@ -616,76 +520,57 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                             <CardContainer key={index} contentClass="!p-4 relative">
                               <div className="grid gap-4">
                                 <div className="grid grid-cols-2 gap-4">
-                                  <FormField
-                                    control={form.control}
-                                    name={`settings.${settingsIndex}.closures.${index}.start`}
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>
-                                          {t('settings.closures.start_date')}
-                                        </FormLabel>
-                                        <FormControl>
-                                          <DatePicker
-                                            date={
-                                              field.value
-                                                ? new Date(field.value)
-                                                : new Date()
-                                            }
-                                            onSelect={(date) =>
-                                              field.onChange(
-                                                date?.toISOString().split('T')[0],
-                                              )
-                                            }
-                                          />
-                                        </FormControl>
-                                        <TradFormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
+                                  <Field name={`settings.${settingsIndex}.closures.${index}.start`}>
+                                    <FieldLabel>
+                                      {t('settings.closures.start_date')}
+                                    </FieldLabel>
+                                    <DatePicker
+                                      date={
+                                        form.watch(`settings.${settingsIndex}.closures.${index}.start`)
+                                          ? new Date(form.watch(`settings.${settingsIndex}.closures.${index}.start`))
+                                          : new Date()
+                                      }
+                                      onSelect={(date) =>
+                                        form.setValue(
+                                          `settings.${settingsIndex}.closures.${index}.start`,
+                                          date?.toISOString().split('T')[0] || '',
+                                        )
+                                      }
+                                    />
+                                    <FieldError />
+                                  </Field>
 
-                                  <FormField
-                                    control={form.control}
-                                    name={`settings.${settingsIndex}.closures.${index}.end`}
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>
-                                          {t('settings.closures.end_date')}
-                                        </FormLabel>
-                                        <FormControl>
-                                          <DatePicker
-                                            date={
-                                              field.value
-                                                ? new Date(field.value)
-                                                : new Date()
-                                            }
-                                            onSelect={(date) =>
-                                              field.onChange(
-                                                date?.toISOString().split('T')[0],
-                                              )
-                                            }
-                                          />
-                                        </FormControl>
-                                        <TradFormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
+                                  <Field name={`settings.${settingsIndex}.closures.${index}.end`}>
+                                    <FieldLabel>
+                                      {t('settings.closures.end_date')}
+                                    </FieldLabel>
+                                    <DatePicker
+                                      date={
+                                        form.watch(`settings.${settingsIndex}.closures.${index}.end`)
+                                          ? new Date(form.watch(`settings.${settingsIndex}.closures.${index}.end`))
+                                          : new Date()
+                                      }
+                                      onSelect={(date) =>
+                                        form.setValue(
+                                          `settings.${settingsIndex}.closures.${index}.end`,
+                                          date?.toISOString().split('T')[0] || '',
+                                        )
+                                      }
+                                    />
+                                    <FieldError />
+                                  </Field>
                                 </div>
 
-                                <FormField
-                                  control={form.control}
-                                  name={`settings.${settingsIndex}.closures.${index}.reason`}
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>
-                                        {t('settings.closures.reason')}
-                                      </FormLabel>
-                                      <FormControl>
-                                        <Input {...field} />
-                                      </FormControl>
-                                      <TradFormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+                                <Field name={`settings.${settingsIndex}.closures.${index}.reason`}>
+                                  <FieldLabel>
+                                    {t('settings.closures.reason')}
+                                  </FieldLabel>
+                                  <Input
+                                    {...form.register(`settings.${settingsIndex}.closures.${index}.reason`)}
+                                    value={form.watch(`settings.${settingsIndex}.closures.${index}.reason`) || ''}
+                                  />
+                                  <FieldError />
+                                </Field>
 
                                 <Button
                                   type="button"
@@ -722,53 +607,49 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
                       </p>
 
                       <div className="grid gap-6 sm:grid-cols-2">
-                        <FormField
-                          control={form.control}
-                          name={`settings.${settingsIndex}.consularCard.rectoModelUrl`}
-                          render={({ field }) => (
-                            <FileInput
-                              onChangeAction={async (file) => {
-                                const fileUrl = await handleFileUpload(file);
-                                if (fileUrl) {
-                                  field.onChange(fileUrl);
-                                }
-                              }}
-                              onDeleteAction={() => {
-                                if (field.value) {
-                                  handleFileDelete(field.value);
-                                }
-                                field.onChange('');
-                              }}
-                              fileUrl={field.value}
-                              accept="image/*"
-                              loading={fileLoading}
-                            />
-                          )}
-                        />
+                        <Field name={`settings.${settingsIndex}.consularCard.rectoModelUrl`}>
+                          <FileInput
+                            onChangeAction={async (file) => {
+                              const fileUrl = await handleFileUpload(file);
+                              if (fileUrl) {
+                                form.setValue(`settings.${settingsIndex}.consularCard.rectoModelUrl`, fileUrl.url);
+                              }
+                            }}
+                            onDeleteAction={() => {
+                              const rectoValue = form.watch(`settings.${settingsIndex}.consularCard.rectoModelUrl`);
+                              if (rectoValue) {
+                                handleFileDelete(rectoValue);
+                              }
+                              form.setValue(`settings.${settingsIndex}.consularCard.rectoModelUrl`, '');
+                            }}
+                            fileUrl={form.watch(`settings.${settingsIndex}.consularCard.rectoModelUrl`)}
+                            accept="image/*"
+                            loading={fileLoading}
+                          />
+                          <FieldError />
+                        </Field>
 
-                        <FormField
-                          control={form.control}
-                          name={`settings.${settingsIndex}.consularCard.versoModelUrl`}
-                          render={({ field }) => (
-                            <FileInput
-                              onChangeAction={async (file) => {
-                                const fileUrl = await handleFileUpload(file);
-                                if (fileUrl) {
-                                  field.onChange(fileUrl);
-                                }
-                              }}
-                              onDeleteAction={() => {
-                                if (field.value) {
-                                  handleFileDelete(field.value);
-                                }
-                                field.onChange('');
-                              }}
-                              fileUrl={field.value}
-                              accept="image/*"
-                              loading={fileLoading}
-                            />
-                          )}
-                        />
+                        <Field name={`settings.${settingsIndex}.consularCard.versoModelUrl`}>
+                          <FileInput
+                            onChangeAction={async (file) => {
+                              const fileUrl = await handleFileUpload(file);
+                              if (fileUrl) {
+                                form.setValue(`settings.${settingsIndex}.consularCard.versoModelUrl`, fileUrl.url);
+                              }
+                            }}
+                            onDeleteAction={() => {
+                              const versoValue = form.watch(`settings.${settingsIndex}.consularCard.versoModelUrl`);
+                              if (versoValue) {
+                                handleFileDelete(versoValue);
+                              }
+                              form.setValue(`settings.${settingsIndex}.consularCard.versoModelUrl`, '');
+                            }}
+                            fileUrl={form.watch(`settings.${settingsIndex}.consularCard.versoModelUrl`)}
+                            accept="image/*"
+                            loading={fileLoading}
+                          />
+                          <FieldError />
+                        </Field>
                       </div>
                     </div>
                   </div>
@@ -780,7 +661,8 @@ export function OrganizationSettings({ organization }: OrganizationSettingsProps
 
         {/* Submit Button */}
         <div className="actions py-4">
-          <Button type="submit" loading={isLoading}>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isLoading
               ? t_common('common.actions.saving')
               : t_common('common.actions.save')}

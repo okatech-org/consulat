@@ -6,15 +6,15 @@ import { useTranslations } from 'next-intl';
 import { type FeedbackFormValues, feedbackSchema } from '@/schemas/feedback';
 import { useCreateFeedback } from '@/hooks/use-feedback';
 
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -66,104 +66,107 @@ export function FeedbackForm({ onOpenChange, onSuccess }: FeedbackFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.category')}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
+        <FieldGroup>
+          <Controller
+            name="category"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="feedback-form-category">{t('form.category')}</FieldLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger id="feedback-form-category" aria-invalid={fieldState.invalid}>
                     <SelectValue placeholder={t('form.category')} />
                   </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="BUG">{t('form.categories.bug')}</SelectItem>
-                  <SelectItem value="FEATURE">{t('form.categories.feature')}</SelectItem>
-                  <SelectItem value="IMPROVEMENT">
-                    {t('form.categories.improvement')}
-                  </SelectItem>
-                  <SelectItem value="OTHER">{t('form.categories.other')}</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  <SelectContent>
+                    <SelectItem value="BUG">{t('form.categories.bug')}</SelectItem>
+                    <SelectItem value="FEATURE">{t('form.categories.feature')}</SelectItem>
+                    <SelectItem value="IMPROVEMENT">
+                      {t('form.categories.improvement')}
+                    </SelectItem>
+                    <SelectItem value="OTHER">{t('form.categories.other')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="subject"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.subject')}</FormLabel>
-              <FormControl>
-                <Input placeholder={t('form.subjectPlaceholder')} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <Controller
+            name="subject"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="feedback-form-subject">{t('form.subject')}</FieldLabel>
+                <Input
+                  id="feedback-form-subject"
+                  placeholder={t('form.subjectPlaceholder')}
+                  {...field}
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="message"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.message')}</FormLabel>
-              <FormControl>
+          <Controller
+            name="message"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="feedback-form-message">{t('form.message')}</FieldLabel>
                 <Textarea
+                  id="feedback-form-message"
                   placeholder={t('form.messagePlaceholder')}
                   rows={5}
                   {...field}
+                  aria-invalid={fieldState.invalid}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.email')}</FormLabel>
-              <FormControl>
+          <Controller
+            name="email"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="feedback-form-email">{t('form.email')}</FieldLabel>
                 <Input
+                  id="feedback-form-email"
                   type="email"
                   placeholder={t('form.emailPlaceholder')}
                   {...field}
                   value={field.value || ''}
+                  aria-invalid={fieldState.invalid}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="phoneNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.phoneNumber')}</FormLabel>
-              <FormControl>
+          <Controller
+            name="phoneNumber"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="feedback-form-phone">{t('form.phoneNumber')}</FieldLabel>
                 <Input
+                  id="feedback-form-phone"
                   type="tel"
                   placeholder={t('form.phoneNumberPlaceholder')}
                   {...field}
                   value={field.value || ''}
+                  aria-invalid={fieldState.invalid}
                 />
-              </FormControl>
-              <FormDescription>
-                <p>Nous pourrons vous contacter directement si nécessaire.</p>
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FieldDescription>
+                  Nous pourrons vous contacter directement si nécessaire.
+                </FieldDescription>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+        </FieldGroup>
 
         <div className="flex justify-end space-x-2">
           <Button

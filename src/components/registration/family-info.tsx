@@ -1,15 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
+import { Form } from '@/components/ui/form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldGroup,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -108,170 +107,179 @@ export function FamilyInfoForm({
         {banner}
         {/* État civil */}
 
-        <div className={'space-y-6 pt-4'}>
-          <div>
-            <FormField
-              control={form.control}
-              name="maritalStatus"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t_inputs('maritalStatus.label')}</FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      if (
-                        value !== MaritalStatus.Married &&
-                        value !== MaritalStatus.Cohabiting &&
-                        value !== MaritalStatus.CivilUnion
-                      ) {
-                        form.setValue('spouse', undefined);
-                      }
-                    }}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger disabled={isLoading}>
-                        <SelectValue placeholder={t_inputs('maritalStatus.select')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values(MaritalStatus).map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {t_inputs(`maritalStatus.options.${status}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Champs spécifiques si marié(e) */}
-            {showSpouseFields && (
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="spouse.firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t_inputs('firstName.label')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value ?? ''}
-                          disabled={isLoading}
-                          placeholder={t_inputs('firstName.placeholder')}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="spouse.lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t_inputs('lastName.label')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value ?? ''}
-                          disabled={isLoading}
-                          placeholder={t_inputs('lastName.placeholder')}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+        <FieldGroup className="pt-4">
+          <Controller
+            name="maritalStatus"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="family-info-marital-status">
+                  {t_inputs('maritalStatus.label')}
+                </FieldLabel>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    if (
+                      value !== MaritalStatus.Married &&
+                      value !== MaritalStatus.Cohabiting &&
+                      value !== MaritalStatus.CivilUnion
+                    ) {
+                      form.setValue('spouse', undefined);
+                    }
+                  }}
+                  defaultValue={field.value}
+                >
+                  <SelectTrigger id="family-info-marital-status" disabled={isLoading} aria-invalid={fieldState.invalid}>
+                    <SelectValue placeholder={t_inputs('maritalStatus.select')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(MaritalStatus).map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {t_inputs(`maritalStatus.options.${status}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
             )}
-          </div>
+          />
+
+          {showSpouseFields && (
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <Controller
+                name="spouse.firstName"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="family-info-spouse-firstname">
+                      {t_inputs('firstName.label')}
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="family-info-spouse-firstname"
+                      value={field.value ?? ''}
+                      disabled={isLoading}
+                      placeholder={t_inputs('firstName.placeholder')}
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="spouse.lastName"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="family-info-spouse-lastname">
+                      {t_inputs('lastName.label')}
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="family-info-spouse-lastname"
+                      value={field.value ?? ''}
+                      disabled={isLoading}
+                      placeholder={t_inputs('lastName.placeholder')}
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            </div>
+          )}
 
           <Separator />
 
           <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
+              <Controller
                 name="father.firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t_inputs('firstName.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ''}
-                        disabled={isLoading}
-                        placeholder={t_inputs('firstName.placeholder')}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="family-info-father-firstname">
+                      {t_inputs('firstName.label')}
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="family-info-father-firstname"
+                      value={field.value ?? ''}
+                      disabled={isLoading}
+                      placeholder={t_inputs('firstName.placeholder')}
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
                 )}
               />
-              <FormField
-                control={form.control}
+              <Controller
                 name="father.lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t_inputs('lastName.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ''}
-                        disabled={isLoading}
-                        placeholder={t_inputs('lastName.placeholder')}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="family-info-father-lastname">
+                      {t_inputs('lastName.label')}
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="family-info-father-lastname"
+                      value={field.value ?? ''}
+                      disabled={isLoading}
+                      placeholder={t_inputs('lastName.placeholder')}
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
                 )}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
+              <Controller
                 name="mother.firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t_inputs('firstName.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ''}
-                        disabled={isLoading}
-                        placeholder={t_inputs('firstName.placeholder')}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="family-info-mother-firstname">
+                      {t_inputs('firstName.label')}
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="family-info-mother-firstname"
+                      value={field.value ?? ''}
+                      disabled={isLoading}
+                      placeholder={t_inputs('firstName.placeholder')}
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
                 )}
               />
-              <FormField
-                control={form.control}
+              <Controller
                 name="mother.lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t_inputs('lastName.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ''}
-                        disabled={isLoading}
-                        placeholder={t_inputs('lastName.placeholder')}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="family-info-mother-lastname">
+                      {t_inputs('lastName.label')}
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="family-info-mother-lastname"
+                      value={field.value ?? ''}
+                      disabled={isLoading}
+                      placeholder={t_inputs('lastName.placeholder')}
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
                 )}
               />
             </div>
           </div>
-        </div>
+        </FieldGroup>
 
         <div className="flex flex-col md:flex-row justify-between gap-4">
           {onPrevious && (

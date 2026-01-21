@@ -4,15 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, ScanBarcode, Loader2, Wand2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ScanBarcode, Loader2 } from 'lucide-react';
 import { type DocumentsFormData, DocumentsSchema } from '@/schemas/registration';
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormField,
-  TradFormMessage,
-  FormItem,
-  FormControl,
-} from '@/components/ui/form';
+  Field,
+  FieldError,
+} from '@/components/ui/field';
 import { DocumentType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
 import type { CompleteProfile } from '@/convex/lib/types';
@@ -199,28 +198,26 @@ export function DocumentUploadSection({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <FormField
-                  control={form.control}
+                <Controller
                   name={doc.id}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <UserDocument
-                          document={field.value as Doc<'documents'>}
-                          expectedType={doc.expectedType}
-                          label={doc.label}
-                          description={doc.description}
-                          required={doc.required}
-                          disabled={isLoading}
-                          profileId={profile._id}
-                          onUpload={field.onChange}
-                          onDelete={() => {
-                            field.onChange(null);
-                          }}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <UserDocument
+                        document={field.value as Doc<'documents'>}
+                        expectedType={doc.expectedType}
+                        label={doc.label}
+                        description={doc.description}
+                        required={doc.required}
+                        disabled={isLoading}
+                        profileId={profile._id}
+                        onUpload={field.onChange}
+                        onDelete={() => {
+                          field.onChange(null);
+                        }}
+                      />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
                   )}
                 />
               </motion.div>

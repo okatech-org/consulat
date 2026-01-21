@@ -1,13 +1,13 @@
 'use client';
 
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldGroup,
+} from '@/components/ui/field';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
@@ -105,21 +105,23 @@ export function MetadataForm({ documentType, metadata, onSubmit }: MetadataFormP
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {fields.map((field) => (
-          <FormField
-            key={field.name}
-            control={form.control}
-            name={field.name}
-            render={({ field: formField }) => (
-              <FormItem>
-                <FormLabel>{t(`metadata.${field.label}`)}</FormLabel>
-                <FormControl>
+        <FieldGroup>
+          {fields.map((field) => (
+            <Controller
+              key={field.name}
+              name={field.name}
+              control={form.control}
+              render={({ field: formField, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={`metadata-form-${field.name}`}>
+                    {t(`metadata.${field.label}`)}
+                  </FieldLabel>
                   {field.type === 'select' ? (
                     <Select
                       onValueChange={formField.onChange}
                       defaultValue={formField.value as string}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id={`metadata-form-${field.name}`} aria-invalid={fieldState.invalid}>
                         <SelectValue placeholder={t(`metadata.select_${field.label}`)} />
                       </SelectTrigger>
                       <SelectContent>
@@ -131,15 +133,20 @@ export function MetadataForm({ documentType, metadata, onSubmit }: MetadataFormP
                       </SelectContent>
                     </Select>
                   ) : (
-                    <Input {...formField} value={formField.value as string} />
+                    <Input
+                      {...formField}
+                      id={`metadata-form-${field.name}`}
+                      value={formField.value as string}
+                      aria-invalid={fieldState.invalid}
+                    />
                   )}
-                </FormControl>
-                <TradFormMessage />
-              </FormItem>
-            )}
-          />
-        ))}
-        <Button type="submit" className="w-full" size="mobile" weight="medium">
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          ))}
+        </FieldGroup>
+        <Button type="submit" className="w-full" size="sm">
           {t('actions.save')}
         </Button>
       </form>

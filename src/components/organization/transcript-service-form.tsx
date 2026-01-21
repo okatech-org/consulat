@@ -4,13 +4,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import type { Doc } from '@/convex/_generated/dataModel';
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldError,
+} from '@/components/ui/field';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -188,26 +187,26 @@ export function TranscriptServiceForm({
             <CardTitle>{t('sections.notes.title')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <FormField
-              control={form.control}
+            <Controller
               name="additionalNotes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder={t('placeholders.additionalNotes')}
-                      rows={4}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <Textarea
+                    {...field}
+                    id="transcript-additional-notes"
+                    placeholder={t('placeholders.additionalNotes')}
+                    rows={4}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
           </CardContent>
         </Card>
 
-        <Button type="submit" className="w-full" loading={isLoading}>
+        <Button type="submit" className="w-full" disabled={isLoading}>
           {t('actions.submit')}
         </Button>
       </form>

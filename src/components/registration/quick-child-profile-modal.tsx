@@ -17,14 +17,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldGroup,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/schemas/routes';
@@ -118,47 +118,53 @@ export function QuickChildProfileModal({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="firstName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t_inputs('firstName.label')}</FormLabel>
-                  <FormControl>
+            <FieldGroup>
+              <Controller
+                name="firstName"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="quick-child-firstName">
+                      {t_inputs('firstName.label')}
+                    </FieldLabel>
                     <Input
                       {...field}
+                      id="quick-child-firstName"
                       onChange={(e) => {
                         field.onChange(capitalize(e.target.value));
                       }}
                       placeholder={t_inputs('firstName.placeholder')}
                       disabled={isLoading}
+                      aria-invalid={fieldState.invalid}
                     />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="lastName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t_inputs('lastName.label')}</FormLabel>
-                  <FormControl>
+              <Controller
+                name="lastName"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="quick-child-lastName">
+                      {t_inputs('lastName.label')}
+                    </FieldLabel>
                     <Input
                       {...field}
+                      id="quick-child-lastName"
                       onChange={(e) => {
                         field.onChange(e.target.value.toUpperCase());
                       }}
                       placeholder={t_inputs('lastName.placeholder')}
                       disabled={isLoading}
+                      aria-invalid={fieldState.invalid}
                     />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            </FieldGroup>
 
             <div className="flex justify-end gap-2 pt-4">
               <Button

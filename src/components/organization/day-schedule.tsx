@@ -1,15 +1,13 @@
 import { Switch } from '@/components/ui/switch';
 import { TimeSelect } from '@/components/ui/time-select';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
 import type { Key } from 'react';
+import { Controller } from 'react-hook-form';
 import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+} from '@/components/ui/field';
 
 export const DaySchedule = ({
   day,
@@ -49,48 +47,48 @@ export const DaySchedule = ({
             <div key={index} className="flex items-center gap-2">
               <div className="flex flex-1 items-center gap-2">
                 <div className="flex-1 space-y-1">
-                  <FormField
-                    control={form.control}
+                  <Controller
                     name={`${fieldName}.slots.${index}.start`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('common.schedule.from')}</FormLabel>
-                        <FormControl>
-                          <TimeSelect
-                            value={field.value}
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                            }}
-                            interval={15}
-                            startTime="07:00"
-                            endTime="20:00"
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={`${fieldName}-slot-${index}-start`}>
+                          {t('common.schedule.from')}
+                        </FieldLabel>
+                        <TimeSelect
+                          value={field.value}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                          }}
+                          interval={15}
+                          startTime="07:00"
+                          endTime="20:00"
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
                     )}
                   />
                 </div>
                 <div className="flex-1 space-y-1">
-                  <FormField
-                    control={form.control}
+                  <Controller
                     name={`${fieldName}.slots.${index}.end`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('common.schedule.to')}</FormLabel>
-                        <FormControl>
-                          <TimeSelect
-                            interval={15}
-                            startTime="07:00"
-                            endTime="20:00"
-                            value={field.value}
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                            }}
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={`${fieldName}-slot-${index}-end`}>
+                          {t('common.schedule.to')}
+                        </FieldLabel>
+                        <TimeSelect
+                          interval={15}
+                          startTime="07:00"
+                          endTime="20:00"
+                          value={field.value}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                          }}
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
                     )}
                   />
                 </div>
@@ -99,7 +97,6 @@ export const DaySchedule = ({
                 variant="ghost"
                 size="icon"
                 className="self-end"
-                leftIcon={<X className="size-4" />}
                 onClick={() => {
                   const currentSlots = form.watch(`${fieldName}.slots`);
                   form.setValue(

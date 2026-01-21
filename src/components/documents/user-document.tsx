@@ -14,8 +14,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
+import { Form } from '@/components/ui/form';
+import { Controller, useForm } from 'react-hook-form';
+import {
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldGroup,
+} from '@/components/ui/field';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { api } from '@/convex/_generated/api';
@@ -519,30 +525,44 @@ export function UserDocument({
             <TabsContent value="dates">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onUpdate)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="issuedAt"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('dates.issued_on')}</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="expiresAt"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('dates.expires_on')}</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                  <FieldGroup>
+                    <Controller
+                      name="issuedAt"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="document-issued-at">
+                            {t('dates.issued_on')}
+                          </FieldLabel>
+                          <Input
+                            id="document-issued-at"
+                            type="date"
+                            {...field}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                    <Controller
+                      name="expiresAt"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="document-expires-at">
+                            {t('dates.expires_on')}
+                          </FieldLabel>
+                          <Input
+                            id="document-expires-at"
+                            type="date"
+                            {...field}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                  </FieldGroup>
                   <DialogFooter>
                     <Button
                       type="button"

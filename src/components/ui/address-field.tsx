@@ -1,10 +1,18 @@
 import type { UseFormReturn } from 'react-hook-form';
 import type { CountryCode } from '@/lib/autocomplete-datas';
+import { Controller } from 'react-hook-form';
 import { Input } from './input';
 import { CountrySelect } from './country-select';
-import { FormControl, FormField, FormItem, FormLabel, TradFormMessage } from './form';
+import {
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldSet,
+  FieldLegend,
+} from './field';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
+import { getAutocompleteForField, type AutocompleteSection } from '@/lib/form/autocomplete';
 
 interface AddressFieldProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,6 +27,7 @@ interface AddressFieldProps {
   isLoading?: boolean;
   countries?: CountryCode[];
   className?: string;
+  autocompleteSection?: AutocompleteSection;
 }
 
 export function AddressField({
@@ -27,113 +36,130 @@ export function AddressField({
   isLoading,
   countries,
   className,
+  autocompleteSection,
 }: AddressFieldProps) {
   const t_inputs = useTranslations('inputs');
 
   return (
-    <fieldset className={cn('col-span-full grid grid-cols-2 gap-4', className)}>
-      {/* Address Line 1 */}
-      <FormField
-        control={form.control}
+    <FieldSet className={cn('col-span-full grid grid-cols-2 gap-4', className)}>
+      <FieldLegend variant="label">Adresse</FieldLegend>
+      
+      <Controller
         name={fields.firstLine}
-        render={({ field }) => (
-          <FormItem className={'col-span-full sm:col-span-1'}>
-            <FormLabel>{t_inputs('address.firstLine.label')}</FormLabel>
-            <FormControl>
-              <Input
-                {...field}
-                value={field.value ?? ''}
-                placeholder={t_inputs('address.firstLine.placeholder')}
-                disabled={isLoading}
-              />
-            </FormControl>
-            <TradFormMessage />
-          </FormItem>
+        control={form.control}
+        render={({ field, fieldState }) => (
+          <Field className="col-span-full sm:col-span-1" data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor={`address-field-${fields.firstLine}`}>
+              {t_inputs('address.firstLine.label')}
+            </FieldLabel>
+            <Input
+              {...field}
+              id={`address-field-${fields.firstLine}`}
+              value={field.value ?? ''}
+              placeholder={t_inputs('address.firstLine.placeholder')}
+              disabled={isLoading}
+              aria-invalid={fieldState.invalid}
+              autoComplete={getAutocompleteForField('street', { section: autocompleteSection })}
+            />
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
         )}
       />
 
-      {/* Address Line 2 */}
-      <FormField
-        control={form.control}
-        name={fields.secondLine ?? ''}
-        render={({ field }) => (
-          <FormItem className={'col-span-full sm:col-span-1'}>
-            <FormLabel>{t_inputs('address.secondLine.label')}</FormLabel>
-            <FormControl>
+      {fields.secondLine && (
+        <Controller
+          name={fields.secondLine}
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field className="col-span-full sm:col-span-1" data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={`address-field-${fields.secondLine}`}>
+                {t_inputs('address.secondLine.label')}
+              </FieldLabel>
               <Input
                 {...field}
+                id={`address-field-${fields.secondLine}`}
                 value={field.value ?? ''}
                 placeholder={t_inputs('address.secondLine.placeholder')}
                 disabled={isLoading}
+                aria-invalid={fieldState.invalid}
+                autoComplete={getAutocompleteForField('complement', { section: autocompleteSection })}
               />
-            </FormControl>
-            <TradFormMessage />
-          </FormItem>
-        )}
-      />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+      )}
 
-      {/* City and Zip Code */}
       <div className="col-span-full grid grid-cols-3 gap-2">
-        <FormField
-          control={form.control}
+        <Controller
           name={fields.city}
-          render={({ field }) => (
-            <FormItem className={'col-span-2'}>
-              <FormLabel>{t_inputs('address.city.label')}</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  value={field.value ?? ''}
-                  placeholder={t_inputs('address.city.placeholder')}
-                  disabled={isLoading}
-                />
-              </FormControl>
-              <TradFormMessage />
-            </FormItem>
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field className="col-span-2" data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={`address-field-${fields.city}`}>
+                {t_inputs('address.city.label')}
+              </FieldLabel>
+              <Input
+                {...field}
+                id={`address-field-${fields.city}`}
+                value={field.value ?? ''}
+                placeholder={t_inputs('address.city.placeholder')}
+                disabled={isLoading}
+                aria-invalid={fieldState.invalid}
+                autoComplete={getAutocompleteForField('city', { section: autocompleteSection })}
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
           )}
         />
 
-        <FormField
-          control={form.control}
-          name={fields.postalCode ?? ''}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t_inputs('address.zipCode.label')}</FormLabel>
-              <FormControl>
+        {fields.postalCode && (
+          <Controller
+            name={fields.postalCode}
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={`address-field-${fields.postalCode}`}>
+                  {t_inputs('address.zipCode.label')}
+                </FieldLabel>
                 <Input
                   {...field}
+                  id={`address-field-${fields.postalCode}`}
                   value={field.value ?? ''}
                   placeholder={t_inputs('address.zipCode.placeholder')}
                   disabled={isLoading}
                   type="number"
+                  aria-invalid={fieldState.invalid}
+                  autoComplete={getAutocompleteForField('postalCode', { section: autocompleteSection })}
                 />
-              </FormControl>
-              <TradFormMessage />
-            </FormItem>
-          )}
-        />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+        )}
       </div>
 
-      {/* Country */}
-      <FormField
-        control={form.control}
+      <Controller
         name={fields.country}
-        render={({ field }) => (
-          <FormItem className={'col-span-full'}>
-            <FormLabel>{t_inputs('address.country.label')}</FormLabel>
-            <FormControl>
-              <CountrySelect
-                type="single"
-                selected={field.value as CountryCode}
-                onChange={field.onChange}
-                {...(countries && { options: countries })}
-                disabled={isLoading}
-              />
-            </FormControl>
-            <TradFormMessage />
-          </FormItem>
+        control={form.control}
+        render={({ field, fieldState }) => (
+          <Field className="col-span-full" data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor={`address-field-${fields.country}`}>
+              {t_inputs('address.country.label')}
+            </FieldLabel>
+            <CountrySelect
+              id={`address-field-${fields.country}`}
+              type="single"
+              selected={field.value as CountryCode}
+              onChange={field.onChange}
+              {...(countries && { options: countries })}
+              disabled={isLoading}
+              autoComplete={getAutocompleteForField('country', { section: autocompleteSection })}
+            />
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
         )}
       />
-    </fieldset>
+    </FieldSet>
   );
 }

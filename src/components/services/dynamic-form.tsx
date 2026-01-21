@@ -1,16 +1,15 @@
 'use client';
 
 import { type ServiceField } from '@/types/consular-service';
-import { type ControllerRenderProps, useForm, type UseFormReturn } from 'react-hook-form';
+import { Controller, type ControllerRenderProps, useForm, type UseFormReturn } from 'react-hook-form';
+import { Form } from '@/components/ui/form';
 import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  Form,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Info, ArrowRight } from 'lucide-react';
@@ -25,6 +24,7 @@ import { MobileProgress } from '../registration/mobile-progress';
 import CardContainer from '../layouts/card-container';
 import { AddressField } from '../ui/address-field';
 import type { Doc } from '@/convex/_generated/dataModel';
+import { getAutocompleteForField } from '@/lib/form/autocomplete';
 
 interface DynamicFormProps {
   formData: ServiceForm;
@@ -66,19 +66,19 @@ export function DynamicForm({
 
   const renderField = (field: ServiceField) => {
     return (
-      <FormField
+      <Controller
         key={field.name}
-        control={form.control}
         name={field.name}
-        render={({ field: formField }) => (
-          <FormItem>
-            <FormLabel>{field.label}</FormLabel>
-            <FormControl>{getFieldComponent(form, field, formField, userId)}</FormControl>
+        control={form.control}
+        render={({ field: formField, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor={`dynamic-form-${field.name}`}>{field.label}</FieldLabel>
+            {getFieldComponent(form, field, formField, userId)}
             {field.description && !['file', 'photo', 'document'].includes(field.type) && (
-              <FormDescription>{field.description}</FormDescription>
+              <FieldDescription>{field.description}</FieldDescription>
             )}
-            <TradFormMessage />
-          </FormItem>
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
         )}
       />
     );
@@ -88,7 +88,7 @@ export function DynamicForm({
     <CardContainer title={formData.title} subtitle={formData.description}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          <div className="space-y-4">{formData.stepData?.fields.map(renderField)}</div>
+          <FieldGroup>{formData.stepData?.fields.map(renderField)}</FieldGroup>
 
           <div className="flex justify-between gap-4">
             <Button
@@ -189,36 +189,46 @@ function getFieldComponent(
     case 'date':
       return (
         <Input
-          onChange={formField.onChange}
-          value={formField.value as string}
+          {...formField}
+          id={`dynamic-form-${field.name}`}
           type="date"
+          aria-invalid={formField.value ? false : undefined}
+          autoComplete={getAutocompleteForField(field.name)}
         />
       );
     case 'email':
       return (
         <Input
-          onChange={formField.onChange}
-          value={formField.value as string}
+          {...formField}
+          id={`dynamic-form-${field.name}`}
           type="email"
-          autoComplete="email"
+          autoComplete={getAutocompleteForField('email')}
+          aria-invalid={formField.value ? false : undefined}
         />
       );
     case 'number':
       return (
         <Input
-          onChange={formField.onChange}
-          value={formField.value as string}
+          {...formField}
+          id={`dynamic-form-${field.name}`}
           type="number"
-          autoComplete="number"
+          autoComplete={getAutocompleteForField(field.name)}
+          aria-invalid={formField.value ? false : undefined}
         />
       );
     case 'phone':
       return (
-        <PhoneInput value={formField.value as string} onChange={formField.onChange} />
+        <PhoneInput
+          id={`dynamic-form-${field.name}`}
+          value={formField.value as string}
+          onChange={formField.onChange}
+          autoComplete={getAutocompleteForField('phone')}
+        />
       );
     case 'select':
       return (
         <MultiSelect
+          id={`dynamic-form-${field.name}`}
           options={field.options.map((option) => ({
             label: option.label,
             value: option.value,
@@ -246,19 +256,21 @@ function getFieldComponent(
     case 'textarea':
       return (
         <Textarea
-          onChange={formField.onChange}
-          value={formField.value as string}
+          {...formField}
+          id={`dynamic-form-${field.name}`}
           minLength={field.minLength}
           maxLength={field.maxLength}
+          aria-invalid={formField.value ? false : undefined}
         />
       );
     default:
       return (
         <Input
-          onChange={formField.onChange}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          value={formField.value as any}
+          {...formField}
+          id={`dynamic-form-${field.name}`}
           type={field.type}
+          aria-invalid={formField.value ? false : undefined}
+          autoComplete={getAutocompleteForField(field.name)}
         />
       );
   }

@@ -2,14 +2,12 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Form } from '@/components/ui/form';
+import { Controller, useForm } from 'react-hook-form';
 import {
-  Form,
-  FormField,
-  TradFormMessage,
-  FormItem,
-  FormControl,
-} from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
+  Field,
+  FieldError,
+} from '@/components/ui/field';
 import { UserDocument } from '../documents/user-document';
 import CardContainer from '../layouts/card-container';
 import type { ServiceForm } from '@/hooks/use-service-form';
@@ -85,28 +83,26 @@ export function ServiceDocumentSection({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <FormField
-                      control={form.control}
+                    <Controller
                       name={doc.name}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <UserDocument
-                              document={field.value as Doc<'documents'>}
-                              expectedType={doc.documentType}
-                              label={doc.label}
-                              description={doc.description}
-                              required={doc.required}
-                              disabled={isLoading}
-                              userId={userId}
-                              onUpload={field.onChange}
-                              onDelete={() => {
-                                field.onChange(null);
-                              }}
-                            />
-                          </FormControl>
-                          <TradFormMessage />
-                        </FormItem>
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <UserDocument
+                            document={field.value as Doc<'documents'>}
+                            expectedType={doc.documentType}
+                            label={doc.label}
+                            description={doc.description}
+                            required={doc.required}
+                            disabled={isLoading}
+                            userId={userId}
+                            onUpload={field.onChange}
+                            onDelete={() => {
+                              field.onChange(null);
+                            }}
+                          />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
                   </motion.div>

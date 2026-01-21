@@ -54,9 +54,10 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> = React.forwa
 PhoneInput.displayName = 'PhoneInput';
 
 const InputComponent = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
-  ({ className, ...props }, ref) => (
+  ({ className, autoComplete, ...props }, ref) => (
     <Input
       className={cn('rounded-e-lg rounded-s-none', className)}
+      autoComplete={autoComplete}
       {...props}
       ref={ref}
     />
@@ -89,7 +90,9 @@ const CountrySelect = ({
       modal
       onOpenChange={(open) => {
         setIsOpen(open);
-        open && setSearchValue('');
+        if (open) {
+          setSearchValue('');
+        }
       }}
     >
       <PopoverTrigger asChild>

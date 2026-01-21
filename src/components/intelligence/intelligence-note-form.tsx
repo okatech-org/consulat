@@ -32,14 +32,14 @@ import {
   Target,
   FileText,
 } from 'lucide-react';
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldGroup,
+} from '@/components/ui/field';
 import { X, Plus } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -122,14 +122,21 @@ export function IntelligenceNoteForm({
   const { user } = useCurrentUser();
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [newTag, setNewTag] = useState('');
-  const [expiresAt, setExpiresAt] = useState<Date | undefined>(
+  const [expiresAt] = useState<Date | undefined>(
     initialData?.expiresAt ? new Date(initialData.expiresAt) : undefined,
   );
 
   const isEditing = !!initialData;
   const schema = isEditing ? updateIntelligenceNoteSchema : createIntelligenceNoteSchema;
 
-  const form = useForm({
+  const form = useForm<{
+    profileId: string;
+    type: IntelligenceNoteType;
+    priority: IntelligenceNotePriority;
+    title: string;
+    content: string;
+    id?: string;
+  }>({
     resolver: zodResolver(schema),
     defaultValues: {
       profileId,
@@ -145,39 +152,39 @@ export function IntelligenceNoteForm({
   const updateNoteMutation = useMutation(api.functions.intelligence.updateNote);
 
   const onSubmit = async (data: {
-    profileId: Id<'profiles'>;
+    profileId: string;
     type: IntelligenceNoteType;
     priority: IntelligenceNotePriority;
     title: string;
     content: string;
-    id?: Id<'intelligenceNotes'>;
+    id?: string;
   }) => {
     setIsLoading(true);
     try {
       if (!user?._id) {
         throw new Error('User not authenticated');
       }
-      if (isEditing) {
+      if (isEditing && data.id) {
         await updateNoteMutation({
-          noteId: data.id!,
+          noteId: data.id as Id<'intelligenceNotes'>,
           type: data.type,
           priority: data.priority,
           title: data.title,
           content: data.content,
           tags,
           expiresAt: expiresAt?.getTime(),
-          changedById: user?._id as any,
+          changedById: user._id,
         });
       } else {
         await createNoteMutation({
-          profileId: data.profileId as any,
+          profileId: data.profileId as Id<'profiles'>,
           type: data.type,
           priority: data.priority,
           title: data.title,
           content: data.content,
           tags,
           expiresAt: expiresAt?.getTime(),
-          authorId: user?._id as any,
+          authorId: user._id,
         });
       }
       onSuccess?.();
@@ -216,19 +223,17 @@ export function IntelligenceNoteForm({
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
+            <FieldGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Controller
                 name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type de note</FormLabel>
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="intelligence-note-type">Type de note</FieldLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un type" />
-                        </SelectTrigger>
-                      </FormControl>
+                      <SelectTrigger id="intelligence-note-type" aria-invalid={fieldState.invalid}>
+                        <SelectValue placeholder="Sélectionner un type" />
+                      </SelectTrigger>
                       <SelectContent>
                         {typeOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
@@ -240,23 +245,21 @@ export function IntelligenceNoteForm({
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
                 )}
               />
 
-              <FormField
-                control={form.control}
+              <Controller
                 name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Priorité</FormLabel>
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="intelligence-note-priority">Priorité</FieldLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une priorité" />
-                        </SelectTrigger>
-                      </FormControl>
+                      <SelectTrigger id="intelligence-note-priority" aria-invalid={fieldState.invalid}>
+                        <SelectValue placeholder="Sélectionner une priorité" />
+                      </SelectTrigger>
                       <SelectContent>
                         {priorityOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
@@ -265,43 +268,46 @@ export function IntelligenceNoteForm({
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
                 )}
               />
-            </div>
+            </FieldGroup>
 
-            {/* Titre */}
-            <FormField
-              control={form.control}
+            <Controller
               name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('form.noteTitle')}</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Titre de la note" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="intelligence-note-title">
+                    {t('form.noteTitle')}
+                  </FieldLabel>
+                  <Input
+                    id="intelligence-note-title"
+                    placeholder="Titre de la note"
+                    {...field}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
 
-            {/* Contenu */}
-            <FormField
-              control={form.control}
+            <Controller
               name="content"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contenu</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Contenu de la note de renseignement..."
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="intelligence-note-content">Contenu</FieldLabel>
+                  <Textarea
+                    id="intelligence-note-content"
+                    placeholder="Contenu de la note de renseignement..."
+                    className="min-h-[100px]"
+                    {...field}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
 

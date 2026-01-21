@@ -1,15 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { Controller, useForm, useFieldArray } from 'react-hook-form';
+import { Form } from '@/components/ui/form';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldGroup,
+  FieldSet,
+  FieldLegend,
+  FieldDescription,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from 'next-intl';
 import { Separator } from '@/components/ui/separator';
@@ -24,9 +26,10 @@ import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import type { CompleteProfile } from '@/convex/lib/types';
-import { getFieldLabel, getInvalidFields } from '@/lib/utils';
+import { getFieldLabel } from '@/lib/utils';
 import { handleFormInvalid } from '@/lib/form/validation';
 import { FamilyLink, EmergencyContactType } from '@/convex/lib/constants';
+import { getAutocompleteForField, getEmergencyContactAutocomplete } from '@/lib/form/autocomplete';
 import {
   Select,
   SelectContent,
@@ -146,400 +149,277 @@ export function ContactInfoForm({
       >
         {banner}
         <div className="grid grid-cols-2 gap-6 pt-4">
-          {/* Email */}
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className="col-span-full w-full sm:col-span-1">
-                <FormLabel>{t('form.email')}</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ''}
-                    type="email"
-                    placeholder={t('form.email_placeholder')}
-                    autoComplete="email"
-                    disabled={Boolean(profile.contacts?.email) || isLoading}
-                  />
-                </FormControl>
-                <TradFormMessage />
-              </FormItem>
-            )}
-          />
+          <Field name="email" control={form.control} className="col-span-full sm:col-span-1">
+            <FieldLabel>{t('form.email')}</FieldLabel>
+            <Input
+              {...form.register('email')}
+              value={form.watch('email') ?? ''}
+              type="email"
+              placeholder={t('form.email_placeholder')}
+              autoComplete={getAutocompleteForField('email')}
+              disabled={Boolean(profile.contacts?.email) || isLoading}
+            />
+            <FieldError />
+          </Field>
 
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem className="sm:col-span-1">
-                <FormLabel>{t_inputs('phone.label')}</FormLabel>
-                <FormControl>
-                  <PhoneInput
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
-                    disabled={Boolean(profile.contacts?.phone) || isLoading}
-                    countries={
-                      profile.residenceCountry
-                        ? [profile.residenceCountry as any]
-                        : undefined
-                    }
-                    defaultCountry={
-                      profile.residenceCountry
-                        ? (profile.residenceCountry as any)
-                        : undefined
-                    }
-                  />
-                </FormControl>
-                <TradFormMessage />
-              </FormItem>
-            )}
-          />
+          <Field name="phone" control={form.control} className="sm:col-span-1">
+            <FieldLabel>{t_inputs('phone.label')}</FieldLabel>
+            <PhoneInput
+              value={form.watch('phone') ?? ''}
+              onChange={(val) => form.setValue('phone', val)}
+              disabled={Boolean(profile.contacts?.phone) || isLoading}
+              countries={
+                profile.residenceCountry
+                  ? [profile.residenceCountry as any]
+                  : undefined
+              }
+              defaultCountry={
+                profile.residenceCountry
+                  ? (profile.residenceCountry as any)
+                  : undefined
+              }
+              autoComplete={getAutocompleteForField('phone')}
+            />
+            <FieldError />
+          </Field>
 
           <Separator className="col-span-full" />
 
-          {/* Current Address */}
-          <fieldset className="col-span-full grid grid-cols-2 gap-4">
-            {/* Address Line 1 */}
-            <FormField
-              control={form.control}
-              name="address.street"
-              render={({ field }) => (
-                <FormItem className={'col-span-full sm:col-span-1'}>
-                  <FormLabel>{t_inputs('address.street.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={field.value ?? ''}
-                      placeholder={t_inputs('address.street.placeholder')}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
+          <FieldSet className="col-span-full grid grid-cols-2 gap-4">
+            <FieldLegend variant="label">Adresse actuelle</FieldLegend>
+            
+            <Field name="address.street" control={form.control} className="col-span-full sm:col-span-1">
+              <FieldLabel>{t_inputs('address.street.label')}</FieldLabel>
+              <Input
+                {...form.register('address.street')}
+                value={form.watch('address.street') ?? ''}
+                placeholder={t_inputs('address.street.placeholder')}
+                disabled={isLoading}
+                autoComplete={getAutocompleteForField('street')}
+              />
+              <FieldError />
+            </Field>
 
-            {/* Address Line 2 */}
-            <FormField
-              control={form.control}
-              name="address.complement"
-              render={({ field }) => (
-                <FormItem className={'col-span-full sm:col-span-1'}>
-                  <FormLabel>{t_inputs('address.complement.label')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={field.value ?? ''}
-                      placeholder={t_inputs('address.complement.placeholder')}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
+            <Field name="address.complement" control={form.control} className="col-span-full sm:col-span-1">
+              <FieldLabel>{t_inputs('address.complement.label')}</FieldLabel>
+              <Input
+                {...form.register('address.complement')}
+                value={form.watch('address.complement') ?? ''}
+                placeholder={t_inputs('address.complement.placeholder')}
+                disabled={isLoading}
+                autoComplete={getAutocompleteForField('complement')}
+              />
+              <FieldError />
+            </Field>
 
-            {/* City and Zip Code */}
             <div className="col-span-full grid grid-cols-3 gap-2">
-              <FormField
-                control={form.control}
-                name="address.city"
-                render={({ field }) => (
-                  <FormItem className={'col-span-2'}>
-                    <FormLabel>{t_inputs('address.city.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ''}
-                        placeholder={t_inputs('address.city.placeholder')}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+              <Field name="address.city" control={form.control} className="col-span-2">
+                <FieldLabel>{t_inputs('address.city.label')}</FieldLabel>
+                <Input
+                  {...form.register('address.city')}
+                  value={form.watch('address.city') ?? ''}
+                  placeholder={t_inputs('address.city.placeholder')}
+                  disabled={isLoading}
+                  autoComplete={getAutocompleteForField('city')}
+                />
+                <FieldError />
+              </Field>
 
-              <FormField
-                control={form.control}
-                name="address.postalCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t_inputs('address.postalCode.label')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value ?? ''}
-                        placeholder={t_inputs('address.postalCode.placeholder')}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <TradFormMessage />
-                  </FormItem>
-                )}
-              />
+              <Field name="address.postalCode" control={form.control}>
+                <FieldLabel>{t_inputs('address.postalCode.label')}</FieldLabel>
+                <Input
+                  {...form.register('address.postalCode')}
+                  value={form.watch('address.postalCode') ?? ''}
+                  placeholder={t_inputs('address.postalCode.placeholder')}
+                  disabled={isLoading}
+                  autoComplete={getAutocompleteForField('postalCode')}
+                />
+                <FieldError />
+              </Field>
             </div>
 
-            {/* Country */}
-            <FormField
-              control={form.control}
-              name="address.country"
-              render={({ field }) => (
-                <FormItem className={'col-span-full'}>
-                  <FormLabel>{t_inputs('address.country.label')}</FormLabel>
-                  <FormControl>
-                    <CountrySelect
-                      type="single"
-                      selected={field.value as CountryCode}
-                      onChange={field.onChange}
-                      {...(profile.residenceCountry && {
-                        options: [profile.residenceCountry as CountryCode],
-                      })}
-                      disabled={Boolean(isLoading || profile.residenceCountry)}
-                    />
-                  </FormControl>
-                  <TradFormMessage />
-                </FormItem>
-              )}
-            />
-          </fieldset>
+            <Field name="address.country" control={form.control} className="col-span-full">
+              <FieldLabel>{t_inputs('address.country.label')}</FieldLabel>
+              <CountrySelect
+                type="single"
+                selected={form.watch('address.country') as CountryCode}
+                onChange={(val) => form.setValue('address.country', val)}
+                {...(profile.residenceCountry && {
+                  options: [profile.residenceCountry as CountryCode],
+                })}
+                disabled={Boolean(isLoading || profile.residenceCountry)}
+              />
+              <FieldError />
+            </Field>
+          </FieldSet>
         </div>
 
         <Separator className="col-span-full" />
 
-        {/* Emergency Contacts */}
-        <div className="space-y-6">
-          <h3 className="text-lg font-medium">Contacts d'urgence</h3>
-          <p className="text-sm text-muted-foreground">
-            Veuillez renseigner deux contacts d'urgence : une personne au Gabon et une
+        <FieldSet className="space-y-6">
+          <FieldLegend>Contacts d&apos;urgence</FieldLegend>
+          <FieldDescription>
+            Veuillez renseigner deux contacts d&apos;urgence : une personne au Gabon et une
             personne dans votre pays de résidence.
-          </p>
+          </FieldDescription>
 
-          <div className="grid gap-6 ">
+          <FieldGroup>
             {emergencyContactFields.map((field, index) => (
               <div key={field.id} className="space-y-4 p-4 border rounded-lg bg-card">
                 <h4 className="font-medium text-sm">
                   {index === 0 ? 'Contact au Gabon' : 'Contact pays de résidence'}
                 </h4>
 
-                {/* First Name */}
-                <FormField
-                  control={form.control}
-                  name={`emergencyContacts.${index}.firstName`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t_inputs('firstName.label')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder={t_inputs('firstName.placeholder')}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
+                <FieldGroup>
+                  <Field name={`emergencyContacts.${index}.firstName`} control={form.control}>
+                    <FieldLabel>{t_inputs('firstName.label')}</FieldLabel>
+                    <Input
+                      {...form.register(`emergencyContacts.${index}.firstName`)}
+                      value={form.watch(`emergencyContacts.${index}.firstName`) ?? ''}
+                      placeholder={t_inputs('firstName.placeholder')}
+                      autoComplete={getEmergencyContactAutocomplete('firstName', index as 0 | 1)}
+                    />
+                    <FieldError />
+                  </Field>
 
-                {/* Last Name */}
-                <FormField
-                  control={form.control}
-                  name={`emergencyContacts.${index}.lastName`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t_inputs('lastName.label')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder={t_inputs('lastName.placeholder')}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <Field name={`emergencyContacts.${index}.lastName`} control={form.control}>
+                    <FieldLabel>{t_inputs('lastName.label')}</FieldLabel>
+                    <Input
+                      {...form.register(`emergencyContacts.${index}.lastName`)}
+                      value={form.watch(`emergencyContacts.${index}.lastName`) ?? ''}
+                      placeholder={t_inputs('lastName.placeholder')}
+                      autoComplete={getEmergencyContactAutocomplete('lastName', index as 0 | 1)}
+                    />
+                    <FieldError />
+                  </Field>
 
-                {/* Relationship */}
-                <FormField
-                  control={form.control}
-                  name={`emergencyContacts.${index}.relationship`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t_inputs('familyLink.label')}</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={t_inputs('familyLink.placeholder')}
-                            />
+                  <Controller
+                    name={`emergencyContacts.${index}.relationship`}
+                    control={form.control}
+                    render={({ field: formField, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={`emergency-contact-${index}-relationship`}>
+                          {t_inputs('familyLink.label')}
+                        </FieldLabel>
+                        <Select
+                          onValueChange={formField.onChange}
+                          defaultValue={formField.value}
+                          value={formField.value}
+                        >
+                          <SelectTrigger
+                            id={`emergency-contact-${index}-relationship`}
+                            aria-invalid={fieldState.invalid}
+                          >
+                            <SelectValue placeholder={t_inputs('familyLink.placeholder')} />
                           </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.values(FamilyLink).map((link) => (
-                            <SelectItem key={link} value={link}>
-                              {t_inputs(`familyLink.options.${link}`)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
+                          <SelectContent>
+                            {Object.values(FamilyLink).map((link) => (
+                              <SelectItem key={link} value={link}>
+                                {t_inputs(`familyLink.options.${link}`)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
 
-                {/* Phone */}
-                <FormField
-                  control={form.control}
-                  name={`emergencyContacts.${index}.phoneNumber`}
-                  render={({ field: phoneField }) => (
-                    <FormItem>
-                      <FormLabel>{t_inputs('phone.label')}</FormLabel>
-                      <FormControl>
-                        <PhoneInput
-                          value={phoneField.value ?? ''}
-                          onChange={phoneField.onChange}
-                          defaultCountry={
-                            form.watch(
-                              `emergencyContacts.${index}.address.country`,
-                            ) as any
-                          }
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <Field name={`emergencyContacts.${index}.phoneNumber`} control={form.control}>
+                    <FieldLabel>{t_inputs('phone.label')}</FieldLabel>
+                    <PhoneInput
+                      value={form.watch(`emergencyContacts.${index}.phoneNumber`) ?? ''}
+                      onChange={(val) => form.setValue(`emergencyContacts.${index}.phoneNumber`, val)}
+                      defaultCountry={
+                        form.watch(
+                          `emergencyContacts.${index}.address.country`,
+                        ) as any
+                      }
+                      autoComplete={getEmergencyContactAutocomplete('phone', index as 0 | 1, 'mobile')}
+                    />
+                    <FieldError />
+                  </Field>
 
-                {/* Email */}
-                <FormField
-                  control={form.control}
-                  name={`emergencyContacts.${index}.email`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t_inputs('email.label')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="email"
-                          placeholder={t_inputs('email.placeholder')}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <Field name={`emergencyContacts.${index}.email`} control={form.control}>
+                    <FieldLabel>{t_inputs('email.label')}</FieldLabel>
+                    <Input
+                      {...form.register(`emergencyContacts.${index}.email`)}
+                      value={form.watch(`emergencyContacts.${index}.email`) ?? ''}
+                      type="email"
+                      placeholder={t_inputs('email.placeholder')}
+                      autoComplete={getEmergencyContactAutocomplete('email', index as 0 | 1)}
+                    />
+                    <FieldError />
+                  </Field>
+                </FieldGroup>
 
                 <Separator />
 
-                {/* Address */}
-                <div className="space-y-4">
-                  <h5 className="text-sm font-medium">Adresse</h5>
-                  {/* Street */}
-                  <FormField
-                    control={form.control}
-                    name={`emergencyContacts.${index}.address.street`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t_inputs('address.street.label')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder={t_inputs('address.street.placeholder')}
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <FieldSet className="space-y-4">
+                  <FieldLegend variant="label">Adresse</FieldLegend>
+                  
+                  <Field name={`emergencyContacts.${index}.address.street`} control={form.control}>
+                    <FieldLabel>{t_inputs('address.street.label')}</FieldLabel>
+                    <Input
+                      {...form.register(`emergencyContacts.${index}.address.street`)}
+                      value={form.watch(`emergencyContacts.${index}.address.street`) ?? ''}
+                      placeholder={t_inputs('address.street.placeholder')}
+                      autoComplete={getEmergencyContactAutocomplete('street', index as 0 | 1)}
+                    />
+                    <FieldError />
+                  </Field>
 
-                  {/* Complement */}
-                  <FormField
-                    control={form.control}
-                    name={`emergencyContacts.${index}.address.complement`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t_inputs('address.complement.label')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            value={field.value ?? ''}
-                            placeholder={t_inputs('address.complement.placeholder')}
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <Field name={`emergencyContacts.${index}.address.complement`} control={form.control}>
+                    <FieldLabel>{t_inputs('address.complement.label')}</FieldLabel>
+                    <Input
+                      {...form.register(`emergencyContacts.${index}.address.complement`)}
+                      value={form.watch(`emergencyContacts.${index}.address.complement`) ?? ''}
+                      placeholder={t_inputs('address.complement.placeholder')}
+                      autoComplete={getEmergencyContactAutocomplete('complement', index as 0 | 1)}
+                    />
+                    <FieldError />
+                  </Field>
 
-                  {/* City and Postal Code */}
                   <div className="grid grid-cols-2 gap-4">
-                    {/* City */}
-                    <FormField
-                      control={form.control}
-                      name={`emergencyContacts.${index}.address.city`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t_inputs('address.city.label')}</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder={t_inputs('address.city.placeholder')}
-                            />
-                          </FormControl>
-                          <TradFormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <Field name={`emergencyContacts.${index}.address.city`} control={form.control}>
+                      <FieldLabel>{t_inputs('address.city.label')}</FieldLabel>
+                      <Input
+                        {...form.register(`emergencyContacts.${index}.address.city`)}
+                        value={form.watch(`emergencyContacts.${index}.address.city`) ?? ''}
+                        placeholder={t_inputs('address.city.placeholder')}
+                        autoComplete={getEmergencyContactAutocomplete('city', index as 0 | 1)}
+                      />
+                      <FieldError />
+                    </Field>
 
-                    {/* Postal Code */}
-                    <FormField
-                      control={form.control}
-                      name={`emergencyContacts.${index}.address.postalCode`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t_inputs('address.postalCode.label')}</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value ?? ''}
-                              placeholder={t_inputs('address.postalCode.placeholder')}
-                            />
-                          </FormControl>
-                          <TradFormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <Field name={`emergencyContacts.${index}.address.postalCode`} control={form.control}>
+                      <FieldLabel>{t_inputs('address.postalCode.label')}</FieldLabel>
+                      <Input
+                        {...form.register(`emergencyContacts.${index}.address.postalCode`)}
+                        value={form.watch(`emergencyContacts.${index}.address.postalCode`) ?? ''}
+                        placeholder={t_inputs('address.postalCode.placeholder')}
+                        autoComplete={getEmergencyContactAutocomplete('postalCode', index as 0 | 1)}
+                      />
+                      <FieldError />
+                    </Field>
                   </div>
 
-                  {/* Country - Readonly/Disabled to enforce requirement */}
-                  <FormField
-                    control={form.control}
-                    name={`emergencyContacts.${index}.address.country`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t_inputs('address.country.label')}</FormLabel>
-                        <FormControl>
-                          <CountrySelect
-                            type="single"
-                            selected={field.value as CountryCode}
-                            onChange={field.onChange}
-                            disabled={true}
-                            options={field.value ? [field.value as CountryCode] : []}
-                          />
-                        </FormControl>
-                        <TradFormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                  <Field name={`emergencyContacts.${index}.address.country`} control={form.control}>
+                    <FieldLabel>{t_inputs('address.country.label')}</FieldLabel>
+                    <CountrySelect
+                      type="single"
+                      selected={form.watch(`emergencyContacts.${index}.address.country`) as CountryCode}
+                      onChange={(val) => form.setValue(`emergencyContacts.${index}.address.country`, val)}
+                      disabled={true}
+                      options={form.watch(`emergencyContacts.${index}.address.country`) ? [form.watch(`emergencyContacts.${index}.address.country`) as CountryCode] : []}
+                    />
+                    <FieldError />
+                  </Field>
+                </FieldSet>
               </div>
             ))}
-          </div>
-        </div>
+          </FieldGroup>
+        </FieldSet>
 
         <div className="flex flex-col md:flex-row justify-between gap-4">
           {onPrevious && (

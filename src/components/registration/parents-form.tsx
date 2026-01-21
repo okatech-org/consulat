@@ -2,14 +2,13 @@
 
 import { useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { Form } from '@/components/ui/form';
 import {
-  Form,
-  FormControl,
-  FormItem,
-  FormLabel,
-  FormDescription,
-  TradFormMessage,
-} from '@/components/ui/form';
+  Field,
+  FieldLabel,
+  FieldError,
+  FieldDescription,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from 'next-intl';
 import { Gender, ParentalRole } from '@/convex/lib/constants';
@@ -239,13 +238,18 @@ export function ParentsForm({
                             control={form.control}
                             name={`parents.${index}.firstName`}
                             render={({ field: controllerField, fieldState }) => (
-                              <FormItem>
-                                <FormLabel>{t_inputs('firstName.label')}</FormLabel>
-                                <FormControl>
-                                  <Input {...controllerField} disabled={isLoading} />
-                                </FormControl>
-                                {fieldState.error && <TradFormMessage />}
-                              </FormItem>
+                              <Field data-invalid={fieldState.invalid}>
+                                <FieldLabel htmlFor={`parent-${index}-firstName`}>
+                                  {t_inputs('firstName.label')}
+                                </FieldLabel>
+                                <Input
+                                  {...controllerField}
+                                  id={`parent-${index}-firstName`}
+                                  disabled={isLoading}
+                                  aria-invalid={fieldState.invalid}
+                                />
+                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                              </Field>
                             )}
                           />
 
@@ -253,52 +257,59 @@ export function ParentsForm({
                             control={form.control}
                             name={`parents.${index}.lastName`}
                             render={({ field: controllerField, fieldState }) => (
-                              <FormItem>
-                                <FormLabel>{t_inputs('lastName.label')}</FormLabel>
-                                <FormControl>
-                                  <Input {...controllerField} disabled={isLoading} />
-                                </FormControl>
-                                {fieldState.error && <TradFormMessage />}
-                              </FormItem>
+                              <Field data-invalid={fieldState.invalid}>
+                                <FieldLabel htmlFor={`parent-${index}-lastName`}>
+                                  {t_inputs('lastName.label')}
+                                </FieldLabel>
+                                <Input
+                                  {...controllerField}
+                                  id={`parent-${index}-lastName`}
+                                  disabled={isLoading}
+                                  aria-invalid={fieldState.invalid}
+                                />
+                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                              </Field>
                             )}
                           />
 
                           <Controller
                             control={form.control}
                             name={`parents.${index}.email`}
-                            render={({ field: controllerField }) => (
-                              <FormItem>
-                                <FormLabel>
+                            render={({ field: controllerField, fieldState }) => (
+                              <Field data-invalid={fieldState.invalid}>
+                                <FieldLabel htmlFor={`parent-${index}-email`}>
                                   {t_inputs('email.label')} (optionnel)
-                                </FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...controllerField}
-                                    value={controllerField.value || ''}
-                                    type="email"
-                                    disabled={isLoading}
-                                  />
-                                </FormControl>
-                              </FormItem>
+                                </FieldLabel>
+                                <Input
+                                  {...controllerField}
+                                  id={`parent-${index}-email`}
+                                  value={controllerField.value || ''}
+                                  type="email"
+                                  disabled={isLoading}
+                                  aria-invalid={fieldState.invalid}
+                                />
+                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                              </Field>
                             )}
                           />
 
                           <Controller
                             control={form.control}
                             name={`parents.${index}.phoneNumber`}
-                            render={({ field: controllerField }) => (
-                              <FormItem>
-                                <FormLabel>
+                            render={({ field: controllerField, fieldState }) => (
+                              <Field data-invalid={fieldState.invalid}>
+                                <FieldLabel htmlFor={`parent-${index}-phone`}>
                                   {t_inputs('phone.label')} (optionnel)
-                                </FormLabel>
-                                <FormControl>
-                                  <Input
-                                    {...controllerField}
-                                    value={controllerField.value || ''}
-                                    disabled={isLoading}
-                                  />
-                                </FormControl>
-                              </FormItem>
+                                </FieldLabel>
+                                <Input
+                                  {...controllerField}
+                                  id={`parent-${index}-phone`}
+                                  value={controllerField.value || ''}
+                                  disabled={isLoading}
+                                  aria-invalid={fieldState.invalid}
+                                />
+                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                              </Field>
                             )}
                           />
                         </div>
@@ -318,19 +329,19 @@ export function ParentsForm({
                     <Controller
                       control={form.control}
                       name={`parents.${index}.role`}
-                      render={({ field: controllerField }) => (
-                        <FormItem>
-                          <FormLabel>{t('parents.role')}</FormLabel>
+                      render={({ field: controllerField, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor={`parent-${index}-role`}>
+                            {t('parents.role')}
+                          </FieldLabel>
                           <Select
                             onValueChange={controllerField.onChange}
                             value={controllerField.value}
                             disabled={isLoading}
                           >
-                            <FormControl>
-                              <SelectTrigger className="w-[200px]">
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
+                            <SelectTrigger id={`parent-${index}-role`} className="w-[200px]" aria-invalid={fieldState.invalid}>
+                              <SelectValue />
+                            </SelectTrigger>
                             <SelectContent>
                               <SelectItem value={ParentalRole.Father}>
                                 {t('parents.roles.father')}
@@ -343,7 +354,8 @@ export function ParentsForm({
                               </SelectItem>
                             </SelectContent>
                           </Select>
-                        </FormItem>
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
                       )}
                     />
                   </CardContent>
@@ -362,7 +374,7 @@ export function ParentsForm({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <FormDescription>{t('parents.search_user_description')}</FormDescription>
+            <FieldDescription>{t('parents.search_user_description')}</FieldDescription>
             <Popover open={showSearch} onOpenChange={setShowSearch}>
               <PopoverTrigger asChild>
                 <Button

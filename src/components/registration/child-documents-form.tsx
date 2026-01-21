@@ -5,13 +5,12 @@ import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, ScanBarcode } from 'lucide-react';
+import { Form } from '@/components/ui/form';
+import { Controller } from 'react-hook-form';
 import {
-  Form,
-  FormField,
-  TradFormMessage,
-  FormItem,
-  FormControl,
-} from '@/components/ui/form';
+  Field,
+  FieldError,
+} from '@/components/ui/field';
 import { toast } from 'sonner';
 import { DocumentType, OwnerType } from '@/convex/lib/constants';
 import { UserDocument } from '../documents/user-document';
@@ -144,25 +143,23 @@ export function ChildDocumentsForm({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <FormField
-                  control={form.control}
+                <Controller
                   name={doc.id}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <UserDocument
-                          document={field.value as Doc<'documents'>}
-                          expectedType={doc.expectedType}
-                          label={doc.label}
-                          description={doc.description}
-                          required={doc.required}
-                          disabled={isLoading}
-                          profileId={profile._id}
-                          ownerType={OwnerType.ChildProfile}
-                        />
-                      </FormControl>
-                      <TradFormMessage />
-                    </FormItem>
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <UserDocument
+                        document={field.value as Doc<'documents'>}
+                        expectedType={doc.expectedType}
+                        label={doc.label}
+                        description={doc.description}
+                        required={doc.required}
+                        disabled={isLoading}
+                        profileId={profile._id}
+                        ownerType={OwnerType.ChildProfile}
+                      />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
                   )}
                 />
               </motion.div>
