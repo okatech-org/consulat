@@ -82,8 +82,8 @@ export default async function LandingPage() {
         </div>
 
         <div className="box-container relative mx-auto px-4 sm:px-6 lg:px-8 max-w-screen-xl">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            <AnimatedSection animation="fade-right" className="max-w-3xl">
+          <div className="grid items-start gap-8 lg:gap-12 lg:grid-cols-2 overflow-hidden">
+            <AnimatedSection animation="fade-right" className="w-full max-w-3xl overflow-hidden">
               <h1 className="mb-6 font-bold tracking-tight flex flex-col">
                 <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl bg-gradient-to-r from-[#FEAA37] to-[#FEAA37] bg-clip-text text-transparent drop-shadow-sm">
                   {t('home.landing.hero.consulat_ga')}
@@ -102,24 +102,23 @@ export default async function LandingPage() {
                   className={buttonVariants({
                     size: 'lg',
                     className:
-                      'relative group block w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 px-6 rounded-lg text-base font-medium text-center shadow-lg shadow-blue-500/20 dark:shadow-blue-500/10 transition-all duration-300 overflow-hidden',
+                      'relative group block w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 px-6 rounded-lg text-base font-medium text-center shadow-lg shadow-blue-500/20 dark:shadow-blue-500/10 transition-all duration-300 overflow-hidden',
                   })}
                 >
                   {t('home.landing.hero.citizen_space')}
                   <ArrowRight className="size-4" />
                 </Link>
-                <Link
-                  href={`mailto:okatech@icloud.com`}
-                  className={buttonVariants({
-                    size: 'lg',
-                    variant: 'outline',
-                    className:
-                      'gap-2 border-blue-300 bg-white hover:bg-gray-50 text-blue-700 dark:border-blue-700 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-blue-400 home-button-secondary',
-                  })}
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="w-full sm:w-auto border-blue-300 bg-white hover:bg-gray-50 text-blue-700 dark:border-blue-700 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-blue-400 home-button-secondary"
                 >
-                  {t('home.landing.hero.government_space')}
-                  <ArrowRight className="size-4" />
-                </Link>
+                  <Link href={`mailto:okatech@icloud.com`}>
+                    {t('home.landing.hero.government_space')}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
               </div>
 
               <div className="mt-8 flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
@@ -128,9 +127,9 @@ export default async function LandingPage() {
               </div>
             </AnimatedSection>
 
-            <AnimatedSection animation="fade-left" className="flex justify-center">
-              <div>
-                <div>
+            <AnimatedSection animation="fade-left" className="flex justify-center overflow-hidden">
+              <div className="w-full overflow-hidden">
+                <div className="w-full overflow-hidden">
                   <h3 className="text-xl font-bold text-blue-700 dark:text-blue-500 mb-4">
                     {t('home.landing.consulat_digital.title')}
                   </h3>

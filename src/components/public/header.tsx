@@ -46,8 +46,7 @@ export  function PublicHeader() {
           {user && !loading && <NavUser />}
           {!user && !loading && <Button 
               variant="default" 
-              size="mobile"
-              weight="medium"
+              size="default"
               asChild
             >
               <Link prefetch href={ROUTES.auth.login}>
