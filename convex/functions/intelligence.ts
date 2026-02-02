@@ -282,6 +282,98 @@ export const getProfiles = query({
     ),
   },
   handler: async (ctx, args) => {
+    // For hasNotes filter, we need a different approach
+    if (args.filters?.hasNotes === true) {
+      // Get profiles that have intelligence notes
+      const allNotes = await ctx.db.query('intelligenceNotes').collect();
+      const profileIdsWithNotes = [...new Set(allNotes.map((n) => n.profileId))];
+
+      // Get only those profiles (limited by pagination)
+      const profilesRaw = await Promise.all(
+        profileIdsWithNotes.map((id) => ctx.db.get(id)),
+      );
+      let profiles = profilesRaw.filter((p): p is NonNullable<typeof p> => p !== null);
+
+      // Apply other filters
+      if (args.filters?.search) {
+        const searchTerm = args.filters.search.toLowerCase();
+        profiles = profiles.filter(
+          (profile) =>
+            profile.personal.firstName?.toLowerCase().includes(searchTerm) ||
+            profile.personal.lastName?.toLowerCase().includes(searchTerm),
+        );
+      }
+
+      if (args.filters?.nationality) {
+        profiles = profiles.filter(
+          (profile) => profile.personal.nationality === args.filters!.nationality,
+        );
+      }
+
+      if (args.filters?.birthCountry) {
+        profiles = profiles.filter(
+          (profile) => profile.personal.birthCountry === args.filters!.birthCountry,
+        );
+      }
+
+      // Sort by creation time
+      profiles.sort((a, b) => (b._creationTime || 0) - (a._creationTime || 0));
+
+      // Pagination BEFORE enrichment
+      const total = profiles.length;
+      const skip = (args.page - 1) * args.limit;
+      const paginatedProfiles = profiles.slice(skip, skip + args.limit);
+
+      // Enrich only paginated profiles
+      const enrichedProfiles = await Promise.all(
+        paginatedProfiles.map(async (profile) => {
+          const intelligenceNotes = await ctx.db
+            .query('intelligenceNotes')
+            .withIndex('by_profile', (q) => q.eq('profileId', profile._id))
+            .take(3);
+
+          const noteCount = allNotes.filter((n) => n.profileId === profile._id).length;
+          const user = await ctx.db.get(profile.userId);
+
+          return {
+            ...profile,
+            id: profile._id,
+            intelligenceNotes: intelligenceNotes.map((note) => ({
+              id: note._id,
+              type: note.type,
+              priority: note.priority,
+              title: note.title,
+              createdAt: note.createdAt,
+            })),
+            _count: {
+              intelligenceNotes: noteCount,
+            },
+            user:
+              user && 'email' in user && 'firstName' in user
+                ? {
+                    id: user._id,
+                    name:
+                      `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() ||
+                      null,
+                    email: (user as any).email || null,
+                  }
+                : undefined,
+          };
+        }),
+      );
+
+      return {
+        profiles: enrichedProfiles,
+        pagination: {
+          page: args.page,
+          limit: args.limit,
+          total,
+          totalPages: Math.ceil(total / args.limit),
+        },
+      };
+    }
+
+    // Standard flow: paginate BEFORE enriching
     let profiles = await ctx.db.query('profiles').collect();
 
     // Apply filters
@@ -306,13 +398,25 @@ export const getProfiles = query({
       );
     }
 
-    // Enrich with intelligence notes and user data
+    // For hasNotes: false, we need to filter out profiles with notes
+    // We'll check this after pagination to minimize reads
+
+    // Sort by creation time
+    profiles.sort((a, b) => (b._creationTime || 0) - (a._creationTime || 0));
+
+    // Pagination BEFORE enrichment to avoid too many reads
+    const skip = (args.page - 1) * args.limit;
+    // If filtering by hasNotes: false, we need to fetch more to account for filtering
+    const fetchLimit = args.filters?.hasNotes === false ? args.limit * 3 : args.limit;
+    const paginatedProfiles = profiles.slice(skip, skip + fetchLimit);
+
+    // Enrich only the paginated subset
     const enrichedProfiles = await Promise.all(
-      profiles.map(async (profile) => {
+      paginatedProfiles.map(async (profile) => {
         const intelligenceNotes = await ctx.db
           .query('intelligenceNotes')
           .withIndex('by_profile', (q) => q.eq('profileId', profile._id))
-          .collect();
+          .take(4); // Take 4 to check count > 3 and get 3 for display
 
         const user = await ctx.db.get(profile.userId);
 
@@ -343,26 +447,23 @@ export const getProfiles = query({
       }),
     );
 
-    // Filter by hasNotes if specified
-    let filteredProfiles = enrichedProfiles;
-    if (args.filters?.hasNotes !== undefined) {
-      filteredProfiles = enrichedProfiles.filter((profile) =>
-        args.filters!.hasNotes
-          ? profile._count.intelligenceNotes > 0
-          : profile._count.intelligenceNotes === 0,
-      );
+    // Filter by hasNotes: false if specified
+    let finalProfiles = enrichedProfiles;
+    if (args.filters?.hasNotes === false) {
+      finalProfiles = enrichedProfiles
+        .filter((profile) => profile._count.intelligenceNotes === 0)
+        .slice(0, args.limit);
     }
 
-    // Sort by createdAt (profiles don't have updatedAt)
-    filteredProfiles.sort((a, b) => (b._creationTime || 0) - (a._creationTime || 0));
-
-    // Pagination
-    const total = filteredProfiles.length;
-    const skip = (args.page - 1) * args.limit;
-    const paginatedProfiles = filteredProfiles.slice(skip, skip + args.limit);
+    // For accurate total count when hasNotes is false, we estimate based on current page
+    // This is an approximation since counting all profiles without notes is expensive
+    const total =
+      args.filters?.hasNotes === false
+        ? profiles.length // Approximation
+        : profiles.length;
 
     return {
-      profiles: paginatedProfiles,
+      profiles: finalProfiles,
       pagination: {
         page: args.page,
         limit: args.limit,

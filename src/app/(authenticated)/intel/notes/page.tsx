@@ -76,20 +76,13 @@ export default function NotesPage() {
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedNote, setSelectedNote] = useState<any>(null);
 
-  const notes = useQuery(
-    api.functions.intelligence.getIntelligenceNotes,
-    Object.entries(filters).some(
-      ([key, val]) => key !== 'period' && val !== undefined && val !== '',
-    )
-      ? {
-          filters: {
-            type: filters.type,
-            priority: filters.priority,
-            search: filters.search,
-          },
-        }
-      : 'skip',
-  );
+  const notes = useQuery(api.functions.intelligence.getIntelligenceNotes, {
+    filters: {
+      type: filters.type,
+      priority: filters.priority,
+      search: filters.search || undefined,
+    },
+  });
   const isLoading = notes === undefined;
   const error = null;
   const refetch = () => {};
